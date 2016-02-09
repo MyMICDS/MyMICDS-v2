@@ -1,0 +1,22 @@
+{
+  "name": "mymicds",
+  "version": "2.0.0",
+  "description": "MyMICDS.net for all of your MyMICDS.needs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michaelgira23/MyMICDS-v2.git"
+  },
+  "keywords": [
+    "MyMICDS"
+  ],
+  "author": "MyMICDS Development Team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/michaelgira23/MyMICDS-v2/issues"
+  },
+  "homepage": "https://github.com/michaelgira23/MyMICDS-v2#readme"
+}
