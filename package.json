@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/michaelgira23/MyMICDS-v2#readme",
   "dependencies": {
+    "ejs": "^2.4.1",
     "express": "^4.13.4",
     "express-session": "^1.13.0",
     "socket.io": "^1.4.5",

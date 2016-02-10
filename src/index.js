@@ -31,6 +31,11 @@ var ios = require('socket.io-express-session');
 // TODO: Configure express session (https://github.com/expressjs/session#sessionoptions)
 var session = require('express-session');
 
+/* General Libraries */
+var ejs = require('ejs');
+
+app.set('view engine', 'ejs');
+
 var port = 420;
 server.listen(port, function() {
     console.log('Server listening on *:' + port);
