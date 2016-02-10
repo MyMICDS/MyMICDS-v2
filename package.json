@@ -2,8 +2,9 @@
   "name": "mymicds",
   "version": "2.0.0",
   "description": "MyMICDS.net for all of your MyMICDS.needs",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
+    "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,5 +19,9 @@
   "bugs": {
     "url": "https://github.com/michaelgira23/MyMICDS-v2/issues"
   },
-  "homepage": "https://github.com/michaelgira23/MyMICDS-v2#readme"
+  "homepage": "https://github.com/michaelgira23/MyMICDS-v2#readme",
+  "dependencies": {
+    "express": "^4.13.4",
+    "socket.io": "^1.4.5"
+  }
 }
