@@ -29,7 +29,14 @@ var io = require('socket.io')(server);
 
 var ios = require('socket.io-express-session');
 // TODO: Configure express session (https://github.com/expressjs/session#sessionoptions)
-var session = require('express-session');
+var session = require('express-session')({
+    secret: "130416",
+    resave: false,
+    saveUninitialized: false,
+});
+
+app.use(session);
+io.use(ios(session));
 
 /* General Libraries */
 var ejs = require('ejs');
@@ -42,9 +49,32 @@ server.listen(port, function() {
 });
 
 app.get('/', function(req, res) {
+//	console.log(req.session);
+//	req.session.user = 'mgira';
     res.sendFile(__dirname + '/html/index.html');
 });
 
+app.get('/login', function(req, res) {
+	req.session.user = 'mgira';
+    res.end('Logged in');
+});
+
 io.on('connection', function(socket){
-	console.log('Connection');
+	
+	function emitUsername(username) {
+		socket.emit('username', username);
+	}
+	
+	emitUsername();
+	console.log('user connected');
+	console.log(socket.handshake.session);
+	
+	socket.on('changeUsername', function(username) {
+		socket.handshake.session.user = username;
+		emitUsername();
+	});
+	
+	socket.on('disconnect', function() {
+		console.log('user disconnected');
+	});
 });

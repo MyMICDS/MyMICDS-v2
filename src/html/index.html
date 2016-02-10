@@ -4,10 +4,20 @@
         <title>MyMICDS - Home</title>
     </head>
     <body>
-    
-        <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+		<button>Change Username to 'anerd'</button>
+		<div class="name"></div>
+		<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 		<script>
-		var socket = io.connect();
+			var socket = io.connect();
+			$('button').click(function() {
+				socket.emit('changeUsername', 'anerd');
+			});
+			
+			socket.on('username', function(username) {
+				$('.name').text(username);
+				console.log(username);
+			});
 		</script>
     </body>
 </html>
