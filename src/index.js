@@ -19,6 +19,9 @@ var server = http.Server(app);
 
 var io = require('socket.io')(server);
 
+/* General Libraries */
+var ejs = require('ejs');
+
 /* Session */
 
 /* 
@@ -27,7 +30,7 @@ var io = require('socket.io')(server);
  * https://www.npmjs.com/package/connect-mongo
  */
 
-var ios = require('socket.io-express-session');
+//var ios = require('socket.io-express-session');
 // TODO: Configure express session (https://github.com/expressjs/session#sessionoptions)
 var session = require('express-session')({
     secret: "130416",
@@ -35,11 +38,11 @@ var session = require('express-session')({
     saveUninitialized: false,
 });
 
-app.use(session);
-io.use(ios(session));
+io.use(function(socket, next) {
+    session(socket.request, socket.request.res, next);
+});
 
-/* General Libraries */
-var ejs = require('ejs');
+app.use(session);
 
 app.set('view engine', 'ejs');
 
@@ -49,8 +52,6 @@ server.listen(port, function() {
 });
 
 app.get('/', function(req, res) {
-//	console.log(req.session);
-//	req.session.user = 'mgira';
     res.sendFile(__dirname + '/html/index.html');
 });
 
@@ -59,20 +60,25 @@ app.get('/login', function(req, res) {
     res.end('Logged in');
 });
 
+app.get('/username', function(req, res) {
+    res.end(req.session.user);
+});
+
 io.on('connection', function(socket){
-	
-	function emitUsername(username) {
-		socket.emit('username', username);
-	}
-	
-	emitUsername();
+    
+    socket.emit('username', socket.request.session.user);
+    
 	console.log('user connected');
-	console.log(socket.handshake.session);
+	console.log(socket.request.session);
 	
 	socket.on('changeUsername', function(username) {
-		socket.handshake.session.user = username;
-		emitUsername();
+		socket.request.session.user = username;
+        socket.emit('username', socket.request.session.user);
 	});
+    
+    socket.on('username', function() {
+        socket.emit('username', socket.request.session.user);
+    });
 	
 	socket.on('disconnect', function() {
 		console.log('user disconnected');
