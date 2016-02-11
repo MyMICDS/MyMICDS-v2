@@ -4,24 +4,25 @@
         <title>MyMICDS - Home</title>
     </head>
     <body>
-		<button class="change">Change Username to 'anerd'</button>
-        <button class="refresh">Refresh Username</button>
-		<div class="name"></div>
+		<form class="login-form" method="post" target="/login">
+			<input name="user">
+			<input name="password" type="password">
+			<button>Login</button>
+		</form>
 		<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
 		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 		<script>
 			var socket = io.connect();
-			$('.change').click(function() {
-				socket.emit('changeUsername', 'anerd');
-			});
-            
-            $('.refresh').click(function() {
-                socket.emit('username');
-            });
 			
-			socket.on('username', function(username) {
-				$('.name').text(username);
-				console.log(username);
+			$('.login-form').submit(function() {
+				$.post('login', $('.login-form').serialize(), function(data) {
+					console.log(data);
+				})
+					.fail(function() {
+						console.log('There was an error submitting the login request. Contact support if this keeps happening!');
+					});
+				
+				return false;
 			});
 		</script>
     </body>

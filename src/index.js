@@ -2,14 +2,11 @@ var port = 420;
 
 /* General Libraries */
 
+var bodyParser = require('body-parser')
 var ejs = require('ejs');
 var http = require('http');
 var https = require('https');
 var io = require('socket.io')(server);
-
-/* Custom Libraries */
-
-//var login - require(__dirname + '/libs/login.js');
 
 /* SSL */
 
@@ -43,18 +40,26 @@ var session = require('express-session')({
 io.use(function(socket, next) {
     session(socket.request, socket.request.res, next);
 });
+
+// Configure Express Middleware
+
 app.use(session);
+
+app.use( bodyParser.json() );   // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
+	extended: true
+}));
+
 app.set('view engine', 'ejs');
+
+/* Custom Libraries */
+
+var login = require(__dirname + '/libs/login.js')(app);
 
 /* Routes */
 
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/html/index.html');
-});
-
-app.get('/login', function(req, res) {
-	req.session.user = 'mgira';
-    res.end('Logged in');
 });
 
 app.get('/username', function(req, res) {
