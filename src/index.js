@@ -1,5 +1,15 @@
+var port = 420;
+
+/* General Libraries */
+
+var ejs = require('ejs');
 var http = require('http');
 var https = require('https');
+var io = require('socket.io')(server);
+
+/* Custom Libraries */
+
+//var login - require(__dirname + '/libs/login.js');
 
 /* SSL */
 
@@ -17,11 +27,6 @@ var express = require('express');
 var app = express();
 var server = http.Server(app);
 
-var io = require('socket.io')(server);
-
-/* General Libraries */
-var ejs = require('ejs');
-
 /* Session */
 
 /* 
@@ -30,26 +35,18 @@ var ejs = require('ejs');
  * https://www.npmjs.com/package/connect-mongo
  */
 
-//var ios = require('socket.io-express-session');
-// TODO: Configure express session (https://github.com/expressjs/session#sessionoptions)
 var session = require('express-session')({
     secret: "130416",
     resave: false,
     saveUninitialized: false,
 });
-
 io.use(function(socket, next) {
     session(socket.request, socket.request.res, next);
 });
-
 app.use(session);
-
 app.set('view engine', 'ejs');
 
-var port = 420;
-server.listen(port, function() {
-    console.log('Server listening on *:' + port);
-});
+/* Routes */
 
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/html/index.html');
@@ -63,6 +60,8 @@ app.get('/login', function(req, res) {
 app.get('/username', function(req, res) {
     res.end(req.session.user);
 });
+
+/* Socket.io */
 
 io.on('connection', function(socket){
     
@@ -83,4 +82,8 @@ io.on('connection', function(socket){
 	socket.on('disconnect', function() {
 		console.log('user disconnected');
 	});
+});
+
+server.listen(port, function() {
+    console.log('Server listening on *:' + port);
 });
