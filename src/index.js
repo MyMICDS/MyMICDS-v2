@@ -1,21 +1,5 @@
 var port = 420;
 
-/* I am a Mon-god */
-
-var MongoClient = require('mongodb').MongoClient;
-var assert = require('assert');
-
-// Connection URL
-/*var url = 'mongodb://45.56.70.141';
-
-// Use connect method to connect to the Server
-MongoClient.connect(url, function(err, db) {
-    assert.equal(null, err);
-    console.log("Connected correctly to server");
-    
-    db.close();
-});*/
-
 /* General Libraries */
 
 var bodyParser = require('body-parser')
@@ -40,6 +24,25 @@ var express = require('express');
 var app = express();
 var server = http.Server(app);
 
+/* Make sure you have a config.js initialized */
+
+try {
+    var config = require(__dirname + '/libs/config.js');
+} catch(e) {
+    throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.JS.EXAMPLE***');
+}
+
+/* Connect to the MongoDB Database */
+
+var MongoClient = require('mongodb').MongoClient;
+var assert = require('assert');
+
+MongoClient.connect(config.mongodbURI, function(err, db) {
+    assert.equal(null, err);
+    console.log("Successfully connected to the MongoDB database");
+    db.close();
+});
+
 /* Session */
 
 /* 
@@ -49,7 +52,7 @@ var server = http.Server(app);
  */
 
 var session = require('express-session')({
-    secret: "130416",
+    secret: config.expressSessionSecret,
     resave: false,
     saveUninitialized: false,
 });
@@ -61,16 +64,15 @@ io.use(function(socket, next) {
 
 app.use(session);
 
-app.use( bodyParser.json() );   // to support JSON-encoded bodies
+app.use(bodyParser.json());     // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
-	extended: true
+    extended: true
 }));
 
 app.set('view engine', 'ejs');
 
 /* Custom Libraries */
 
-var login = require(__dirname + '/libs/login.js')(app);
 
 /* Routes */
 
@@ -81,6 +83,8 @@ app.get('/', function(req, res) {
 app.get('/username', function(req, res) {
     res.end(req.session.user);
 });
+
+require(__dirname + '/routes/login.js')(app);
 
 /* Socket.io */
 
