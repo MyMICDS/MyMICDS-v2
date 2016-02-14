@@ -2,7 +2,8 @@ var port = 420;
 
 /* General Libraries */
 
-var bodyParser = require('body-parser')
+var bcrypt = require('bcrypt');
+var bodyParser = require('body-parser');
 var ejs = require('ejs');
 var http = require('http');
 var https = require('https');
@@ -35,12 +36,17 @@ try {
 /* Connect to the MongoDB Database */
 
 var MongoClient = require('mongodb').MongoClient;
-var assert = require('assert');
 
+// Connect to the db
 MongoClient.connect(config.mongodbURI, function(err, db) {
-    assert.equal(null, err);
-    console.log("Successfully connected to the MongoDB database");
-    db.close();
+    if(!err) {
+        console.log('Successfully connected to the MongoDB databse');
+    }
+    
+    var userdata = db.collection('users');
+    userdata.find().toArray(function(err, items) {
+        console.log(items);
+    });
 });
 
 /* Session */
@@ -70,9 +76,6 @@ app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
 }));
 
 app.set('view engine', 'ejs');
-
-/* Custom Libraries */
-
 
 /* Routes */
 
