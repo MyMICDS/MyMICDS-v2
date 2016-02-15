@@ -1,3 +1,7 @@
+/**
+ * @file Main file of the whole project.
+ */
+
 var port = 420;
 
 /* General Libraries */

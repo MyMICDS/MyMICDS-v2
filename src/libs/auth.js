@@ -1,4 +1,8 @@
 /**
+ * @file Defines authorization-related functions.
+ */
+
+/**
  * Validates a user's credentials
  * 
  * @param {string} user - Username

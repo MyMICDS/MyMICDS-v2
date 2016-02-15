@@ -1,3 +1,7 @@
+/**
+ * @file Manages login POST requests.
+ */
+
 var auth = require(__dirname + '/../libs/auth.js');
 
 module.exports = function(app) {

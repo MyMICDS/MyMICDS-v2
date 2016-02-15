@@ -2,6 +2,15 @@
   "name": "mymicds",
   "version": "2.0.0",
   "description": "MyMICDS.net for all of your MyMICDS.needs",
+  "contributors": [
+    {
+      "name": "Nick Clifford",
+      "email": "nick@nickclifford.me"
+    }, {
+      "name": "Michael Gira",
+      "email": "contact@michaelgira.me"
+    } 
+  ],
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
@@ -17,7 +26,8 @@
   "author": "MyMICDS Development Team",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/michaelgira23/MyMICDS-v2/issues"
+    "url": "https://github.com/michaelgira23/MyMICDS-v2/issues",
+    "email": "support@mymicds.net"
   },
   "homepage": "https://github.com/michaelgira23/MyMICDS-v2#readme",
   "dependencies": {
