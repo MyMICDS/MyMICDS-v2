@@ -4,7 +4,7 @@
 
 var port = 420;
 
-/* General Libraries */
+/** Requires various general libraries. */
 
 var bcrypt = require('bcrypt');
 var bodyParser = require('body-parser');
@@ -23,13 +23,13 @@ var credentials =
 };
 */
 
-/* Express */
+/** Requires Express and creates session variables. */
 
 var express = require('express');
 var app = express();
 var server = http.Server(app);
 
-/* Make sure you have a config.js initialized */
+/** Makes sure you have a config.js initialized. */
 
 try {
     var config = require(__dirname + '/libs/config.js');
@@ -37,29 +37,24 @@ try {
     throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.JS.EXAMPLE***');
 }
 
-/* Connect to the MongoDB Database */
+/** Initializes MongoDB driver and connects to database. */
 
 var MongoClient = require('mongodb').MongoClient;
 
-// Connect to the db
 MongoClient.connect(config.mongodbURI, function(err, db) {
-    if(!err) {
-        console.log('Successfully connected to the MongoDB databse');
+    if(err) {
+        console.error('Unable to establish connection to MongoDB. Error: ' + err)
+    } else {
+        console.log('Successfully connected to the MongoDB database');
+        
+        var userdata = db.collection('users');
+        userdata.find().toArray(function(err, items) {
+            console.log(items);
+        });
     }
-    
-    var userdata = db.collection('users');
-    userdata.find().toArray(function(err, items) {
-        console.log(items);
-    });
 });
 
-/* Session */
-
-/* 
- * IMPORTANT: Do not use the default MemoryStore session store. It is not designed for a production environment.
- * If you do use the default store then you should pass the same session instance to express and socket app (data are saved in memory).
- * https://www.npmjs.com/package/connect-mongo
- */
+/** Initializes Express session. */
 
 var session = require('express-session')({
     secret: config.expressSessionSecret,
@@ -70,7 +65,7 @@ io.use(function(socket, next) {
     session(socket.request, socket.request.res, next);
 });
 
-// Configure Express Middleware
+/** Configures Express engine & bodies. */
 
 app.use(session);
 
@@ -81,7 +76,7 @@ app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
 
 app.set('view engine', 'ejs');
 
-/* Routes */
+/** Configures routes. */
 
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/html/index.html');
@@ -93,7 +88,7 @@ app.get('/username', function(req, res) {
 
 require(__dirname + '/routes/login.js')(app);
 
-/* Socket.io */
+/** Initializes Socket.io protocol. */
 
 io.on('connection', function(socket){
     

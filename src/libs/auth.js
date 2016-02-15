@@ -1,9 +1,11 @@
 /**
  * @file Defines authorization-related functions.
+ * @module auth
  */
 
 /**
- * Validates a user's credentials
+ * Validates a user's credentials.
+ * @function login
  * 
  * @param {string} user - Username
  * @param {string} password - Plaintext password
@@ -16,7 +18,8 @@ function login(user, password) {
 }
 
 /**
- * Logs a user out
+ * Logs a user out.
+ * @function register
  * 
  * @param {string} user - Username
  * @returns {Boolean|string} Returns true if successful, returns message if logout fails
@@ -28,7 +31,8 @@ function logout(user) {
 }
 
 /**
- * Registers a user by adding their credentials into the database
+ * Registers a user by adding their credentials into the database.
+ * @function register
  * 
  * @param {Object} user - User's credentials
  * @param {string} user.user - User's username ___@micds.org

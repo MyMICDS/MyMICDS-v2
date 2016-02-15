@@ -1,5 +1,6 @@
 /**
  * @file Manages login POST requests.
+ * @module login
  */
 
 var auth = require(__dirname + '/../libs/auth.js');
