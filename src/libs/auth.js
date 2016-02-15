@@ -7,38 +7,42 @@
  * Validates a user's credentials.
  * @function login
  * 
+ * @param {Object} session - Express Session of Request
  * @param {string} user - Username
  * @param {string} password - Plaintext password
  * @returns {Boolean|string} Returns true if login is successful, returns message if login fails
  * 
  */
 
-function login(user, password) {
-    return "Invalid password!";
+function login(session, user, password) {
+    session.user = user;
+    return true;
 }
 
 /**
  * Logs a user out.
  * @function register
  * 
- * @param {string} user - Username
- * @returns {Boolean|string} Returns true if successful, returns message if logout fails
+ * @param {Object} session - Express Session of Request
+ * @returns {Boolean|Object} Returns true if successful, returns error object if logout fails
  * 
  */
 
-function logout(user) {
-    return true;
+function logout(session) {
+    session.destroy(function(err) {
+        return err;
+    });
 }
 
 /**
- * Registers a user by adding their credentials into the database.
+ * Registers a user by adding their credentials into the database. Also sends email confirmation.
  * @function register
  * 
  * @param {Object} user - User's credentials
- * @param {string} user.user - User's username ___@micds.org
+ * @param {string} user.user - Username (___@micds.org)
+ * @param {string} user.password - User's plaintext password
  * @param {string} user.firstName - User's first name
  * @param {string} user.lastName - User's last name
- * @param {string} user.password - User's plaintext password
  * @param {Number} user.gradYear - User's graduation year (Ex. Class of 2019)
  * 
  * @returns {Boolean|string} Returns true if successful, returns message if register fails

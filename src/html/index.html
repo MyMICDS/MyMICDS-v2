@@ -2,20 +2,38 @@
 <html>
     <head>
         <title>MyMICDS - Home</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     </head>
     <body>
-		<form class="login-form" method="post" target="/login">
-			<input name="user">
-			<input name="password" type="password">
-			<button>Login</button>
-		</form>
+        <div class="container">
+            <h1>Username: <span class="username"></span></h1>
+            
+            <h3>Login Form</h3>
+            <form class="login-form" method="post" target="/login">
+                <input class="form-control" name="user" placeholder="Username">
+                <input class="form-control" name="password" type="password" placeholder="Password">
+                <button class="btn btn-info">Login</button>
+            </form>
+            
+            <h3>Register Form</h3>
+            <form class="register-form" method="post" target="/register">
+                <input class="form-control" name="user" placeholder="Username">
+                <input class="form-control" name="password" type="password" placeholder="Password">
+                <input class="form-control" name="firstName" placeholder="First Name">
+                <input class="form-control" name="lastName" placeholder="Last Name">
+                <input class="form-control" name="gradYear" placeholder="Graduation Year">
+                <button class="btn btn-info">Register</button>
+            </form>
+        </div>
+        
 		<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
 		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 		<script>
 			var socket = io.connect();
 			
-			$('.login-form').submit(function() {
-				$.post('login', $('.login-form').serialize(), function(data) {
+			$('form').submit(function() {
+				$.post($(this).attr('target'), $('.login-form').serialize(), function(data) {
 					console.log(data);
 				})
 					.fail(function() {
@@ -24,6 +42,11 @@
 				
 				return false;
 			});
+            
+            socket.emit('username');
+            socket.on('username', function(username) {
+                $('.username').text(username);
+            });
 		</script>
     </body>
 </html>

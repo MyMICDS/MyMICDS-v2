@@ -11,7 +11,7 @@ module.exports = function(app) {
         var user = req.body.user;
         var password = req.body.password;
         
-        var loginResponse = auth.login(user, password);
+        var loginResponse = auth.login(req.session, user, password);
         
         if(loginResponse === true) {
             var success = true;
@@ -31,4 +31,15 @@ module.exports = function(app) {
 		res.json(responseJSON);
 		
 	});
+    
+    app.post('/logout', function(req, res) {
+        var logoutResponse = auth.logout(req.session);
+        if(!logoutResponse) {
+            // TODO: Implement some kind of error notification
+        }
+    });
+    
+    app.post('/register', function(req, res) {
+        var registerResponse = auth.register();
+    });
 }
