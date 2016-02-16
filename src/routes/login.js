@@ -35,7 +35,9 @@ module.exports = function(app) {
     app.post('/logout', function(req, res) {
         var logoutResponse = auth.logout(req.session);
         if(!logoutResponse) {
-            // TODO: Implement some kind of error notification
+            /**
+	     * @todo Implement some kind of error notification
+	     */
         }
     });
     
