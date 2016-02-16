@@ -16,7 +16,7 @@
   "scripts": {
     "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "docs": "./node_modules/.bin/jsdoc -c conf.json ."
+    "docs": "./node_modules/.bin/jsdoc -c jsdoc_conf.json ."
   },
   "repository": {
     "type": "git",
