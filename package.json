@@ -6,15 +6,17 @@
     {
       "name": "Nick Clifford",
       "email": "nick@nickclifford.me"
-    }, {
+    },
+    {
       "name": "Michael Gira",
       "email": "contact@michaelgira.me"
-    } 
+    }
   ],
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs": "./node_modules/.bin/jsdoc -d docs -r .."
   },
   "repository": {
     "type": "git",
@@ -36,6 +38,7 @@
     "ejs": "^2.4.1",
     "express": "^4.13.4",
     "express-session": "^1.13.0",
+    "jsdoc": "^3.4.0",
     "mongodb": "^2.1.7",
     "socket.io": "^1.4.5"
   }
