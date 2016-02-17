@@ -7,6 +7,8 @@ var auth = require(__dirname + '/../libs/auth.js');
 module.exports = function(app) {
 	app.post('/login', function(req, res) {
 		
+		console.log(req.body);
+		
         var user = req.body.user;
         var password = req.body.password;
         

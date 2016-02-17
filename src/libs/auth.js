@@ -3,6 +3,8 @@
  * @module auth
  */
 
+var config = require(__dirname + '/requireconfig.js');
+
 var bcrypt = require('bcrypt');
 var MongoClient = require('mongodb').MongoClient;
 

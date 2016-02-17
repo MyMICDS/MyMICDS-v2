@@ -3,6 +3,7 @@
  */
 
 var port = 420;
+var config = require(__dirname + '/libs/requireconfig.js');
 
 /** General Libraries */
 
@@ -29,20 +30,6 @@ var express = require('express');
 var app = express();
 var server = http.Server(app);
 var io = require('socket.io')(server);
-
-/**
- * Makes sure you have a config.js initialized
- */
-
-try {
-    var config = require(__dirname + '/libs/config.js');
-} catch(e) {
-    throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.JS.EXAMPLE***');
-}
-
-if(!config.expressSessionSecret || !config.mongodbURI) {
-    throw new Error('***YOU HAVE CREATED A CONFIG.JS PROPERLY, BUT NOT ALL THE INFORMATION IS FILLED OUT***');
-}
 
 /**
  * Initializes MongoDB driver and connects to database.
