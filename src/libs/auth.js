@@ -3,6 +3,74 @@
  * @module auth
  */
 
+var bcrypt = require('bcrypt');
+
+/**
+ * Hashes a given password
+ * @function hashPassword
+ * 
+ * @param {string} password - Password to be hashed
+ * @param {hashPasswordCallback}
+ */
+
+/**
+ * Callback after the password is hashed
+ * @callback hashPasswordCallback
+ * 
+ * @param {Object} err - Error
+ * @param {String} hash - Encrypted password
+ */
+
+function hashPassword(password, callback) {
+    bcrypt.hash(password, 9, function(err, hash) {
+        callback(err, hash);
+    });
+}
+
+/**
+ * Determines if a given password matches the encrypted one in the database
+ * @function comparePassword
+ * 
+ * @param {String} user - User that's trying to log in
+ * @param {String} password - Unencrypted password
+ * @param {comparePasswordCallback}
+ */
+
+/**
+ * Callback after the password is compared
+ * @callback comparePasswordCallback
+ * 
+ * @param {Object} err - Error
+ * @param {Object} res - Response
+ */
+
+function comparePassword(user, password, callback) {
+    
+    var MongoClient = require('mongodb').MongoClient;
+
+    MongoClient.connect(config.mongodbURI, function(err, db) {
+        if(err) {
+            console.error('Unable to establish connection to MongoDB. Error: ' + err)
+        } else {
+            console.log('Successfully connected to the MongoDB database');
+
+            var userdata = db.collection('users');
+            userdata.find({user: user}).next(function(err, doc) {
+                if(!err) {
+                    var hash = doc[0]['password'];
+                    
+                    bcrypt.compare(password, hash, function(err, res) {
+                        callback(err, res);
+                    });
+                } else {
+                    console.log('There was an error querying the database');
+                }
+            });
+        }
+    });
+    
+}
+
 /**
  * Validates a user's credentials.
  * @function login
@@ -50,6 +118,25 @@ function logout(session) {
  */
 
 function register(user) {
+    
+    // Checks that all required parameters are there
+    
+    var required = [
+        user.user,
+        user.password,
+        user.firstName,
+        user.lastName,
+        user.gradYear,
+    ];
+    
+    var dataSet = required.every(elem => typeof elem !== undefined);
+    
+    if(dataSet) {
+        // Do other stuff
+    } else {
+        return 'Not all data is filled out!';
+    }
+    
     return true;
 }
 

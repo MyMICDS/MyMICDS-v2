@@ -6,7 +6,6 @@ var port = 420;
 
 /** General Libraries */
 
-var bcrypt = require('bcrypt');
 var bodyParser = require('body-parser');
 var ejs = require('ejs');
 var http = require('http');
@@ -49,7 +48,7 @@ if(!config.expressSessionSecret || !config.mongodbURI) {
  * Initializes MongoDB driver and connects to database.
  */
 
-var MongoClient = require('mongodb').MongoClient;
+/*var MongoClient = require('mongodb').MongoClient;
 
 MongoClient.connect(config.mongodbURI, function(err, db) {
     if(err) {
@@ -62,7 +61,7 @@ MongoClient.connect(config.mongodbURI, function(err, db) {
             console.log(items);
         });
     }
-});
+});*/
 
 /**
  * Initialize Express Session
