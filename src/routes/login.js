@@ -34,13 +34,26 @@ module.exports = function(app) {
     app.post('/logout', function(req, res) {
         var logoutResponse = auth.logout(req.session);
         if(!logoutResponse) {
-            /**
-	     * @todo Implement some kind of error notification
-	     */
+            /** @todo Implement some kind of error notification */
         }
     });
     
     app.post('/register', function(req, res) {
-        var registerResponse = auth.register();
+		var user =
+			{
+				user      : req.body.user,
+				password  : req.body.password,
+				firstName : req.body.firstName,
+				lastName  : req.body.lastname,
+				gradYear  : req.body.gradYear,
+			};
+		
+        var registerResponse = auth.register(user);
+		
+		if(registerResponse) {
+			/** @todo Login successful notification */
+		} else {
+			/** @todo Login failed notification */
+		}
     });
 }

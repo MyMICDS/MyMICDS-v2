@@ -4,6 +4,7 @@
  */
 
 var bcrypt = require('bcrypt');
+var MongoClient = require('mongodb').MongoClient;
 
 /**
  * Hashes a given password
@@ -22,7 +23,7 @@ var bcrypt = require('bcrypt');
  */
 
 function hashPassword(password, callback) {
-    bcrypt.hash(password, 9, function(err, hash) {
+    bcrypt.hash(password, 10, function(err, hash) {
         callback(err, hash);
     });
 }
@@ -45,9 +46,7 @@ function hashPassword(password, callback) {
  */
 
 function comparePassword(user, password, callback) {
-    
-    var MongoClient = require('mongodb').MongoClient;
-
+	
     MongoClient.connect(config.mongodbURI, function(err, db) {
         if(err) {
             console.error('Unable to establish connection to MongoDB. Error: ' + err)
@@ -56,6 +55,8 @@ function comparePassword(user, password, callback) {
 
             var userdata = db.collection('users');
             userdata.find({user: user}).next(function(err, doc) {
+				
+				db.close();
                 if(!err) {
                     var hash = doc[0]['password'];
                     
@@ -72,6 +73,24 @@ function comparePassword(user, password, callback) {
 }
 
 /**
+ * Confirms a user's account if hash matches
+ * @function confirm
+ * 
+ * @param {string} user - Username
+ * @returns {Boolean|string} Returns true if confirmation is successful, returns message if an error
+ */
+
+function confirm(user, hash) {
+	MongoClient.connect(config.mongodbURI, function(err, db) {
+		if(!err) {
+			/** @todo Query database for hash, update if hash matches */
+		} else {
+			return 'Can\'t connect to the database!';
+		}
+	});
+}
+
+/**
  * Validates a user's credentials.
  * @function login
  * 
@@ -83,8 +102,17 @@ function comparePassword(user, password, callback) {
  */
 
 function login(session, user, password) {
-    session.user = user;
-    return true;
+    comparePassword(user, password, function(err, res) {
+		if(!err) {
+			if(res) {
+				// Login is successful!
+			} else {
+				// Login failed
+			}
+		} else {
+			/** @todo Implement error if password comparison fails */
+		}
+	});
 }
 
 /**
@@ -98,7 +126,7 @@ function login(session, user, password) {
 
 function logout(session) {
     session.destroy(function(err) {
-        return err;
+        return err ? err : true;
     });
 }
 
@@ -129,10 +157,60 @@ function register(user) {
         user.gradYear,
     ];
     
-    var dataSet = required.every(elem => typeof elem !== undefined);
+    var dataSet = required.every(elem => typeof elem !== undefined && elem !== null);
     
     if(dataSet) {
-        // Do other stuff
+		
+		// Upsert user into the database
+		MongoClient.connect(config.mongodbURI, function(err, db) {
+			if(!err) {
+				
+				var userdata = db.collection('users');
+				
+				userdata.find({user: user.user}).toArray().then(function(results) {
+					
+					if(results.length === 0 || !results[0]['confirmed']) {
+						// Hash Password
+						hashPassword(user.password, function(err, hash) {
+							if(!err) {
+
+								userdata.update({user: user.user}, {
+									user      : user.user,
+									password  : user.password,
+									firstName : user.firstName,
+									lastName  : user.lastName,
+									gradYear  : user.gradYear,
+									confirmed : false,
+								}, {upsert: true}, function(err, data) {
+
+									db.close();
+									if(!err) {
+										
+										/** @todo Email confirmation */
+										
+										return true;
+									} else {
+										return 'There was a problem inserting the account into the database!';
+									}
+								});
+
+							} else {
+								db.close();
+								return 'Something went wrong when we tried to encrypt your password!';
+							}
+						});
+					} else {
+						db.close();
+						return 'User has already registered an account!';
+					}
+				});
+				
+			} else {
+				db.close();
+				return 'Can\'t connect to database!';
+			}
+		});
+		
     } else {
         return 'Not all data is filled out!';
     }
