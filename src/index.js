@@ -84,10 +84,6 @@ app.get('/', function(req, res) {
     res.sendFile(__dirname + '/html/index.html');
 });
 
-app.get('/username', function(req, res) {
-    res.end(req.session.user);
-});
-
 require(__dirname + '/routes/login.js')(app);
 
 /**
