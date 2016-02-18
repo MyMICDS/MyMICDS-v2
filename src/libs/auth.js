@@ -57,7 +57,7 @@ function comparePassword(user, password, callback) {
 				db.close();
 				console.log(doc);
                 if(!err) {
-					if(typeof doc['password'] !== undefined) {
+					if(doc !== null && typeof doc['password'] !== undefined) {
 						var hash = doc['password'];
 						
 						bcrypt.compare(password, hash, function(err, res) {
@@ -69,7 +69,7 @@ function comparePassword(user, password, callback) {
 						});
 						
 					} else {
-						callback('"Password" field doesn\'t exist in database!');
+						callback('Username doesn\'t exist!');
 					}
                 } else {
 					callback('There was an error querying the database');
