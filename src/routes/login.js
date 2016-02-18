@@ -7,20 +7,27 @@ var auth = require(__dirname + '/../libs/auth.js');
 module.exports = function(app) {
 	app.post('/login', function(req, res) {
 		
-		console.log(req.body);
-		
         var user = req.body.user;
         var password = req.body.password;
         
-        auth.login(req.body, user, password, function(response) {
+        auth.login(user, password, function(response) {
 			
+            console.log('reponse: ' + response);
+            
 			if(response === true) {
 				var success = true;
-				var responseMessage = "Success!";
+				var responseMessage = 'Success!';
+                
+                req.session.user = user.toLowerCase();
 			} else {
-				var success = false;
-				var responseMessage = response;
-			}
+                var success = false;
+                
+                if(response === false) {
+                    var responseMessage = 'Invalid password!';
+                } else {
+                    var responseMessage = response;
+                }
+            }
 			
 			var responseJSON =
 			{
@@ -43,16 +50,18 @@ module.exports = function(app) {
     });
     
     app.post('/register', function(req, res) {
+        
 		var user =
 			{
 				user      : req.body.user,
 				password  : req.body.password,
 				firstName : req.body.firstName,
-				lastName  : req.body.lastname,
+				lastName  : req.body.lastName,
 				gradYear  : req.body.gradYear,
 			};
 		
         auth.register(user, function(response) {
+            console.log(response);
 			if(response === true) {
 				/** @todo Send confirmation email */
 			} else {

@@ -21,7 +21,7 @@ var MongoClient = require('mongodb').MongoClient;
  * @callback hashPasswordCallback
  * 
  * @param {Object} err - Error
- * @param {String} hash - Encrypted password
+ * @param {string} hash - Encrypted password
  */
 
 function hashPassword(password, callback) {
@@ -55,7 +55,6 @@ function comparePassword(user, password, callback) {
             userdata.find({user: user}).next(function(err, doc) {
 				
 				db.close();
-				console.log(doc);
                 if(!err) {
 					if(doc !== null && typeof doc['password'] !== undefined) {
 						var hash = doc['password'];
@@ -64,7 +63,7 @@ function comparePassword(user, password, callback) {
 							if(!err) {
 								callback(res);
 							} else {
-								callback('Passwords do not match');
+								callback('There was an error comparing your password with the database!');
 							}
 						});
 						
@@ -87,6 +86,7 @@ function comparePassword(user, password, callback) {
  * @function confirm
  * 
  * @param {string} user - Username
+ * @param [string] hash- Hashed password from the database
  * @param {confirmCallback}
  */
 
@@ -111,7 +111,6 @@ function confirm(user, hash, callback) {
  * Validates a user's credentials.
  * @function login
  * 
- * @param {Object} session - Express Session of Request
  * @param {string} user - Username
  * @param {string} password - Plaintext password
  * @param {loginCallback}
@@ -124,12 +123,13 @@ function confirm(user, hash, callback) {
  * @param {Boolean|string} True if successful, string if error occured
  */
 
-function login(session, user, password, callback) {
+function login(user, password, callback) {
     comparePassword(user, password, function(response) {
 		if(response === true) {
-			session.user = user.toLowerCase();
-		}
-		callback(response);
+			callback(true);
+		} else {
+            callback(response);
+        }
 	});
 }
 
@@ -166,7 +166,7 @@ function register(user, callback) {
         user.gradYear,
     ];
     
-    var dataSet = required.every(elem => typeof elem !== undefined && elem !== null);
+    var dataSet = required.every(elem => typeof elem !== undefined && elem !== '');
     
     if(dataSet) {
 		
@@ -185,7 +185,7 @@ function register(user, callback) {
 
 								userdata.update({user: user.user}, {
 									user      : user.user,
-									password  : user.password,
+									password  : hash,
 									firstName : user.firstName,
 									lastName  : user.lastName,
 									gradYear  : user.gradYear,

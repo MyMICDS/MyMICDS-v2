@@ -33,11 +33,11 @@
 			var socket = io.connect();
 			
 			$('form').submit(function() {
-				$.post($(this).attr('target'), $('.login-form').serialize(), function(data) {
+				$.post($(this).attr('target'), $(this).serialize(), function(data) {
 					console.log(data);
 				})
 					.fail(function() {
-						console.log('There was an error submitting the login request. Contact support if this keeps happening!');
+						console.log('There was an error submitting the form. Contact support if this keeps happening!');
 					});
 				
 				return false;
