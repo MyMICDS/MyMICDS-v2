@@ -8,6 +8,12 @@ var config = require(__dirname + '/requireconfig.js');
 var bcrypt = require('bcrypt');
 var MongoClient = require('mongodb').MongoClient;
 
+// for scalability
+var allFunctions = [
+	"login",
+	"register",
+];
+
 /**
  * Hashes a given password
  * @function hashPassword
@@ -225,5 +231,6 @@ function register(user, callback) {
     }
 }
 
-module.exports.login = login;
-module.exports.register = register;
+allFunctions.forEach(function(element) {
+	module.exports[element] = eval(element);
+});
