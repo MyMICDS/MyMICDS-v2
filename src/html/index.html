@@ -8,6 +8,8 @@
         <div class="container">
             <h1>Username: <span class="username"></span></h1>
             
+            <button class="logout btn btn-danger">Logout</button>
+            
             <h3>Login Form</h3>
             <form class="login-form" method="post" target="/login">
                 <input class="form-control" name="user" placeholder="Username">
@@ -42,6 +44,12 @@
 				
 				return false;
 			});
+            
+            $('.logout').click(function() {
+                $.post('/logout', function(data) {
+                    console.log(data);
+                });
+            });
             
             socket.emit('username');
             socket.on('username', function(username) {

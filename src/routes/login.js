@@ -43,9 +43,11 @@ module.exports = function(app) {
     
     app.post('/logout', function(req, res) {
         req.session.destroy(function(err) {
-			if(err) {
-				/** @todo Implement some kind of error notification */
-			}
+			if(!err) {
+				res.json({success: true, message: 'Logged out!'});
+			} else {
+                res.json({success: false, message: 'There was an error logging out.'});
+            }
 		});
     });
     
