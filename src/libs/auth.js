@@ -5,6 +5,8 @@
 
 var config      = require(__dirname + '/requireConfig.js');
 var bcrypt      = require('bcrypt');
+var fs          = require('fs');
+var mail        = require(__dirname + '/mail.js');
 var MongoClient = require('mongodb').MongoClient;
 
 // for scalability
@@ -187,23 +189,45 @@ function register(user, callback) {
 						// Hash Password
 						hashPassword(user.password, function(err, hash) {
 							if(!err) {
-
-								userdata.update({user: user.user}, {
-									user      : user.user,
-									password  : hash,
-									firstName : user.firstName,
-									lastName  : user.lastName,
-									gradYear  : user.gradYear,
-									confirmed : false,
-								}, {upsert: true}, function(err, data) {
+                                
+                                var newUser =
+                                    {
+                                        user      : user.user.toLowerCase(),
+                                        password  : hash,
+                                        firstName : user.firstName,
+                                        lastName  : user.lastName,
+                                        gradYear  : user.gradYear,
+                                        confirmed : false,
+                                    }
+                                
+								userdata.update({user: newUser.user}, newUser, {upsert: true}, function(err, data) {
 
 									db.close();
 									if(!err) {
 										
-										/** @todo Email confirmation */
-										
-										callback(true);
+                                        fs.readFile(__dirname + '/../html/messages/register.html', 'utf8', function(err, data) {
+                                            if(!err) {
+                                                var message =
+                                                    {
+                                                        subject : 'Confirm your Account',
+                                                        html    : data,
+                                                    }
+
+                                                mail.send(newUser.user + '@micds.org', message, function(response) {
+                                                    if(response === true) {
+                                                        callback(true);
+                                                    } else {
+                                                        callback('There was an error sending the confirmation email!');
+                                                    }
+                                                });
+
+                                            } else {
+                                                callback('There was an error sending the confirmation email!');
+                                            }
+                                        });
+                                        
 									} else {
+                                        
 										callback('There was a problem inserting the account into the database!');
 									}
 								});

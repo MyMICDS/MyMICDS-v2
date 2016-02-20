@@ -3,9 +3,10 @@
  * @module mail
  */
 
-var config     = require(__dirname + '/requireConfig.js');
-var fs         = require('fs');
-var nodemailer = require('nodemailer');
+var config      = require(__dirname + '/requireConfig.js');
+var fs          = require('fs');
+var MongoClient = require('mongodb').MongoClient;
+var nodemailer  = require('nodemailer');
 
 /**
  * Sends mail to the desired user
@@ -16,7 +17,7 @@ var nodemailer = require('nodemailer');
  * @param {Object} message - JSON containing details of message
  * @param {string} message.subject - Subject of email
  * @param {string} message.html - HTML message
- * @param {string} message.plaintext - Plaintext alternative if HTML is not supported on user's mail client
+ * @param {string} [message.plaintext] - Plaintext alternative if HTML is not supported on user's mail client
  * 
  * @param {sendCallback}
  */
@@ -35,7 +36,6 @@ function send(users, message, callback) {
     var required = [
         message.subject,
         message.html,
-        message.plaintext,
     ];
     
     var dataSet = required.every(elem => typeof elem !== undefined && elem !== '');
@@ -49,15 +49,19 @@ function send(users, message, callback) {
                 to        : users.toString(),
                 subject   : message.subject,
                 html      : message.html,
-                text      : message.plaintext,
             }
+        
+        // Optional Plaintext
+        if(typeof message.plaintext !== undefined) {
+            mailOptions.plaintext = message.plaintext;
+        }
         
         transporter.sendMail(mailOptions, function(error, info) {
             if(callback && typeof(callback) === "function") {
                 if(!error) {
                     callback(true);
                 } else {
-                    callback(error);
+                    callback('There was an error sending the email!');
                 }
             }
         });
