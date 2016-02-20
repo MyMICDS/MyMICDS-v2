@@ -13,8 +13,6 @@ var http       = require('http');
 var https      = require('https');
 var mail       = require(__dirname + '/libs/mail.js');
 
-mail.send(['mgira@micds.org', 'support@mymicds.net'], {subject: 'ur a nerd', html: 'html email', plaintext: 'plaintext email'});
-
 /* SSL */
 
 /*
