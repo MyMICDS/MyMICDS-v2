@@ -12,7 +12,7 @@ var nodemailer  = require('nodemailer');
  * Sends mail to the desired user
  * @function send
  * 
- * @param {Object} users - Array of emails to send message to
+ * @param {string|Object} users - Single email string, OR an array of multiple emails
  * 
  * @param {Object} message - JSON containing details of message
  * @param {string} message.subject - Subject of email
@@ -71,4 +71,52 @@ function send(users, message, callback) {
     }
 }
 
-module.exports.send = send;
+/**
+ * Sends an email with supplied HTML file, can insert custom data into HTML file
+ * @function sendHTML
+ * 
+ * @param {string|Object} users - Single email string, OR an array of multiple emails
+ * @param {string} subject - Subject of email
+ * @param {string} file - Path to HTML file
+ * @param {Object} data - JSON of custom data. (Ex. Replace '{{firstName}}' in HTML by putting 'firstName: Michael' in the JSON)
+ * @param {sendHTMLCallback}
+ */
+
+/**
+ * Callback after sending the HTML email
+ * @callback sendHTMLCallback
+ * 
+ * @param {Boolean|string} response - True if message successfully sends, a string if an error occurs
+ */
+
+function sendHTML(users, subject, file, data, callback) {
+    fs.readFile(file, 'utf8', function(err, body) {
+        if(!err) {
+            
+            // Replace JSON Key values with custom data
+            
+            for(var key in data) {
+                body = body.replace('{{' + key + '}}', data[key]);
+                console.log('Replaced ' + key + ' with ' + data[key]);
+            }
+            
+            var mesesage =
+                {
+                    subject : subject,
+                    html    : body,
+                }
+            
+            if(callback && typeof(callback) === "function") {
+                send(users, mesesage, callback);
+            } else {
+                send(users, mesesage);
+            }
+            
+        } else if(callback && typeof(callback) === "function") {
+            callback('An error occured reading the HTML file at specified path!');
+        }
+    });
+}
+
+module.exports.send     = send;
+module.exports.sendHTML = sendHTML;

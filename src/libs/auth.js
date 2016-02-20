@@ -4,13 +4,15 @@
  */
 
 var config      = require(__dirname + '/requireConfig.js');
+var crypto      = require('crypto');
 var bcrypt      = require('bcrypt');
 var fs          = require('fs');
 var mail        = require(__dirname + '/mail.js');
 var MongoClient = require('mongodb').MongoClient;
 
-// for scalability
-var allFunctions = [
+// Systematically export all objects per name
+var exports = [
+    "confirm",
 	"login",
 	"register",
 ];
@@ -186,57 +188,66 @@ function register(user, callback) {
 				userdata.find({user: user.user}).toArray().then(function(results) {
 					
 					if(results.length === 0 || !results[0]['confirmed']) {
-						// Hash Password
-						hashPassword(user.password, function(err, hash) {
-							if(!err) {
+                        
+                        // Generate confirmation email hash
+                        crypto.randomBytes(16, function(err, buf) {
+                            if(!err) {
                                 
-                                var newUser =
-                                    {
-                                        user      : user.user.toLowerCase(),
-                                        password  : hash,
-                                        firstName : user.firstName,
-                                        lastName  : user.lastName,
-                                        gradYear  : user.gradYear,
-                                        confirmed : false,
-                                    }
+                                var hash = buf.toString('hex');
                                 
-								userdata.update({user: newUser.user}, newUser, {upsert: true}, function(err, data) {
+                                // Hash Password
+                                hashPassword(user.password, function(err, hashedPassword) {
+                                    if(!err) {
 
-									db.close();
-									if(!err) {
-										
-                                        fs.readFile(__dirname + '/../html/messages/register.html', 'utf8', function(err, data) {
+                                        var newUser =
+                                            {
+                                                user             : user.user.toLowerCase(),
+                                                password         : hashedPassword,
+                                                firstName        : user.firstName,
+                                                lastName         : user.lastName,
+                                                gradYear         : user.gradYear,
+                                                confirmed        : false,
+                                                confirmationHash : hash,
+                                            }
+
+                                        userdata.update({user: newUser.user}, newUser, {upsert: true}, function(err, data) {
+
+                                            db.close();
                                             if(!err) {
-                                                var message =
-                                                    {
-                                                        subject : 'Confirm your Account',
-                                                        html    : data,
-                                                    }
 
-                                                mail.send(newUser.user + '@micds.org', message, function(response) {
+                                                var email = newUser.user + '@micds.org';
+                                                
+                                                var emailReplace =
+                                                    {
+                                                        firstName   : newUser.firstName,
+                                                        lastName    : newUser.lastName,
+                                                        confirmLink : 'https://mymicds.net/confirm/' + newUser.user + '/' + hash,
+                                                    }
+                                                
+                                                mail.sendHTML(email, 'Confirm your Account', __dirname + '/../html/messages/register.html', emailReplace, function(response) {
                                                     if(response === true) {
                                                         callback(true);
+
                                                     } else {
                                                         callback('There was an error sending the confirmation email!');
                                                     }
                                                 });
 
                                             } else {
-                                                callback('There was an error sending the confirmation email!');
+                                                callback('There was a problem inserting the account into the database!');
                                             }
                                         });
-                                        
-									} else {
-                                        
-										callback('There was a problem inserting the account into the database!');
-									}
-								});
 
-							} else {
-								db.close();
-								callback('Something went wrong when we tried to encrypt your password!');
-							}
-						});
+                                    } else {
+                                        db.close();
+                                        callback('Something went wrong when we tried to encrypt your password!');
+                                    }
+                                });
+                            } else {
+                                callback('Couldn\'t generate a confirmation hash!');
+                            }
+                        });
+                        
 					} else {
 						db.close();
 						callback('User has already registered an account!');
@@ -254,6 +265,6 @@ function register(user, callback) {
     }
 }
 
-allFunctions.forEach(function(element) {
+exports.forEach(function(element) {
 	module.exports[element] = eval(element);
 });

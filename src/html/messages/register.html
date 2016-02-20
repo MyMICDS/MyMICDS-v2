@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
     <body style="font-family: Arial, sans-serif; margin-bottom: 1em;">
-        <div style="background: #E4E4E4; border-bottom: 0.5em #C9C9C9 solid; border-radius: 0.25em; margin: 1em 10%; padding: 0.5em 1em;">
-            <h3>Dear Michael Gira,</h3>
+        <div style="background: #E4E4E4; border-bottom: 0.5em #C9C9C9 solid; border-radius: 0.25em; color: #333; margin: 1em 10%; padding: 0.5em 1em;">
+            <h3>Dear {{firstName}} {{lastName}},</h3>
             <p>Thanks for signing up! Now, a haiku about signing up:</p>
             <p>
                 MyMICD
@@ -12,13 +12,13 @@
                 Nor room for '.net'
             </p>
         </div>
-        <p style="font-size: 1.3em; text-align: center;">
+        <p style="color: #333; font-size: 1.3em; text-align: center;">
             Thank you.
             <br>
             <small>~MyMICDS Development Team</small>
         </p>
         <div style="text-align: center">
-            <a href="#" style="background: #29ABE2; border-bottom: 0.2em #006837 solid; border-radius: 0.25em; color: #006837; font-size: 1.5em; font-weight: bold; padding: 0.25em; text-decoration: none;">
+            <a href="{{confirmLink}}" style="background: #29ABE2; border-bottom: 0.2em #006837 solid; border-radius: 0.25em; color: #006837; font-size: 1.5em; font-weight: bold; padding: 0.25em; text-decoration: none;">
                 Click Here to Confirm your Account
             </a>
         </div>
