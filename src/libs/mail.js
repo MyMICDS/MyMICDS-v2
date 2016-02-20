@@ -49,7 +49,7 @@ function send(users, message, callback) {
                 to        : users.toString(),
                 subject   : message.subject,
                 html      : message.html,
-                text : message.plaintext,
+                text      : message.plaintext,
             }
         
         transporter.sendMail(mailOptions, function(error, info) {

@@ -1,6 +1,6 @@
 'use strict';
 
-var Lunch = require('./getLunch.js');
+var Lunch = require(__dirname + '/getLunch.js');
 var ejs = require('ejs')
 var getLunch = new Lunch;
 var lunchObject = {};
@@ -9,7 +9,7 @@ var lunchApp = express();
 
 var templateString = null;
 var fs = require('fs');
-var templateString = fs.readFileSync('./html/lunch.ejs', 'utf-8');
+var templateString = fs.readFileSync(__dirname + '/html/lunch.ejs', 'utf-8');
 
 getLunch.on("end", function (l) {
 	lunchObject = l;
