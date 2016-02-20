@@ -8,7 +8,7 @@ try {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.JS.EXAMPLE***');
 }
 
-if(!config.expressSessionSecret || !config.mongodbURI) {
+if(!config.email || !config.expressSessionSecret || !config.mongodbURI) {
 	throw new Error('***YOU HAVE CREATED A CONFIG.JS PROPERLY, BUT NOT ALL THE INFORMATION IS FILLED OUT***');
 }
 

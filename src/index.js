@@ -3,14 +3,17 @@
  */
 
 var port = 420;
-var config = require(__dirname + '/libs/requireconfig.js');
+var config = require(__dirname + '/libs/requireConfig.js');
 
 /** General Libraries */
 
 var bodyParser = require('body-parser');
-var ejs = require('ejs');
-var http = require('http');
-var https = require('https');
+var ejs        = require('ejs');
+var http       = require('http');
+var https      = require('https');
+var mail       = require(__dirname + '/libs/mail.js');
+
+mail.send(['mgira@micds.org', 'support@mymicds.net'], {subject: 'ur a nerd', html: 'html email', plaintext: 'plaintext email'});
 
 /* SSL */
 
@@ -27,9 +30,9 @@ var credentials =
  */
 
 var express = require('express');
-var app = express();
-var server = http.Server(app);
-var io = require('socket.io')(server);
+var app     = express();
+var server  = http.Server(app);
+var io      = require('socket.io')(server);
 
 /**
  * Initializes MongoDB driver and connects to database.
@@ -55,9 +58,9 @@ MongoClient.connect(config.mongodbURI, function(err, db) {
  */
 
 var session = require('express-session')({
-    secret: config.expressSessionSecret,
-    resave: false,
-    saveUninitialized: false,
+    secret            : config.expressSessionSecret,
+    resave            : false,
+    saveUninitialized : false,
 });
 io.use(function(socket, next) {
     session(socket.request, socket.request.res, next);

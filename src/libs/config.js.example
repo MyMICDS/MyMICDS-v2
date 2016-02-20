@@ -4,7 +4,15 @@
  * Require the requireconfig.js in order to use this JSON data.
  */
 
-module.exports = {
-    "expressSessionSecret": "",
-    "mongodbURI": "",
+module.exports =
+{
+    email:
+    {
+        URI       : "",
+        fromEmail : "",
+        fromName  : "",
+    },
+    
+    expressSessionSecret : "",
+    mongodbURI           : "",
 }
