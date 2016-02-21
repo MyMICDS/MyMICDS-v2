@@ -84,11 +84,8 @@ function parseLunch(body, callback) {
                     
                     // Add to JSON
                     
-                    json.push(date);
                     json[date] = [];
-                    json[date].push(school);
                     json[date][school] = [];
-                    json[date][school].push(categoryTitle);
                     
                     json[date][school]['title'] = lunchTitle;
                     
