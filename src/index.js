@@ -11,6 +11,7 @@ var bodyParser = require('body-parser');
 var ejs        = require('ejs');
 var http       = require('http');
 var https      = require('https');
+var lunch      = require(__dirname + '/libs/lunch.js');
 var mail       = require(__dirname + '/libs/mail.js');
 
 /* SSL */
@@ -83,6 +84,13 @@ app.set('view engine', 'ejs');
 
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/html/index.html');
+});
+
+app.get('/lunch', function(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    lunch.getLunch(function(lunchJSON) {
+        res.send(JSON.stringify(lunchJSON, null, 3));
+    });
 });
 
 require(__dirname + '/routes/login.js')(app);

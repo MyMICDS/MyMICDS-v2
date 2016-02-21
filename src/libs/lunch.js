@@ -9,6 +9,31 @@ var cheerio = require('cheerio');
 
 var lunchURL = 'http://www.myschooldining.com/MICDS';
 var schools = ['Lower School', 'Middle School', 'Upper School'];
+var JSONPath = __dirname + '/../api/lunch.json';
+
+/**
+ * Get's the lunch from /src/api/lunch.json. Will create one if it doesn't already exist.
+ * @function getLunch
+ * 
+ * @param {getLunchCallback}
+ */
+
+/**
+ * Callback after lunch is retrieved from /src/api/lunch.json
+ * @callback getLunchCallback
+ * 
+ * @param {Object|Boolean} lunchJSON - JSON of lunch menu for the week, will return false if an error occurs
+ */
+
+function getLunch(callback) {
+    fs.readJSON(JSONPath, function(err, lunch) {
+        if(!err) {
+            callback(lunch);
+        } else {
+            updateLunch(callback);
+        }
+    });
+}
 
 /**
  * Takes the body of the school's lunch page and returns JSON
@@ -95,27 +120,20 @@ function parseLunch(body, callback) {
  * Callback after the updateLunch function
  * @callback updateLunchCallback
  * 
- * @param {Boolean} response - True if success, false if failure
+ * @param {Object|Boolean} response - Updated JSON if success, false if failure
  */
 
 function updateLunch(callback) {
     request(lunchURL, function(error, response, body) {
         if(!error) {
             parseLunch(body, function(response) {
-                fs.mkdirs(__dirname + '/../api', function(err) {
+                fs.outputJSON(JSONPath, response, function(err) {
                     if(!err) {
-                        fs.writeJSON(__dirname + '/../api/lunch.json', response, function(err) {
-                            if(!err) {
-                                callback(true);
-                            } else {
-                                callback(false);
-                            }
-                        });
+                        callback(response);
                     } else {
                         callback(false);
                     }
                 });
-                
             });
         } else {
             callback(false);
@@ -123,5 +141,6 @@ function updateLunch(callback) {
     });
 }
 
+module.exports.getLunch    = getLunch;
 module.exports.parseLunch  = parseLunch;
 module.exports.updateLunch = updateLunch;
