@@ -5,6 +5,13 @@
 var auth = require(__dirname + '/../libs/auth.js');
 
 module.exports = function(app) {
+    
+    app.get('/confirm/:user/:hash', function(req, res) {
+        auth.confirm(req.params.user, req.params.hash, function(response) {
+            res.end(response.toString());
+        });     
+    });
+    
 	app.post('/login', function(req, res) {
 		
         var user = req.body.user;

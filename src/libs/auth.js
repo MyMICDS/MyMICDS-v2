@@ -15,6 +15,7 @@ var exports = [
     "confirm",
 	"login",
 	"register",
+    "safeCompare",
 ];
 
 /**
@@ -65,7 +66,7 @@ function comparePassword(user, password, callback) {
 				
 				db.close();
                 if(!err) {
-					if(doc !== null && typeof doc['password'] !== undefined) {
+					if(doc !== null) {
 						var hash = doc['password'];
 						
 						bcrypt.compare(password, hash, function(err, res) {
@@ -91,6 +92,33 @@ function comparePassword(user, password, callback) {
 }
 
 /**
+ * Always use protection- against timing attacks, kids!
+ * @function safeCompare
+ * @param a - Raw string (This is what the user inputs)
+ * @param b - Comparison string (This is the string WE have)
+ */
+
+function safeCompare(a, b) {
+
+    if(typeof a !== 'string' || typeof b !== 'string') {
+        return false;
+    }
+
+    var mismatch = (a.length === b.length ? 0 : 1);
+    if(mismatch) {
+        b = a;
+    }
+
+    for(var i = 0; i < a.length; ++i) {
+        var ac = a.charCodeAt(i);
+        var bc = b.charCodeAt(i);
+        mismatch |= (ac ^ bc);
+    }
+
+    return (mismatch === 0);
+};
+
+/**
  * Confirms a user's account if hash matches
  * @function confirm
  * 
@@ -109,7 +137,28 @@ function comparePassword(user, password, callback) {
 function confirm(user, hash, callback) {
 	MongoClient.connect(config.mongodbURI, function(err, db) {
 		if(!err) {
-			/** @todo Query database for hash, update if hash matches */
+			
+            // Query Hash
+            MongoClient.connect(config.mongodbURI, function(err, db) {
+                
+                var userdata = db.collection('users');
+                userdata.find({user: user}).next(function(err, doc) {
+                    console.log(doc, user);
+                    if(doc !== null) {
+                        var dbHash = doc['confirmationHash'];
+                        if(safeCompare(hash, dbHash)) {
+                            userdata.update({user: user.toLowerCase()}, {$set: {confirmed: true}}, function() {
+                                callback(true);
+                            });
+                        } else {
+                            callback('Invalid hash!');
+                        }
+                    } else {
+                        callback('Invalid username!');
+                    }
+                });
+            });
+            
 		} else {
 			callback('There was an error connecting to the database');
 		}
