@@ -3,33 +3,12 @@
  * @module lunch
  */
 
+var fs      = require('node-fs-extra');
 var request = require('request');
 var cheerio = require('cheerio');
 
 var lunchURL = 'http://www.myschooldining.com/MICDS';
 var schools = ['Lower School', 'Middle School', 'Upper School'];
-
-/**
- * Updates the lunch API
- * @function updateLunch
- * 
- * @param {updateLunchCallback}
- */
-
-/**
- * Callback after the updateLunch function
- * @callback updateLunchCallback
- * 
- * @param {Boolean} response - True if success, false if failure
- */
-
-function updateLunch(callback) {
-    request(lunchURL, function(error, response, body) {
-        if(!error) {
-            parseLunch(body, callback);
-        }
-    });
-}
 
 /**
  * Takes the body of the school's lunch page and returns JSON
@@ -43,13 +22,12 @@ function updateLunch(callback) {
  * Callback after the lunch data is parsed
  * @callback parseLunchCallback
  * 
- * @param {Boolean} response - True if success, false if failure
- * @param {Object} lunch - JSON output of lunch, null if failure
+ * @param {Object} lunch - JSON output of lunch
  */
 
 function parseLunch(body, callback) {
     var $ = cheerio.load(body);
-    var json = [];
+    var json = {};
     json['info'] = 'Visit https://mymicds.net/api for more information!';
     
     var table       = $('table#table_calendar_week');
@@ -84,15 +62,15 @@ function parseLunch(body, callback) {
                     
                     // Add to JSON
                     
-                    json[date] = [];
-                    json[date][school] = [];
+                    json[date] = json[date] || {};
+                    json[date][school] = json[date][school] || {};
                     
                     json[date][school]['title'] = lunchTitle;
                     
+                    json[date][school][categoryTitle] = json[date][school][categoryTitle] || [];
+                    
                     food.forEach(function(singularVersionOfFood) {
-                        
-                        json[date][school][categoryTitle] = singularVersionOfFood;
-                        console.log(date, school, categoryTitle, singularVersionOfFood);
+                        json[date][school][categoryTitle].push(singularVersionOfFood);
                     });
                     
                 });
@@ -101,13 +79,49 @@ function parseLunch(body, callback) {
             
         });
         
-        if(index + 1 === weekColumns.length) {
-            console.log(json);
+    });
+    
+    callback(json);
+}
+
+/**
+ * Updates the lunch API and writes it into a JSON file
+ * @function updateLunch
+ * 
+ * @param {updateLunchCallback}
+ */
+
+/**
+ * Callback after the updateLunch function
+ * @callback updateLunchCallback
+ * 
+ * @param {Boolean} response - True if success, false if failure
+ */
+
+function updateLunch(callback) {
+    request(lunchURL, function(error, response, body) {
+        if(!error) {
+            parseLunch(body, function(response) {
+                fs.mkdirs(__dirname + '/../api', function(err) {
+                    if(!err) {
+                        fs.writeJSON(__dirname + '/../api/lunch.json', response, function(err) {
+                            if(!err) {
+                                callback(true);
+                            } else {
+                                callback(false);
+                            }
+                        });
+                    } else {
+                        callback(false);
+                    }
+                });
+                
+            });
+        } else {
+            callback(false);
         }
-        
     });
 }
 
-updateLunch(function(response) {
-    console.log('Response - ' + response);
-});
+module.exports.parseLunch  = parseLunch;
+module.exports.updateLunch = updateLunch;
