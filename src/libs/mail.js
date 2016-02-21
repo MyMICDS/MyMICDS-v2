@@ -45,10 +45,10 @@ function send(users, message, callback) {
 
         var mailOptions =
             {
-                from      : config.email.fromName + ' <' + config.email.fromEmail + '>',
-                to        : users.toString(),
-                subject   : message.subject,
-                html      : message.html,
+                from    : config.email.fromName + ' <' + config.email.fromEmail + '>',
+                to      : users.toString(),
+                subject : message.subject,
+                html    : message.html,
             }
         
         // Optional Plaintext
