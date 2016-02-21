@@ -143,7 +143,7 @@ function confirm(user, hash, callback) {
                 
                 var userdata = db.collection('users');
                 userdata.find({user: user}).next(function(err, doc) {
-                    console.log(doc, user);
+                    
                     if(doc !== null) {
                         var dbHash = doc['confirmationHash'];
                         if(safeCompare(hash, dbHash)) {

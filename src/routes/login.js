@@ -18,8 +18,6 @@ module.exports = function(app) {
         var password = req.body.password;
         
         auth.login(user, password, function(response) {
-			
-            console.log('reponse: ' + response);
             
 			if(response === true) {
 				var success = true;
@@ -42,7 +40,6 @@ module.exports = function(app) {
 				message: responseMessage,
 			};
 			
-			console.log(responseJSON);
 			res.json(responseJSON);
 		});
 		
@@ -70,9 +67,9 @@ module.exports = function(app) {
 			};
 		
         auth.register(user, function(response) {
-            console.log(response);
+            
 			if(response === true) {
-				/** @todo Send confirmation email */
+                /** @todo Implement some kind of success notification */
 			} else {
 				/** @todo Implement some kind of error notification */
 			}
