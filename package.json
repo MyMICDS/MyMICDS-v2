@@ -39,6 +39,7 @@
     "ejs": "^2.4.1",
     "express": "^4.13.4",
     "express-session": "^1.13.0",
+    "forecast.io": "0.0.9",
     "jsdoc": "^3.4.0",
     "mongodb": "^2.1.7",
     "node-fs-extra": "^0.8.1",
