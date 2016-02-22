@@ -5,15 +5,15 @@
  */
 
 module.exports =
-{
-    email:
-    {
-        URI       : "",
-        fromEmail : "",
-        fromName  : "",
-    },
-    
-    expressSessionSecret : "",
-    mongodbURI           : "",
-    forecastAPIKey       : "",
-}
+	{
+		email:
+		{
+			URI       : '',
+			fromEmail : '',
+			fromName  : '',
+		},
+
+		expressSessionSecret : '',
+		mongodbURI           : '',
+		forecastAPIKey       : '',
+	}
