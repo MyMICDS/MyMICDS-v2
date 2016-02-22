@@ -82,6 +82,9 @@ app.set('view engine', 'ejs');
  * Routes
  */
 
+require(__dirname + '/routes/assets.js')(app, express);
+require(__dirname + '/routes/login.js')(app);
+
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/html/index.html');
 });
@@ -93,7 +96,9 @@ app.get('/lunch', function(req, res) {
     });
 });
 
-require(__dirname + '/routes/login.js')(app);
+app.get('/test', function(req, res) {
+	res.sendFile(__dirname + '/html/test.html');
+});
 
 /**
  * Socket.io

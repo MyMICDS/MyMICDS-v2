@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>MyMICDS</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+		<style>
+			@import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800);
+			
+			body {
+				background-image: url('/static/images/backgrounds/middleschool/MacCarpool.jpg');
+				background-size: cover;
+				background-attachment: fixed;
+				
+				font-family: 'Open Sans', sans-serif;
+			}
+			
+			.blur {
+				position: absolute;
+				bottom: 10px;
+				font-family: 'Open Sans', sans-serif;
+				color: white;
+				font-size: 5em;
+				font-weight: 100;
+				text-align: center;
+			}
+			
+			.blur::before {
+				height: 100%;
+				width: 100%;
+				overflow: hidden;
+				z-index: -1;
+				display: block;
+				position: absolute;
+				content: ' ';
+				background-image: url('/static/images/backgrounds/middleschool/MacCarpool.jpg');
+				background-attachment: fixed;
+				background-size: cover;
+				filter: blur(5px);
+			}
+		</style>
+	</head>
+	<body>
+		<div class="blur col-lg-8 col-lg-offset-2">
+			Good Afternoon ( ͡° ͜ʖ ͡° )
+		</div>
+		
+		 	
+
+		<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+	</body>
+</html>
