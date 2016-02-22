@@ -3,7 +3,7 @@
  * @module weather
  */
 
-var config   = require(__dirname + '/requireConfig.js');
+var config   = require(__dirname + '/requireconfig.js');
 var Forecast = require('forecast.io');
 
 var latitude  = 38.658241;
