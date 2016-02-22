@@ -41,6 +41,7 @@
     "express-session": "^1.13.0",
     "forecast.io": "0.0.9",
     "jsdoc": "^3.4.0",
+    "lwip": "0.0.8",
     "mongodb": "^2.1.7",
     "node-fs-extra": "^0.8.1",
     "nodemailer": "^2.2.0",
