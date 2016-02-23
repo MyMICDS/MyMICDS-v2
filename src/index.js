@@ -13,6 +13,7 @@ var http       = require('http');
 var https      = require('https');
 var lunch      = require(__dirname + '/libs/lunch.js');
 var mail       = require(__dirname + '/libs/mail.js');
+var weather    = require(__dirname + '/libs/weather.js');
 
 /* SSL */
 
@@ -98,6 +99,9 @@ app.get('/lunch', function(req, res) {
 
 app.get('/test', function(req, res) {
 	res.sendFile(__dirname + '/html/test.html');
+    weather.getWeather(function(weatherJSON) {
+        console.log(weatherJSON);
+    });
 });
 
 /**

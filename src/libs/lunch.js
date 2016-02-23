@@ -8,7 +8,7 @@ var request = require('request');
 var cheerio = require('cheerio');
 
 var lunchURL = 'http://www.myschooldining.com/MICDS';
-var schools = ['Lower School', 'Middle School', 'Upper School'];
+var schools  = ['Lower School', 'Middle School', 'Upper School'];
 var JSONPath = __dirname + '/../api/lunch.json';
 
 /**
@@ -47,7 +47,7 @@ function getLunch(callback) {
  * Callback after the lunch data is parsed
  * @callback parseLunchCallback
  * 
- * @param {Object} lunch - JSON output of lunch
+ * @param {Object} lunchJSON - JSON output of lunch
  */
 
 function parseLunch(body, callback) {

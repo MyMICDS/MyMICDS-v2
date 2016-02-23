@@ -94,8 +94,8 @@ function comparePassword(user, password, callback) {
 /**
  * Always use protection- against timing attacks, kids!
  * @function safeCompare
- * @param a - Raw string (This is what the user inputs)
- * @param b - Comparison string (This is the string WE have)
+ * @param {string} a - Raw string (This is what the user inputs)
+ * @param {string} b - Comparison string (This is the string WE have)
  */
 
 function safeCompare(a, b) {
@@ -123,7 +123,7 @@ function safeCompare(a, b) {
  * @function confirm
  * 
  * @param {string} user - Username
- * @param [string] hash- Hashed password from the database
+ * @param {string} hash- Hashed password from the database
  * @param {confirmCallback}
  */
 
