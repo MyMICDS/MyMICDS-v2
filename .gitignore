@@ -1,6 +1,6 @@
 docs
 node_modules
 npm-debug.log
-src/libs/config.js
 src/api
+src/libs/config.js
 src/public/json
