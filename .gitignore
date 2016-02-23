@@ -3,3 +3,4 @@ node_modules
 npm-debug.log
 src/libs/config.js
 src/api
+src/public/json
