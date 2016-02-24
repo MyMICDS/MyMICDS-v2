@@ -99,9 +99,6 @@ app.get('/lunch', function(req, res) {
 
 app.get('/test', function(req, res) {
 	res.sendFile(__dirname + '/html/test.html');
-    weather.getWeather(function(weatherJSON) {
-        console.log(weatherJSON);
-    });
 });
 
 /**
