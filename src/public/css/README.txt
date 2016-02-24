@@ -1,0 +1,1 @@
+This is where compiled SCSS or other CSS files are kept.
