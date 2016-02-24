@@ -14,7 +14,8 @@
   ],
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
+    // "prestart": "./node_modules/.bin/node-sass --watch src/public/css/scss:src/public/css",
+    "start": "./node_modules/.bin/nodemon src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "docs": "./node_modules/.bin/jsdoc -c jsdoc_conf.json ."
   },
@@ -44,6 +45,7 @@
     "mongodb": "^2.1.7",
     "node-fs-extra": "^0.8.1",
     "nodemailer": "^2.2.0",
+    "nodemon": "^1.9.0",
     "request": "^2.69.0",
     "socket.io": "^1.4.5"
   }
