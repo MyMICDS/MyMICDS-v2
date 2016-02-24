@@ -6,42 +6,52 @@
 		<style>
 			@import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800);
 			
+            html, body {
+                height: 200em;
+            }
+            
 			body {
 				background-image: url('/static/images/backgrounds/middleschool/MacCarpool.jpg');
 				background-size: cover;
 				background-attachment: fixed;
 				
 				font-family: 'Open Sans', sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding-bottom: 2em;
 			}
-			
-			.blur {
-				position: absolute;
-				bottom: 10px;
-				font-family: 'Open Sans', sans-serif;
-				color: white;
-				font-size: 5em;
-				font-weight: 100;
-				text-align: center;
-			}
-			
-			.blur::before {
-				height: 100%;
-				width: 100%;
-				overflow: hidden;
-				z-index: -1;
-				display: block;
-				position: absolute;
-				content: ' ';
-				background-image: url('/static/images/backgrounds/middleschool/MacCarpool.jpg');
-				background-attachment: fixed;
+            
+            .blur {
+                border: 1px solid white;
+                font-family: 'Open Sans', sans-serif;
+                color: white;
+                font-size: 5em;
+                
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .blur::before {
+                background-image: url('/static/images/backgrounds/middleschool/MacCarpool.jpg');
 				background-size: cover;
-                -webkit-filter: blur(5px);
-				filter: blur(5px);
-			}
+				background-attachment: fixed;
+                
+                position: absolute;
+                content: ' ';
+                z-index: -1;
+                -webkit-filter: blur(10px);
+                filter: blur(10px);
+                
+                /* So the whole thing is blurred */
+                margin: -10px;
+                height: calc(100% + 20px);
+                width: calc(100% + 20px);
+            }
 		</style>
 	</head>
 	<body>
-		<div class="blur col-lg-8 col-lg-offset-2">
+		<div class="blur">
 			Good Afternoon ( ͡° ͜ʖ ͡° )
 		</div>
 		
