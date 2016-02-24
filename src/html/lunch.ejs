@@ -8,11 +8,11 @@
         <div id="lunch_display">
             <ul><% for (var day in lunchObject) { %>
                 <li><%= day + ': ' %>
-                    <ul><% for (var school in lunchObject) { %>
+                    <ul><% for (var school in day) { %>
                         <li><%= school %>
-                            <ul><% for (var section in lunchObject[day]) { %>
+                            <ul><% for (var section in school) { %>
                                 <li><%= section + ': '%>
-                                    <ul><% for (var dish in day[section]) {%>
+                                    <ul><% for (var dish in section) {%>
                                         <li><%= dish + ' | ' %></li>
                                     <% }; %></ul>
                                 </li>
