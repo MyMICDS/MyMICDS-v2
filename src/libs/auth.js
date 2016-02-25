@@ -123,6 +123,56 @@ function safeCompare(a, b) {
 };
 
 /**
+ * Compares the 
+ * @function compareRememberCookie
+ * 
+ * @param {string} user - Username
+ * @param {selector} selector - Selector, first part of cookie
+ * @param {token} token - Token, second part of cookie, SHA-256 hashed version is stored in database
+ * @param {compareRememberCookieCallback}
+ */
+
+/**
+ * Callback after cookie is compared against the database
+ * @callback compareRememberCookieCallback
+ * 
+ * @param {Boolean} response - True if success, false if failure
+ */
+
+function compareRememberCookie(user, selector, token, callback) {
+	var verify = crypto.createVerify('sha256');
+	verify.update(token);
+	var hashedToken = verify.digest('hex');
+	
+	MongoClient.connect(config.mongodbURI, function(err, db) {
+		
+		var userdata = db.collection('users');
+		userdata.find({user: user}).next(function(err, doc) {
+			
+			if(!err) {
+				
+				var dbHash = doc['remember'][selector];
+				if(dbHash && typeof dbHash !== undefined) {
+				
+					if(comparePassword(hashedToken, dbHash)) {
+						/** @todo */
+					} else {
+						callback(false);
+					}
+					
+				} else {
+					callback(false);
+				}
+				
+			} else {
+				callback(false);
+			}
+			
+		});
+	});
+}
+
+/**
  * Creates a selector and a token which can be used for the 'Remember Me' feature
  * @function createRememberCookie
  * 
