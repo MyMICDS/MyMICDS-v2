@@ -105,7 +105,7 @@ module.exports = function(app) {
 			if(response === true) {
                 res.json({success: true, message: 'Message sent to ' + user + '@micds.org!'});
 			} else {
-				res.json({succes: false, message: response});
+                res.json({succes: false, message: response});
 			}
 		});
 		
