@@ -44,12 +44,12 @@ function send(users, message, callback) {
         var transporter = nodemailer.createTransport(config.email.URI);
 
         var mailOptions =
-            {
-                from    : config.email.fromName + ' <' + config.email.fromEmail + '>',
-                to      : users.toString(),
-                subject : message.subject,
-                html    : message.html,
-            }
+        {
+            from   : config.email.fromName + ' <' + config.email.fromEmail + '>',
+            to     : users.toString(),
+            subject: message.subject,
+            html   : message.html,
+        }
         
         // Optional Plaintext
         if(typeof message.plaintext !== undefined) {
@@ -57,7 +57,7 @@ function send(users, message, callback) {
         }
         
         transporter.sendMail(mailOptions, function(error, info) {
-            if(callback && typeof(callback) === "function") {
+            if(callback && typeof(callback) === 'function') {
                 if(!error) {
                     callback(true);
                 } else {
@@ -66,7 +66,7 @@ function send(users, message, callback) {
             }
         });
         
-    } else if(callback && typeof(callback) === "function") {
+    } else if(callback && typeof(callback) === 'function') {
         callback(error)
     }
 }
@@ -102,17 +102,17 @@ function sendHTML(users, subject, file, data, callback) {
             
             var mesesage =
                 {
-                    subject : subject,
-                    html    : body,
+                    subject: subject,
+                    html   : body,
                 }
             
-            if(callback && typeof(callback) === "function") {
+            if(callback && typeof(callback) === 'function') {
                 send(users, mesesage, callback);
             } else {
                 send(users, mesesage);
             }
             
-        } else if(callback && typeof(callback) === "function") {
+        } else if(callback && typeof(callback) === 'function') {
             callback('An error occured reading the HTML file at specified path!');
         }
     });

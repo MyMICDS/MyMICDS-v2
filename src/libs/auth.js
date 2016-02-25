@@ -8,14 +8,17 @@ var crypto      = require('crypto');
 var bcrypt      = require('bcrypt');
 var fs          = require('fs');
 var mail        = require(__dirname + '/mail.js');
+var moment      = require('moment');
 var MongoClient = require('mongodb').MongoClient;
 
 // Systematically export all objects per name
 var exports = [
-    "confirm",
-	"login",
-	"register",
-    "safeCompare",
+    'confirm',
+    'createRememberCookie',
+	'login',
+	'register',
+    'remember',
+    'safeCompare',
 ];
 
 /**
@@ -94,6 +97,7 @@ function comparePassword(user, password, callback) {
 /**
  * Always use protection- against timing attacks, kids!
  * @function safeCompare
+ * 
  * @param {string} a - Raw string (This is what the user inputs)
  * @param {string} b - Comparison string (This is the string WE have)
  */
@@ -117,6 +121,66 @@ function safeCompare(a, b) {
 
     return (mismatch === 0);
 };
+
+/**
+ * Creates a selector and a token which can be used for the 'Remember Me' feature
+ * @function createRememberCookie
+ * 
+ * @param {string} user - Username of cookie
+ * @param {createRememberCookieCallback}
+ */
+
+/**
+ * Callback after creating a 'remember me' cookie
+ * @callback createRememberCookieCallback
+ * 
+ * @param {string|Boolean} selector - Selector to be placed in cookie or false if error
+ * @param {string|Boolean} token - Token to be placed in cookie or false if error
+ */
+
+function createRememberCookie(user, callback) {
+    
+    var expire = moment().add(30, 'days').toDate();
+    crypto.randomBytes(16, function(err, selectorBuf) {
+        
+        var selector = selectorBuf.toString('hex');
+        crypto.randomBytes(32, function(err, tokenBuf) {
+            
+            var token = tokenBuf.toString('hex');
+            
+            // Hash token for database
+            var sha = crypto.createHash('sha256');
+            sha.update(token);
+            var hashedToken = sha.digest('hex');
+            
+            // Insert token and hashed password in database
+            
+            MongoClient.connect(config.mongodbURI, function(err, db) {
+                if(!err) {
+                    
+                    var userdata = db.collection('users');
+                    userdata.update({user: user}, {$addToSet:{remember:{
+                        selector: selector,
+                        token   : hashedToken,
+                        expires : expire,
+                    }}}, function(err) {
+                        
+                        db.close();
+                        if(!err) {
+                            callback(selector, token);
+                        } else {
+                            callback(false, false);
+                        }
+                    });
+                    
+                } else {
+                    callback(false, false);
+                }
+                
+            });
+        });
+    });
+}
 
 /**
  * Confirms a user's account if hash matches
@@ -249,15 +313,15 @@ function register(user, callback) {
                                     if(!err) {
 
                                         var newUser =
-                                            {
-                                                user             : user.user.toLowerCase(),
-                                                password         : hashedPassword,
-                                                firstName        : user.firstName,
-                                                lastName         : user.lastName,
-                                                gradYear         : user.gradYear,
-                                                confirmed        : false,
-                                                confirmationHash : hash,
-                                            }
+                                        {
+                                            user            : user.user.toLowerCase(),
+                                            password        : hashedPassword,
+                                            firstName       : user.firstName,
+                                            lastName        : user.lastName,
+                                            gradYear        : user.gradYear,
+                                            confirmed       : false,
+                                            confirmationHash: hash,
+                                        }
 
                                         userdata.update({user: newUser.user}, newUser, {upsert: true}, function(err, data) {
 
@@ -267,11 +331,11 @@ function register(user, callback) {
                                                 var email = newUser.user + '@micds.org';
                                                 
                                                 var emailReplace =
-                                                    {
-                                                        firstName   : newUser.firstName,
-                                                        lastName    : newUser.lastName,
-                                                        confirmLink : 'https://mymicds.net/confirm/' + newUser.user + '/' + hash,
-                                                    }
+                                                {
+                                                    firstName  : newUser.firstName,
+                                                    lastName   : newUser.lastName,
+                                                    confirmLink: 'https://mymicds.net/confirm/' + newUser.user + '/' + hash,
+                                                }
                                                 
                                                 mail.sendHTML(email, 'Confirm your Account', __dirname + '/../html/messages/register.html', emailReplace, function(response) {
                                                     if(response === true) {
@@ -312,6 +376,30 @@ function register(user, callback) {
     } else {
         callback('Not all data is filled out!');
     }
+}
+
+/**
+ * Checks to see if you have a 'remember me' login cookie. If so, automatically log in. This is Express Middleware, so the params are standard
+ * @function remember
+ * 
+ * @param {Object} req - Request
+ * @param {Object} res - Response
+ * @param {Object} next - Callback function
+ */
+
+function remember(req, res, next) {
+    var cookie = req.cookies.remember;
+    
+    if(cookie && !req.session.user) {
+        var values = cookie.split(':');
+
+        var selector = values[0];
+        var token    = values[1];
+        
+        /** @todo Query Database and evaluate selector and token */
+        
+    }
+    next();
 }
 
 exports.forEach(function(element) {

@@ -44,6 +44,7 @@
     "express-session": "^1.13.0",
     "forecast.io": "0.0.9",
     "jsdoc": "^3.4.0",
+    "moment": "^2.11.2",
     "mongodb": "^2.1.7",
     "node-fs-extra": "^0.8.1",
     "node-sass": "^3.4.2",

@@ -13,9 +13,9 @@ var latitude  = 38.658241;
 var longitude = -90.3974471;
 
 var options =
-    {
-        APIKey: config.forecastAPIKey
-    }
+{
+    APIKey: config.forecastAPIKey
+}
 
 /**
  * Get's weather from forecast.io and returns JSON

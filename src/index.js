@@ -5,27 +5,21 @@
 var port = 420;
 var config = require(__dirname + '/libs/requireConfig.js');
 
-/** General Libraries */
+/*
+ * General Libraries
+ */
 
-var bodyParser = require('body-parser');
-var ejs        = require('ejs');
-var http       = require('http');
-var https      = require('https');
-var lunch      = require(__dirname + '/libs/lunch.js');
-var mail       = require(__dirname + '/libs/mail.js');
-var weather    = require(__dirname + '/libs/weather.js');
-
-/* SSL */
+var auth         = require(__dirname + '/libs/auth.js');
+var bodyParser   = require('body-parser');
+var cookieParser = require('cookie-parser');
+var ejs          = require('ejs');
+var http         = require('http');
+var https        = require('https');
+var lunch        = require(__dirname + '/libs/lunch.js');
+var mail         = require(__dirname + '/libs/mail.js');
+var weather      = require(__dirname + '/libs/weather.js');
 
 /*
-var credentials =
-{
-    key: fs.readFileSync('sslcert/server.key', 'utf8'),
-    cert: fs.readFileSync('sslcert/server.crt', 'utf8'),
-};
-*/
-
-/**
  * Frameworks
  */
 
@@ -35,51 +29,43 @@ var server  = http.Server(app);
 var io      = require('socket.io')(server);
 
 /**
- * Initializes MongoDB driver and connects to database.
+ * Express Middleware
  */
 
-/*var MongoClient = require('mongodb').MongoClient;
+// Cookies
 
-MongoClient.connect(config.mongodbURI, function(err, db) {
-    if(err) {
-        console.error('Unable to establish connection to MongoDB. Error: ' + err)
-    } else {
-        console.log('Successfully connected to the MongoDB database');
-        
-        var userdata = db.collection('users');
-        userdata.find().toArray(function(err, items) {
-            console.log(items);
-        });
-    }
-});*/
+app.use(cookieParser());
 
-/**
- * Initialize Express Session
- */
+// Sessions
 
 var session = require('express-session')({
-    secret            : config.expressSessionSecret,
-    resave            : false,
-    saveUninitialized : false,
+    secret           : config.expressSessionSecret,
+    resave           : false,
+    saveUninitialized: false,
 });
+
+app.use(session);
+
 io.use(function(socket, next) {
     session(socket.request, socket.request.res, next);
 });
 
-/**
- * Express Engine and Body Parser
- */
+// 'Remember Me' Functionality
 
-app.use(session);
+app.use(auth.remember);
+
+// Body Parser for POST Variables
 
 app.use(bodyParser.json());     // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
     extended: true
 }));
 
+// EJS as Default Render Engine
+
 app.set('view engine', 'ejs');
 
-/**
+/*
  * Routes
  */
 
@@ -101,7 +87,7 @@ app.get('/test', function(req, res) {
 	res.sendFile(__dirname + '/html/test.html');
 });
 
-/**
+/*
  * Socket.io
  */
 
