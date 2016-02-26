@@ -123,6 +123,34 @@ function safeCompare(a, b) {
 };
 
 /**
+ * Encrypt a string in SHA-256
+ * @function shaHash
+ * 
+ * @param {string} string - String to be encrypted
+ * @param {shaHashCallback} [callback] - Optional Callback
+ * 
+ * @returns {string}
+ */
+
+/**
+ * Callback after it hashes a string in SHA-256
+ * @callback shaHashCallback
+ * 
+ * @param {string} hash - Hashed string
+ */
+
+function shaHash(string, callback) {
+    var sha = crypto.createHash('sha256');
+    sha.update(string);
+    var hash = sha.digest('hex');
+    
+    if(callback && typeof(callback) === 'function') {
+        callback(hash);
+    }
+    return hash;
+}
+
+/**
  * Compares the 
  * @function compareRememberCookie
  * 
@@ -136,40 +164,53 @@ function safeCompare(a, b) {
  * Callback after cookie is compared against the database
  * @callback compareRememberCookieCallback
  * 
- * @param {Boolean} response - True if success, false if failure
+ * @param {string|Boolean} selector - Selector to be placed in cookie or false if error
+ * @param {string|Boolean} token - Token to be placed in cookie or false if error
  */
 
 function compareRememberCookie(user, selector, token, callback) {
-	var verify = crypto.createVerify('sha256');
-	verify.update(token);
-	var hashedToken = verify.digest('hex');
 	
-	MongoClient.connect(config.mongodbURI, function(err, db) {
-		
-		var userdata = db.collection('users');
-		userdata.find({user: user}).next(function(err, doc) {
-			
-			if(!err) {
-				
-				var dbHash = doc['remember'][selector];
-				if(dbHash && typeof dbHash !== undefined) {
-				
-					if(comparePassword(hashedToken, dbHash)) {
-						/** @todo */
-					} else {
-						callback(false);
-					}
-					
-				} else {
-					callback(false);
-				}
-				
-			} else {
-				callback(false);
-			}
-			
-		});
-	});
+    shaHash(token, function(hashedToken) {
+        MongoClient.connect(config.mongodbURI, function(err, db) {
+
+            var userdata = db.collection('users');
+            userdata.find({user: user}).next(function(err, doc) {
+
+                if(!err) {
+
+                    var cookie = doc['remember'][selector];
+                    var token = cookie['token'];
+                    var expire = cookie['expire'];
+                    
+                    if(dbHash && typeof dbHash !== undefined) {
+
+                        if(comparePassword(hashedToken, dbHash)) {
+                            
+                            // Update token if successful
+                            
+                            generateToken(user, selector, expire, function(newToken) {
+                                if(token) {
+                                    callback(selector, newToken);
+                                } else {
+                                    callback(false, false);
+                                }
+                            });
+                            
+                        } else {
+                            callback(false, false);
+                        }
+
+                    } else {
+                        callback(false, false);
+                    }
+
+                } else {
+                    callback(false, false);
+                }
+
+            });
+        }); 
+    });
 }
 
 /**
@@ -194,40 +235,13 @@ function createRememberCookie(user, callback) {
     crypto.randomBytes(16, function(err, selectorBuf) {
         
         var selector = selectorBuf.toString('hex');
-        crypto.randomBytes(32, function(err, tokenBuf) {
-            
-            var token = tokenBuf.toString('hex');
-            
-            // Hash token for database
-            var sha = crypto.createHash('sha256');
-            sha.update(token);
-            var hashedToken = sha.digest('hex');
-            
-            // Insert token and hashed password in database
-            
-            MongoClient.connect(config.mongodbURI, function(err, db) {
-                if(!err) {
-                    
-                    var userdata = db.collection('users');
-                    userdata.update({user: user}, {$addToSet:{remember:{
-                        selector: selector,
-                        token   : hashedToken,
-                        expires : expire,
-                    }}}, function(err) {
-                        
-                        db.close();
-                        if(!err) {
-                            callback(selector, token);
-                        } else {
-                            callback(false, false);
-                        }
-                    });
-                    
-                } else {
-                    callback(false, false);
-                }
-                
-            });
+        
+        generateToken(user, selector, expire, function(token) {
+            if(token) {
+                callback(selector, token);
+            } else {
+                callback(false, false);
+            }
         });
     });
 }
@@ -277,6 +291,63 @@ function confirm(user, hash, callback) {
 			callback('There was an error connecting to the database');
 		}
 	});
+}
+
+/**
+ * Upsert a new token into the database with the provided selector
+ * @function generateToken
+ * 
+ * @param {string} user - Username
+ * @param {string} selector - Selector of existing cookie, or a new cookie to be created
+ * @param {Object} expire - Javascript Date object of when the cookie expires
+ * @param {generateTokenCallback}
+ */
+
+/**
+ * Callback after a new token is generated
+ * @callback generateTokenCallback
+ * 
+ * @param {string|Boolean} token - New token to be given to client, false if error
+ */
+
+function generateToken(user, selector, expire, callback) {
+    crypto.randomBytes(32, function(err, tokenBuf) {
+
+        var token = tokenBuf.toString('hex');
+
+        // Hash token for database
+        shaHash(token, function(hashedToken) {
+
+            // Insert token and hashed password in database
+            MongoClient.connect(config.mongodbURI, function(err, db) {
+                if(!err) {
+
+                    var remember = {};
+                    remember[selector] =
+                    {
+                        token  : hashedToken,
+                        expires: expire,
+                    };
+
+                    var userdata = db.collection('users');
+                    userdata.update({user: user}, {$set:{remember: remember}}, {upsert: true}, function(err) {
+
+                        db.close();
+                        if(!err) {
+                            callback(token);
+                        } else {
+                            callback(false);
+                        }
+                    });
+
+                } else {
+                    callback(false);
+                }
+
+            });
+        });
+
+    });
 }
 
 /**
@@ -446,7 +517,9 @@ function remember(req, res, next) {
         var selector = values[0];
         var token    = values[1];
         
-        /** @todo Query Database and evaluate selector and token */
+        compareRememberCookie() {
+            
+        }
         
     }
     next();
