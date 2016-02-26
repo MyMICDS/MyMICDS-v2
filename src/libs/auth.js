@@ -164,25 +164,27 @@ function shaHash(string, callback) {
  * Callback after cookie is compared against the database
  * @callback compareRememberCookieCallback
  * 
- * @param {string|Boolean} selector - Selector to be placed in cookie or false if error
- * @param {string|Boolean} token - Token to be placed in cookie or false if error
+ * @param {string|Boolean} user - Username of cookie, false if error
+ * @param {string|Boolean} token - New token to be placed in cookie or false if error
  */
 
-function compareRememberCookie(user, selector, token, callback) {
+function compareRememberCookie(selector, token, callback) {
 	
     shaHash(token, function(hashedToken) {
         MongoClient.connect(config.mongodbURI, function(err, db) {
 
-            var userdata = db.collection('users');
-            userdata.find({user: user}).next(function(err, doc) {
+            var rememberdata = db.collection('users');
+            rememberdata.find({selector: selector}).next(function(err, doc) {
 
                 if(!err) {
 
-                    var cookie = doc['remember'][selector];
-                    var token = cookie['token'];
+                    var cookie = doc;
+					var user   = cookie['user'];
+                    var token  = cookie['token'];
+					var dbHash = cookie['hash'];
                     var expire = cookie['expire'];
                     
-                    if(dbHash && typeof dbHash !== undefined) {
+                    if(cookie && typeof cookie !== undefined) {
 
                         if(comparePassword(hashedToken, dbHash)) {
                             
@@ -190,7 +192,7 @@ function compareRememberCookie(user, selector, token, callback) {
                             
                             generateToken(user, selector, expire, function(newToken) {
                                 if(token) {
-                                    callback(selector, newToken);
+                                    callback(user, newToken);
                                 } else {
                                     callback(false, false);
                                 }
@@ -234,15 +236,20 @@ function createRememberCookie(user, callback) {
     var expire = moment().add(30, 'days').toDate();
     crypto.randomBytes(16, function(err, selectorBuf) {
         
-        var selector = selectorBuf.toString('hex');
-        
-        generateToken(user, selector, expire, function(token) {
-            if(token) {
-                callback(selector, token);
-            } else {
-                callback(false, false);
-            }
-        });
+		if(!err) {
+		
+			var selector = selectorBuf.toString('hex');
+
+			generateToken(user, selector, expire, function(token) {
+				if(token) {
+					callback(selector, token);
+				} else {
+					callback(false, false);
+				}
+			});
+		} else {
+			callback(false, false);
+		}
     });
 }
 
@@ -320,17 +327,15 @@ function generateToken(user, selector, expire, callback) {
 
             // Insert token and hashed password in database
             MongoClient.connect(config.mongodbURI, function(err, db) {
-                if(!err) {
-
-                    var remember = {};
-                    remember[selector] =
-                    {
-                        token  : hashedToken,
-                        expires: expire,
-                    };
-
-                    var userdata = db.collection('users');
-                    userdata.update({user: user}, {$set:{remember: remember}}, {upsert: true}, function(err) {
+				if(!err) {
+					var rememberdata = db.collection('remember');
+					rememberdata.update({selector: selector}, {
+						user    : user,
+						selector: selector,
+						token   : hashedToken,
+						expires : expire,
+						
+					}, {upsert: true}, function(err) {
 
                         db.close();
                         if(!err) {
@@ -517,10 +522,10 @@ function remember(req, res, next) {
         var selector = values[0];
         var token    = values[1];
         
-        compareRememberCookie() {
-            
-        }
-        
+        compareRememberCookie(selector, token function(user, newToken) {
+			req.session.user = user;
+			/** @todo Send new token to user */
+		});
     }
     next();
 }
