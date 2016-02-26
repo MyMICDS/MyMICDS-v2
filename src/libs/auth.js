@@ -522,9 +522,9 @@ function remember(req, res, next) {
         var selector = values[0];
         var token    = values[1];
         
-        compareRememberCookie(selector, token function(user, newToken) {
+        compareRememberCookie(selector, token, function(user, newToken) {
 			req.session.user = user;
-			/** @todo Send new token to user */
+			res.cookie('rememberme', selector + ':' + newToken);
 		});
     }
     next();
