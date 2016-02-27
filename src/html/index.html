@@ -53,6 +53,15 @@
 			$('form').submit(function() {
 				$.post($(this).attr('target'), $(this).serialize(), function(data) {
 					console.log(data);
+					
+					// Create login cookie, if exists
+					var selector = data.selector;
+					var token = data.token;
+					var expires = data.expires;
+					
+					if(token) {
+						document.cookie = 'rememberme=' + selector + ':' + token + '; expires=' + expires;
+					}
 				})
 					.fail(function() {
 						console.log('There was an error submitting the form. Contact support if this keeps happening!');

@@ -229,6 +229,7 @@ function compareRememberCookie(selector, token, callback) {
  * 
  * @param {string|Boolean} selector - Selector to be placed in cookie or false if error
  * @param {string|Boolean} token - Token to be placed in cookie or false if error
+ * @param {Object|Boolean} expire - Javascript date object of when cookie expires, or false if error
  */
 
 function createRememberCookie(user, callback) {
@@ -242,13 +243,13 @@ function createRememberCookie(user, callback) {
 
 			generateToken(user, selector, expire, function(token) {
 				if(token) {
-					callback(selector, token);
+					callback(selector, token, expire);
 				} else {
-					callback(false, false);
+					callback(false, false, false);
 				}
 			});
 		} else {
-			callback(false, false);
+			callback(false, false, false);
 		}
     });
 }

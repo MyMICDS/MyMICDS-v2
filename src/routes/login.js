@@ -20,10 +20,11 @@ module.exports = function(app) {
         
         var responseJSON =
         {
-            success : '',
-            message : '',
-            selector: false,
-            token   : false,
+			success : '',
+			message : '',
+			selector: false,
+			token   : false,
+			expires : null,
         };
         
         if(user && password) {
@@ -38,11 +39,12 @@ module.exports = function(app) {
                     // If 'Remember Me' is checked, generate cookie
 
                     if(remember) {
-                        auth.createRememberCookie(user, function(selector, token) {
+                        auth.createRememberCookie(user, function(selector, token, expire) {
 
                             if(token && selector) {
                                 responseJSON.selector = selector;
                                 responseJSON.token    = token;
+								responseJSON.expires  = expire;
                             }
                             res.json(responseJSON);
                         });
