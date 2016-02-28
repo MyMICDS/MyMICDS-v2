@@ -35,7 +35,7 @@ function compareCookie(selector, token, callback) {
             var rememberdata = db.collection('remember');
             rememberdata.find({selector: selector}).next(function(err, doc) {
 
-                if(!err) {
+                if(!err && doc) {
                     var cookie  = doc;
 					var user    = cookie['user'];
                     var dbToken = cookie['token'];
