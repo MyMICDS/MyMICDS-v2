@@ -2,7 +2,8 @@
  * @file Manages login POST requests
  */
 
-var auth = require(__dirname + '/../libs/auth.js');
+var auth    = require(__dirname + '/../libs/auth.js');
+var cookies = require(__dirname + '/../libs/cookies.js');
 
 module.exports = function(app) {
     
@@ -39,12 +40,12 @@ module.exports = function(app) {
                     // If 'Remember Me' is checked, generate cookie
 
                     if(remember) {
-                        auth.createRememberCookie(user, function(selector, token, expire) {
+                        cookies.createCookie(user, function(selector, token, expires) {
 
-                            if(token && selector) {
+                            if(token && selector && expires) {
                                 responseJSON.selector = selector;
                                 responseJSON.token    = token;
-								responseJSON.expires  = expire;
+								responseJSON.expires  = expires.toUTCString();
                             }
                             res.json(responseJSON);
                         });
@@ -82,6 +83,8 @@ module.exports = function(app) {
 	});
     
     app.post('/logout', function(req, res) {
+        // Clear Remember Me cookie and destroy active login session
+        res.clearCookie('rememberme');
         req.session.destroy(function(err) {
 			if(!err) {
 				res.json({success: true, message: 'Logged out!'});

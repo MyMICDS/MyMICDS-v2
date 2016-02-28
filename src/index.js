@@ -9,9 +9,9 @@ var config = require(__dirname + '/libs/requireConfig.js');
  * General Libraries
  */
 
-var auth         = require(__dirname + '/libs/auth.js');
 var bodyParser   = require('body-parser');
 var cookieParser = require('cookie-parser');
+var cookies      = require(__dirname + '/libs/cookies.js');
 var ejs          = require('ejs');
 var http         = require('http');
 var https        = require('https');
@@ -52,7 +52,7 @@ io.use(function(socket, next) {
 
 // 'Remember Me' Functionality
 
-app.use(auth.remember);
+app.use(cookies.remember);
 
 // Body Parser for POST Variables
 
