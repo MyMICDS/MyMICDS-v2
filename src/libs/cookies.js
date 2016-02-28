@@ -38,7 +38,7 @@ function compareCookie(selector, token, callback) {
                 if(!err) {
                     var cookie  = doc;
 					var user    = cookie['user'];
-                    var dbToken   = cookie['token'];
+                    var dbToken = cookie['token'];
                     var expires = cookie['expires'];
                     
                     if(cookie && typeof cookie !== undefined) {
