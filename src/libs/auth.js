@@ -79,32 +79,30 @@ function comparePassword(user, password, callback) {
  */
 
 function confirm(user, hash, callback) {
-	MongoClient.connect(config.mongodbURI, function(err, db) {
-		if(!err) {
-			
-            // Query Hash
-            MongoClient.connect(config.mongodbURI, function(err, db) {
+	MongoClient.connect(config.mongodbURI, function(connectErr, db) {
+		if(!connectErr) {
                 
-                var userdata = db.collection('users');
-                userdata.find({user: user}).next(function(err, doc) {
-                    
-                    if(doc !== null) {
-                        var dbHash = doc['confirmationHash'];
-                        if(cryptoUtils.safeCompare(hash, dbHash)) {
-                            userdata.update({user: user.toLowerCase()}, {$set: {confirmed: true}}, function() {
-                                callback(true);
-                            });
-                        } else {
-                            callback('Invalid hash!');
-                        }
+            var userdata = db.collection('users');
+            userdata.find({user: user}).next(function(queryErr, doc) {
+                
+                if(doc !== null) {
+                    var dbHash = doc['confirmationHash'];
+                    if(cryptoUtils.safeCompare(hash, dbHash)) {
+                        userdata.update({user: user.toLowerCase()}, {$set: {confirmed: true}}, function() {
+                            callback(true);
+                        });
                     } else {
-                        callback('Invalid username!');
+                        callback('Invalid hash!');
                     }
-                });
+                } else if(queryErr) {
+                    callback('There was an error querying the database!');
+                } else {
+                    callback('Invalid username!');
+                }
             });
             
 		} else {
-			callback('There was an error connecting to the database');
+			callback('There was an error connecting to the database!');
 		}
 	});
 }
