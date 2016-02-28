@@ -28,56 +28,62 @@ module.exports = function(app) {
 			expires : null,
         };
         
-        if(user && password) {
-            auth.login(user, password, function(response) {
-
-                if(response === true) {
-                    responseJSON.success = true;
-                    responseJSON.message = 'Success!';
-
-                    req.session.user = user;
-
-                    // If 'Remember Me' is checked, generate cookie
-
-                    if(remember) {
-                        cookies.createCookie(user, function(selector, token, expires) {
-
-                            if(token && selector && expires) {
-                                responseJSON.selector = selector;
-                                responseJSON.token    = token;
-								responseJSON.expires  = expires.toUTCString();
-                            }
+        if(req.session.user && typeof req.session.user !== undefined) {
+            if(user && password) {
+                auth.login(user, password, function(response) {
+    
+                    if(response === true) {
+                        responseJSON.success = true;
+                        responseJSON.message = 'Success!';
+    
+                        req.session.user = user;
+    
+                        // If 'Remember Me' is checked, generate cookie
+    
+                        if(remember) {
+                            cookies.createCookie(user, function(selector, token, expires) {
+    
+                                if(token && selector && expires) {
+                                    responseJSON.selector = selector;
+                                    responseJSON.token    = token;
+    								responseJSON.expires  = expires.toUTCString();
+                                }
+                                res.json(responseJSON);
+                            });
+                        } else {
                             res.json(responseJSON);
-                        });
+                        }
                     } else {
+    
+                        // Login Failed
+    
+                        responseJSON.success = false;
+    
+                        if(response === false) {
+                            responseJSON.message = 'Invalid password!';
+                        } else {
+                            responseJSON.message = response;
+                        }
+    
                         res.json(responseJSON);
                     }
-                } else {
-
-                    // Login Failed
-
-                    responseJSON.success = false;
-
-                    if(response === false) {
-                        responseJSON.message = 'Invalid password!';
-                    } else {
-                        responseJSON.message = response;
-                    }
-
-                    res.json(responseJSON);
+                });
+            } else {
+                responseJSON.success = false;
+                
+                if(!password) {
+                    responseJSON.message = 'Invalid password!';
                 }
-            });
+                
+                if(!user) {
+                    responseJSON.message = 'Username doesn\'t exist!';
+                }
+                
+                res.json(responseJSON);
+            }
         } else {
             responseJSON.success = false;
-            
-            if(!password) {
-                responseJSON.message = 'Invalid password!';
-            }
-            
-            if(!user) {
-                responseJSON.message = 'Username doesn\'t exist!';
-            }
-            
+            responseJSON.message = 'You\'re already logged in, silly!';
             res.json(responseJSON);
         }
 	});

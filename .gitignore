@@ -4,3 +4,4 @@ npm-debug.log
 src/api
 src/libs/config.js
 src/public/json
+src/public/css/*.css

@@ -3,7 +3,7 @@
  * @module weather
  */
 
-var config   = require(__dirname + '/requireconfig.js');
+var config   = require(__dirname + '/requireConfig.js');
 var Forecast = require('forecast.io');
 var fs       = require('node-fs-extra');
 

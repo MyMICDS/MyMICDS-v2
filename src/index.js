@@ -2,7 +2,7 @@
  * @file Main file of the whole project.
  */
 
-var port = 420;
+var port = process.env.PORT || 420;
 var config = require(__dirname + '/libs/requireConfig.js');
 
 /*
