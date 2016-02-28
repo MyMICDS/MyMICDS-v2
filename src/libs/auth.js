@@ -143,6 +143,7 @@ function login(user, password, callback) {
  * @param {string} user.firstName - User's first name
  * @param {string} user.lastName - User's last name
  * @param {Number} user.gradYear - User's graduation year (Ex. Class of 2019)
+ * @param {Boolean} user.teacher - True or false, weather the user is a teacher or not
  * 
  * @param {registerCallback}
  */
@@ -165,6 +166,10 @@ function register(user, callback) {
         user.lastName,
         user.gradYear,
     ];
+    
+    if(!user.teacher) {
+        user.teacher = false;
+    }
     
     var dataSet = required.every(elem => typeof elem !== undefined && elem !== '');
     
@@ -197,6 +202,7 @@ function register(user, callback) {
                                             firstName       : user.firstName,
                                             lastName        : user.lastName,
                                             gradYear        : user.gradYear,
+                                            teacher         : user.teacher,
                                             confirmed       : false,
                                             confirmationHash: hash,
                                         }

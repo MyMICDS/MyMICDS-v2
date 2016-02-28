@@ -109,6 +109,7 @@ module.exports = function(app) {
 				firstName: req.body.firstName,
 				lastName : req.body.lastName,
 				gradYear : req.body.gradYear,
+                teacher  : (req.body.teacher !== undefined),
 			};
 		
         auth.register(user, function(response) {
