@@ -41,7 +41,8 @@ function compareCookie(selector, token, callback) {
                     var dbToken = cookie['token'];
                     var expires = cookie['expires'];
                     
-                    if(cookie && typeof cookie !== undefined) {
+                    var today   = new Date();
+                    if(expires.getTime() > today.getTime()) {
 
                         if(cryptoUtils.safeCompare(hashedToken, dbToken)) {
                             
