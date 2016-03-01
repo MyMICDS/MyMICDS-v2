@@ -10,6 +10,27 @@ var moment      = require('moment');
 var MongoClient = require('mongodb').MongoClient;
 
 /**
+ * Clears all the expired cookies in the database
+ * @function clearExpiredCookies
+ * 
+ * @param {clearExpiredCookies} callback
+ */
+
+/**
+ * Callback after the expired cookies are cleared
+ * @callback clearExpiredCookies
+ * 
+ * @param {Boolena} response
+ */
+
+function clearExpiredCookies(callback) {
+	MongoClient.connect(config.mongodbURI, function(err, db) {
+		var rememberdata = db.collection('remember');
+		rememberdata.deleteMany({expires:''});
+	});
+}
+
+/**
  * Compares the 
  * @function compareCookie
  * 
@@ -198,5 +219,6 @@ function remember(req, res, next) {
     }
 }
 
-module.exports.createCookie = createCookie;
-module.exports.remember     = remember;
+module.exports.clearExpiredCookies = clearExpiredCookies;
+module.exports.createCookie        = createCookie;
+module.exports.remember            = remember;

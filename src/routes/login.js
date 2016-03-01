@@ -28,7 +28,7 @@ module.exports = function(app) {
 			expires : null,
         };
         
-        if(req.session.user && typeof req.session.user !== undefined) {
+        if(!req.session.user) {
             if(user && password) {
                 auth.login(user, password, function(response) {
     
