@@ -169,7 +169,9 @@ function register(user, callback) {
     
     if(!user.teacher) {
         user.teacher = false;
-    }
+    } else {
+		user.gradYear = null;
+	}
     
     var dataSet = required.every(elem => typeof elem !== undefined && elem !== '');
     
