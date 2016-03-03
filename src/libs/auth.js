@@ -10,6 +10,7 @@ var bcrypt      = require('bcrypt');
 var fs          = require('fs');
 var mail        = require(__dirname + '/mail.js');
 var MongoClient = require('mongodb').MongoClient;
+var utils       = require(__dirname + '/utils.js')
 
 /**
  * Determines if a given password matches the encrypted one in the database
@@ -173,9 +174,7 @@ function register(user, callback) {
 		user.gradYear = null;
 	}
     
-    var dataSet = required.every(elem => typeof elem !== undefined && elem !== '');
-    
-    if(dataSet) {
+    if(utils.dataIsSet(required)) {
 		
 		// Upsert user into the database
 		MongoClient.connect(config.mongodbURI, function(err, db) {
