@@ -203,7 +203,6 @@ function remember(req, res, next) {
     if(cookie && !req.session.user) {
         
         var values = cookie.split(':');
-
         var selector = values[0];
         var token    = values[1];
         

@@ -127,6 +127,10 @@ function confirm(user, hash, callback) {
 function login(user, password, callback) {
     comparePassword(user, password, function(response) {
 		if(response === true) {
+            MongoClient.connect(config.mongodbURI, function(connectErr, db) {
+                var userdata = db.collection('users');
+                userdata.update({user: user}, {$currentDate: {lastLogin: true}});
+            });
 			callback(true);
 		} else {
             callback(response);
@@ -159,7 +163,6 @@ function login(user, password, callback) {
 function register(user, callback) {
     
     // Checks that all required parameters are there
-    
     var required = [
         user.user,
         user.password,
@@ -179,9 +182,7 @@ function register(user, callback) {
 		// Upsert user into the database
 		MongoClient.connect(config.mongodbURI, function(err, db) {
 			if(!err) {
-				
 				var userdata = db.collection('users');
-				
 				userdata.find({user: user.user}).toArray().then(function(results) {
 					
 					if(results.length === 0 || !results[0]['confirmed']) {
