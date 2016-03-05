@@ -112,13 +112,8 @@ module.exports = function(app) {
                 teacher  : (req.body.teacher !== undefined),
 			};
 		
-        auth.register(user, function(response) {
-            
-			if(response === true) {
-                res.json({success: true, message: 'Message sent to ' + user + '@micds.org!'});
-			} else {
-                res.json({succes: false, message: response});
-			}
+        auth.register(user, function(success, message) {
+            res.json({success: success, message: message});
 		});
 		
     });

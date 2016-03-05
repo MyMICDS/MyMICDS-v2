@@ -157,7 +157,8 @@ function login(user, password, callback) {
  * Callback after a user is registered
  * @callback registerCallback
  * 
- * @param {Boolean|string} True if successful, string if error occured
+ * @param {Boolean} success - True if success, false if failure
+ * @param {string} message - More detailed response to display to user
  */
 
 function register(user, callback) {
@@ -225,42 +226,42 @@ function register(user, callback) {
                                                 
                                                 mail.sendHTML(email, 'Confirm your Account', __dirname + '/../html/messages/register.html', emailReplace, function(response) {
                                                     if(response === true) {
-                                                        callback(true);
+                                                        callback(true, 'Confirmation email sent to ' + email + '!');
 
                                                     } else {
-                                                        callback('There was an error sending the confirmation email!');
+                                                        callback(false, 'There was an error sending the confirmation email!');
                                                     }
                                                 });
 
                                             } else {
-                                                callback('There was a problem inserting the account into the database!');
+                                                callback(false, 'There was a problem inserting the account into the database!');
                                             }
                                         });
 
                                     } else {
                                         db.close();
-                                        callback('Something went wrong when we tried to encrypt your password!');
+                                        callback(false, 'Something went wrong when we tried to encrypt your password!');
                                     }
                                 });
                             } else {
-                                callback('Couldn\'t generate a confirmation hash!');
+                                callback(false, 'Couldn\'t generate a confirmation hash!');
                             }
                         });
                         
 					} else {
 						db.close();
-						callback('User has already registered an account!');
+						callback(false, 'User has already registered an account!');
 					}
 				});
 				
 			} else {
 				db.close();
-				callback('Can\'t connect to database!');
+				callback(false, 'Can\'t connect to database!');
 			}
 		});
 		
     } else {
-        callback('Not all data is filled out!');
+        callback(false, 'Not all data is filled out!');
     }
 }
 
