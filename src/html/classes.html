@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Configure your Classes</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    </head>
+    <body>
+        <form class="form-inline" action="/add-class" method="post">
+            <input class="form-control" placeholder="Class Name" name="name" value="Science">
+            <input class="form-control" placeholder="Teacher" name="teacher" value="Satan">
+            <input class="form-control" placeholder="Block" name="block" value="a">
+            <input class="form-control" placeholder="Color" name="color" value="#123">
+            <input class="form-control" placeholder="Type" name="type" value="science">
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="displayPlanner" checked> Display Planner
+                </label>
+            </div>
+            <button class="btn btn-success">Add Class</button>
+        </form>
+        <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+        <script>
+        $('form').submit(function() {
+            $.post($(this).attr('action'), $(this).serialize(), function(data) {
+                console.log(data);
+            })
+                .fail(function() {
+                    console.log('There was an error submitting the form. Contact support if this keeps happening!');
+                });
+
+            return false;
+        });
+        </script>
+    </body>
+</html>

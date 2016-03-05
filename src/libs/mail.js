@@ -97,7 +97,6 @@ function sendHTML(users, subject, file, data, callback) {
             
             for(var key in data) {
                 body = body.replace('{{' + key + '}}', data[key]);
-                console.log('Replaced ' + key + ' with ' + data[key]);
             }
             
             var mesesage =

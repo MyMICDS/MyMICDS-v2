@@ -58,27 +58,25 @@ module.exports = function(app) {
                         // Login Failed
     
                         responseJSON.success = false;
-    
                         if(response === false) {
                             responseJSON.message = 'Invalid password!';
                         } else {
                             responseJSON.message = response;
                         }
-    
                         res.json(responseJSON);
                     }
                 });
             } else {
-                responseJSON.success = false;
                 
+                // Username / Password doesn't exist
+                
+                responseJSON.success = false;
                 if(!password) {
                     responseJSON.message = 'Invalid password!';
                 }
-                
                 if(!user) {
                     responseJSON.message = 'Username doesn\'t exist!';
                 }
-                
                 res.json(responseJSON);
             }
         } else {

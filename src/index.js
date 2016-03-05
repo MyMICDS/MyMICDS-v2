@@ -71,9 +71,14 @@ app.set('view engine', 'ejs');
 
 require(__dirname + '/routes/assets.js')(app, express);
 require(__dirname + '/routes/login.js')(app);
+require(__dirname + '/routes/scheduleConfig.js')(app);
 
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/html/index.html');
+});
+
+app.get('/classes', function(req, res) {
+    res.sendFile(__dirname + '/html/classes.html');
 });
 
 app.get('/lunch', function(req, res) {
