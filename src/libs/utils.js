@@ -14,7 +14,7 @@
 
 function dataIsSet(array) {
 	return array.every(function(elem) {
-		typeof elem !== undefined && elem !== '' && elem !== null;
+		return typeof elem !== undefined && elem !== '';
 	});
 }
 
