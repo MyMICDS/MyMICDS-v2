@@ -71,21 +71,30 @@ function compareCookie(selector, token, callback) {
                             
                             generateToken(user, selector, expires, function(newToken) {
                                 if(token) {
+                                    // Update lastLogin
+                                    var userdata = db.collection('users');
+                                    userdata.update({user: user}, {$currentDate: {lastLogin: true}});
+                                    db.close();
+                                    
                                     callback(user, newToken, expires);
                                 } else {
+                                    db.close();
                                     callback(false, false, false);
                                 }
                             });
                             
                         } else {
+                            db.close();
                             callback(false, false, false);
                         }
 
                     } else {
+                        db.close();
                         callback(false, false, false);
                     }
 
                 } else {
+                    db.close();
                     callback(false, false, false);
                 }
 
