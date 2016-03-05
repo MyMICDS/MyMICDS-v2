@@ -199,13 +199,14 @@ function register(user, callback) {
 
                                         var newUser =
                                         {
-                                            user            : user.user.toLowerCase(),
-                                            password        : hashedPassword,
-                                            firstName       : user.firstName,
-                                            lastName        : user.lastName,
-                                            gradYear        : user.gradYear,
-                                            teacher         : user.teacher,
-                                            confirmed       : false,
+                                            user      : user.user.toLowerCase(),
+                                            password  : hashedPassword,
+                                            firstName : user.firstName,
+                                            lastName  : user.lastName,
+                                            gradYear  : user.gradYear,
+                                            teacher   : user.teacher,
+                                            confirmed : false,
+                                            registered: new Date(),
                                             confirmationHash: hash,
                                         }
 
@@ -213,9 +214,8 @@ function register(user, callback) {
 
                                             db.close();
                                             if(!err) {
-
-                                                var email = newUser.user + '@micds.org';
                                                 
+                                                var email = newUser.user + '@micds.org';
                                                 var emailReplace =
                                                 {
                                                     firstName  : newUser.firstName,
