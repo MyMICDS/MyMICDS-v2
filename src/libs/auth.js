@@ -7,10 +7,9 @@ var config      = require(__dirname + '/requireConfig.js');
 var crypto      = require('crypto');
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
 var bcrypt      = require('bcrypt');
-var fs          = require('fs');
 var mail        = require(__dirname + '/mail.js');
 var MongoClient = require('mongodb').MongoClient;
-var utils       = require(__dirname + '/utils.js')
+var utils       = require(__dirname + '/utils.js');
 
 /**
  * Determines if a given password matches the encrypted one in the database
