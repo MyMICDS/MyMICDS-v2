@@ -29,6 +29,9 @@ function dataIsSet(array) {
  */
 
 function inArray(needle, haystack) {
+	if(!Array.isArray(haystack)) {
+		return false;
+	}
 	return haystack.indexOf(needle) > -1;
 }
 

@@ -5,31 +5,32 @@ module.exports = function(app) {
         var user = req.session.user;
         var scheduleClass =
         {
+			id     : req.body.id,
             name   : req.body.name,
             teacher: req.body.teacher,
             block  : req.body.block,
             color  : req.body.color,
             type   : req.body.type,
             displayPlanner: req.body.displayPlanner ? true : false,
-        }
-        schedule.addClass(user, scheduleClass, function(id) {
-            if(typeof id !== 'string') {
+        };
+        schedule.addClass(user, scheduleClass, function(success, id) {
+            if(success) {
                 res.json({success: true, classId: id, message: 'Success!'});
             } else {
                 res.json({success: false, classId: null, message: id})
             }
-        });
+        }, req.body.id);
     });
-    
+	
     app.post('/delete-class', function(req, res) {
-        
+		
     });
     
     app.post('/configure-schedule', function(req, res) {
-        
+		
     });
     
     app.post('/delete-schedule', function(req, res) {
-        
+		
     });
 };

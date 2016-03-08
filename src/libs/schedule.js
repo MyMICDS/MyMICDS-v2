@@ -56,17 +56,19 @@ var validTypes = [
  * @param {string} scheduleClass.type - Type of class ('science', 'art', 'math', 'wl', 'english', 'history', or 'other')
  * @param {Boolean} scheduleClass.displayPlanner - Whether to display the class on the planner
  * 
- * @param {addClassCallback} [callback] - Optional callback
+ * @param {addClassCallback} callback - Callback
+ * @param {string} [editId] - Optional id to insert class under
  */
 
 /**
  * What to do after it adds a class into the database
  * @callback addClassCallback
  * 
- * @param {Number|string} id - Id of class inserted, string if error
+ * @param {Boolean} success - True if success, false if failure
+ * @param {Number|string} editId - Id of class inserted, string if error
  */
 
-function addClass(user, scheduleClass, callback) {
+function addClass(user, scheduleClass, callback, editId) {
 	// Checks that all required parameters are there
     var required = [
         user,
@@ -93,8 +95,12 @@ function addClass(user, scheduleClass, callback) {
     
     if(dataIsSet) {
         // Generate unique id
-        var objectID = new ObjectID();
-        var id = objectID.toHexString();
+		if(!editId || editId === '') {
+			var objectID = new ObjectID();
+			var id = objectID.toHexString();
+		} else {
+			var id = editId;
+		}
         
         MongoClient.connect(config.mongodbURI, function(dbErr, db) {
             var userdata = db.collection('users');
@@ -103,9 +109,9 @@ function addClass(user, scheduleClass, callback) {
                 userdata.find({user: user}).toArray(function(queryErr, docs) {
                     if(!queryErr) {
                         if(docs.length > 0) {
-                            var insertClass =
+							var insertClass =
                             {
-                                id     : id,
+								id     : id,
                                 name   : scheduleClass.name,
                                 teacher: scheduleClass.teacher,
                                 block  : scheduleClass.block,
@@ -114,32 +120,38 @@ function addClass(user, scheduleClass, callback) {
                                 displayPlanner: scheduleClass.displayPlanner,
                             };
                             var classes = docs[0]['classes'];
-
-                            if(!checkDupClass(insertClass, classes)) {
-                                userdata.update({user: user}, { $addToSet: { classes: insertClass }}, {upsert: true}, function(err, data) {
+							var dupClasses = checkDupClass(insertClass, classes);
+							
+                            if(dupClasses.length === 0) {
+                                userdata.update({ user: user }, { $push: { classes: insertClass }}, { upsert: true }, function(err, data) {
                                     if(!err) {
-                                        callback(true);
+                                        callback(true, id);
                                     } else {
-                                        callback('There was an error inserting the class(es) into the database!');
+                                        callback(false, 'There was an error inserting the class(es) into the database!');
                                     }
                                 }); 
                             } else {
-                                callback('Tried to insert a duplicate class!');
+								// If editId was set, that means someone was trying to edit a class. Don't give an error if you are editting class as the same thing
+								if(!utils.inArray(id, dupClasses)) {
+                                	callback(false, 'Tried to insert a duplicate class!');
+								} else {
+									callback(true, id);
+								}
                             }
 
                         } else {
-                            callback('User doesn\'t exist!');
+                            callback(false, 'User doesn\'t exist!');
                         }
                     } else {
-                        callback('There was an error inserting the class(es) into the database!');
+                        callback(false, 'There was an error inserting the class(es) into the database!');
                     }
                 });
             } else {
-                callback('There was an error connecting to the database!');
+                callback(false, 'There was an error connecting to the database!');
             }
         });
     } else {
-        callback('Not all data is properly filled out!');
+        callback(false, 'Not all data is properly filled out!');
     }
 }
 
@@ -148,6 +160,7 @@ function addClass(user, scheduleClass, callback) {
  * @function checkDupClass
  * 
  * @param {Object} needle - Class to check for duplicate, any extra values inside the object will be ignored
+ * @param {string} needle.id - Id of class
  * @param {string} needle.name - Name of class
  * @param {string} needle.teacher - Name of teacher
  * @param {string} needle.block - Which block the class takes place
@@ -156,16 +169,20 @@ function addClass(user, scheduleClass, callback) {
  
  * @param {Object} haystack - Array of existing classes, has the same values as the needle
  * 
- * @returns {Boolean}
+ * @returns {Object} dupIds - Array of id's that are marked as duplicate
  */
 
 function checkDupClass(needle, haystack) {
-    var dup = false;
+	
+	if(!haystack || haystack.length === 0) {
+		return [];
+	}
+	
+    var dup = [];
     
     haystack.forEach(function(element) {
-        console.log(element);
         if(needle.name === element.name && needle.teacher === element.teacher && needle.block === element.block && needle.color === element.color && needle.type === element.type) {
-            dup = true;
+            dup.push(element.id);
         }
     });
     return dup;
