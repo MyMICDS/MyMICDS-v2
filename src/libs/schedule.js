@@ -32,6 +32,11 @@ var validBlocks = [
     'other',
 ];
 
+var validTeacherPrefixes = [
+	'Mr.',
+	'Ms.',
+];
+
 var validTypes = [
     'science',
     'art',
@@ -73,6 +78,7 @@ function addClass(user, scheduleClass, callback, editId) {
     var required = [
         user,
         scheduleClass.name,
+		scheduleClass.teacherPrefix,
 		scheduleClass.teacher,
 		scheduleClass.block,
 		scheduleClass.color,
@@ -83,7 +89,7 @@ function addClass(user, scheduleClass, callback, editId) {
     
     // Check that all inputs are valid
 	var dataIsSet = utils.dataIsSet(required);
-    if(!utils.inArray(scheduleClass.block, validBlocks) || !utils.inArray(scheduleClass.type, validTypes)) {
+    if(!utils.inArray(scheduleClass.block, validBlocks) || !utils.inArray(scheduleClass.teacherPrefix, validTeacherPrefixes) || !utils.inArray(scheduleClass.type, validTypes)) {
         dataIsSet = false;
     }
     
@@ -92,7 +98,7 @@ function addClass(user, scheduleClass, callback, editId) {
     if(!validColor) {
         dataIsSet = false;
     }
-    
+	
     if(dataIsSet) {
         // Generate unique id
 		if(!editId || editId === '') {
@@ -103,45 +109,59 @@ function addClass(user, scheduleClass, callback, editId) {
 		}
         
         MongoClient.connect(config.mongodbURI, function(dbErr, db) {
-            var userdata = db.collection('users');
-            
+            var userdata  = db.collection('users');
+            var classData = db.collection('classes');
+			
             if(!dbErr) {
-                userdata.find({user: user}).toArray(function(queryErr, docs) {
-                    if(!queryErr) {
-                        if(docs.length > 0) {
+				// Make sure valid username, if true, get the _id
+                userdata.find({user: user}).toArray(function(userFindErr, userDocs) {
+                    if(!userFindErr) {
+                        if(docs.length > 0 && docs[0]['confirmed']) {
+							
+							var userId = userDocs[0]['_id'];
 							var insertClass =
                             {
-								id     : id,
-                                name   : scheduleClass.name,
-                                teacher: scheduleClass.teacher,
-                                block  : scheduleClass.block,
-                                color  : scheduleClass.color,
-                                type   : scheduleClass.type,
+								user: userId,
+                                name: scheduleClass.name,
+								teacherPrefix: scheduleClass.teacherPrefix,
+                                teacher      : scheduleClass.teacher,
+                                block: scheduleClass.block,
+                                color: scheduleClass.color,
+                                type : scheduleClass.type,
                                 displayPlanner: scheduleClass.displayPlanner,
                             };
-                            var classes = docs[0]['classes'];
-							var dupClasses = checkDupClass(insertClass, classes);
 							
-                            if(dupClasses.length === 0) {
-                                userdata.update({ user: user }, { $push: { classes: insertClass }}, { upsert: true }, function(err, data) {
-                                    if(!err) {
-                                        callback(true, id);
-                                    } else {
-                                        callback(false, 'There was an error inserting the class(es) into the database!');
-                                    }
-                                }); 
-                            } else {
-								// If editId was set, that means someone was trying to edit a class. Don't give an error if you are editting class as the same thing
-								if(!utils.inArray(id, dupClasses)) {
-                                	callback(false, 'Tried to insert a duplicate class!');
-								} else {
-									callback(true, id);
-								}
-                            }
+							// Get classes to check for duplicates
+							classData.find({user: userId}).toArray(function(classFindErr, classDocs) {
+								if(!classFindErr) {
+									var classes    = classDocs;
+									var dupClasses = checkDupClass(insertClass, classes);
 
-                        } else {
+									if(dupClasses.length === 0) {
+										classData.update({ _id: id }, { $set: { insertClass }}, { upsert: true }, function(updateErr, data) {
+											if(!updateErr) {
+												callback(true, id);
+											} else {
+												callback(false, 'There was an error inserting the class(es) into the database!');
+											}
+										}); 
+									} else {
+										// If editId was set, that means someone was trying to edit a class. Don't give an error if you are editting class as the same thing
+										if(!utils.inArray(id, dupClasses)) {
+											callback(false, 'Tried to insert a duplicate class!');
+										} else {
+											callback(true, id);
+										}
+									}
+								} else {
+									callback(false, 'There was an error inserting the class(es) into the database!')
+								}
+							});
+                        } else if(docs.length === 0) {
                             callback(false, 'User doesn\'t exist!');
-                        }
+                        } else {
+							callback(false, 'User\'s account isn\'t authenticated!')
+						}
                     } else {
                         callback(false, 'There was an error inserting the class(es) into the database!');
                     }

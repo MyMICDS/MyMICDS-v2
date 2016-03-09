@@ -5,12 +5,13 @@ module.exports = function(app) {
         var user = req.session.user;
         var scheduleClass =
         {
-			id     : req.body.id,
-            name   : req.body.name,
-            teacher: req.body.teacher,
-            block  : req.body.block,
-            color  : req.body.color,
-            type   : req.body.type,
+			id  : req.body.id,
+            name: req.body.name,
+			teacherPrefix: req.body.teacherPrefix,
+            teacher      : req.body.teacher,
+            block: req.body.block,
+            color: req.body.color,
+            type : req.body.type,
             displayPlanner: req.body.displayPlanner ? true : false,
         };
         schedule.addClass(user, scheduleClass, function(success, id) {
