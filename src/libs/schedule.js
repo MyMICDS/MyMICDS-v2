@@ -116,7 +116,7 @@ function addClass(user, scheduleClass, callback, editId) {
 				// Make sure valid username, if true, get the _id
                 userdata.find({user: user}).toArray(function(userFindErr, userDocs) {
                     if(!userFindErr) {
-                        if(docs.length > 0 && docs[0]['confirmed']) {
+                        if(userDocs.length > 0 && userDocs[0]['confirmed']) {
 							
 							var userId = userDocs[0]['_id'];
 							var insertClass =
@@ -138,7 +138,7 @@ function addClass(user, scheduleClass, callback, editId) {
 									var dupClasses = checkDupClass(insertClass, classes);
 
 									if(dupClasses.length === 0) {
-										classData.update({ _id: id }, { $set: { insertClass }}, { upsert: true }, function(updateErr, data) {
+										classData.update({ _id: id }, insertClass, { upsert: true }, function(updateErr, data) {
 											if(!updateErr) {
 												callback(true, id);
 											} else {
@@ -157,7 +157,7 @@ function addClass(user, scheduleClass, callback, editId) {
 									callback(false, 'There was an error inserting the class(es) into the database!')
 								}
 							});
-                        } else if(docs.length === 0) {
+                        } else if(userDocs.length === 0) {
                             callback(false, 'User doesn\'t exist!');
                         } else {
 							callback(false, 'User\'s account isn\'t authenticated!')
