@@ -20,23 +20,48 @@
 				background-image: url('https://www.bing.com//az/hprichbg/rb/AxiaVillage_EN-US11040385228_1920x1080.jpg');
 				background-size: cover;
 				background-attachment: fixed;
-				
+			}
+			
+			.frame-one {
+				height: 100%;
+				width: 100%;
 				display: flex;
 				justify-content: center;
 				align-items: center;
+				position: absolute;
 			}
 			
 			.greeting {
 				padding: 1em;
-				border: white solid 1px;
+				transition-duration: 1s;
+				display: inline-block;
 			}
 			
 			.greeting h1 {
 				display: inline-block;
 				color: white;
-				text-shadow: 2px 2px 2px rgba(150, 150, 150, 1);
+				text-shadow: 2px 2px 2px #333;
 				font-weight: 300;
 				font-size: 5em;
+				margin: 0;
+				position: relative;
+				transition-duration: 1s;
+			}
+			
+			.greeting h1:first-of-type {
+				left: -100%;
+			}
+			
+			.greeting h1:last-of-type {
+				right: -100%;
+			}
+			
+			.active .greeting h1:first-of-type {
+				left: 0;
+			}
+			
+			.active .greeting h1:last-of-type {
+				right: 0;
 			}
 			
 			.blur {
@@ -60,12 +85,20 @@
                 height: calc(100% + 10px + 2em);
                 width: calc(100% + 10px + 2em);
             }
+			
+			.blur.blur-white {
+				background-color: rgba(180, 180, 180, 0.2);
+				background-blend-mode: multiply;
+				border: 1px solid rgba(255, 255, 255, 0.2);
+			}
 		</style>
 	</head>
 	<body>
-		<div class="greeting blur">
-			<h1>Good</h1>
-			<h1>Morning</h1>
+		<div class="frame-one">
+			<div class="greeting">
+				<h1>Good</h1>
+				<h1>Morning</h1>
+			</div>
 		</div>
 		
 		<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
@@ -82,5 +115,11 @@
 			});*/
 		</script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+		<script>
+			$('.frame-one').addClass('active');
+			setTimeout(function() {
+				$('.greeting').addClass('blur blur-white');
+			}, 1000);
+		</script>
 	</body>
 </html>
