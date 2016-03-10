@@ -17,6 +17,7 @@ var http         = require('http');
 var https        = require('https');
 var lunch        = require(__dirname + '/libs/lunch.js');
 var mail         = require(__dirname + '/libs/mail.js');
+var request      = require('request');
 var weather      = require(__dirname + '/libs/weather.js');
 
 /*
@@ -88,8 +89,24 @@ app.get('/lunch', function(req, res) {
     });
 });
 
+app.get('/start', function(req, res) {
+	res.sendFile(__dirname + '/html/start.html');
+});
+
 app.get('/test', function(req, res) {
 	res.sendFile(__dirname + '/html/test.html');
+});
+
+app.get('/iotd', function(req, res) {
+	request('http://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1', function(error, response, body) {
+		if(!error && response.statusCode === 200) {
+			var json  = JSON.parse(body);
+			var imageURL = 'https://www.bing.com/' + json['images'][0]['url'];
+			res.json({ 'image': imageURL });
+		} else {
+			res.json({ 'image': '/images/backgrounds/middleschool/mac.jpg' });
+		}
+	});
 });
 
 /*

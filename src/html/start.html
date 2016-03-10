@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+		
+		<title>MyMICDS - Start</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+		
+		<style>
+			@import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800);
+			
+			html, body {
+				height: 100%;
+				font-family: 'Open Sans', sans-serif;
+			}
+			
+			body {
+				background-image: url('https://www.bing.com//az/hprichbg/rb/AxiaVillage_EN-US11040385228_1920x1080.jpg');
+				background-size: cover;
+				background-attachment: fixed;
+				
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+			
+			.greeting {
+				padding: 1em;
+				border: white solid 1px;
+			}
+			
+			.greeting h1 {
+				display: inline-block;
+				color: white;
+				text-shadow: 2px 2px 2px rgba(150, 150, 150, 1);
+				font-weight: 300;
+				font-size: 5em;
+			}
+			
+			.blur {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .blur::before {
+                background-image: url('https://www.bing.com//az/hprichbg/rb/AxiaVillage_EN-US11040385228_1920x1080.jpg');
+				background-size: cover;
+				background-attachment: fixed;
+                
+                position: absolute;
+                content: ' ';
+                z-index: -1;
+                -webkit-filter: blur(5px);
+                filter: blur(5px);
+                
+                /* So the whole thing is blurred */
+                margin: calc(-5px - 1em);
+                height: calc(100% + 10px + 2em);
+                width: calc(100% + 10px + 2em);
+            }
+		</style>
+	</head>
+	<body>
+		<div class="greeting blur">
+			<h1>Good</h1>
+			<h1>Morning</h1>
+		</div>
+		
+		<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.waitforimages/1.5.0/jquery.waitforimages.min.js"></script>
+		<script>
+			// Get Bing's Image of the Day
+			/*$body = $('body');
+			$.getJSON('/iotd', function(data) {
+				$body
+					.css('background-image', 'url(' + data.image + ')')
+					.waitForImages(function() {
+						$body.addClass('image-loaded');
+					});
+			});*/
+		</script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+	</body>
+</html>
