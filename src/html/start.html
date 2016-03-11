@@ -20,32 +20,57 @@
 				background-image: url('https://www.bing.com//az/hprichbg/rb/AxiaVillage_EN-US11040385228_1920x1080.jpg');
 				background-size: cover;
 				background-attachment: fixed;
+				overflow: hidden;
+				color: white;
+			}
+			
+			.directions {
+				position: fixed;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				text-align: center;
+				color: #fff;
+				text-shadow: 2px 2px 2px #333;
+				font-size: 1.5em;
+				opacity: 0;
+			}
+			
+			.blink {
+				animation: blink 0.75s infinite alternate;
+			}
+			
+			@keyframes blink {
+				from { opacity: 0; }
+				to   { opacity: 1; }
+			}
+			
+			.frame {
+				position: absolute;				
+				height: 100%;
+				width: 100%;
 			}
 			
 			.frame-one {
-				height: 100%;
-				width: 100%;
 				display: flex;
 				justify-content: center;
 				align-items: center;
-				position: absolute;
 			}
 			
 			.greeting {
 				padding: 1em;
-				transition-duration: 1s;
+				transition-duration: 0.5s;
 				display: inline-block;
 			}
 			
 			.greeting h1 {
 				display: inline-block;
-				color: white;
 				text-shadow: 2px 2px 2px #333;
 				font-weight: 300;
 				font-size: 5em;
 				margin: 0;
 				position: relative;
-				transition-duration: 1s;
+				transition-duration: 0.5s;
 			}
 			
 			.greeting h1:first-of-type {
@@ -91,13 +116,33 @@
 				background-blend-mode: multiply;
 				border: 1px solid rgba(255, 255, 255, 0.2);
 			}
+			
+			.schedule-header {
+				position: fixed;
+				transition-duration: 1s;
+				width: 100%;
+				font-weight: 300;
+				text-shadow: 2px 2px 2px #333;
+			}
+			
+			.frame-two:not(.active) .schedule-header {
+				margin-left: 100%;
+			}
 		</style>
 	</head>
 	<body>
-		<div class="frame-one">
+		<span class="directions">Click any key or swipe up</span>
+		
+		<div class="frame frame-one">
 			<div class="greeting">
-				<h1>Good</h1>
-				<h1>Morning</h1>
+				<h1>Good Morning,</h1>
+				<h1>Michael</h1>
+			</div>
+		</div>
+		
+		<div class="frame frame-two">
+			<div class="container">
+				<h1 class="schedule-header">Here is your schedule for today</h1>
 			</div>
 		</div>
 		
@@ -116,10 +161,40 @@
 		</script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 		<script>
-			$('.frame-one').addClass('active');
-			setTimeout(function() {
-				$('.greeting').addClass('blur blur-white');
-			}, 1000);
+			$directions = $('.directions');
+			
+			$frameOne   = $('.frame-one');
+			$greeting   = $('.greeting');
+			
+			$frameTwo   = $('.frame-two');
+			
+			showGreeing();
+			$(document).keypress(function() {
+				hideGreeing();
+				setTimeout(function() {
+					showSchedule();
+				}, 2000);
+			});
+			
+			function showGreeing() {
+				$frameOne.addClass('active');
+				setTimeout(function() {
+					$greeting.addClass('blur blur-white');
+					$directions.addClass('blink');
+				}, 1000);
+			}
+			
+			function hideGreeing() {
+				$greeting.removeClass('blur blur-white');
+				setTimeout(function() {
+					$frameOne.removeClass('active');
+					$frameOne.fadeOut('slow');
+				}, 1000);
+			}
+			
+			function showSchedule() {
+				$frameTwo.addClass('active');
+			}
 		</script>
 	</body>
 </html>
