@@ -35,5 +35,21 @@ function inArray(needle, haystack) {
 	return haystack.indexOf(needle) > -1;
 }
 
+/**
+ * Checks whether all values in array are not null
+ * @function notNull
+ * 
+ * @param {Object} array - Array to be searched it
+ * 
+ * @returns {Boolean}
+ */
+
+function notNull(array) {
+	return array.every(function(elem) {
+		return elem !== null;
+	});
+}
+
 module.exports.dataIsSet = dataIsSet;
 module.exports.inArray   = inArray;
+module.exports.notNull   = notNull;

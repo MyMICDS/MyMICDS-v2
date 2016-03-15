@@ -55,7 +55,9 @@ var validTypes = [
  * 
  * @param {Object} scheduleClass - JSON of class to add
  * @param {string} scheduleClass.name - Name of class
- * @param {string} scheduleClass.teacher - Name of teacher
+ * @param {string} scheduleClass.teacherPrefix - Either 'Mr.' or 'Ms.'
+ * @param {string} scheduleClass.teacherFirstName - First name of teacher
+ * @param {string} scheduleClass.teacherLastName - Last name of teacher
  * @param {string} scheduleClass.block - Which block the class takes place
  * @param {string} scheduleClass.color - Hex value of class color. Please include hash ('#') symbol.
  * @param {string} scheduleClass.type - Type of class ('science', 'art', 'math', 'wl', 'english', 'history', or 'other')
@@ -79,7 +81,8 @@ function addClass(user, scheduleClass, callback, editId) {
         user,
         scheduleClass.name,
 		scheduleClass.teacherPrefix,
-		scheduleClass.teacher,
+		scheduleClass.teacherFirstName,
+		scheduleClass.teacherLastName,
 		scheduleClass.block,
 		scheduleClass.color,
 		scheduleClass.type,
@@ -88,7 +91,8 @@ function addClass(user, scheduleClass, callback, editId) {
     
     
     // Check that all inputs are valid
-	var dataIsSet = utils.dataIsSet(required);
+	var dataIsSet = utils.dataIsSet(required) && utils.notNull(required);
+	
     if(!utils.inArray(scheduleClass.block, validBlocks) || !utils.inArray(scheduleClass.teacherPrefix, validTeacherPrefixes) || !utils.inArray(scheduleClass.type, validTypes)) {
         dataIsSet = false;
     }
@@ -100,17 +104,10 @@ function addClass(user, scheduleClass, callback, editId) {
     }
 	
     if(dataIsSet) {
-        // Generate unique id
-		if(!editId || editId === '') {
-			var objectID = new ObjectID();
-			var id = objectID.toHexString();
-		} else {
-			var id = editId;
-		}
         
         MongoClient.connect(config.mongodbURI, function(dbErr, db) {
-            var userdata  = db.collection('users');
-            var classData = db.collection('classes');
+            var userdata    = db.collection('users');
+            var classData   = db.collection('classes');
 			
             if(!dbErr) {
 				// Make sure valid username, if true, get the _id
@@ -118,43 +115,65 @@ function addClass(user, scheduleClass, callback, editId) {
                     if(!userFindErr) {
                         if(userDocs.length > 0 && userDocs[0]['confirmed']) {
 							
+							// User is set, get their id to insert with the class
 							var userId = userDocs[0]['_id'];
-							var insertClass =
-                            {
-								user: userId,
-                                name: scheduleClass.name,
-								teacherPrefix: scheduleClass.teacherPrefix,
-                                teacher      : scheduleClass.teacher,
-                                block: scheduleClass.block,
-                                color: scheduleClass.color,
-                                type : scheduleClass.type,
-                                displayPlanner: scheduleClass.displayPlanner,
-                            };
 							
-							// Get classes to check for duplicates
-							classData.find({user: userId}).toArray(function(classFindErr, classDocs) {
-								if(!classFindErr) {
-									var classes    = classDocs;
-									var dupClasses = checkDupClass(insertClass, classes);
+							// Add the teacher to database. If the class is a duplicate, there would also be duplicate teacher ids
+							addTeacher(scheduleClass.teacherPrefix, scheduleClass.teacherFirstName, scheduleClass.teacherLastName, function(response, teacherId) {
+								if(response) {
+									var insertClass =
+									{
+										user: userId,
+										name: scheduleClass.name,
+										teacher: teacherId,
+										block: scheduleClass.block,
+										color: scheduleClass.color,
+										type : scheduleClass.type,
+										displayPlanner: scheduleClass.displayPlanner,
+									};
 
-									if(dupClasses.length === 0) {
-										classData.update({ _id: id }, insertClass, { upsert: true }, function(updateErr, data) {
-											if(!updateErr) {
-												callback(true, id);
+									// Get classes to check for duplicates
+									classData.find({user: userId}).toArray(function(classFindErr, classDocs) {
+										if(!classFindErr) {
+
+											var classes    = classDocs;
+
+											// Lets see if we are supposed to edit one of those
+											if(checkDupId(editId, classes)) {
+												var id = editId;
 											} else {
-												callback(false, 'There was an error inserting the class(es) into the database!');
+												// Either id doesn't exist or we've been given an invalid id. Generate a new one.
+												var objectID = new ObjectID();
+												var id = objectID.toHexString();
 											}
-										}); 
-									} else {
-										// If editId was set, that means someone was trying to edit a class. Don't give an error if you are editting class as the same thing
-										if(!utils.inArray(id, dupClasses)) {
-											callback(false, 'Tried to insert a duplicate class!');
+											
+											// Check for duplicate classes
+											var dupClasses = checkDupClass(insertClass, classes);
+											
+											if(dupClasses.length === 0) {
+
+												classData.update({ _id: id }, insertClass, { upsert: true }, function(updateErr, data) {
+													if(!updateErr) {
+														callback(true, id);
+													} else {
+														callback(false, 'There was an error inserting the class(es) into the database!');
+													}
+												}); 
+											} else {
+												// If editId was set, that means someone was trying to edit a class. Don't give an error if you are editting class as the same thing
+												if(!utils.inArray(id, dupClasses)) {
+													callback(false, 'Tried to insert a duplicate class!');
+												} else {
+													callback(true, id);
+												}
+											}
 										} else {
-											callback(true, id);
+											callback(false, 'There was an error inserting the class(es) into the database!')
 										}
-									}
+									});
 								} else {
-									callback(false, 'There was an error inserting the class(es) into the database!')
+									// Teacher id will have an error message if error
+									callback(false, teacherId);
 								}
 							});
                         } else if(userDocs.length === 0) {
@@ -176,6 +195,64 @@ function addClass(user, scheduleClass, callback, editId) {
 }
 
 /**
+ * Adds a teacher into the database, as long as it isn't a duplicate
+ * @function addTeacher
+ * 
+ * @param {string} teacherPrefix - Either 'Mr.' or 'Ms.'
+ * @param {string} firstName - Teacher's first name
+ * @param {string} lastName - Teacher's last name
+ * @param {addTeacherCallback} callback
+ */
+
+/**
+ * Callback after a teacher is added to the database
+ * @callback addTeacherCallback
+ * 
+ * @param {Boolean} response - True if successful, false if not
+ * @param {Object} teacherId - Id of the teacher added, or error message if failure
+ */
+
+function addTeacher(prefix, firstName, lastName, callback) {
+	var required = [
+		prefix,
+		firstName,
+		lastName,
+	];
+	
+	if(utils.dataIsSet(required) && utils.notNull(required)) {
+		MongoClient.connect(config.mongodbURI, function(dbErr, db) {
+			if(!dbErr) {
+				var teacherData = db.collection('teachers');
+				teacherData.update({ prefix: prefix, firstName: firstName, lastName: lastName }, { $set: {
+					
+					prefix   : prefix,
+					firstName: firstName,
+					lastName : lastName,
+					
+				}}, { upsert: true }, function(updateError, results) {
+					if(!updateError) {
+						teacherData.find({ prefix: prefix, firstName: firstName, lastName: lastName }).toArray(function(findError, docs) {
+							if(!findError) {
+								var id = docs[0]['_id'];
+								callback(true, id);
+							} else {
+								callback(false, 'There was an error querying the teacher from the database!');
+							}
+						});
+					} else {
+						callback(false, 'There was an error inserting the teacher into the database!');
+					}
+				});
+			} else {
+				callback(false, 'There was an error connecting to the database!');
+			}
+		});
+	} else {
+		callback(false, 'Not all teacher data is set!');
+	}
+}
+
+/**
  * Checks for any duplicate classes in existing array. Returns true if duplicate class.
  * @function checkDupClass
  * 
@@ -193,19 +270,46 @@ function addClass(user, scheduleClass, callback, editId) {
  */
 
 function checkDupClass(needle, haystack) {
-	
 	if(!haystack || haystack.length === 0) {
 		return [];
 	}
 	
     var dup = [];
     
-    haystack.forEach(function(element) {
-        if(needle.name === element.name && needle.teacher === element.teacher && needle.block === element.block && needle.color === element.color && needle.type === element.type) {
+    for(var i = 0; i < haystack.length; i++) {
+		var element = haystack[i];
+		
+        if(needle.name === element.name && needle.teacher.toHexString() === element.teacher.toHexString() && needle.block === element.block && needle.color === element.color && needle.type === element.type) {
             dup.push(element.id);
         }
-    });
+    }
     return dup;
+}
+
+/**
+ * Check if an id exists within an array of classes
+ * @function checkDupId
+ * 
+ * @param {string} needle - Id to look for
+ * @param {Object} haystack - Array of objects to scan id for
+ * @param {string} haystack._id - Id to check if duplicate
+ * 
+ * @returns {Boolean} response - True if duplicate, false if id doesn't exist in classes
+ */
+
+function checkDupId(needle, haystack) {
+	var idArray = [];
+	if(haystack.length > 0) {
+		
+		// Put all ids in classes into array
+		for(var i = 0; i < haystack.length; i++) {
+			idArray.push(haystack[i]['_id']);
+		}
+		
+		return utils.inArray(needle, haystack);
+	} else {
+		return false;
+	}
 }
 
 module.exports.validBlocks = validBlocks;
