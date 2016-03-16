@@ -136,22 +136,22 @@ function addClass(user, scheduleClass, callback, editId) {
 									classData.find({user: userId}).toArray(function(classFindErr, classDocs) {
 										if(!classFindErr) {
 
-											var classes    = classDocs;
-
+											var classes = classDocs;
+											
 											// Lets see if we are supposed to edit one of those
 											if(checkDupId(editId, classes)) {
-												var id = editId;
+												console.log('duplicate id! edit!');
+												var id = new ObjectID.createFromHexString(editId);
 											} else {
 												// Either id doesn't exist or we've been given an invalid id. Generate a new one.
-												var objectID = new ObjectID();
-												var id = objectID.toHexString();
+												var id = new ObjectID();
 											}
 											
 											// Check for duplicate classes
 											var dupClasses = checkDupClass(insertClass, classes);
 											
 											if(dupClasses.length === 0) {
-
+												
 												classData.update({ _id: id }, insertClass, { upsert: true }, function(updateErr, data) {
 													if(!updateErr) {
 														callback(true, id);
@@ -161,7 +161,7 @@ function addClass(user, scheduleClass, callback, editId) {
 												}); 
 											} else {
 												// If editId was set, that means someone was trying to edit a class. Don't give an error if you are editting class as the same thing
-												if(!utils.inArray(id, dupClasses)) {
+												if(!utils.inArray(id.toHexString(), dupClasses)) {
 													callback(false, 'Tried to insert a duplicate class!');
 												} else {
 													callback(true, id);
@@ -257,7 +257,6 @@ function addTeacher(prefix, firstName, lastName, callback) {
  * @function checkDupClass
  * 
  * @param {Object} needle - Class to check for duplicate, any extra values inside the object will be ignored
- * @param {string} needle.id - Id of class
  * @param {string} needle.name - Name of class
  * @param {string} needle.teacher - Name of teacher
  * @param {string} needle.block - Which block the class takes place
@@ -270,17 +269,18 @@ function addTeacher(prefix, firstName, lastName, callback) {
  */
 
 function checkDupClass(needle, haystack) {
-	if(!haystack || haystack.length === 0) {
-		return [];
-	}
 	
     var dup = [];
+	
+	if(!haystack || haystack.length === 0) {
+		return dup;
+	}
     
     for(var i = 0; i < haystack.length; i++) {
 		var element = haystack[i];
 		
         if(needle.name === element.name && needle.teacher.toHexString() === element.teacher.toHexString() && needle.block === element.block && needle.color === element.color && needle.type === element.type) {
-            dup.push(element.id);
+            dup.push(element._id.toHexString());
         }
     }
     return dup;
@@ -303,10 +303,10 @@ function checkDupId(needle, haystack) {
 		
 		// Put all ids in classes into array
 		for(var i = 0; i < haystack.length; i++) {
-			idArray.push(haystack[i]['_id']);
+			idArray.push(haystack[i]['_id'].toHexString());
 		}
 		
-		return utils.inArray(needle, haystack);
+		return utils.inArray(needle, idArray);
 	} else {
 		return false;
 	}
