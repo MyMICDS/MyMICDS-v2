@@ -3,7 +3,6 @@
  * @module sass
  */
 
-// libs
 var fs   = require('fs');
 var sass = require('node-sass');
 

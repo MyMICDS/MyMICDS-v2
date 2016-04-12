@@ -26,19 +26,27 @@
             </div>
             <button class="btn btn-success">Add Class</button>
         </form>
+		<ul class="classes"></ul>
         <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
         <script>
-        $('form').submit(function() {
-            $.post($(this).attr('action'), $(this).serialize(), function(data) {
-                console.log(data);
-            })
-                .fail(function() {
-                    console.log('There was an error submitting the form. Contact support if this keeps happening!');
-                });
+			$.post('/get-classes', function(data) {
+				data.forEach(function(value) {
+					console.log(value);
+					$('.classes').append(value);
+				});
+			});
+			
+			$('form').submit(function() {
+				$.post($(this).attr('action'), $(this).serialize(), function(data) {
+					console.log(data);
+				})
+					.fail(function() {
+						console.log('There was an error submitting the form. Contact support if this keeps happening!');
+					});
 
-            return false;
-        });
+				return false;
+			});
         </script>
     </body>
 </html>

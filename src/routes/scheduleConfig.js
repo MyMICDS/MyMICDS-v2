@@ -1,6 +1,14 @@
-var schedule = require(__dirname + '/../libs/schedule.js');
+var classes = require(__dirname + '/../libs/classes.js');
 
 module.exports = function(app) {
+	
+	app.post('/get-classes', function(req, res) {
+		var user = req.session.user;
+		classes.getClasses(user, function(success, classes) {
+			res.json(success ? classes : false);
+		});
+	});
+	
     app.post('/add-class', function(req, res) {
         var user = req.session.user;
         var scheduleClass =
@@ -15,7 +23,7 @@ module.exports = function(app) {
             type : req.body.type,
             displayPlanner: req.body.displayPlanner ? true : false,
         };
-        schedule.addClass(user, scheduleClass, function(success, id) {
+        classes.addClass(user, scheduleClass, function(success, id) {
             if(success) {
                 res.json({success: true, classId: id, message: 'Success!'});
             } else {
