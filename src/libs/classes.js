@@ -7,7 +7,6 @@ var config      = require(__dirname + '/requireConfig.js');
 var MongoClient = require('mongodb').MongoClient;
 var ObjectID    = require('mongodb').ObjectID;
 var utils       = require(__dirname + '/utils.js');
-var _           = require('underscore');
 
 var validBlocks = [
     'a',
@@ -79,7 +78,7 @@ function getClasses(user, callback) {
 					classData.find({user: userId}).toArray(function(classFindErr, classDocs) {
 						if(!classFindErr) {
 							var classes = [];
-							_.each(classDocs, function(singleClass, index) {
+							classDocs.forEach(function(singleClass, index) {
 								// Find teacher
 								teacherData.find({_id: singleClass.teacher}).toArray(function(teacherFindErr, teacherDocs) {
 									singleClass.teacher = teacherDocs[0];

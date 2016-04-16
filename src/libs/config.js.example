@@ -15,6 +15,6 @@ module.exports =
     },
 
     expressSessionSecret: '',
-    mongodbURI          : '',
     forecastAPIKey      : '',
+    mongodbURI          : '',
 }
