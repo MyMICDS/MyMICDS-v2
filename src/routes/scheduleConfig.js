@@ -33,7 +33,9 @@ module.exports = function(app) {
     });
 	
     app.post('/delete-class', function(req, res) {
-		
+		classes.deleteClass(req.session.user, req.body.id, function(success, response) {
+			res.json({success: success, message: response});
+		});
     });
     
     app.post('/configure-schedule', function(req, res) {

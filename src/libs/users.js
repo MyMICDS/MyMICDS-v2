@@ -11,6 +11,38 @@ var MongoClient = require('mongodb').MongoClient;
 var utils       = require(__dirname + '/utils.js');
 
 /**
+ * Get id of user
+ * @function getUser
+ * 
+ * @param {string} id - User id
+ * @param {getUserCallback} callback - Callback
+ */
+
+/**
+ * Callback after user id is retrieved
+ * @callback getUserCallback
+ * 
+ * @param {string|Boolean} id - User id or false if error
+ */
+
+function getUser(id, callback) {
+	if(typeof id === 'undefined') {
+		callback(false);
+		return;
+	}
+	MongoClient.connect(config.mongodbURI, function(err, db) {
+		var userdata  = db.collection('users');
+		userdata.find({_id: id}).toArray(function(userError, userDocs) {
+			if(!userError && userDocs.length) {
+				callback(userDocs[0]['user']);
+			} else {
+				callback(false);
+			}
+		});
+	});
+}
+
+/**
  * Registers a user by adding their credentials into the database. Also sends email confirmation.
  * @function register
  * 
@@ -142,4 +174,5 @@ function register(user, callback) {
     }
 }
 
+module.exports.getUser  = getUser;
 module.exports.register = register;

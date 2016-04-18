@@ -6,6 +6,7 @@
 var config      = require(__dirname + '/requireConfig.js');
 var MongoClient = require('mongodb').MongoClient;
 var ObjectID    = require('mongodb').ObjectID;
+var users       = require(__dirname + '/users.js');
 var utils       = require(__dirname + '/utils.js');
 
 var validBlocks = [
@@ -161,8 +162,8 @@ function addClass(user, scheduleClass, callback, editId) {
     if(dataIsSet) {
         
         MongoClient.connect(config.mongodbURI, function(dbErr, db) {
-            var userdata    = db.collection('users');
-            var classData   = db.collection('classes');
+            var userdata  = db.collection('users');
+            var classData = db.collection('classes');
 			
             if(!dbErr) {
 				// Make sure valid username, if true, get the _id
@@ -253,6 +254,7 @@ function addClass(user, scheduleClass, callback, editId) {
  * Deletes a class, and teacher if nobody else has the same teacher
  * @function deleteClass
  * 
+ * @param {string} user - Username
  * @param {string} classId - Class id
  * @param {deleteClassCallback}
  */
@@ -262,13 +264,46 @@ function addClass(user, scheduleClass, callback, editId) {
  * @callback deleteClassCallback
  * 
  * @param {Boolean} success - True if success, false if failure
+ * @param {string} message - String giving a detailed response
  */
 
-function deleteClass(classId, callback) {
+function deleteClass(user, classId, callback) {
 	if(typeof classId === 'undefined') {
-		callback(success);
+		callback(success, 'Invalid class id!');
 		return;
 	}
+	MongoClient.connect(config.mongodbURI, function(dbErr, db) {
+		if(!dbErr) {
+			var userdata  = db.collection('users');
+            var classData = db.collection('classes');
+			
+			users.getUser(user, function(id) {
+				classData.find({
+					_id: classId,
+					user: id
+				}).toArray(function(classFindError, classDocs) {
+					if(!classFindError && classDocs.length) {
+						var teacherId = classDocs[0]['teacher'];
+						classData.deleteMany({
+							_id: classId,
+							user: id
+						}, function(err, results) {
+							if(!err) {
+								callback(true, 'Class deleted!');
+							} else {
+								callback(false, 'Error deleted class in database!');
+							}
+							deleteTeacher(teacherId);
+						});
+					} else {
+						callback(false, 'There was an error querying the database!');
+					}
+				});
+			});
+		} else {
+			callback(false, 'There was an error connecting to the database!');
+		}
+	});
 }
 
 /**
@@ -327,6 +362,58 @@ function addTeacher(prefix, firstName, lastName, callback) {
 	} else {
 		callback(false, 'Not all teacher data is set!');
 	}
+}
+
+/**
+ * Deletes a teacher if no other person has it
+ * @function deleteTeacher
+ * 
+ * @param {string} teacherId - Id of teacher
+ * @param 
+ */
+
+/**
+ * Callback after deletes a teacher
+ * @callback deleteTeacherCallback
+ * 
+ * @param {Boolean} success - True if success, false if error
+ */
+
+function deleteTeacher(teacherId, callback) {
+	if(typeof classId === 'undefined') {
+		if(typeof callback === 'function') {
+			callback(false);
+		}
+		return;
+	}
+	MongoClient.connect(config.mongodbURI, function(dbErr, db) {
+		if(!dbErr) {
+			var classData   = db.collection('classes');
+			var teacherData = db.collection('teachers');
+			
+			classData.find({ teacher: teacherId }).toArray(function(classFindError, classDocs) {
+				if(!classFindError) {
+					if(classDocs.length) {
+						// No classes with a teacher, delete
+						teacherData.deleteMany({_id: teacherId}, function(err, results) {
+							if(!err && typeof callback === 'function') {
+								callback(true);
+							} else if(typeof callback === 'function') {
+								callback(false);
+							}
+						});
+					} else {
+						// Don't delete, other classes with same teacher
+						callback(true);
+					}
+				} else if(typeof callback === 'function') {
+					callback(false);
+				}
+			});
+		} else if(typeof callback === 'function') {
+			callback(false);
+		}
+	});
 }
 
 /**
@@ -389,3 +476,4 @@ module.exports.validTypes  = validTypes;
 
 module.exports.getClasses  = getClasses;
 module.exports.addClass    = addClass;
+module.exports.deleteClass = deleteClass;
