@@ -3,6 +3,7 @@
  */
 
 var auth    = require(__dirname + '/../libs/auth.js');
+var users   = require(__dirname + '/../libs/users.js');
 var cookies = require(__dirname + '/../libs/cookies.js');
 
 module.exports = function(app) {
@@ -110,7 +111,7 @@ module.exports = function(app) {
                 teacher  : (req.body.teacher !== undefined),
 			};
 		
-        auth.register(user, function(success, message) {
+        users.register(user, function(success, message) {
             res.json({success: success, message: message});
 		});
 		

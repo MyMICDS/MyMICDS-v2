@@ -109,16 +109,13 @@ app.get('/iotd', function(req, res) {
  */
 
 io.on('connection', function(socket){
-    
-	console.log('user connected');
-	console.log(socket.request.session);
-    
+	
     socket.on('username', function() {
         socket.emit('username', socket.request.session.user);
     });
 	
 	socket.on('disconnect', function() {
-		console.log('user disconnected');
+//		console.log('user disconnected');
 	});
 });
 

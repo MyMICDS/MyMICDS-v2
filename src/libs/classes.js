@@ -250,6 +250,28 @@ function addClass(user, scheduleClass, callback, editId) {
 }
 
 /**
+ * Deletes a class, and teacher if nobody else has the same teacher
+ * @function deleteClass
+ * 
+ * @param {string} classId - Class id
+ * @param {deleteClassCallback}
+ */
+
+/**
+ * Callback after deletes class
+ * @callback deleteClassCallback
+ * 
+ * @param {Boolean} success - True if success, false if failure
+ */
+
+function deleteClass(classId, callback) {
+	if(typeof classId === 'undefined') {
+		callback(success);
+		return;
+	}
+}
+
+/**
  * Adds a teacher into the database, as long as it isn't a duplicate
  * @function addTeacher
  * 
@@ -324,13 +346,10 @@ function addTeacher(prefix, firstName, lastName, callback) {
  */
 
 function checkDupClass(needle, haystack) {
-	
     var dup = [];
-	
 	if(!haystack || haystack.length === 0) {
 		return dup;
 	}
-    
     for(var i = 0; i < haystack.length; i++) {
 		var element = haystack[i];
 		
@@ -355,12 +374,10 @@ function checkDupClass(needle, haystack) {
 function checkDupId(needle, haystack) {
 	var idArray = [];
 	if(haystack.length > 0) {
-		
 		// Put all ids in classes into array
 		for(var i = 0; i < haystack.length; i++) {
 			idArray.push(haystack[i]['_id'].toHexString());
 		}
-		
 		return utils.inArray(needle, idArray);
 	} else {
 		return false;

@@ -5,6 +5,7 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     </head>
     <body>
+		<h1>Username: <span class="username"></span></h1>
         <form class="form-inline" action="/add-class" method="post">
             <input class="form-control" placeholder="Optional Id" name="id">
             <input class="form-control" placeholder="Class Name" name="name" value="Science">
@@ -26,15 +27,15 @@
             </div>
             <button class="btn btn-success">Add Class</button>
         </form>
-		<ul class="classes"></ul>
+		<div class="classes"></div>
         <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
         <script>
+			var socket = io.connect();
+			
 			$.post('/get-classes', function(data) {
-				data.forEach(function(value) {
-					console.log(value);
-					$('.classes').append(value);
-				});
+				$('.classes').text(JSON.stringify(data, null, 4));
 			});
 			
 			$('form').submit(function() {
@@ -47,6 +48,11 @@
 
 				return false;
 			});
+			
+			socket.emit('username');
+            socket.on('username', function(username) {
+                $('.username').text(username);
+            });
         </script>
     </body>
 </html>
