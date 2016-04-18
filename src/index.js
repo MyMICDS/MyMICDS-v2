@@ -34,11 +34,9 @@ var io      = require('socket.io')(server);
  */
 
 // Cookies
-
 app.use(cookieParser());
 
 // Sessions
-
 var session = require('express-session')({
     secret           : config.expressSessionSecret,
     resave           : false,
@@ -52,18 +50,15 @@ io.use(function(socket, next) {
 });
 
 // 'Remember Me' Functionality
-
 app.use(cookies.remember);
 
 // Body Parser for POST Variables
-
 app.use(bodyParser.json());     // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
     extended: true
 }));
 
 // EJS as Default Render Engine
-
 app.set('view engine', 'ejs');
 
 /*
