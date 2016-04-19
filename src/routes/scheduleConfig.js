@@ -33,6 +33,7 @@ module.exports = function(app) {
     });
 	
     app.post('/delete-class', function(req, res) {
+		console.log('Deleting class ' + req.body.id + '???!');
 		classes.deleteClass(req.session.user, req.body.id, function(success, response) {
 			res.json({success: success, message: response});
 		});

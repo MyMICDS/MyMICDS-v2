@@ -269,7 +269,7 @@ function addClass(user, scheduleClass, callback, editId) {
 
 function deleteClass(user, classId, callback) {
 	if(typeof classId === 'undefined') {
-		callback(success, 'Invalid class id!');
+		callback(false, 'Invalid class id!');
 		return;
 	}
 	MongoClient.connect(config.mongodbURI, function(dbErr, db) {

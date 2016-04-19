@@ -27,7 +27,7 @@
             </div>
             <button class="btn btn-success">Add Class</button>
         </form>
-		<div class="classes"></div>
+		<ul class="classes"></ul>
         <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
 		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
@@ -35,11 +35,21 @@
 			var socket = io.connect();
 			
 			$.post('/get-classes', function(data) {
-				$('.classes').text(JSON.stringify(data, null, 4));
+				data.forEach(function(value, index) {
+					$('.classes').append('<li><button class="delete btn btn-danger" data-id="' + value._id + '">Delete</button>' + JSON.stringify(data, null, 4) + '</li>');
+				});
+				
+				$('.delete').click(function() {
+					var classId = $(this).prop('data-id');
+					console.log(classId);
+					$.post('/delete-class', { id: classId }, function(deleteData) {
+						console.log(deleteData);
+					});
+				});
 			});
 			
 			$('form').submit(function() {
-				$.post($(this).attr('action'), $(this).serialize(), function(data) {
+				$.post($(this).prop('action'), $(this).serialize(), function(data) {
 					console.log(data);
 				})
 					.fail(function() {
