@@ -36,11 +36,11 @@
 			
 			$.post('/get-classes', function(data) {
 				data.forEach(function(value, index) {
-					$('.classes').append('<li><button class="delete btn btn-danger" data-id="' + value._id + '">Delete</button>' + JSON.stringify(data, null, 4) + '</li>');
+					$('.classes').append('<li><button class="delete btn btn-danger" data-id="' + value._id + '">Delete</button>' + JSON.stringify(value, null, 4) + '</li>');
 				});
 				
 				$('.delete').click(function() {
-					var classId = $(this).prop('data-id');
+					var classId = $(this).data('id');
 					console.log(classId);
 					$.post('/delete-class', { id: classId }, function(deleteData) {
 						console.log(deleteData);

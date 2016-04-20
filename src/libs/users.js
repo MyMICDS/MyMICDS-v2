@@ -12,9 +12,9 @@ var utils       = require(__dirname + '/utils.js');
 
 /**
  * Get id of user
- * @function getUser
+ * @function getUserId
  * 
- * @param {string} id - User id
+ * @param {string} user - Username
  * @param {getUserCallback} callback - Callback
  */
 
@@ -22,23 +22,29 @@ var utils       = require(__dirname + '/utils.js');
  * Callback after user id is retrieved
  * @callback getUserCallback
  * 
- * @param {string|Boolean} id - User id or false if error
+ * @param {Object|Boolean} id - User id or false if error
  */
 
-function getUser(id, callback) {
-	if(typeof id === 'undefined') {
+function getUserId(user, callback) {
+	if(typeof user === 'undefined') {
 		callback(false);
 		return;
 	}
-	MongoClient.connect(config.mongodbURI, function(err, db) {
-		var userdata  = db.collection('users');
-		userdata.find({_id: id}).toArray(function(userError, userDocs) {
-			if(!userError && userDocs.length) {
-				callback(userDocs[0]['user']);
-			} else {
-				callback(false);
-			}
-		});
+	if(typeof callback !== 'function') return;
+	
+	MongoClient.connect(config.mongodbURI, function(dbErr, db) {
+		if(!dbErr) {
+			var userdata  = db.collection('users');
+			userdata.find({user: user}).toArray(function(userError, userDocs) {
+				if(!userError && userDocs.length) {
+					callback(userDocs[0]['_id']);
+				} else {
+					callback(false);
+				}
+			});
+		} else {
+			callback(false);
+		}
 	});
 }
 
@@ -174,5 +180,5 @@ function register(user, callback) {
     }
 }
 
-module.exports.getUser  = getUser;
-module.exports.register = register;
+module.exports.getUserId = getUserId;
+module.exports.register  = register;

@@ -142,7 +142,7 @@ function addClass(user, scheduleClass, callback, editId) {
 		scheduleClass.block,
 		scheduleClass.color,
 		scheduleClass.type,
-		scheduleClass.displayPlanner,
+		scheduleClass.displayPlanner
     ];
     
     
@@ -176,6 +176,9 @@ function addClass(user, scheduleClass, callback, editId) {
 							
 							// Add the teacher to database. If the class is a duplicate, there would also be duplicate teacher ids
 							addTeacher(scheduleClass.teacherPrefix, scheduleClass.teacherFirstName, scheduleClass.teacherLastName, function(response, teacherId) {
+								// Deletes all useless classes incase if edit teacher
+								deleteUselessClasses();
+								
 								if(response) {
 									var insertClass =
 									{
@@ -196,7 +199,6 @@ function addClass(user, scheduleClass, callback, editId) {
 											
 											// Lets see if we are supposed to edit one of those
 											if(checkDupId(editId, classes)) {
-												console.log('duplicate id! edit!');
 												var id = new ObjectID.createFromHexString(editId);
 											} else {
 												// Either id doesn't exist or we've been given an invalid id. Generate a new one.
@@ -267,34 +269,39 @@ function addClass(user, scheduleClass, callback, editId) {
  * @param {string} message - String giving a detailed response
  */
 
-function deleteClass(user, classId, callback) {
-	if(typeof classId === 'undefined') {
+function deleteClass(user, id, callback) {
+	if(typeof id === 'undefined') {
 		callback(false, 'Invalid class id!');
 		return;
 	}
 	MongoClient.connect(config.mongodbURI, function(dbErr, db) {
 		if(!dbErr) {
+			var classId   = new ObjectID.createFromHexString(id);
 			var userdata  = db.collection('users');
             var classData = db.collection('classes');
 			
-			users.getUser(user, function(id) {
+			users.getUserId(user, function(userId) {
 				classData.find({
 					_id: classId,
-					user: id
+					user: userId
 				}).toArray(function(classFindError, classDocs) {
-					if(!classFindError && classDocs.length) {
-						var teacherId = classDocs[0]['teacher'];
-						classData.deleteMany({
-							_id: classId,
-							user: id
-						}, function(err, results) {
-							if(!err) {
-								callback(true, 'Class deleted!');
-							} else {
-								callback(false, 'Error deleted class in database!');
-							}
+					if(!classFindError) {
+						if(classDocs.length > 0) {
+							var teacherId = classDocs[0]['teacher'];
+							classData.deleteMany({
+								_id: classId,
+								user: userId
+							}, function(err, results) {
+								if(!err) {
+									callback(true, 'Class deleted!');
+								} else {
+									callback(false, 'Error while deleting class in database!');
+								}
+							});
 							deleteTeacher(teacherId);
-						});
+						} else {
+							callback(true, 'Class deleted!');
+						}
 					} else {
 						callback(false, 'There was an error querying the database!');
 					}
@@ -328,7 +335,7 @@ function addTeacher(prefix, firstName, lastName, callback) {
 	var required = [
 		prefix,
 		firstName,
-		lastName,
+		lastName
 	];
 	
 	if(utils.dataIsSet(required) && utils.notNull(required)) {
@@ -368,8 +375,8 @@ function addTeacher(prefix, firstName, lastName, callback) {
  * Deletes a teacher if no other person has it
  * @function deleteTeacher
  * 
- * @param {string} teacherId - Id of teacher
- * @param 
+ * @param {Object} teacherId - Id of teacher
+ * @param {deleteTeacherCallback} [callback] - Callback
  */
 
 /**
@@ -380,7 +387,7 @@ function addTeacher(prefix, firstName, lastName, callback) {
  */
 
 function deleteTeacher(teacherId, callback) {
-	if(typeof classId === 'undefined') {
+	if(typeof teacherId === 'undefined') {
 		if(typeof callback === 'function') {
 			callback(false);
 		}
@@ -393,7 +400,7 @@ function deleteTeacher(teacherId, callback) {
 			
 			classData.find({ teacher: teacherId }).toArray(function(classFindError, classDocs) {
 				if(!classFindError) {
-					if(classDocs.length) {
+					if(classDocs.length === 0) {
 						// No classes with a teacher, delete
 						teacherData.deleteMany({_id: teacherId}, function(err, results) {
 							if(!err && typeof callback === 'function') {
@@ -402,7 +409,7 @@ function deleteTeacher(teacherId, callback) {
 								callback(false);
 							}
 						});
-					} else {
+					} else if(typeof callback === 'function') {
 						// Don't delete, other classes with same teacher
 						callback(true);
 					}
@@ -412,6 +419,27 @@ function deleteTeacher(teacherId, callback) {
 			});
 		} else if(typeof callback === 'function') {
 			callback(false);
+		}
+	});
+}
+
+/**
+ * Deletes all teachers that are not linked to any class
+ * @function deleteUselessClasses
+ */
+
+function deleteUselessClasses() {
+	MongoClient.connect(config.mongodbURI, function(dbErr, db) {
+		if(!dbErr) {
+			var teacherData = db.collection('teachers');
+			teacherData.find({}).toArray(function(teacherErr, teacherDocs) {
+				if(!teacherErr) {
+					teacherDocs.forEach(function(value, index) {
+						var teacherId = value['_id'];
+						deleteTeacher(teacherId);
+					});
+				}
+			});
 		}
 	});
 }
