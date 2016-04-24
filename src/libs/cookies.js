@@ -10,31 +10,6 @@ var moment      = require('moment');
 var MongoClient = require('mongodb').MongoClient;
 
 /**
- * Clears all the expired cookies in the database
- * @function clearExpiredCookies
- * 
- * @param {clearExpiredCookies} callback
- */
-
-/**
- * Callback after the expired cookies are cleared
- * @callback clearExpiredCookies
- * 
- * @param {Boolean} response
- */
-
-function clearExpiredCookies(callback) {
-	MongoClient.connect(config.mongodbURI, function(err, db) {
-        if(!err) {
-            var rememberdata = db.collection('remember');
-            rememberdata.deleteMany({expires:''});
-        } else {
-            callback(false);
-        }
-	});
-}
-
-/**
  * Compares the 
  * @function compareCookie
  * 
