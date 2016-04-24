@@ -17,7 +17,6 @@ var nodemailer  = require('nodemailer');
  * @param {Object} message - JSON containing details of message
  * @param {string} message.subject - Subject of email
  * @param {string} message.html - HTML message
- * @param {string} [message.plaintext] - Plaintext alternative if HTML is not supported on user's mail client
  * 
  * @param {sendCallback}
  */
@@ -32,7 +31,6 @@ var nodemailer  = require('nodemailer');
 function send(users, message, callback) {
     
     // Checks that all required parameters are there
-    
     var required = [
         message.subject,
         message.html,

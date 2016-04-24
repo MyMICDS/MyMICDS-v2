@@ -65,7 +65,7 @@ function comparePassword(user, password, callback) {
  * @function confirm
  * 
  * @param {string} user - Username
- * @param {string} hash- Hashed password from the database
+ * @param {string} hash - Hashed password from the database
  * @param {confirmCallback}
  */
 
