@@ -30,12 +30,12 @@ var validBlocks = [
     'recess',
     'sport',
     'studyHall',
-    'other',
+    'other'
 ];
 
 var validTeacherPrefixes = [
 	'Mr.',
-	'Ms.',
+	'Ms.'
 ];
 
 var validTypes = [
@@ -45,7 +45,7 @@ var validTypes = [
     'wl', // World Language
     'english',
     'history',
-    'other',
+    'other'
 ];
 
 /**

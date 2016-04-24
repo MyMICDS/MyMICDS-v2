@@ -20,13 +20,17 @@ var MongoClient = require('mongodb').MongoClient;
  * Callback after the expired cookies are cleared
  * @callback clearExpiredCookies
  * 
- * @param {Boolena} response
+ * @param {Boolean} response
  */
 
 function clearExpiredCookies(callback) {
 	MongoClient.connect(config.mongodbURI, function(err, db) {
-		var rememberdata = db.collection('remember');
-		rememberdata.deleteMany({expires:''});
+        if(!err) {
+            var rememberdata = db.collection('remember');
+            rememberdata.deleteMany({expires:''});
+        } else {
+            callback(false);
+        }
 	});
 }
 
@@ -51,38 +55,44 @@ function clearExpiredCookies(callback) {
 
 function compareCookie(selector, token, callback) {
     cryptoUtils.shaHash(token, function(hashedToken) {
-        MongoClient.connect(config.mongodbURI, function(err, db) {
+        MongoClient.connect(config.mongodbURI, function(dbErr, db) {
+            
+            if(!dbErr) {
+                var rememberdata = db.collection('remember');
+                rememberdata.find({selector: selector}).next(function(findErr, doc) {
 
-            var rememberdata = db.collection('remember');
-            rememberdata.find({selector: selector}).next(function(err, doc) {
+                    if(!findErr && doc) {
+                        var cookie  = doc;
+                        var user    = cookie['user'];
+                        var dbToken = cookie['token'];
+                        var expires = cookie['expires'];
 
-                if(!err && doc) {
-                    var cookie  = doc;
-					var user    = cookie['user'];
-                    var dbToken = cookie['token'];
-                    var expires = cookie['expires'];
-                    
-                    var today   = new Date();
-                    if(expires.getTime() > today.getTime()) {
+                        var today   = new Date();
+                        if(expires.getTime() > today.getTime()) {
 
-                        if(cryptoUtils.safeCompare(hashedToken, dbToken)) {
-                            
-                            // Update token if successful
-                            
-                            generateToken(user, selector, expires, function(newToken) {
-                                if(token) {
-                                    // Update lastLogin
-                                    var userdata = db.collection('users');
-                                    userdata.update({user: user}, {$currentDate: {lastLogin: true}});
-                                    db.close();
-                                    
-                                    callback(user, newToken, expires);
-                                } else {
-                                    db.close();
-                                    callback(false, false, false);
-                                }
-                            });
-                            
+                            if(cryptoUtils.safeCompare(hashedToken, dbToken)) {
+
+                                // Update token if successful
+
+                                generateToken(user, selector, expires, function(newToken) {
+                                    if(token) {
+                                        // Update lastLogin
+                                        var userdata = db.collection('users');
+                                        userdata.update({user: user}, {$currentDate: {lastLogin: true}});
+                                        db.close();
+
+                                        callback(user, newToken, expires);
+                                    } else {
+                                        db.close();
+                                        callback(false, false, false);
+                                    }
+                                });
+
+                            } else {
+                                db.close();
+                                callback(false, false, false);
+                            }
+
                         } else {
                             db.close();
                             callback(false, false, false);
@@ -93,12 +103,10 @@ function compareCookie(selector, token, callback) {
                         callback(false, false, false);
                     }
 
-                } else {
-                    db.close();
-                    callback(false, false, false);
-                }
-
-            });
+                });
+            } else {
+                callback(false, false, false);
+            }
         }); 
     });
 }
@@ -128,7 +136,6 @@ function createCookie(user, callback) {
 		if(!err) {
 		
 			var selector = selectorBuf.toString('hex');
-
 			generateToken(user, selector, expires, function(token) {
 				if(token) {
 					callback(selector, token, expires);
@@ -160,39 +167,42 @@ function createCookie(user, callback) {
  */
 
 function generateToken(user, selector, expires, callback) {
-    crypto.randomBytes(32, function(err, tokenBuf) {
+    crypto.randomBytes(32, function(cryptoErr, tokenBuf) {
+        if(!cryptoErr) {
+            var token = tokenBuf.toString('hex');
 
-        var token = tokenBuf.toString('hex');
+            // Hash token for database
+            cryptoUtils.shaHash(token, function(hashedToken) {
 
-        // Hash token for database
-        cryptoUtils.shaHash(token, function(hashedToken) {
+                // Insert token and hashed password in database
+                MongoClient.connect(config.mongodbURI, function(dbErr, db) {
+                    if(!dbErr) {
+                        var rememberdata = db.collection('remember');
+                        rememberdata.update({selector: selector}, {
+                            user    : user,
+                            selector: selector,
+                            token   : hashedToken,
+                            expires : expires,
 
-            // Insert token and hashed password in database
-            MongoClient.connect(config.mongodbURI, function(err, db) {
-				if(!err) {
-					var rememberdata = db.collection('remember');
-					rememberdata.update({selector: selector}, {
-						user    : user,
-						selector: selector,
-						token   : hashedToken,
-						expires : expires,
-						
-					}, {upsert: true}, function(err) {
+                        }, {upsert: true}, function(updateErr) {
 
-                        db.close();
-                        if(!err) {
-                            callback(token);
-                        } else {
-                            callback(false);
-                        }
-                    });
+                            db.close();
+                            if(!updateErr) {
+                                callback(token);
+                            } else {
+                                callback(false);
+                            }
+                        });
 
-                } else {
-                    callback(false);
-                }
+                    } else {
+                        callback(false);
+                    }
 
+                });
             });
-        });
+        } else {
+            callback(false);
+        }
 
     });
 }
