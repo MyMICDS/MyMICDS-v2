@@ -212,6 +212,5 @@ function remember(req, res, next) {
     }
 }
 
-module.exports.clearExpiredCookies = clearExpiredCookies;
 module.exports.createCookie        = createCookie;
 module.exports.remember            = remember;

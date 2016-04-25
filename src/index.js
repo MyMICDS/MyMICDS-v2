@@ -88,6 +88,15 @@ app.get('/start', function(req, res) {
 	res.sendFile(__dirname + '/html/start.html');
 });
 
+var portal = require(__dirname + '/libs/portal.js');
+
+app.get('/feed', function(req, res) {
+    var feed = portal.scheduleFeed(config.portalTestFeedURL, function(that) {
+        res.setHeader('Content-Type', 'text/html');
+        res.end(that.validate.message + '<br><br>' + that.getSchedule());
+    });
+});
+
 app.get('/test', function(req, res) {
 	res.sendFile(__dirname + '/html/test.html');
 });

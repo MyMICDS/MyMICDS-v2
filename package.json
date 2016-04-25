@@ -42,6 +42,7 @@
     "express": "^4.13.4",
     "express-session": "^1.13.0",
     "forecast.io": "0.0.9",
+    "ical": "^0.5.0",
     "jsdoc": "^3.4.0",
     "moment": "^2.11.2",
     "mongodb": "^2.1.7",
