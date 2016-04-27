@@ -10,13 +10,21 @@ var _       = require('underscore');
 
 /**
  * Verifies that an iCal feed is from the portal, and identifies which calendars are existing
+ * @function verifyFeed
  * 
  * @param {string} url - URI to iCal feed
- * @param {function} callback - Callback after it verifies URI
+ * @param {function} callback - Callback after calendar feed is gotten
  */
 
 function verifyFeed(url, callback) {
     var that = this;
+    
+    if(typeof url === 'undefined') {
+        that.success = false;
+        that.message = 'Invalid URL!';
+        that.raw = null;
+        return;
+    }
     
     // Make sure URL is correct protocol
     that.url = url.trim().replace('webcal://', 'https://');
@@ -28,7 +36,7 @@ function verifyFeed(url, callback) {
             that.raw = body;
         } else {
             that.success = false;
-            that.message = 'There was something wrong with getting the calendar feed!';
+            that.message = 'There was a problem getting the calendar feed!';
             that.raw = null;
         }
         if(typeof callback === 'function') callback();
@@ -40,13 +48,7 @@ function verifyFeed(url, callback) {
  * @function scheduleFeed
  * 
  * @param {string} url - URL to iCal feed
- * @param {scheduleFeedCallback} callback - Callback after feed is parsed
- */
-
-/**
- * Callback after parses schedule feed
- * @callback scheduleFeedCallback
- * @param {Object} that - Schedule feed object to use for callback
+ * @param {function} callback - Callback after schedule is parsed
  */
 
 function scheduleFeed(url, callback) {
@@ -58,7 +60,7 @@ function scheduleFeed(url, callback) {
         } else {
             that.parsed = null;
         }
-        callback(that);
+        if(typeof callback === 'function') callback();
     });
     
     this.getSchedule = function(day, month, year) {
@@ -74,7 +76,6 @@ function scheduleFeed(url, callback) {
         _.each(this.parsed, function(event, uid) {
             var eventDate = new Date(event.start);
             if(eventDate.getDate() === current.getDate() && eventDate.getMonth() === current.getMonth() && eventDate.getFullYear() === current.getFullYear()) {
-                console.log('saem date');
                 schedule.push(event);
             }
         });
