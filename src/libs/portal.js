@@ -72,13 +72,26 @@ function scheduleFeed(url, callback) {
         day = day || current.getDate();
         month = month || current.getMonth();
         year = year || current.getFullYear();
-
+        
+        // Get schedule from feed
         _.each(this.parsed, function(event, uid) {
             var eventDate = new Date(event.start);
             if(eventDate.getDate() === current.getDate() && eventDate.getMonth() === current.getMonth() && eventDate.getFullYear() === current.getFullYear()) {
-                schedule.push(event);
+                var period = {
+                    'start': event.start,
+                    'end'  : event.end,
+                    'class': event.summary,
+                    'location': event.location
+                };
+                
+                // Check if it's an all-day event
+                // @todo
+                
+                schedule.push(period);
+                console.log(event);
             }
         });
+        
         return schedule;
     }
 }
