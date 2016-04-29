@@ -68,6 +68,7 @@ function scheduleFeed(url, callback) {
         // Default date
         var current = new Date();
         var schedule = [];
+        var events = [];
 
         day = day || current.getDate();
         month = month || current.getMonth();
@@ -77,22 +78,30 @@ function scheduleFeed(url, callback) {
         _.each(this.parsed, function(event, uid) {
             var eventDate = new Date(event.start);
             if(eventDate.getDate() === current.getDate() && eventDate.getMonth() === current.getMonth() && eventDate.getFullYear() === current.getFullYear()) {
-                var period = {
-                    'start': event.start,
-                    'end'  : event.end,
-                    'class': event.summary,
-                    'location': event.location
-                };
                 
                 // Check if it's an all-day event
-                // @todo
-                
-                schedule.push(period);
-                console.log(event);
+                if(eventDate.getSeconds() === 0 && eventDate.getMinutes() === 0 && eventDate.getHours() === 0) {
+                    var period = {
+                        'class': event.summary,
+                        'location': event.location
+                    };
+                    events.push(period)
+                } else {
+                    var period = {
+                        'start': event.start,
+                        'end'  : event.end,
+                        'class': event.summary,
+                        'location': event.location
+                    };
+                    schedule.push(period);
+                }
             }
         });
         
-        return schedule;
+        return {
+            'schedule': schedule,
+            'events'  : events
+        };
     }
 }
 
