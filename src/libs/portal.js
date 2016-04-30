@@ -77,7 +77,7 @@ function scheduleFeed(url, callback) {
         // Get schedule from feed
         _.each(this.parsed, function(event, uid) {
             var eventDate = new Date(event.start);
-            if(eventDate.getDate() === current.getDate() && eventDate.getMonth() === current.getMonth() && eventDate.getFullYear() === current.getFullYear()) {
+            if(eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year) {
                 
                 // Check if it's an all-day event
                 if(eventDate.getSeconds() === 0 && eventDate.getMinutes() === 0 && eventDate.getHours() === 0) {
