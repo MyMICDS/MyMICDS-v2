@@ -91,10 +91,10 @@ app.get('/start', function(req, res) {
 var portal = require(__dirname + '/libs/portal.js');
 
 app.get('/feed', function(req, res) {
-    var feed = new portal.scheduleFeed(config.portalTestFeedURL, function() {
+    portal.scheduleFeed(config.portalTestFeedURL, function(that) {
         res.setHeader('Content-Type', 'text/html');
-        var schedule = feed.getSchedule();
-        res.end(feed.validate.success + '<br>' + feed.validate.message + '<br><br>' + JSON.stringify(schedule));
+        var schedule = that.getSchedule();
+        res.end(that.success + '<br>' + that.message + '<br><br>' + JSON.stringify(schedule));
     });
 });
 

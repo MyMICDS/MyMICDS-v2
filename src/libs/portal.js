@@ -13,96 +13,122 @@ var _       = require('underscore');
  * @function verifyFeed
  * 
  * @param {string} url - URI to iCal feed
- * @param {function} callback - Callback after calendar feed is gotten
+ * @param {verifyFeedCallback} callback - Callback after calendar feed is gotten
+ */
+
+/**
+ * Callback after feed is gotten
+ * @callback verifyFeedCallback
+ * 
+ * @param {Boolean} success - True if success, false if error
+ * @param {string} message - Description of success / error
+ * @param {string} raw - Raw body of calender request
+ * @param {string} url - Valid url
  */
 
 function verifyFeed(url, callback) {
-    var that = this;
     
     if(typeof url === 'undefined') {
-        that.success = false;
-        that.message = 'Invalid URL!';
-        that.raw = null;
+        var success = false;
+        var message = 'Invalid URL!';
+        var raw = null;
+        if(typeof callback === 'function') callback(success, message, raw, null);
         return;
     }
     
     // Make sure URL is correct protocol
-    that.url = url.trim().replace('webcal://', 'https://');
+    var url = url.trim().replace('webcal://', 'https://');
     
-    request(that.url, function(error, response, body) {
+    request(url, function(error, response, body) {
         if(!error) {
-            that.success = true;
-            that.message = 'Successfully got calendar feed!';
-            that.raw = body;
+            var success = true;
+            var message = 'Successfully got calendar feed!';
+            var raw = body;
         } else {
-            that.success = false;
-            that.message = 'There was a problem getting the calendar feed!';
-            that.raw = null;
+            var success = false;
+            var message = 'There was a problem getting the calendar feed!';
+            var raw = null;
         }
-        if(typeof callback === 'function') callback();
+        if(typeof callback === 'function') callback(success, message, raw, url);
     });
 }
 
 /**
- * That sweet, sweet OOP. Queries a person's Portal RSS feed to get schedule and stuff
+ * Queries a person's Portal RSS feed to get schedule and stuff
  * @function scheduleFeed
  * 
  * @param {string} url - URL to iCal feed
- * @param {function} callback - Callback after schedule is parsed
+ * @param {scheduleFeedCallback} callback - Callback after schedule is parsed
+ */
+
+/**
+ * Callback after schedule feed is parsed
+ * @callback scheduleFeedCallback
+ * 
+ * @param {Object} that - Object reference to the schedule feed
  */
 
 function scheduleFeed(url, callback) {
     var that = this;
-    
-    this.validate = new verifyFeed(url, function() {
-        if(that.validate.success) {
-            that.parsed = ical.parseICS(that.validate.raw);
-        } else {
-            that.parsed = null;
-        }
-        if(typeof callback === 'function') callback();
-    });
+    that.success = null;
     
     this.getSchedule = function(day, month, year) {
-        
-        // Default date
-        var current = new Date();
-        var schedule = [];
-        var events = [];
+        if(this.success) {
+            // Default date
+            var current = new Date();
+            var schedule = [];
+            var events = [];
 
-        day = day || current.getDate();
-        month = month || current.getMonth();
-        year = year || current.getFullYear();
-        
-        // Get schedule from feed
-        _.each(this.parsed, function(event, uid) {
-            var eventDate = new Date(event.start);
-            if(eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year) {
-                
-                // Check if it's an all-day event
-                if(eventDate.getSeconds() === 0 && eventDate.getMinutes() === 0 && eventDate.getHours() === 0) {
-                    var period = {
-                        'class': event.summary,
-                        'location': event.location
-                    };
-                    events.push(period)
-                } else {
-                    var period = {
-                        'start': event.start,
-                        'end'  : event.end,
-                        'class': event.summary,
-                        'location': event.location
-                    };
-                    schedule.push(period);
+            day = day || current.getDate();
+            month = month || current.getMonth();
+            year = year || current.getFullYear();
+
+            // Get schedule from feed
+            _.each(this.parsed, function(event, uid) {
+                var eventDate = new Date(event.start);
+                if(eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year) {
+
+                    // Check if it's an all-day event
+                    if(eventDate.getSeconds() === 0 && eventDate.getMinutes() === 0 && eventDate.getHours() === 0) {
+                        var period = {
+                            'class': event.summary,
+                            'location': event.location
+                        };
+                        events.push(period)
+                    } else {
+                        var period = {
+                            'start': event.start,
+                            'end'  : event.end,
+                            'class': event.summary,
+                            'location': event.location
+                        };
+                        schedule.push(period);
+                    }
                 }
-            }
-        });
-        
-        return {
-            'schedule': schedule,
-            'events'  : events
-        };
+            });
+
+            return {
+                'schedule': schedule,
+                'events'  : events
+            };
+        } else {
+            return {};
+        }
     }
+    
+    verifyFeed(url, function(success, message, raw) {
+        if(success) {
+            that.success = true;
+            that.message = message;
+            that.parsed = ical.parseICS(raw);
+        } else {
+            that.success = false;
+            that.message = message;
+            that.parsed = null;
+        }
+        if(typeof callback === 'function') callback(that);
+    });
+    
 }
 
 module.exports.verifyFeed = verifyFeed;
