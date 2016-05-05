@@ -79,6 +79,7 @@ function scheduleFeed(url, callback) {
             var current = new Date();
             var schedule = [];
             var events = [];
+            var scheduleDay;
 
             day = day || current.getDate();
             month = month || current.getMonth();
@@ -96,14 +97,20 @@ function scheduleFeed(url, callback) {
                             'description': event.description,
                             'location': event.location
                         };
-                        events.push(period);
+                        
+                        if(/^Day [1-6]/.test(period.name)) {
+                            scheduleDay = parseInt(period.name.match(/[1-6]/)[0]);
+                        } else {
+                            events.push(period);
+                        }
+                        
                     } else {
                         var startPeriod = new Date(event.start);
                         var endPeriod   = new Date(event.end);
                         
                         var period = {
-                            'start': startPeriod.toISOString(),
-                            'end'  : endPeriod.toISOString(),
+                            'start': startPeriod,
+                            'end'  : endPeriod,
                             'class': event.summary,
                             'description': event.description,
                             'location': event.location
@@ -115,17 +122,17 @@ function scheduleFeed(url, callback) {
                         
                         schedule.forEach(function(block, index) {
                             
-                            var startBlock = new Date(block.start).getTime();
-                            var endBlock   = new Date(block.end).getTime();
+                            var startBlock = block.start.getTime();
+                            var endBlock   = block.end.getTime();
                             
                             // If start is inside period but end is not
                             if((startBlock < startTime && startTime < endBlock) && endBlock < endTime) {
-                                schedule[index].start = endPeriod.toISOString();
+                                schedule[index].start = endPeriod;
                             }
                             
                             // If end is inside period but start is not
                             if((startBlock < endTime && endTime < endBlock) && startTime < startBlock) {
-                                schedule[index].end = startPeriod.toISOString();
+                                schedule[index].end = startPeriod;
                             }
                             
                             // If event is completely inside the event we're trying to add
@@ -142,11 +149,11 @@ function scheduleFeed(url, callback) {
                             if(startBlock < startTime && endTime < endBlock) {
                                 // Split this old event into two
                                 var oldEnd = schedule[index].end;
-                                schedule[index].end = startPeriod.toISOString();
+                                schedule[index].end = startPeriod;
                                 
                                 // Create second block and push it to the schedule; We will order later
                                 var newBlock = schedule[index];
-                                newBlock.start = endPeriod.toISOString();
+                                newBlock.start = endPeriod;
                                 newBlock.end   = oldEnd;
                                 
                                 schedule.push(newBlock);
@@ -165,6 +172,7 @@ function scheduleFeed(url, callback) {
             });
 
             return {
+                'day': scheduleDay,
                 'schedule': schedule,
                 'events'  : events
             };
