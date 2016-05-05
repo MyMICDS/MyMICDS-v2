@@ -72,6 +72,7 @@ function scheduleFeed(url, callback) {
     var that = this;
     that.success = null;
     
+    // Parses the schedule for given date and returns arrays
     this.getSchedule = function(day, month, year) {
         if(this.success) {
             // Default date
@@ -87,24 +88,80 @@ function scheduleFeed(url, callback) {
             _.each(this.parsed, function(event, uid) {
                 var eventDate = new Date(event.start);
                 if(eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year) {
-
+                    
                     // Check if it's an all-day event
                     if(eventDate.getSeconds() === 0 && eventDate.getMinutes() === 0 && eventDate.getHours() === 0) {
                         var period = {
-                            'class': event.summary,
+                            'name': event.summary,
+                            'description': event.description,
                             'location': event.location
                         };
-                        events.push(period)
+                        events.push(period);
                     } else {
+                        var startPeriod = new Date(event.start);
+                        var endPeriod   = new Date(event.end);
+                        
                         var period = {
-                            'start': event.start,
-                            'end'  : event.end,
+                            'start': startPeriod.toISOString(),
+                            'end'  : endPeriod.toISOString(),
                             'class': event.summary,
+                            'description': event.description,
                             'location': event.location
                         };
+                        
+                        // Overlap existing events
+                        var startTime = startPeriod.getTime();
+                        var endTime   = endPeriod.getTime();
+                        
+                        schedule.forEach(function(block, index) {
+                            
+                            var startBlock = new Date(block.start).getTime();
+                            var endBlock   = new Date(block.end).getTime();
+                            
+                            // If start is inside period but end is not
+                            if((startBlock < startTime && startTime < endBlock) && endBlock < endTime) {
+                                schedule[index].start = endPeriod.toISOString();
+                            }
+                            
+                            // If end is inside period but start is not
+                            if((startBlock < endTime && endTime < endBlock) && startTime < startBlock) {
+                                schedule[index].end = startPeriod.toISOString();
+                            }
+                            
+                            // If event is completely inside the event we're trying to add
+                            if((startBlock < startTime && startTime < endBlock) && (startBlock < endTime && endTime < endBlock)) {
+                                schedule.splice(index, 1);
+                            }
+                            
+                            // If the event is the exact same
+                            if(startBlock === startTime && endBlock === endTime) {
+                                schedule.splice(index, 1);
+                            }
+                            
+                            // If the event we're trying to add is completely inside the event
+                            if(startBlock < startTime && endTime < endBlock) {
+                                // Split this old event into two
+                                var oldEnd = schedule[index].end;
+                                schedule[index].end = startPeriod.toISOString();
+                                
+                                // Create second block and push it to the schedule; We will order later
+                                var newBlock = schedule[index];
+                                newBlock.start = endPeriod.toISOString();
+                                newBlock.end   = oldEnd;
+                                
+                                schedule.push(newBlock);
+                            }
+                        });
                         schedule.push(period);
                     }
                 }
+            });
+            
+            // Order schedule
+            schedule.sort(function(a, b) {
+                var aStart = new Date(a.start).getTime();
+                var bStart = new Date(b.start).getTime();
+                return aStart - bStart;
             });
 
             return {

@@ -94,7 +94,7 @@ app.get('/feed', function(req, res) {
     portal.scheduleFeed(config.portalTestFeedURL, function(that) {
         res.setHeader('Content-Type', 'text/html');
         var schedule = that.getSchedule();
-        res.end(that.success + '<br>' + that.message + '<br><br>' + JSON.stringify(schedule));
+        res.end(that.success + '<br>' + that.message + '<br><br>' + JSON.stringify(schedule) + '<br><br>');
     });
 });
 
