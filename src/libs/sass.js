@@ -41,4 +41,4 @@ function watchSass(sassDir, cssDir) {
     });
 }
 
-module.exports = watchSass;
+module.exports.watchSass = watchSass;

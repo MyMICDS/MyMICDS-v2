@@ -19,6 +19,7 @@ var lunch        = require(__dirname + '/libs/lunch.js');
 var mail         = require(__dirname + '/libs/mail.js');
 var request      = require('request');
 var weather      = require(__dirname + '/libs/weather.js');
+var sass         = require(__dirname + '/libs/sass.js');
 
 /*
  * Frameworks
@@ -60,6 +61,12 @@ app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
 
 // EJS as Default Render Engine
 app.set('view engine', 'ejs');
+
+/*
+ * Sass Compilation
+ */
+
+sass.watchSass(__dirname + '/public/css/scss', __dirname + '/public/css');
 
 /*
  * Routes
