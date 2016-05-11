@@ -14,11 +14,11 @@
   ],
   "main": "src/index.js",
   "scripts": {
-    "start": "./node_modules/.bin/pm2 start src/index.js --watch src --ignore-watch src/public",
+    "start": "pm2 start src/index.js --watch src --ignore-watch src/public",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "docs": "./node_modules/.bin/jsdoc -c jsdoc_conf.json .",
-    "stop": "./node_modules/.bin/pm2 delete index",
-    "console": "./node_modules/.bin/pm2 logs index"
+    "docs": "jsdoc -c jsdoc_conf.json .",
+    "stop": "pm2 delete index",
+    "console": "pm2 logs index"
   },
   "repository": {
     "type": "git",
