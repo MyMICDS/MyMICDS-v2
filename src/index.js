@@ -67,6 +67,7 @@ app.set('view engine', 'ejs');
  */
 
 sass.watchSass(__dirname + '/public/css/scss', __dirname + '/public/css');
+console.log("Automated Sass compilation active.");
 
 /*
  * Routes
