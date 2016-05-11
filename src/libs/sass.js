@@ -36,6 +36,7 @@ function watchSass(sassDir, cssDir) {
                 });
             } else {
                 completeErr = 'Sass error: ' + sassErr.message + ' in file ' + sassErr.file + ' at line ' + sassErr.line + '\n';
+                /*
                 logFilename = sassFile + '_err' + new Date().toISOString().substring(0,10) + '.log'; // creates a yyyy-mm-dd timestamp
                 fs.appendFile(logFilename, completeErr, function(errorErr) {
                     if(!errorErr) {
@@ -44,6 +45,8 @@ function watchSass(sassDir, cssDir) {
                         console.log("There was a Sass compilation error, but the log could not be written. Make sure " + logFilename + " can be written to.");
                     }
                 });
+                it doesn't really work */
+                console.log(completeErr);
             }
         });
     });
