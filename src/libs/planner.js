@@ -10,6 +10,8 @@ var config      = require(__dirname + '/requireConfig.js');
 
 /**
  * Add event to planner
+ * @function addEvent
+ * 
  * @param {string} user - Username to insert event under
  * @param {Object} event - Event object
  * @param {string} event.desc - Event description
