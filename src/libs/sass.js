@@ -22,10 +22,8 @@ function watchSass(sassDir, cssDir) {
                 file: sassFile,
             }, function(sassErr, result) {
                 if(!sassErr) {
-                    // Gets raw filename sans .scss extension
-                    var cssFilename = filename.replace('.scss', '');
-                    // Appends .css file extension
-                    cssFilename += '.css';
+                    // Replaces .scss extension with .css
+                    var cssFilename = filename.replace('.scss', '.css');
                     
                     var cssFile = cssDir + '/' + cssFilename;
                     fs.writeFile(cssFile, result.css, function(writeErr) {
