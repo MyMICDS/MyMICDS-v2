@@ -31,7 +31,7 @@ var config     	= require(__dirname + '/requireConfig.js');
  * @param {string} message - Success/error message
  */
 
-function upsertEvent(user, event, id, callback) {
+function upsertEvent(user, event, callback, id) {
 	var required = [
 		user,
 		event.desc,
