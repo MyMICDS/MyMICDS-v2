@@ -6,6 +6,7 @@
 var users 		= require(__dirname + "/users.js");
 var utils 		= require(__dirname + "/utils.js");
 var MongoClient = require('mongodb').MongoClient;
+var ObjectId 	= require('mongodb').ObjectID;
 var config     	= require(__dirname + '/requireConfig.js');
 
 /**
@@ -50,7 +51,7 @@ function upsertEvent(user, event, callback, id) {
 	 						var insertedEvent = {
 								user: userId,
 								description: event.desc,
-								class: event.class,
+								class: ObjectId(event.class),
 								start: event.start,
 								end: event.end
 							};
@@ -60,10 +61,11 @@ function upsertEvent(user, event, callback, id) {
 							}
 
 							plannerColl.insert(insertedEvent, function(insertErr) {
-								if(!insertErr) {
+								if(typeof insertErr !== null) {
 									callback(true, "Successfully inserted event!");
 								} else {
 									callback(false, "Error inserting event!");
+									console.log(insertErr);
 								}
 							});
 							db.close();
@@ -71,7 +73,7 @@ function upsertEvent(user, event, callback, id) {
 							// oh hey, there is an id! let's update it.
 							var updatedEvent = {
 								description: event.desc,
-								class: event.class,
+								class: ObjectId(event.class),
 								start: event.start,
 								end: event.end
 							};
@@ -81,7 +83,7 @@ function upsertEvent(user, event, callback, id) {
 							}
 
 							plannerColl.update({user: userId, _id: id}, {$set: updatedEvent}, function(updateErr) {
-								if(!updateErr) {
+								if(typeof updateErr !== null) {
 									callback(true, "Successfully updated event!")
 								} else {
 									callback(false, "Error updating event!");
@@ -123,8 +125,8 @@ function deleteEvent(eventId, callback) {
 		MongoClient.connect(config.mongodbURI, function(dbErr, db) {
 			if(!dbErr) {
 				var plannerColl = db.collection("planner");
-				plannerColl.remove({_id: eventId}, function(removeErr) {
-					if(!removeErr) {
+				plannerColl.remove({_id: ObjectId(eventId)}, function(removeErr) {
+					if(typeof removeErr !== null) {
 						callback(true, "Successfully removed event!");
 					} else {
 						callback(false, "Error removing event!");
