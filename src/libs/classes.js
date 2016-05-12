@@ -35,7 +35,9 @@ var validBlocks = [
 
 var validTeacherPrefixes = [
 	'Mr.',
-	'Ms.'
+	'Ms.',
+	'Mrs.',
+	'Dr.'
 ];
 
 var validTypes = [
