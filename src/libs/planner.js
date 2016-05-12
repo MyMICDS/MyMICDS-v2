@@ -82,7 +82,7 @@ function upsertEvent(user, event, callback, id) {
 								updatedEvent["link"] = event.link;
 							}
 
-							plannerColl.update({user: userId, _id: id}, {$set: updatedEvent}, function(updateErr) {
+							plannerColl.update({user: userId, _id: ObjectId(id)}, {$set: updatedEvent}, function(updateErr) {
 								if(typeof updateErr !== null) {
 									callback(true, "Successfully updated event!")
 								} else {
