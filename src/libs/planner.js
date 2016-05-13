@@ -142,5 +142,44 @@ function deleteEvent(eventId, callback) {
 	}
 }
 
+/**
+ * Gets a list of all the events for the month
+ * @function eventsForMonth
+ *
+ * @param {eventsMonthCallback} callback - Callback after getting events
+ */
+
+/**
+ * Callback after getting events
+ * @callback eventsMonthCallback
+ * @param {Array|Boolean} result - Array of obj id's for events in month, false if error occurred
+ */
+
+function eventsForMonth(callback) {
+	MongoClient.connect(config.mongodbURI, function(dbErr, db) {
+		if(!dbErr) {
+			var plannerColl = db.collection("planner");
+			plannerColl.find().toArray(function(findErr, events) {
+				if(!findErr) {
+					var now = new Date();
+					var result = [];
+					var startCurrentMonthTime = new Date(now.getFullYear(), now.getMonth()).getTime();
+					var endCurrentMonthTime = new Date(now.getFullYear(), now.getMonth() + 1).getTime() - 1;
+					events.forEach(function(event) {
+						if(((event['start'].getTime() < startCurrentMonthTime) && (event['end'].getTime() > startCurrentMonthTime)) || 
+						   ((event['start'].getTime() > endCurrentMonthTime) && (event['end'].getTime() < endCurrentMonthTime))) {
+							result.push(event['_id']);
+						}
+					});
+					callback(result);
+				}
+			});
+		} else {
+			callback(false);
+		}
+	});
+}
+
 module.exports.upsertEvent = upsertEvent;
 module.exports.deleteEvent = deleteEvent;
+module.exports.eventsForMonth = eventsForMonth;
