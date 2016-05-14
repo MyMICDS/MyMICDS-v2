@@ -115,6 +115,7 @@ function upsertEvent(user, event, callback, id) {
  *
  * @todo Add type validation + user confirmation
  * @param {string} eventId - ID of event to delete.
+ * @param {string} user - Username to confirm deletion of event.
  * @param {deleteEventCallback} callback - Callback after planner data is deleted
  */
 
@@ -124,18 +125,32 @@ function upsertEvent(user, event, callback, id) {
  * @param {Boolean} success - True if successful, false if not
  * @param {string} message - Error/success message
  */
-function deleteEvent(eventId, callback) {
-	if(typeof eventId !== "undefined") {
+function deleteEvent(eventId, user, callback) {
+	callback = callback || function() {};
+	if(typeof eventId !== "undefined" || typeof user !== "undefined") {
 		MongoClient.connect(config.mongodbURI, function(dbErr, db) {
 			if(!dbErr) {
 				var plannerColl = db.collection("planner");
-				plannerColl.remove({_id: ObjectId(eventId)}, function(removeErr) {
-					if(typeof removeErr !== null) {
-						callback(true, "Successfully removed event!");
+				users.getUserId(user, function(userId) {
+					if(typeof userId === "string") {
+						plannerColl.find({_id: ObjectId(eventId), user: ObjectId(userId)}, function(findErr) {
+							if(typeof findErr !== null) {
+								plannerColl.remove({_id: ObjectId(eventId)}, function(removeErr) {
+									if(typeof removeErr !== null) {
+										callback(true, "Successfully removed event!");
+									} else {
+										callback(false, "Error removing event!");
+									}
+								});
+							} else {
+								callback(false, "Error finding event ID under specified user!");
+							}
+						});
 					} else {
-						callback(false, "Error removing event!");
+						callback(false, "Error getting user ID!");
 					}
 				});
+				
 				db.close();
 			} else {
 				callback(false, "Error connecting to database!");
