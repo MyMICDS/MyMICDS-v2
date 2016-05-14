@@ -20,9 +20,9 @@ var config     	= require(__dirname + '/requireConfig.js');
  * @param {Object} event.start - Start date of event, Date() object
  * @param {Object} event.end - End date of event, Date() object
  * @param {string} [event.link] - Link to canvas assignment (optional)
- * @param {string} [id] - Event ID to update (optional)
  * 
  * @param {upsertEventCallback} callback - Callback after planner data is upserted
+ * @param {string} [id] - Event ID to update (optional)
  */
 
 /**
@@ -40,11 +40,13 @@ function upsertEvent(user, event, callback, id) {
 		event.start,
 		event.end
 	];
+    callback = callback || function() {};
+    
 	if(utils.dataIsSet(required)) {
 		MongoClient.connect(config.mongodbURI, function(dbErr, db) {
 			if(!dbErr) {
 				var plannerColl = db.collection("planner");
-				var userId = users.getUserId(user, function(userId) {
+				users.getUserId(user, function(userId) {
 					if(typeof userId !== 'boolean') {
 						if(typeof id === 'undefined') {
 							// no id to update from? that's fine, just insert
@@ -146,38 +148,72 @@ function deleteEvent(eventId, callback) {
  * Gets a list of all the events for the month
  * @function eventsForMonth
  *
+ * @param {string} user - Username of events to get
  * @param {eventsMonthCallback} callback - Callback after getting events
+ * @param {Number} month - What month to get events. Starts at zero. (0 - 11)
+ * @param {Number} year - What year to get events in
  */
 
 /**
  * Callback after getting events
  * @callback eventsMonthCallback
- * @param {Array|Boolean} result - Array of obj id's for events in month, false if error occurred
+ * @param {Array} result - Array of obj id's for events in month, return empty array if error
  */
 
-function eventsForMonth(callback) {
-	MongoClient.connect(config.mongodbURI, function(dbErr, db) {
-		if(!dbErr) {
-			var plannerColl = db.collection("planner");
-			plannerColl.find().toArray(function(findErr, events) {
-				if(!findErr) {
-					var now = new Date();
-					var result = [];
-					var startCurrentMonthTime = new Date(now.getFullYear(), now.getMonth()).getTime();
-					var endCurrentMonthTime = new Date(now.getFullYear(), now.getMonth() + 1).getTime() - 1;
-					events.forEach(function(event) {
-						if(((event['start'].getTime() < startCurrentMonthTime) && (event['end'].getTime() > startCurrentMonthTime)) || 
-						   ((event['start'].getTime() > endCurrentMonthTime) && (event['end'].getTime() < endCurrentMonthTime))) {
-							result.push(event['_id']);
-						}
-					});
-					callback(result);
-				}
-			});
-		} else {
-			callback(false);
-		}
-	});
+function eventsForMonth(user, callback, month, year) {
+    var returnEvents = [];
+    var current = new Date();
+    
+    callback = callback || function() {};
+    month = parseInt(month);
+    month = 0 <= month && month <= 11 ? month : current.getMonth();
+    year = typeof year !== 'undefined' ? parseInt(year) : current.getFullYear();
+    
+    if(typeof user === 'string') {
+        users.getUserId(user, function(userId) {
+            if(userId) {
+                MongoClient.connect(config.mongodbURI, function(dbErr, db) {
+                    if(!dbErr) {
+                        var plannerColl = db.collection("planner");
+                        plannerColl.find({ user: userId }).toArray(function(findErr, events) {
+                            if(!findErr) {
+                                for(var i = 0; i < events.length; i++) {
+                                    
+                                    var event = events[i];
+                                    
+                                    var start = new Date(event.start);
+                                    var end   = new Date(event.end);
+                                    
+                                    var startMonth = start.getMonth();
+                                    var startYear  = start.getFullYear();
+                                    
+                                    var endMonth = end.getMonth();
+                                    var endYear  = end.getFullYear();
+                                    
+                                    if((startMonth === month && startYear === year) || (endMonth === month && endYear === year)) {
+                                        // If event start or end is in month
+                                        returnEvents.push(event);
+                                    } else if ((startMonth < month && startYear <= year) && (endMonth > month && endYear >= year)) {
+                                        // If event spans before and after month
+                                        returnEvents.push(event);
+                                    }
+                                }
+                                callback(returnEvents);
+                            } else {
+                                callback(returnEvents);
+                            }
+                        });
+                    } else {
+                        callback(returnEvents);
+                    }
+                });
+            } else {
+                callback(returnEvents);
+            }
+        });
+    } else {
+        callback(returnEvents);
+    }
 }
 
 module.exports.upsertEvent = upsertEvent;
