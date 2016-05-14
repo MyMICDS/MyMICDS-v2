@@ -12,7 +12,8 @@ var config     	= require(__dirname + '/requireConfig.js');
 /**
  * Add/edit event to planner
  * @function upsertEvent
- * 
+ *
+ * @todo Add type validation
  * @param {string} user - Username to insert event under
  * @param {Object} event - Event object
  * @param {string} event.desc - Event description
@@ -111,7 +112,8 @@ function upsertEvent(user, event, callback, id) {
 /**
  * Deletes events from planner.
  * @function deleteEvent
- * 
+ *
+ * @todo Add type validation + user confirmation
  * @param {string} eventId - ID of event to delete.
  * @param {deleteEventCallback} callback - Callback after planner data is deleted
  */
@@ -148,6 +150,7 @@ function deleteEvent(eventId, callback) {
  * Gets a list of all the events for the month
  * @function eventsForMonth
  *
+ * @todo Add type validation
  * @param {string} user - Username of events to get
  * @param {eventsMonthCallback} callback - Callback after getting events
  * @param {Number} month - What month to get events. Starts at zero. (0 - 11)
