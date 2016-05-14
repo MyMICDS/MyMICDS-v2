@@ -13,7 +13,6 @@ var config     	= require(__dirname + '/requireConfig.js');
  * Add/edit event to planner
  * @function upsertEvent
  *
- * @todo Add type validation
  * @param {string} user - Username to insert event under
  * @param {Object} event - Event object
  * @param {string} event.desc - Event description
@@ -44,76 +43,94 @@ function upsertEvent(user, event, callback, id) {
     callback = callback || function() {};
     
 	if(utils.dataIsSet(required)) {
-		MongoClient.connect(config.mongodbURI, function(dbErr, db) {
-			if(!dbErr) {
-				var plannerColl = db.collection("planner");
-				users.getUserId(user, function(userId) {
-					if(typeof userId !== 'boolean') {
-						if(typeof id === 'undefined') {
-							// no id to update from? that's fine, just insert
-	 						var insertedEvent = {
-								user: userId,
-								description: event.desc,
-								class: ObjectId(event.class),
-								start: event.start,
-								end: event.end
-							};
+		if(utils.objectTypeCheck(event.start, "Date") && utils.objectTypeCheck(event.end, "Date")) {
+			if(event.start.getTime() < event.end.getTime()) {
+				MongoClient.connect(config.mongodbURI, function(dbErr, db) {
+					if(!dbErr) {
+						var plannerColl = db.collection("planner");
+						users.getUserId(user, function(userId) {
+							if(typeof userId !== 'boolean') {
+								var classesColl = db.collection("classes");
+								classesColl.find({_id: ObjectId(event.class)}).toArray(function(findErr, foundDocs){
+									if(typeof findErr !== null) {
+										if(foundDocs.length == 0) {
+											if(typeof id === 'undefined') {
+												// no id to update from? that's fine, just insert
+						 						var insertedEvent = {
+													user: userId,
+													description: event.desc,
+													class: ObjectId(event.class),
+													start: event.start,
+													end: event.end
+												};
 
-							if(typeof event.link !== "undefined") {
-								insertedEvent["link"] = event.link;
+												if(typeof event.link !== "undefined") {
+													insertedEvent["link"] = event.link;
+												}
+
+												plannerColl.insert(insertedEvent, function(insertErr) {
+													if(typeof insertErr !== null) {
+														callback(true, "Successfully inserted event!");
+													} else {
+														callback(false, "Error inserting event!");
+														console.log(insertErr);
+													}
+												});
+												db.close();
+											} else {
+												// oh hey, there is an id! let's update it.
+												var updatedEvent = {
+													description: event.desc,
+													class: ObjectId(event.class),
+													start: event.start,
+													end: event.end
+												};
+
+												if(typeof event.link !== "undefined") {
+													updatedEvent["link"] = event.link;
+												}
+
+												plannerColl.update({user: userId, _id: ObjectId(id)}, {$set: updatedEvent}, function(updateErr) {
+													if(typeof updateErr !== null) {
+														callback(true, "Successfully updated event!")
+													} else {
+														callback(false, "Error updating event!");
+													}
+												});
+											}
+										} else {
+											callback(false, "Invalid class ID!");
+										} 
+									} else {
+										callback(false, "Error checking class ID!");
+									}
+								});
+							} else {
+								callback(false, "Error retrieving user ID!");
 							}
-
-							plannerColl.insert(insertedEvent, function(insertErr) {
-								if(typeof insertErr !== null) {
-									callback(true, "Successfully inserted event!");
-								} else {
-									callback(false, "Error inserting event!");
-									console.log(insertErr);
-								}
-							});
-							db.close();
-						} else {
-							// oh hey, there is an id! let's update it.
-							var updatedEvent = {
-								description: event.desc,
-								class: ObjectId(event.class),
-								start: event.start,
-								end: event.end
-							};
-
-							if(typeof event.link !== "undefined") {
-								updatedEvent["link"] = event.link;
-							}
-
-							plannerColl.update({user: userId, _id: ObjectId(id)}, {$set: updatedEvent}, function(updateErr) {
-								if(typeof updateErr !== null) {
-									callback(true, "Successfully updated event!")
-								} else {
-									callback(false, "Error updating event!");
-								}
-							});
-							db.close();
-						}
+						});
 					} else {
-						callback(false, "Error retrieving user ID!");
+						// whoops, error!
+						callback(false, "Error connecting to database!");
 					}
 				});
 			} else {
-				// whoops, error!
-				callback(false, "Error connecting to database!");
+				callback(false, "Event start time is not before event end time!");
 			}
-		});
+		} else {
+			callback(false, "Event start & end times are not both Date objects!");
+		}
 	} else {
 		// look at that, another error.
 		callback(false, "Not all required parameters exist!");
 	}
+	db.close();
 }
 
 /**
  * Deletes events from planner.
  * @function deleteEvent
  *
- * @todo Add type validation + user confirmation
  * @param {string} eventId - ID of event to delete.
  * @param {string} user - Username to confirm deletion of event.
  * @param {deleteEventCallback} callback - Callback after planner data is deleted
@@ -133,15 +150,19 @@ function deleteEvent(eventId, user, callback) {
 				var plannerColl = db.collection("planner");
 				users.getUserId(user, function(userId) {
 					if(typeof userId === "string") {
-						plannerColl.find({_id: ObjectId(eventId), user: ObjectId(userId)}, function(findErr) {
+						plannerColl.find({_id: ObjectId(eventId), user: ObjectId(userId)}).toArray(function(findErr, foundDocs) {
 							if(typeof findErr !== null) {
-								plannerColl.remove({_id: ObjectId(eventId)}, function(removeErr) {
-									if(typeof removeErr !== null) {
-										callback(true, "Successfully removed event!");
-									} else {
-										callback(false, "Error removing event!");
-									}
-								});
+								if(foundDocs.length == 0) {
+									plannerColl.remove({_id: ObjectId(eventId)}, function(removeErr) {
+										if(typeof removeErr !== null) {
+											callback(true, "Successfully removed event!");
+										} else {
+											callback(false, "Error removing event!");
+										}
+									});
+								} else {
+									callback(false, "Invalid event ID under specified user!");
+								}
 							} else {
 								callback(false, "Error finding event ID under specified user!");
 							}
