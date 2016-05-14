@@ -50,6 +50,23 @@ function notNull(array) {
 	});
 }
 
-module.exports.dataIsSet = dataIsSet;
-module.exports.inArray   = inArray;
-module.exports.notNull   = notNull;
+/**
+ * Checks the type of an object
+ * @function objectTypeCheck
+ * 
+ * @param {Object} obj - Object to be type-checked
+ * @param {string} typeTitle - Title of the object to check for
+ * 
+ * @returns {Boolean}
+ */
+
+function objectTypeCheck(obj, typeTitle) {
+	var toClass = {}.toString;
+	var objectType = toClass.call(obj);
+	return objectType.replace("object ", "") === "[" + typeTitle + "]";
+}
+
+module.exports.dataIsSet 		= dataIsSet;
+module.exports.inArray 			= inArray;
+module.exports.notNull 			= notNull;
+module.exports.objectTypeCheck 	= objectTypeCheck;
