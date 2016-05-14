@@ -186,7 +186,6 @@ function deleteEvent(eventId, user, callback) {
  * Gets a list of all the events for the month
  * @function eventsForMonth
  *
- * @todo Add type validation
  * @param {string} user - Username of events to get
  * @param {eventsMonthCallback} callback - Callback after getting events
  * @param {Number} month - What month to get events. Starts at zero. (0 - 11)
