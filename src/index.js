@@ -67,7 +67,7 @@ app.set('view engine', 'ejs');
  */
 
 console.log('Compiling Sass...');
-sass.rednerDir(__dirname + '/public/css/scss', __dirname + '/public/css');
+sass.renderDir(__dirname + '/public/css/scss', __dirname + '/public/css');
 sass.watchDir(__dirname + '/public/css/scss', __dirname + '/public/css');
 
 /*
