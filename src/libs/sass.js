@@ -1,54 +1,123 @@
 /**
- * @file Compiles Sass
+ * @file Compiles Sass files. That's it.
  * @module sass
  */
 
 var fs   = require('fs');
+var path = require('path');
 var sass = require('node-sass');
 
+// Valid file extentions Sass can compile
+var validSassExt = [
+    '.css',
+    '.scss'
+];
+
 /**
- * Watches directory for changes and compiles Sass.
- * @function watchSass
+ * Renders a Sass file and outputs to a directory
+ * @function renderFile
  * 
- * @param {string} sassDir Directory in which the Sass files are kept.
- * @param {string} cssDir Directory where the compiled CSS will be written.
+ * @param {string} sassDir - Path to .scss file you want to compile
+ * @param {string} cssDir - Directory you want the Sass files to compile to
+ * @param {renderFileCallback} callback - Callback
  */
 
-function watchSass(sassDir, cssDir) {
-    fs.watch(sassDir, function(event, filename) {
-        if (filename.substr(filename.lastIndexOf('.') + 1) === "scss") {
-            var sassFile = sassDir + '/' + filename;
-            sass.render({
-                file: sassFile,
-            }, function(sassErr, result) {
-                if(!sassErr) {
-                    // Replaces .scss extension with .css
-                    var cssFilename = filename.replace('.scss', '.css');
-                    
-                    var cssFile = cssDir + '/' + cssFilename;
-                    fs.writeFile(cssFile, result.css, function(writeErr) {
-                        if(!writeErr) {
-                            console.log('File ' + sassFile + ' was compiled to ' + cssFile);
-                        } else {
-                            console.log('There was a problem writing the file! Check to make sure node has proper write permissions.');
-                        }
-                    });
-                } else {
-                    if (sassErr.status != 4) {
-                        completeErr = 'Sass error ' + sassErr.status + ': ' + sassErr.message + ' in file ' + sassErr.file + ' at line ' + sassErr.line + '\n';
-                        logFilename = sassFile + '_err' + new Date().toISOString().substring(0,10) + '.log'; // creates a yyyy-mm-dd timestamp
-                        fs.appendFile(logFilename, completeErr, function(errorErr) {
-                            if(!errorErr) {
-                                console.log("Sass compilation error. Logged to " + logFilename);
-                            } else {
-                                console.log("There was a Sass compilation error, but the log could not be written. Make sure " + logFilename + " can be written to.");
-                            }
-                        });
+/**
+ * Calls back whether success or error compiling Sass file
+ * @callback renderFileCallback
+ * 
+ * @param {Object} err - Null if successful, error object if error
+ */
+
+function renderFile(sassFile, cssDir, callback) {
+    
+    if(typeof callback !== 'function') {
+        callback = function() {};
+    }
+    
+    // Don't render files beginning in underscore (_)
+    var fileMeta = path.parse(sassFile);
+    if(fileMeta.name.substr(0, 1) === '_') {
+        callback(null);
+        return;
+    }
+    
+    // Compile Sass
+    sass.render({
+        file: sassFile
+    }, function(sassErr, result) {
+        
+        if(sassErr) {
+            callback(sassErr);
+            return;
+        }
+        
+        // Write Sass to file
+        var filename = fileMeta.base.replace('.scss', '.css');
+        var pathname = cssDir + '/' + filename;
+        fs.writeFile(pathname, result.css, function(writeErr) {
+            if(writeErr) {
+                callback(writeErr);
+            } else {
+                callback(null);
+            }
+        });
+    });
+}
+
+/**
+ * Renders all files in a directory
+ * @function renderDir
+ * 
+ * @param {string} sassDir - Path to .scss files you want to compile
+ * @param {string} cssDir - Directory you want the Sass files to compile to
+ */
+
+function renderDir(sassDir, cssDir) {
+    
+    if(typeof callback !== 'function') {
+        callback = function() {};
+    }
+    
+    // Get all files in directory
+    fs.readdir(sassDir, function(readErr, files) {
+        files.forEach(function(file, index) {
+            var fileMeta = path.parse(file);
+            // See if valid file extention
+            if(validSassExt.indexOf(fileMeta.ext) > -1) {
+                // Render file if valid
+                renderFile(sassDir + '/' + fileMeta.base, cssDir, function(renderErr) {
+                    if(renderErr) {
+                        console.log('Uh oh! Failed to compile ' + fileMeta.base + '! Error: ' + renderErr.message);
                     }
+                });
+            }
+        });
+    });
+}
+
+/**
+ * Watches a directory for any changes and compiles this new Sass
+ * @function watchDir
+ * 
+ * @param {string} sassDir - Directory you want to watch all Sass files
+ * @param {string} cssDir - Directory you want all Sass files to compile to
+ */
+
+function watchDir(sassDir, cssDir) {
+    fs.watch(sassDir, function(event, filename) {
+        // Check if valid Sass extention
+        var fileMeta = path.parse(filename);
+        if(validSassExt.indexOf(fileMeta.ext) > -1) {
+            renderFile(sassDir + '/' + filename, cssDir, function(renderErr) {
+                if(renderErr) {
+                    console.log('Uh oh! Failed to compile ' + filename + '! Error: ' + renderErr.message);
                 }
             });
         }
     });
 }
 
-module.exports.watchSass = watchSass;
+module.exports.renderFile = renderFile;
+module.exports.renderDir  = renderDir;
+module.exports.watchDir   = watchDir;
