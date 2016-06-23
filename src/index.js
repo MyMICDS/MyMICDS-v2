@@ -2,7 +2,12 @@
  * @file Main file of the whole project.
  */
 
-var config = require(__dirname + '/libs/requireConfig.js');
+try {
+    var config = require(__dirname + '/config.js');
+} catch(e) {
+	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.JS.EXAMPLE***');
+}
+
 var port   = process.env.PORT || config.port;
 
 /*
@@ -134,11 +139,11 @@ app.get('/iotd', function(req, res) {
  */
 
 io.on('connection', function(socket){
-	
+
     socket.on('username', function() {
         socket.emit('username', socket.request.session.user);
     });
-	
+
 	socket.on('disconnect', function() {
 //		console.log('user disconnected');
 	});

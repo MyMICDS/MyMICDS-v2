@@ -6,10 +6,10 @@
 /**
  * Makes sure all values are not null or undefined or empty strings
  * @function dataIsSet
- * 
+ *
  * @param {Object} array - Array to be searched in
- * 
- * @returns {Boolean}
+ *
+ * @returns {Boolean} res - True if all
  */
 
 function dataIsSet(array) {
@@ -21,10 +21,10 @@ function dataIsSet(array) {
 /**
  * Checks whether a certain value is in an array
  * @function inArray
- * 
+ *
  * @param needle - Value to be searched in array
  * @param {Object} haystack - Array to be searched in
- * 
+ *
  * @returns {Boolean}
  */
 
@@ -38,9 +38,9 @@ function inArray(needle, haystack) {
 /**
  * Checks whether all values in array are not null
  * @function notNull
- * 
+ *
  * @param {Object} array - Array to be searched it
- * 
+ *
  * @returns {Boolean}
  */
 
@@ -53,10 +53,10 @@ function notNull(array) {
 /**
  * Checks the type of an object
  * @function objectTypeCheck
- * 
+ *
  * @param {Object} obj - Object to be type-checked
  * @param {string} typeTitle - Title of the object to check for
- * 
+ *
  * @returns {Boolean}
  */
 
@@ -66,7 +66,4 @@ function objectTypeCheck(obj, typeTitle) {
 	return objectType.replace("object ", "") === "[" + typeTitle + "]";
 }
 
-module.exports.dataIsSet 		= dataIsSet;
-module.exports.inArray 			= inArray;
-module.exports.notNull 			= notNull;
 module.exports.objectTypeCheck 	= objectTypeCheck;

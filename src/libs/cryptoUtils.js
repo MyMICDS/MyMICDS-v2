@@ -9,16 +9,16 @@ var crypto = require('crypto');
 /**
  * Hashes a given password
  * @function hashPassword
- * 
+ *
  * @param {string} password - Password to be hashed
- * @param {hashPasswordCallback}
+ * @param {hashPasswordCallback} callback - Callback
  */
 
 /**
  * Callback after the password is hashed
  * @callback hashPasswordCallback
- * 
- * @param {Object} err - Error
+ *
+ * @param {Object} err - Null if success, error object if failure
  * @param {string} hash - Encrypted password
  */
 
@@ -31,17 +31,17 @@ function hashPassword(password, callback) {
 /**
  * Encrypt a string in SHA-256
  * @function shaHash
- * 
+ *
  * @param {string} string - String to be encrypted
  * @param {shaHashCallback} [callback] - Optional Callback
- * 
+ *
  * @returns {string}
  */
 
 /**
  * Callback after it hashes a string in SHA-256
  * @callback shaHashCallback
- * 
+ *
  * @param {string} hash - Hashed string
  */
 
@@ -49,7 +49,7 @@ function shaHash(string, callback) {
     var sha = crypto.createHash('sha256');
     sha.update(string);
     var hash = sha.digest('hex');
-    
+
     if(callback && typeof(callback) === 'function') {
         callback(hash);
     }
@@ -57,11 +57,13 @@ function shaHash(string, callback) {
 }
 
 /**
- * Always use protection- against timing attacks, kids!
+ * Always use protection (against timing attacks), kids!
  * @function safeCompare
- * 
+ *
  * @param {string} a - Raw string (This is what the user inputs)
  * @param {string} b - Comparison string (This is the string WE have)
+ *
+ * @returns {Boolean} res- True if strings match, false if strings do not match or are invalid strings
  */
 
 function safeCompare(a, b) {
