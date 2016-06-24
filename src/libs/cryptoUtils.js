@@ -50,7 +50,7 @@ function shaHash(string, callback) {
     sha.update(string);
     var hash = sha.digest('hex');
 
-    if(callback && typeof(callback) === 'function') {
+    if(typeof callback === 'function') {
         callback(hash);
     }
     return hash;

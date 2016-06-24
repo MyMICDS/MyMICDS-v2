@@ -144,7 +144,7 @@ function createCookie(user, callback) {
     crypto.randomBytes(16, function(err, selectorBuf) {
 
 		if(err) {
-            callback(new Error('There was a problem generating the Remember Me cookie!'), null, null, null);
+            callback(new Error('There was a problem generating the selector!'), null, null, null);
             return;
         }
 
@@ -189,44 +189,61 @@ function generateToken(user, selector, expires, callback) {
 
     if(typeof user !== 'string') {
         callback(new Error('Invalid username!'), null);
+        return;
     }
 
-    crypto.randomBytes(32, function(cryptoErr, tokenBuf) {
-        if(!cryptoErr) {
-            var token = tokenBuf.toString('hex');
+    if(typeof selector !== 'string') {
+        callback(new Error('Invalid selector!'), null);
+        return;
+    }
 
-            // Hash token for database
-            cryptoUtils.shaHash(token, function(hashedToken) {
+    if(typeof expires !== 'object') {
+        callback(new Error('Invalid expiration date for cookie!'), null);
+        return;
+    }
 
-                // Insert token and hashed password in database
-                MongoClient.connect(config.mongodbURI, function(dbErr, db) {
-                    if(!dbErr) {
-                        var rememberdata = db.collection('remember');
-                        rememberdata.update({selector: selector}, {
-                            user    : user,
-                            selector: selector,
-                            token   : hashedToken,
-                            expires : expires,
+    // Generate very random bytes for a very random token
+    crypto.randomBytes(32, function(err, tokenBuf) {
 
-                        }, {upsert: true}, function(updateErr) {
+        if(err) {
+            callback(new Error('There was a problem generating the token!'), null);
+            return;
+        }
 
-                            db.close();
-                            if(!updateErr) {
-                                callback(token);
-                            } else {
-                                callback(false);
-                            }
-                        });
+        var token = tokenBuf.toString('hex');
 
-                    } else {
-                        callback(false);
+        // Hash token for database
+        cryptoUtils.shaHash(token, function(hashedToken) {
+
+            // Insert token and hashed password in database
+            MongoClient.connect(config.mongodbURI, function(err, db) {
+
+                if(err) {
+                    callback(new Error('There was a problem connecting to the database!'), null);
+                    return;
+                }
+
+                var rememberdata = db.collection('remember');
+                rememberdata.update({ selector: selector }, {
+                    user    : user,
+                    selector: selector,
+                    token   : hashedToken,
+                    expires : expires,
+
+                }, {upsert: true}, function(err) {
+                    db.close();
+
+                    if(err) {
+                        callback(new Error('There was a problem updating the database!'), null);
+                        return;
                     }
 
+                    callback(null, token);
+
                 });
+
             });
-        } else {
-            callback(false);
-        }
+        });
 
     });
 }
@@ -261,5 +278,5 @@ function remember(req, res, next) {
     }
 }
 
-module.exports.createCookie        = createCookie;
-module.exports.remember            = remember;
+module.exports.createCookie = createCookie;
+module.exports.remember     = remember;

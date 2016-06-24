@@ -5,10 +5,10 @@
 try {
     var config = require(__dirname + '/config.js');
 } catch(e) {
-	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.JS.EXAMPLE***');
+    throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.JS.EXAMPLE***');
 }
 
-var port   = process.env.PORT || config.port;
+var port = process.env.PORT || config.port;
 
 /*
  * General Libraries
