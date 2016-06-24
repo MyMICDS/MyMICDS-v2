@@ -32,7 +32,7 @@ function getUser(user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null);
+		callback(new Error('Invalid username!'), null, null);
 		return;
 	}
 
@@ -40,7 +40,7 @@ function getUser(user, callback) {
 	MongoClient.connect(config.mongodbURI, function(err, db) {
 
 		if(err) {
-			callback(new Error('There was a problem connecting to the database!'), null);
+			callback(new Error('There was a problem connecting to the database!'), null, null);
 			return;
 		}
 
@@ -50,7 +50,7 @@ function getUser(user, callback) {
 			db.close();
 
 			if(err) {
-				callback(new Error('There was a problem querying the database!'), null);
+				callback(new Error('There was a problem querying the database!'), null, null);
 				return;
 			}
 
