@@ -3,7 +3,8 @@
  * @module users
  */
 
-var config      = require(__dirname + '/requireConfig.js');
+var config = require(__dirname + '/config.js');
+
 var crypto      = require('crypto');
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
 var mail        = require(__dirname + '/mail.js');
@@ -11,9 +12,9 @@ var MongoClient = require('mongodb').MongoClient;
 var utils       = require(__dirname + '/utils.js');
 
 /**
- * Get id of user
- * @function getUserId
- * 
+ * Get data about user
+ * @function getUser
+ *
  * @param {string} user - Username
  * @param {getUserCallback} callback - Callback
  */
@@ -21,164 +22,183 @@ var utils       = require(__dirname + '/utils.js');
 /**
  * Callback after user id is retrieved
  * @callback getUserCallback
- * 
- * @param {Object|Boolean} id - User id or false if error
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Boolean} isUser - True if there is a valid user, false if not. Null if error.
+ * @param {Object} data - Everything in the user's document. Null if error or no valid user.
  */
 
-function getUserId(user, callback) {
-	if(typeof user === 'undefined') {
-		callback(false);
+function getUser(user, callback) {
+
+	if(typeof callback !== 'function') return;
+
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid username!'), null);
 		return;
 	}
-	if(typeof callback !== 'function') return;
-	
-	MongoClient.connect(config.mongodbURI, function(dbErr, db) {
-		if(!dbErr) {
-			var userdata  = db.collection('users');
-			userdata.find({user: user}).toArray(function(userError, userDocs) {
-				if(!userError && userDocs.length) {
-					callback(userDocs[0]['_id']);
-				} else {
-					callback(false);
-				}
-			});
-		} else {
-			callback(false);
+
+	// Connect to database
+	MongoClient.connect(config.mongodbURI, function(err, db) {
+
+		if(err) {
+			callback(new Error('There was a problem connecting to the database!'), null);
+			return;
 		}
+
+		var userdata  = db.collection('users');
+		// Query database to find possible user
+		userdata.find({ user: user }).toArray(function(err, docs) {
+			db.close();
+
+			if(err) {
+				callback(new Error('There was a problem querying the database!'), null);
+				return;
+			}
+
+			if(docs.length === 0) {
+				callback(null, false, null)
+			} else {
+				callback(null, true, docs[0]);
+			}
+
+		});
 	});
 }
 
 /**
  * Registers a user by adding their credentials into the database. Also sends email confirmation.
  * @function register
- * 
+ *
  * @param {Object} user - User's credentials
- * @param {string} user.user - Username (___@micds.org)
+ * @param {string} user.username - Username (___@micds.org)
  * @param {string} user.password - User's plaintext password
  * @param {string} user.firstName - User's first name
  * @param {string} user.lastName - User's last name
- * @param {Number} user.gradYear - User's graduation year (Ex. Class of 2019)
- * @param {Boolean} user.teacher - True or false, weather the user is a teacher or not
- * 
- * @param {registerCallback}
+ * @param {Number} [user.gradYear] - User's graduation year (Ex. Class of 2019). DO NOT DEFINE IF USER IS A TEACHER!
+ *
+ * @param {registerCallback} callback - Callback
  */
 
 /**
  * Callback after a user is registered
  * @callback registerCallback
- * 
- * @param {Boolean} success - True if success, false if failure
- * @param {string} message - More detailed response to display to user
+ *
+ * @param {Object} err - Null if success, error object if failure
  */
 
 function register(user, callback) {
-    
-    // Checks that all required parameters are there
-    var required = [
-        user.user,
-        user.password,
-        user.firstName,
-        user.lastName,
-        user.gradYear,
-    ];
-    
-    if(!user.teacher) {
-        user.teacher = false;
-    } else {
-		user.gradYear = null;
+
+    // Validate inputs
+	if(typeof callback !== 'function') {
+		callback = function() {};
 	}
-    
-    if(utils.dataIsSet(required)) {
-		
+
+	if(typeof user !== 'object') {
+		callback(new Error('Invalid user object!'));
+		return;
+	}
+
+	if(typeof user.username !== 'string') {
+		callback(new Error('Invalid username!'));
+		return;
+	} else {
+		// Make sure username is lowercase
+		user.username = user.username.toLowerCase();
+	}
+
+	if(typeof user.password !== 'string') {
+		callback(new Error('Invalid password!'));
+		return;
+	}
+
+	if(typeof user.firstName !== 'string') {
+		callback(new Error('Invalid first name!'));
+		return;
+	}
+
+	if(typeof user.lastName !== 'string') {
+		callback(new Error('Invalid last name!'));
+		return;
+	}
+
+	if(typeof user.gradYear === 'number' && user.gradYear % 1 === 0) {
+		// Valid graduation year, make sure teacher is set to false
+		user.teacher = false;
+	} else {
+		user.teacher = true;
+	}
+
+	// Check if it's an already existing user
+	getUser(user.username, function(err, isUser, data) {
+		if(isUser && data.confirmed) {
+			callback(new Error('An account is already registered under the email ' + user.username + '@micds.org!'));
+			return;
+		}
+
 		// Upsert user into the database
-		MongoClient.connect(config.mongodbURI, function(dbErr, db) {
-			if(!dbErr) {
-				var userdata = db.collection('users');
-				userdata.find({user: user.user}).toArray(function(queryErr, docs) {
-					
-                    if(!queryErr) {                        
-                        if(docs.length === 0 || !docs[0]['confirmed']) {
+		MongoClient.connect(config.mongodbURI, function(err, db) {
 
-                            // Generate confirmation email hash
-                            crypto.randomBytes(16, function(err, buf) {
-                                if(!err) {
-
-                                    var hash = buf.toString('hex');
-
-                                    // Hash Password
-                                    cryptoUtils.hashPassword(user.password, function(hashErr, hashedPassword) {
-                                        if(!hashErr) {
-
-                                            var newUser =
-                                            {
-                                                user      : user.user.toLowerCase(),
-                                                password  : hashedPassword,
-                                                firstName : user.firstName,
-                                                lastName  : user.lastName,
-                                                gradYear  : user.gradYear,
-                                                teacher   : user.teacher,
-                                                confirmed : false,
-                                                registered: new Date(),
-                                                confirmationHash: hash,
-                                            }
-
-                                            userdata.update({user: newUser.user}, newUser, {upsert: true}, function(updateErr, data) {
-
-                                                db.close();
-                                                if(!updateErr) {
-
-                                                    var email = newUser.user + '@micds.org';
-                                                    var emailReplace =
-                                                    {
-                                                        firstName  : newUser.firstName,
-                                                        lastName   : newUser.lastName,
-                                                        confirmLink: 'https://mymicds.net/confirm/' + newUser.user + '/' + hash,
-                                                    }
-
-                                                    mail.sendHTML(email, 'Confirm your Account', __dirname + '/../html/messages/register.html', emailReplace, function(response) {
-                                                        if(response === true) {
-                                                            callback(true, 'Confirmation email sent to ' + email + '!');
-
-                                                        } else {
-                                                            callback(false, 'There was an error sending the confirmation email!');
-                                                        }
-                                                    });
-
-                                                } else {
-                                                    callback(false, 'There was a problem inserting the account into the database!');
-                                                }
-                                            });
-
-                                        } else {
-                                            db.close();
-                                            callback(false, 'Something went wrong when we tried to encrypt your password!');
-                                        }
-                                    });
-                                } else {
-                                    callback(false, 'Couldn\'t generate a confirmation hash!');
-                                }
-                            });
-
-                        } else {
-                            db.close();
-                            callback(false, 'User has already registered an account!');
-                        }
-                    } else {
-                        db.close();
-                        callback(false, 'There was an error querying the database!');
-                    }
-				});
-				
-			} else {
+			if(err) {
 				db.close();
-				callback(false, 'Can\'t connect to database!');
+				callback(new Error('There was a problem connecting to the database!'));
+				return;
 			}
+
+			var userdata = db.collection('users');
+
+            // Generate confirmation email hash
+            crypto.randomBytes(16, function(err, buf) {
+                if(err) {
+					db.close();
+					callback(new Error('There was a problem generating a random confirmation hash!'));
+					return;
+				}
+
+                var hash = buf.toString('hex');
+
+                // Hash Password
+                cryptoUtils.hashPassword(user.password, function(err, hashedPassword) {
+					if(err) {
+						db.close();
+						callback(new Error('There was a problem hashing the password!'));
+						return;
+					}
+
+                    var newUser = {
+                        user      : user.user.toLowerCase(),
+                        password  : hashedPassword,
+                        firstName : user.firstName,
+                        lastName  : user.lastName,
+                        gradYear  : user.gradYear,
+                        teacher   : user.teacher,
+                        confirmed : false,
+                        registered: new Date(),
+                        confirmationHash: hash,
+                    }
+
+                    userdata.update({ user: newUser.user }, newUser, { upsert: true }, function(err, data) {
+                        db.close();
+
+						if(err) {
+							callback(new Error('There was a problem inserting the account into the database!'));
+							return;
+						}
+
+                        var email = newUser.user + '@micds.org';
+                        var emailReplace = {
+                            firstName  : newUser.firstName,
+                            lastName   : newUser.lastName,
+                            confirmLink: 'https://mymicds.net/confirm/' + newUser.user + '/' + hash,
+                        }
+
+						// Send confirmation email
+                        mail.sendHTML(email, 'Confirm your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
+                    });
+                });
+			});
 		});
-		
-    } else {
-        callback(false, 'Not all data is filled out!');
-    }
+	});
 }
 
-module.exports.getUserId = getUserId;
-module.exports.register  = register;
+module.exports.getUser  = getUser;
+module.exports.register = register;

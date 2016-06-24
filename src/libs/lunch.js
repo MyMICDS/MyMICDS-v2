@@ -22,14 +22,33 @@ var JSONPath = __dirname + '/../api/lunch.json';
  * Callback after lunch is retrieved from /src/api/lunch.json
  * @callback getLunchCallback
  *
- * @param {Object|Boolean} lunchJSON - JSON of lunch menu for the week, will return false if an error occurs
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Object} lunchJSON - JSON of lunch menu for the week. Null if error.
  */
 
 function getLunch(callback) {
-    fs.readJSON(JSONPath, function(err, lunch) {
-        if(!err) {
-            callback(lunch);
+
+    if(typeof callback !== 'function') return;
+
+    // Test to see if JSON path is valid. If not, create one.
+    fs.stat(JSONPath, function (err, stats {
+        if(err) {
+            callback(new Error('There was a problem reading the lunch JSON!'), null);
+            return;
+        }
+
+        if(stats.isFile()) {
+            // Great! JSONPath is valid!
+            fs.readJSON(JSONPath, function(err, lunch) {
+                if(err) {
+                    callback(new Error('There was a problem retrieving the lunch JSON!'), null);
+                    return;
+                }
+
+                callback(lunch);
+            });
         } else {
+            // If the lunch JSON file does not exist, let's create one
             updateLunch(callback);
         }
     });
@@ -40,7 +59,7 @@ function getLunch(callback) {
  * @function parseLunch
  *
  * @param {string} body - Body of HTML
- * @param {parseLunchCallback}
+ * @param {parseLunchCallback} callback - Callback
  */
 
 /**
@@ -51,8 +70,8 @@ function getLunch(callback) {
  */
 
 function parseLunch(body, callback) {
-    var $ = cheerio.load(body);
-    var json = {};
+    var $        = cheerio.load(body);
+    var json     = {};
     json['info'] = 'Visit https://mymicds.net/api for more information!';
 
     var table       = $('table#table_calendar_week');
@@ -113,31 +132,45 @@ function parseLunch(body, callback) {
  * Updates the lunch API and writes it into a JSON file
  * @function updateLunch
  *
- * @param {updateLunchCallback}
+ * @param {updateLunchCallback} callback - Callback
  */
 
 /**
  * Callback after the updateLunch function
  * @callback updateLunchCallback
  *
- * @param {Object|Boolean} response - Updated JSON if success, false if failure
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Object} lunchJSON - JSON of lunch menu for the week. Null if error.
  */
 
 function updateLunch(callback) {
-    request(lunchURL, function(error, response, body) {
-        if(!error) {
-            parseLunch(body, function(response) {
-                fs.outputJSON(JSONPath, response, function(err) {
-                    if(!err) {
-                        callback(response);
-                    } else {
-                        callback(false);
-                    }
-                });
-            });
-        } else {
-            callback(false);
+
+    if(typeof callback !== 'function') return;
+
+    // Retrieve the HTML from the school lunch website
+    request(lunchURL, function(err, res, body) {
+
+        if(err) {
+            callback(new Error('There was a problem retrieving the lunch from the school website!'), null);
+            return;
         }
+
+        // Parse the HTML into JSON
+        parseLunch(body, function(lunchJSON) {
+
+            // Write the JSON into a file
+            fs.outputJSON(JSONPath, lunchJSON, function(err) {
+
+                if(err) {
+                    callback(new Error('There was a problem writing the JSON into file!'), null);
+                    return;
+                }
+
+                callback(null, lunchJSON);
+
+            });
+        });
     });
 }
 

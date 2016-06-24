@@ -3,7 +3,8 @@
  * @module cookies
  */
 
-var config      = require(__dirname + '/config.js');
+var config = require(__dirname + '/config.js');
+
 var crypto      = require('crypto');
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
 var moment      = require('moment');
@@ -123,9 +124,11 @@ function compareCookie(selector, token, callback) {
  * @callback createCookieCallback
  *
  * @param {Object} err - Null if success, error object if failure
- * @param {string} selector - Selector to be placed in cookie. Null if error.
- * @param {string} token - Token to be placed in cookie. Null if error.
- * @param {Object} expires - Javascript date object of when cookie expires. Null if error.
+ *
+ * @param {Object} cookie - Object containing information about cookie. Null if error.
+ * @param {string} cookie.selector - Selector to be placed in cookie.
+ * @param {string} cookie.token - Token to be placed in cookie.
+ * @param {Object} cookie.expires - Javascript date object of when cookie expires.
  */
 
 function createCookie(user, callback) {
@@ -133,7 +136,7 @@ function createCookie(user, callback) {
     if(typeof callback !== 'function') return;
 
     if(typeof user !== 'string') {
-        callback(new Error('Invalid username!'), null, null, null);
+        callback(new Error('Invalid username!'), null);
         return;
     }
 
@@ -144,7 +147,7 @@ function createCookie(user, callback) {
     crypto.randomBytes(16, function(err, selectorBuf) {
 
 		if(err) {
-            callback(new Error('There was a problem generating the selector!'), null, null, null);
+            callback(new Error('There was a problem generating the selector!'), null);
             return;
         }
 
@@ -153,11 +156,17 @@ function createCookie(user, callback) {
         // Generate a token, which will upsert the selector and username into the database
 		generateToken(user, selector, expires, function(err, token) {
             if(err) {
-                callback(err, null, null, null);
+                callback(err, null);
                 return;
             }
 
-			callback(null, selector, token, expires);
+            var cookie = {
+                selector: selector,
+                token   : token,
+                expires : expires
+            };
+
+			callback(null, cookie);
 
 		});
     });

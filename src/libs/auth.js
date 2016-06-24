@@ -3,11 +3,12 @@
  * @module auth
  */
 
-var config      = require(__dirname + '/config.js');
+var config = require(__dirname + '/config.js');
+
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
 var bcrypt      = require('bcrypt');
 var MongoClient = require('mongodb').MongoClient;
-var utils       = require(__dirname + '/utils.js');
+var users       = require(__dirname + '/users.js');
 
 /**
  * Determines if a given password matches the encrypted one in the database
@@ -50,7 +51,7 @@ function comparePassword(user, password, callback) {
 
         var userdata = db.collection('users');
 		// Find document of specified user
-        userdata.find({ user: user }).next(function(err, doc) {
+        userdata.find({ user: user }).toArray(function(err, docs) {
 			db.close();
 
 			if(err) {
@@ -59,12 +60,12 @@ function comparePassword(user, password, callback) {
 			}
 
 			// If no documents returned, username invalid
-			if(doc === null) {
+			if(docs.length === 0) {
 				callback(new Error('Username doesn\'t exist!'), null);
 				return;
 			}
 
-			var hash = doc['password'];
+			var hash = docs[0]['password'];
 
 			// Compare passwords
 			bcrypt.compare(password, hash, function(err, res) {
@@ -112,41 +113,23 @@ function confirm(user, hash, callback) {
 		return;
 	}
 
-	MongoClient.connect(config.mongodbURI, function(err, db) {
-		if(err) {
-			callback(new Error('There was a problem connecting to the database!'));
-			return;
-		}
+	users.getUser(user, function(err, isUser, user) {
 
-        var userdata = db.collection('users');
-        userdata.find({ user: user }).next(function(err, doc) {
+        var dbHash = user['confirmationHash'];
 
-			if(err) {
-				callback(new Error('There was a problem querying the database!'));
-				return;
-			}
-
-			if(doc === null) {
-				callback(new Error('Username doesn\'t exist!'));
-				return;
-			}
-
-            var dbHash = doc['confirmationHash'];
-
-            if(cryptoUtils.safeCompare(hash, dbHash)) {
-				// Hash matches, confirm account!
-                userdata.update({ user: user.toLowerCase() }, {$set: {confirmed: true}}, function(err, results) {
-					if(err) {
-						callback(new Error('There was a problem updating the database!'));
-						reutrn;
-					}
-                    callback(null);
-                });
-            } else {
-				// Hash does not match
-                callback(new Error('Hash not valid!'));
-            }
-        });
+        if(cryptoUtils.safeCompare(hash, dbHash)) {
+			// Hash matches, confirm account!
+            userdata.update({ user: user.toLowerCase() }, {$set: {confirmed: true}}, function(err, results) {
+				if(err) {
+					callback(new Error('There was a problem updating the database!'));
+					reutrn;
+				}
+                callback(null);
+            });
+        } else {
+			// Hash does not match
+            callback(new Error('Hash not valid!'));
+        }
 	});
 }
 
