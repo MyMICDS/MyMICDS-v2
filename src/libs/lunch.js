@@ -31,7 +31,7 @@ function getLunch(callback) {
     if(typeof callback !== 'function') return;
 
     // Test to see if JSON path is valid. If not, create one.
-    fs.stat(JSONPath, function (err, stats {
+    fs.stat(JSONPath, function (err, stats) {
         if(err) {
             callback(new Error('There was a problem reading the lunch JSON!'), null);
             return;

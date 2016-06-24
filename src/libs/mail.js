@@ -140,7 +140,7 @@ function sendHTML(users, subject, file, data, callback) {
         }
 
         send(users, mesesage, callback);
-        
+    });        
 }
 
 module.exports.send     = send;

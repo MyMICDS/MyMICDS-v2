@@ -9,7 +9,6 @@ var crypto      = require('crypto');
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
 var mail        = require(__dirname + '/mail.js');
 var MongoClient = require('mongodb').MongoClient;
-var utils       = require(__dirname + '/utils.js');
 
 /**
  * Get data about user

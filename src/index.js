@@ -3,7 +3,7 @@
  */
 
 try {
-    var config = require(__dirname + '/config.js');
+    var config = require(__dirname + '/libs/config.js');
 } catch(e) {
     throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.JS.EXAMPLE***');
 }
