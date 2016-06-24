@@ -17,8 +17,8 @@
     "start": "pm2 start src/index.js --watch src --ignore-watch src/public --name=\"mymicds\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "docs": "jsdoc -c jsdoc_conf.json . && echo Docs built in ./docs folder",
-    "stop": "pm2 delete index",
-    "console": "pm2 logs index"
+    "stop": "pm2 delete mymicds",
+    "console": "pm2 logs mymicds"
   },
   "repository": {
     "type": "git",
