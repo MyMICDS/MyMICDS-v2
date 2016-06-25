@@ -18,9 +18,10 @@ var validTeacherPrefixes = [
  * Adds a teacher into the database, as long as it isn't a duplicate
  * @function addTeacher
  *
- * @param {string} teacherPrefix - Either 'Mr.', 'Ms.', or 'Dr.'
- * @param {string} firstName - Teacher's first name
- * @param {string} lastName - Teacher's last name
+ * @param {Object} teacher - Object containing information about the teacher
+ * @param {string} teacher.prefix - Either 'Mr.', 'Ms.', or 'Dr.'
+ * @param {string} teacher.firstName - Teacher's first name
+ * @param {string} teacher.lastName - Teacher's last name
  * @param {addTeacherCallback} callback - Callback
  */
 
@@ -32,14 +33,26 @@ var validTeacherPrefixes = [
  * @param {Object} teacher - Returns the document of the teacher we just added. Null if error
  */
 
-function addTeacher(prefix, firstName, lastName, callback) {
+function addTeacher(teacher, callback) {
 
     if(typeof callback !== 'function') {
         callback = function() {};
     }
 
-    if(typeof prefix !== 'string' || !_.contains(validTeacherPrefixes, prefix)) {
+    if(typeof teacher !== 'object') {
+        callback(new Error('Invalid teacher object!'), null);
+        return;
+    }
+    if(!_.contains(validTeacherPrefixes, teacher.prefix)) {
         callback(new Error('Invalid teacher prefix!'), null);
+        return;
+    }
+    if(typeof teacher.firstName !== 'string') {
+        callback(new Error('Invalid teacher first name!'), null);
+        return;
+    }
+    if(typeof teacher.lastName !== 'string') {
+        callback(new Error('Invalid teacher last name!'), null);
         return;
     }
 
@@ -74,6 +87,7 @@ function addTeacher(prefix, firstName, lastName, callback) {
                 }
 
                 callback(null, docs[0]);
+
             });
 		});
 	});
@@ -144,7 +158,7 @@ function addTeacher(prefix, firstName, lastName, callback) {
  * Callback after deletes a teacher
  * @callback deleteTeacherCallback
  *
- * @param {Boolean} success - True if success, false if error
+ * @param {Object} err - Null if success, error object if failure
  */
 
 function deleteTeacher(teacherId, callback) {

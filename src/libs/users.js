@@ -24,7 +24,7 @@ var MongoClient = require('mongodb').MongoClient;
  *
  * @param {Object} err - Null if success, error object if failure
  * @param {Boolean} isUser - True if there is a valid user, false if not. Null if error.
- * @param {Object} data - Everything in the user's document. Null if error or no valid user.
+ * @param {Object} userDoc - Everything in the user's document. Null if error or no valid user.
  */
 
 function getUser(user, callback) {
