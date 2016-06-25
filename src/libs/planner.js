@@ -6,7 +6,8 @@
 
 var config = require(__dirname + '/config.js');
 
-var users 		= require(__dirname + "/users.js");
+var classes     = require(__dirname + '/classes.js');
+var users 		= require(__dirname + '/users.js');
 var MongoClient = require('mongodb').MongoClient;
 var ObjectId 	= require('mongodb').ObjectID;
 
@@ -37,57 +38,23 @@ var ObjectId 	= require('mongodb').ObjectID;
 function upsertEvent(user, plannerEvent, callback, id) {
 
 	// Validate inputs
-	if(typeof callback !== 'function') {
-		callback = function() {};
-	}
+	if(typeof callback !== 'function') callback = function() {};
 
-	if(typeof user !== 'string') {
-		callback(new Error('Invalid user!'));
-		return;
-	}
-
-	if(typeof plannerEvent !== 'object') {
-		callback(new Error('Invalid event object!'));
-		return;
-	}
+	if(typeof user         !== 'string') { callback(new Error('Invalid user!'));         return; }
+	if(typeof plannerEvent !== 'object') { callback(new Error('Invalid event object!')); return; }
 
 	plannerEvent.id = plannerEvent.id || '';
-	if(typeof plannerEvent.id !== 'string') {
-		callback(new Error('Invalid event id!'));
-		return;
-	}
-
-	if(typeof plannerEvent.title !== 'string') {
-		callback(new Error('Invalid event title!'));
-		return;
-	}
+	if(typeof plannerEvent.id    !== 'string') { callback(new Error('Invalid event id!'));    return; }
+	if(typeof plannerEvent.title !== 'string') { callback(new Error('Invalid event title!')); return; }
 
 	plannerEvent.desc = plannerEvent.desc || '';
-	if(typeof plannerEvent.desc !== 'string') {
-		callback(new Error('Invalid event description!'));
-		return;
-	}
-
-	if(typeof plannerEvent.classId !== 'string') {
-		callback(new Error('Invalid event class id!'));
-		return;
-	}
-
-	if(typeof plannerEvent.start !== 'object') {
-		callback(new Error('Invalid event start!'));
-		return;
-	}
-
-	if(typeof plannerEvent.end !== 'object') {
-		callback(new Error('Invalid event end!'));
-		return;
-	}
+	if(typeof plannerEvent.desc    !== 'string') { callback(new Error('Invalid event description!')); return; }
+	if(typeof plannerEvent.classId !== 'string') { callback(new Error('Invalid event class id!'));   return; }
+	if(typeof plannerEvent.start   !== 'object') { callback(new Error('Invalid event start!'));       return; }
+	if(typeof plannerEvent.end     !== 'object') { callback(new Error('Invalid event end!'));         return; }
 
 	plannerEvent.link = plannerEvent.link || '';
-	if(typeof plannerEvent.link !== 'string') {
-		callback(new Error('Invalid event link!'));
-		return;
-	}
+	if(typeof plannerEvent.link !== 'string' ) { callback(new Error('Invalid event link!')); return; }
 
 	// Made sure start time and end time are consecutive or the same
 	if(plannerEvent.start.getTime() > event.end.getTime()) {
@@ -97,7 +64,6 @@ function upsertEvent(user, plannerEvent, callback, id) {
 
 	// Connect to database to upsert event
 	MongoClient.connect(config.mongodbURI, function(err, db) {
-
 		if(err) {
 			callback(new Error('There was a problem connecting to the database!'));
 			return;
@@ -105,14 +71,14 @@ function upsertEvent(user, plannerEvent, callback, id) {
 
 		var plannerdata = db.collection('planner');
 
-		users.getUser(user, function(err, isUser, data) {
+		users.getUser(user, function(err, isUser, userDoc) {
 
 			if(!isUser) {
 				db.close();
 				callback(new Error('Invalid username!'));
 				return;
 			}
-			// TODO
+			/* TODO
 
 				var classesColl = db.collection("classes");
 				classesColl.find({_id: ObjectId(event.class)}).toArray(function(findErr, foundDocs){

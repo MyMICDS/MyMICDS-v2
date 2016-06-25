@@ -289,7 +289,7 @@ function deleteClasslessTeachers(callback) {
             }
 
             // This delete function uses the power recursion so we can asynchronously delete teachers and provide a callback in the end
-            function delete(i) {
+            function deleteTeachers(i) {
                 if(i < docs.length) {
                     var teacherId = docs[i]['_id'];
                     deleteTeacher(teacherId, function(err) {
@@ -298,14 +298,14 @@ function deleteClasslessTeachers(callback) {
                             return;
                         }
 
-                        delete(i++);
+                        deleteTeachers(i++);
                     });
                 } else {
                     // It's done iterating over the teachers, and there's no error!
                     callback(null);
                 }
             }
-            delete(0);
+            deleteTeachers(0);
 		});
 	});
 }

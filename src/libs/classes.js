@@ -44,8 +44,8 @@ var validTypes = [
 var validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
 
 /**
- * Add a class to the database
- * @function addClass
+ * Inserts/updates a class to the database
+ * @function upsertClass
  *
  * @param {string} user - Username to insert the class under
  *
@@ -62,18 +62,18 @@ var validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
  * @param {string} scheduleClass.teacher.firstName - First name of teacher
  * @param {string} scheduleClass.teacher.lastName - Last name of teacher
  *
- * @param {addClassCallback} callback - Callback
+ * @param {upsertClassCallback} callback - Callback
  */
 
 /**
  * What to do after it adds a class into the database
- * @callback addClassCallback
+ * @callback upsertClassCallback
  *
  * @param {Object} err - Null if success, error object if failure
  * @param {Object} classId - Object ID of class inserted
  */
 
-function addClass(user, scheduleClass, callback) {
+function upsertClass(user, scheduleClass, callback) {
 	// Input validation best validation
     if(typeof callback !== 'function') callback = function() {};
     if(typeof scheduleClass.id !== 'string') scheduleClass.id = '';
@@ -132,7 +132,7 @@ function addClass(user, scheduleClass, callback) {
 
                     // Lets see if any of the classes are the one we are supposed to edit
                     var validEditId = false;
-                    if(scheduleClass.id) !== '') {
+                    if(scheduleClass.id !== '') {
                         for(var i = 0; i < classes.length; i++) {
                             var classId = classes[i]['_id'];
                             if(editId === classId.toHexString()) {
@@ -344,6 +344,6 @@ function deleteClass(user, classId, callback) {
 module.exports.validBlocks = validBlocks;
 module.exports.validTypes  = validTypes;
 
-module.exports.addClass    = addClass;
+module.exports.upsertClass = upsertClass;
 module.exports.getClasses  = getClasses;
 module.exports.deleteClass = deleteClass;

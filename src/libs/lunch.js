@@ -69,6 +69,10 @@ function getLunch(callback) {
  * @param {Object} lunchJSON - JSON output of lunch
  */
 
+ /**
+  * @TODO: Maybe return empty JSON if body is invalid? Send an email to devs of lunch page changes?
+  */
+
 function parseLunch(body, callback) {
     var $        = cheerio.load(body);
     var json     = {};
