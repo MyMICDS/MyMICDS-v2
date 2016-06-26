@@ -33,6 +33,7 @@ var ObjectId 	= require('mongodb').ObjectID;
  * @callback upsertEventCallback
  *
  * @param {Object} err - Null if success, error object if failure
+ * @param {Object} id - ID of event that was upserted. Null if error.
  */
 
 function upsertEvent(user, plannerEvent, callback, id) {
@@ -40,104 +41,117 @@ function upsertEvent(user, plannerEvent, callback, id) {
 	// Validate inputs
 	if(typeof callback !== 'function') callback = function() {};
 
-	if(typeof user         !== 'string') { callback(new Error('Invalid user!'));         return; }
-	if(typeof plannerEvent !== 'object') { callback(new Error('Invalid event object!')); return; }
+	if(typeof user         !== 'string') { callback(new Error('Invalid user!'), null);         return; }
+	if(typeof plannerEvent !== 'object') { callback(new Error('Invalid event object!'), null); return; }
 
 	plannerEvent.id = plannerEvent.id || '';
-	if(typeof plannerEvent.id    !== 'string') { callback(new Error('Invalid event id!'));    return; }
-	if(typeof plannerEvent.title !== 'string') { callback(new Error('Invalid event title!')); return; }
+	if(typeof plannerEvent.id    !== 'string') { callback(new Error('Invalid event id!')), null;    return; }
+	if(typeof plannerEvent.title !== 'string') { callback(new Error('Invalid event title!'), null); return; }
 
 	plannerEvent.desc = plannerEvent.desc || '';
-	if(typeof plannerEvent.desc    !== 'string') { callback(new Error('Invalid event description!')); return; }
-	if(typeof plannerEvent.classId !== 'string') { callback(new Error('Invalid event class id!'));   return; }
-	if(typeof plannerEvent.start   !== 'object') { callback(new Error('Invalid event start!'));       return; }
-	if(typeof plannerEvent.end     !== 'object') { callback(new Error('Invalid event end!'));         return; }
+	if(typeof plannerEvent.desc    !== 'string') { callback(new Error('Invalid event description!'), null); return; }
+	if(typeof plannerEvent.classId !== 'string') { callback(new Error('Invalid event class id!'), null);    return; }
+	if(typeof plannerEvent.start   !== 'object') { callback(new Error('Invalid event start!'), null);       return; }
+	if(typeof plannerEvent.end     !== 'object') { callback(new Error('Invalid event end!'), null);         return; }
 
 	plannerEvent.link = plannerEvent.link || '';
-	if(typeof plannerEvent.link !== 'string' ) { callback(new Error('Invalid event link!')); return; }
+	if(typeof plannerEvent.link !== 'string' ) { callback(new Error('Invalid event link!'), null); return; }
 
 	// Made sure start time and end time are consecutive or the same
 	if(plannerEvent.start.getTime() > event.end.getTime()) {
-		callback(new Error('Start and end time are not consecutive!'));
+		callback(new Error('Start and end time are not consecutive!'), null);
 		return;
 	}
 
-	// Connect to database to upsert event
-	MongoClient.connect(config.mongodbURI, function(err, db) {
+	users.getUser(user, function(err, isUser, userDoc) {
 		if(err) {
-			callback(new Error('There was a problem connecting to the database!'));
+			callback(err);
+			return;
+		}
+		if(!isUser) {
+			db.close();
+			callback(new Error('Invalid username!'), null);
 			return;
 		}
 
-		var plannerdata = db.collection('planner');
-
-		users.getUser(user, function(err, isUser, userDoc) {
-
-			if(!isUser) {
-				db.close();
-				callback(new Error('Invalid username!'));
+		classes.getClass(user, plannerEvent.classId, function(err, hasClass, classDoc) {
+			if(err) {
+				callback(err);
 				return;
 			}
-			/* TODO
-
-				var classesColl = db.collection("classes");
-				classesColl.find({_id: ObjectId(event.class)}).toArray(function(findErr, foundDocs){
-					if(typeof findErr !== null) {
-						if(foundDocs.length == 0) {
-							if(typeof id === 'undefined') {
-								// no id to update from? that's fine, just insert
-		 						var insertedEvent = {
-									user: userId,
-									description: event.desc,
-									scheduleClass: ObjectId(event.class),
-									start: event.start,
-									end: event.end
-								};
-
-								if(typeof event.link !== "undefined") {
-									insertedEvent["link"] = event.link;
-								}
-
-								plannerColl.insert(insertedEvent, function(insertErr) {
-									if(typeof insertErr !== null) {
-										callback(true, "Successfully inserted event!");
-									} else {
-										callback(false, "Error inserting event!");
-										console.log(insertErr);
-									}
-								});
-								db.close();
-							} else {
-								// oh hey, there is an id! let's update it.
-								var updatedEvent = {
-									description: event.desc,
-									class: ObjectId(event.class),
-									start: event.start,
-									end: event.end
-								};
-
-								if(typeof event.link !== "undefined") {
-									updatedEvent["link"] = event.link;
-								}
-
-								plannerColl.update({user: userId, _id: ObjectId(id)}, {$set: updatedEvent}, function(updateErr) {
-									if(typeof updateErr !== null) {
-										callback(true, "Successfully updated event!")
-									} else {
-										callback(false, "Error updating event!");
-									}
-								});
-							}
-						} else {
-							callback(false, "Invalid class ID!");
-						}
-					} else {
-						callback(false, "Error checking class ID!");
-					}
-				});
-			} else {
-				callback(false, "Error retrieving user ID!");
+			if(!hasClass) {
+				callback(new Error('Invalid class id!'), null);
+				return;
 			}
+
+			// Connect to database to upsert event
+			MongoClient.connect(config.mongodbURI, function(err, db) {
+				if(err) {
+					callback(new Error('There was a problem connecting to the database!'), null);
+					return;
+				}
+
+				var plannerdata = db.collection('planner');
+
+				var validEditId = false;
+				if(plannerEvent.id === '') {
+					// Just insert event if no id is provided
+					insertEvent();
+				} else {
+					// Check if edit id is valid
+					plannerdata.find({ user: userDoc['_id'] }).toArray(function(err, events) {
+						if(err) {
+							db.close();
+							callback(new Error('There was a problem querying the database!'), null);
+							return;
+						}
+
+						// Look through all events if id is valid
+						for(var i = 0; i < events.length; i++) {
+							var eventId = events[i]['_id'];
+							if(plannerEvent.id === eventId.toHexString()) {
+								validEditId = eventId;
+								break;
+							}
+						}
+						insertEvent();
+					});
+				}
+
+				// Just skip to function if no edit id is provided
+				function insertEvent() {
+
+					// Generate an Object ID, or use the id that we are editting
+                    if(validEditId) {
+                        var id = validEditId;
+                    } else {
+                        var id = new ObjectID();
+                    }
+
+					var insertEvent = {
+						_id  : id,
+						user : userDoc['_id'],
+						class: classDoc['_id'],
+						title: plannerEvent.title,
+						desc : plannerEvent.desc,
+						start: plannerEvent.start,
+						end  : plannerEvent.end,
+						link : plannerEvent.link
+					}
+
+					// Insert event into database
+					plannerdata.update({ _id: id }, insertEvent, { upsert: true }, function(err, results) {
+						db.close();
+						if(err) {
+							callback(new Error('There was a problem inserting the event into the database!'), null);
+							break;
+						}
+
+						callback(null, id);
+
+					});
+				}
+			});
 		});
 	});
 }
@@ -146,55 +160,65 @@ function upsertEvent(user, plannerEvent, callback, id) {
  * Deletes events from planner.
  * @function deleteEvent
  *
- * @param {string} eventId - ID of event to delete.
- * @param {string} user - Username to confirm deletion of event.
- * @param {deleteEventCallback} callback - Callback after planner data is deleted
+ * @param {string} user - Username of event to delete
+ * @param {string} eventId - Id of event to delete
+ * @param {deleteEventCallback} callback - Callback
  */
 
 /**
  * Callback after planner data is deleted
  * @callback deleteEventCallback
- * @param {Boolean} success - True if successful, false if not
- * @param {string} message - Error/success message
+ *
+ * @param {Object} err - Null if success, error object if failure
  */
-function deleteEvent(eventId, user, callback) {
-	callback = callback || function() {};
-	if(typeof eventId !== "undefined" || typeof user !== "undefined") {
-		MongoClient.connect(config.mongodbURI, function(dbErr, db) {
-			if(!dbErr) {
-				var plannerColl = db.collection("planner");
-				users.getUserId(user, function(userId) {
-					if(typeof userId === "string") {
-						plannerColl.find({_id: ObjectId(eventId), user: ObjectId(userId)}).toArray(function(findErr, foundDocs) {
-							if(typeof findErr !== null) {
-								if(foundDocs.length == 0) {
-									plannerColl.remove({_id: ObjectId(eventId)}, function(removeErr) {
-										if(typeof removeErr !== null) {
-											callback(true, "Successfully removed event!");
-										} else {
-											callback(false, "Error removing event!");
-										}
-									});
-								} else {
-									callback(false, "Invalid event ID under specified user!");
-								}
-							} else {
-								callback(false, "Error finding event ID under specified user!");
-							}
-						});
-					} else {
-						callback(false, "Error getting user ID!");
-					}
-				});
 
-				db.close();
-			} else {
-				callback(false, "Error connecting to database!");
-			}
-		});
-	} else {
-		callback(false, "Not all required parameters exist!");
+function deleteEvent(user, eventId, callback) {
+
+	if(typeof callback !== 'callback') {
+		callback = function() {};
 	}
+
+	// Try to create object id
+	try {
+		var id = new ObjectID(eventId);
+	} catch(e) {
+		callback(new Error('Invalid event id!'));
+		return;
+	}
+
+	// Make sure valid user and get user id
+	users.getUser(user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('Invalid username!'));
+			return;
+		}
+
+		// Connect to database
+		MongoClient.connect(config.mongodbURI, function(err, db) {
+			if(err) {
+				callback(new Error('There was a problem connecting to the database!'));
+				return;
+			}
+
+			var plannerdata = db.collection('planner');
+
+			// Delete all events with specified id
+			plannerdata.deleteMany({ _id: id, user: userDoc['_id'] }, function(err, results) {
+				db.close();
+				if(err) {
+					callback(new Error('There was a problem deleting the event from the database!'));
+					return;
+				}
+
+				callback(null);
+
+			});
+		});
+	});
 }
 
 /**
@@ -202,71 +226,122 @@ function deleteEvent(eventId, user, callback) {
  * @function eventsForMonth
  *
  * @param {string} user - Username of events to get
- * @param {eventsMonthCallback} callback - Callback after getting events
- * @param {Number} month - What month to get events. Starts at zero. (0 - 11)
- * @param {Number} year - What year to get events in
+ * @param {Object} date - Object containing month/year to get date. (Inputting an empty object will default to current date)
+ * @param {Number} [month] - What month to get events. Starts at one. (1 - 12) (Optional, defaults to current month)
+ * @param {Number} [year] - What year to get events in (Optional, defaults to current year)
+ * @param {eventsMonthCallback} callback - Callback
  */
 
 /**
  * Callback after getting events
  * @callback eventsMonthCallback
- * @param {Array} result - Array of obj id's for events in month, return empty array if error
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Array} events - Array of documents of events, with teacher documents injected. Null if error.
  */
 
-function eventsForMonth(user, callback, month, year) {
-    var returnEvents = [];
-    var current = new Date();
+function eventsForMonth(user, date, callback) {
+	if(typeof callback !== 'function') return;
 
-    callback = callback || function() {};
-    month = parseInt(month);
-    month = 0 <= month && month <= 11 ? month : current.getMonth();
-    year = typeof year !== 'undefined' ? parseInt(year) : current.getFullYear();
+	if(typeof date !== 'object') {
+		callback(new Error('Invalid date object!'), null);
+		return;
+	}
+	// Default month and year to current date
+	var current = new Date();
+	if(date.month < 1 || 12 < date.month || date.month % 1 !== 0) {
+		date.month = current.getMonth() + 1;
+	}
+	if(typeof date.year !== 'number' || date.year % 1 !== 0) {
+		date.year = current.getFullYear();
+	}
 
-    if(typeof user === 'string') {
-        users.getUserId(user, function(userId) {
-            if(userId) {
-                MongoClient.connect(config.mongodbURI, function(dbErr, db) {
-                    if(!dbErr) {
-                        var plannerColl = db.collection("planner");
-                        plannerColl.find({ user: userId }).toArray(function(findErr, events) {
-                            if(!findErr) {
-                                for(var i = 0; i < events.length; i++) {
+	users.getUser(user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null);
+			return;
+		}
 
-                                    var event = events[i];
+		// Connect to database
+		MongoClient.connect(config.mongodbURI, function(err, db) {
+			if(err) {
+				callback(new Error('There was a problem connecting to the database!'), null);
+				return;
+			}
 
-                                    var start = new Date(event.start);
-                                    var end   = new Date(event.end);
+			var plannerdata = db.collection('planner');
+			// Get all events that belong to the user
+			plannerdata.find({ user: userDoc['_id'] }).toArray(function(err, events) {
+				db.close();
+				if(err) {
+					callback(new Error('There was a problem querying the database!'), null);
+					return;
+				}
 
-                                    var startMonth = start.getMonth();
-                                    var startYear  = start.getFullYear();
+				// Go through all events and add all events that are within the month
+				var validEvents = [];
+				for(var i = 0; i < events.length; i++) {
+					var possibleEvent = events[i];
 
-                                    var endMonth = end.getMonth();
-                                    var endYear  = end.getFullYear();
+					var start = new Date(possibleEvent.start);
+					var end   = new Date(possibleEvent.end);
 
-                                    if((startMonth === month && startYear === year) || (endMonth === month && endYear === year)) {
-                                        // If event start or end is in month
-                                        returnEvents.push(event);
-                                    } else if ((startMonth < month && startYear <= year) && (endMonth > month && endYear >= year)) {
-                                        // If event spans before and after month
-                                        returnEvents.push(event);
-                                    }
-                                }
-                                callback(returnEvents);
-                            } else {
-                                callback(returnEvents);
-                            }
-                        });
-                    } else {
-                        callback(returnEvents);
-                    }
-                });
-            } else {
-                callback(returnEvents);
-            }
-        });
-    } else {
-        callback(returnEvents);
-    }
+					var startMonth = start.getMonth() + 1;
+					var startYear  = start.getYear();
+
+					if((startMonth === date.month && startYear === date.year) || (endMonth === date.month && endYear === date.year)) {
+						// If event start or end is in month
+						validEvents.push(possibleEvent);
+					} else if ((startMonth < date.month && startYear <= date.year) && (endMonth > date.month && endYear >= date.year)) {
+						// If event spans before and after month
+						validEvents.push(possibleEvent);
+					}
+				}
+
+				// Go through all events and set user to actual username, and teacher to actual teacher
+
+				// Save teachers in object so we don't have to query database more than we need to
+				var teachers = {};
+
+				function injectValues(i) {
+					if(i < validEvents.length) {
+						var validEvent = validEvents[i];
+
+						// Set user to actual username
+						validEvent['user'] = userDoc['user'];
+
+						// Set teacher to actual teacher
+						var teacherId = validEvent['teacher'];
+
+						if(typeof teachers[teacherId] === 'undefined') {
+							teachers.getTeacher(teacherId, function(err, teacherDoc) {
+								if(err) {
+									callback(err, null);
+									return;
+								}
+
+								teachers[teacherId] = teacherDoc;
+								validEvent['teacher'] = teachers[teacherId];
+								injectValues(i++);
+							});
+						} else {
+							validEvent['teacher'] = teachers[teacherId];
+							injectValues(i++);
+						}
+
+					} else {
+						// Done through all events
+						callback(null, validEvents);
+
+					}
+				}
+			});
+		});
+	});
 }
 
 module.exports.upsertEvent = upsertEvent;

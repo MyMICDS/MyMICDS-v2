@@ -225,7 +225,7 @@ function upsertClass(user, scheduleClass, callback) {
  * Callback after all classes have been retrieved
  * @callback getClassesCallback
  *
- * @param {Boolean} err - Null if success, error object if failure
+ * @param {Object} err - Null if success, error object if failure
  * @param {Object} classes - Array of class documents. Null if error.
  */
 

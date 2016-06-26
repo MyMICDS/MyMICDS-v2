@@ -164,7 +164,7 @@ function register(user, callback) {
 					}
 
                     var newUser = {
-                        user      : user.user.toLowerCase(),
+                        user      : user.user,
                         password  : hashedPassword,
                         firstName : user.firstName,
                         lastName  : user.lastName,
