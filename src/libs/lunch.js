@@ -9,7 +9,7 @@ var cheerio = require('cheerio');
 
 var lunchURL = 'http://www.myschooldining.com/MICDS';
 var schools  = ['Lower School', 'Middle School', 'Upper School'];
-var JSONPath = __dirname + '/../api/lunch.json';
+var JSONPath = __dirname + '/../public/json/weather.json';
 
 /**
  * Get's the lunch from /src/api/lunch.json. Will create one if it doesn't already exist.
@@ -31,7 +31,7 @@ function getLunch(callback) {
     if(typeof callback !== 'function') return;
 
     // Test to see if JSON path is valid. If not, create one.
-    fs.stat(JSONPath, function (err, stats) {
+    fs.stat(JSONPath, function(err, stats) {
         if(err) {
             callback(new Error('There was a problem reading the lunch JSON!'), null);
             return;
@@ -45,11 +45,11 @@ function getLunch(callback) {
                     return;
                 }
 
-                callback(lunch);
+                callback(null, lunch);
             });
         } else {
             // If the lunch JSON file does not exist, let's create one
-            updateLunch(callback);
+            updateLunch(null, callback);
         }
     });
 }

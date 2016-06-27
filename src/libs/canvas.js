@@ -19,7 +19,7 @@ var ical 	= require("ical");
  * @callback getEventObjCallback
  *
  * @param {Boolean} err - Null if success, error object if failure
- * @param {Object} events - Array containing feed. Empty array if failure.
+ * @param {Object} events - Array containing feed. Null array if failure.
  */
 
 function getEventObject(url, callback) {
@@ -27,13 +27,13 @@ function getEventObject(url, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof url !== 'string') {
-		callback(new Error('Invalid url!'), []);
+		callback(new Error('Invalid url!'), null);
 		return;
 	}
 
 	request(url, function(err, response, body){
 		if(err) {
-			callback(new Error('There was an error fetching the url!'), []);
+			callback(new Error('There was an error fetching the url!'), null);
 			return;
 		}
 
