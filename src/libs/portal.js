@@ -3,11 +3,19 @@
  * @module portal
  */
 
+var config = require(__dirname + '/config.js');
+
 var _           = require('underscore');
 var ical        = require('ical');
 var querystring = require('querystring');
 var request     = require('request');
 var url         = require('url');
+
+// URL Calendars come from
+var urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?q=';
+// Valid School Calendar ID.
+// It doesn't matter which student this calendar belongs to, we just need to compare it
+var schoolCalURL = urlPrefix + config.portal.schoolCalId;
 
 /**
  * Makes sure a given url is valid and it points to a Canvas calendar feed
@@ -39,15 +47,12 @@ function verifyURL(portalURL, callback) {
     var parsedURL = url.parse(portalURL);
     var queries = querystring.parse(parsedURL.query);
 
-    console.log(parsedURL);
-    console.log(queries);
-
     if(typeof queries.q !== 'string') {
-        callback(null, false, null);
+        callback(null, 'URL does not contain calendar ID!', null);
         return;
     }
 
-    var validURL = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?q=' + queries.q;
+    var validURL = urlPrefix + queries.q;
 
     // Not lets see if we can actually get any data from here
     request(validURL, function(err, response, body) {
@@ -55,9 +60,8 @@ function verifyURL(portalURL, callback) {
             callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
             return;
         }
-
         if(response.statusCode !== 200) {
-            callback(null, false, null);
+            callback(null, 'Invalid URL!', null);
             return;
         }
 
@@ -70,8 +74,63 @@ function verifyURL(portalURL, callback) {
             return;
         }
 
-        /** @TODO - Make sure it's a person */
-        callback(null, true, validURL);
+        // Another fun thing about working with the portal is you can't tell what type of calendar we have.
+        // We need to compare it with one of our school calendars
+        request(schoolCalURL, function(err, schoolResponse, schoolBody) {
+            if(err || response.statusCode !== 200) {
+                callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
+                return;
+            }
+
+            // Check if school calendar and inputted calendar are the same
+            var schoolData = ical.parseICS(schoolBody);
+                // Strip id's from all the events so we can properly compare the two
+            var calEvents = [];
+            for(var eventUid in data) {
+                var calEvent = data[eventUid];
+                delete calEvent.uid;
+                calEvents.push(calEvent);
+            }
+            var schoolCalEvents = [];
+            for(var eventUid in schoolData) {
+                var calEvent = schoolData[eventUid];
+                delete calEvent.uid;
+                schoolCalEvents.push(calEvent);
+            }
+                // If lengths are similar, it's _probably_ the calendar.
+            if(schoolCalEvents.length === calEvents.length) {
+                callback(null, 'This is your school calendar, we need your personal calendar!', null);
+                return;
+            }
+
+            /*
+            var similarEvents = 0;
+            var differentEvents = 0;
+
+            for(var i = 0; i < schoolCalEvents.length; i++) {
+                var schoolCalEvent = schoolCalEvents[i];
+                var calEvent = calEvents[i];
+
+                if(schoolCalEvent === calEvent) {
+                    similarEvents++;
+                } else {
+                    differentEvents++;
+                }
+            }
+
+            console.log('\ncal event: (' + calEvents.length + ')\n');
+            console.log('\nschool cal event: (' + schoolCalEvents.length + ')\n');
+
+            console.log('There were ' + similarEvents + ' similar events and ' + differentEvents + ' different events');
+            console.log('Ratio of similar events/total events: ' + (similarEvents/schoolCalEvents.length));
+            console.log('Ratio of similar events/differentEvents: ' + (similarEvents/differentEvents));
+            */
+
+            // Check if we got the schedule
+
+            callback(null, true, validURL);
+
+        });
 
     });
 }

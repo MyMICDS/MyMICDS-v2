@@ -11,10 +11,14 @@ module.exports =
     {
         URI      : '',
         fromEmail: '',
-        fromName : '',
+        fromName : ''
     },
+    portal:
+	{
+		schoolCalId: ''
+	},
 
     expressSessionSecret: '',
     forecastAPIKey      : '',
-    mongodbURI          : '',
+    mongodbURI          : ''
 }

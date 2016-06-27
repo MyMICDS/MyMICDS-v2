@@ -7,6 +7,9 @@ var ical 	= require('ical');
 var request = require('request');
 var url     = require('url');
 
+// URL Calendars come from
+var urlPrefix = 'https://micds.instructure.com/feeds/calendars/';
+
 /**
  * Makes sure a given url is valid and it points to a Canvas calendar feed
  * @function verifyURL
@@ -39,14 +42,14 @@ function verifyURL(canvasURL, callback) {
     // Check if pathname is valid
     if(!parsedURL.path.startsWith('/feeds/calendars/')) {
         // Not a valid URL!
-        callback(null, false, null);
+        callback(null, 'Invalid URL path for Canvas calendar!', null);
         return;
     }
 
     var pathParts = parsedURL.path.split('/');
     var userCalendar = pathParts[pathParts.length - 1];
 
-    var validURL = 'https://micds.instructure.com/feeds/calendars/' + userCalendar;
+    var validURL = urlPrefix + userCalendar;
 
     // Not lets see if we can actually get any data from here
     request(validURL, function(err, response, body) {
@@ -56,7 +59,7 @@ function verifyURL(canvasURL, callback) {
         }
 
         if(response.statusCode !== 200) {
-            callback(null, false, null);
+            callback(null, 'Invalid URL!', null);
             return;
         }
 
