@@ -1,5 +1,5 @@
 /**
- * @file Manages login POST requests
+ * @file Login API Endpoints
  */
 
 var auth    = require(__dirname + '/../libs/auth.js');
@@ -7,19 +7,19 @@ var users   = require(__dirname + '/../libs/users.js');
 var cookies = require(__dirname + '/../libs/cookies.js');
 
 module.exports = function(app) {
-    
+
     app.get('/confirm/:user/:hash', function(req, res) {
         auth.confirm(req.params.user, req.params.hash, function(response) {
             res.end(response.toString());
-        });     
+        });
     });
-    
+
 	app.post('/login', function(req, res) {
-		
+
         var user = req.body.user.toLowerCase();
         var password = req.body.password;
         var remember = (req.body.remember !== undefined);
-        
+
         var responseJSON =
         {
 			success : '',
@@ -28,22 +28,22 @@ module.exports = function(app) {
 			token   : false,
 			expires : null,
         };
-        
+
         if(!req.session.user) {
             if(user && password) {
                 auth.login(user, password, function(response) {
-    
+
                     if(response === true) {
                         responseJSON.success = true;
                         responseJSON.message = 'Success!';
-    
+
                         req.session.user = user;
-    
+
                         // If 'Remember Me' is checked, generate cookie
-    
+
                         if(remember) {
                             cookies.createCookie(user, function(selector, token, expires) {
-    
+
                                 if(token && selector && expires) {
                                     responseJSON.selector = selector;
                                     responseJSON.token    = token;
@@ -55,9 +55,9 @@ module.exports = function(app) {
                             res.json(responseJSON);
                         }
                     } else {
-    
+
                         // Login Failed
-    
+
                         responseJSON.success = false;
                         if(response === false) {
                             responseJSON.message = 'Invalid password!';
@@ -68,9 +68,9 @@ module.exports = function(app) {
                     }
                 });
             } else {
-                
+
                 // Username / Password doesn't exist
-                
+
                 responseJSON.success = false;
                 if(!password) {
                     responseJSON.message = 'Invalid password!';
@@ -86,7 +86,7 @@ module.exports = function(app) {
             res.json(responseJSON);
         }
 	});
-    
+
     app.post('/logout', function(req, res) {
         // Clear Remember Me cookie and destroy active login session
         res.clearCookie('rememberme');
@@ -98,9 +98,9 @@ module.exports = function(app) {
             }
 		});
     });
-    
+
     app.post('/register', function(req, res) {
-        
+
 		var user =
 			{
 				user     : req.body.user,
@@ -110,10 +110,10 @@ module.exports = function(app) {
 				gradYear : req.body.gradYear,
                 teacher  : (req.body.teacher !== undefined),
 			};
-		
+
         users.register(user, function(success, message) {
             res.json({success: success, message: message});
 		});
-		
+
     });
 }

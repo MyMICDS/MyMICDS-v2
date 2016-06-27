@@ -3,53 +3,76 @@
  * @module portal
  */
 
-var request = require('request');
-var cheerio = require('cheerio');
-var ical    = require('ical');
-var _       = require('underscore');
+var _           = require('underscore');
+var ical        = require('ical');
+var querystring = require('querystring');
+var request     = require('request');
+var url         = require('url');
 
 /**
- * Verifies that an iCal feed is from the portal, and identifies which calendars are existing
- * @function verifyFeed
+ * Makes sure a given url is valid and it points to a Canvas calendar feed
+ * @function verifyURL
  *
  * @param {string} url - URI to iCal feed
- * @param {verifyFeedCallback} callback - Callback after calendar feed is gotten
+ * @param {verifyURLCallback} callback - Callback
  */
 
 /**
- * Callback after feed is gotten
- * @callback verifyFeedCallback
+ * Returns whether url is valid or not
+ * @callback verifyURLCallback
  *
- * @param {Boolean} success - True if success, false if error
- * @param {string} message - Description of success / error
- * @param {string} raw - Raw body of calender request
- * @param {string} url - Valid url
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Boolean|string} isValid - True if valid URL, string describing problem if not valid. Null if error.
+ * @param {string} url - Valid and formatted URL to our likings. Null if error or invalid url.
  */
 
-function verifyFeed(url, callback) {
+function verifyURL(portalURL, callback) {
 
-    if(typeof url === 'undefined') {
-        var success = false;
-        var message = 'Invalid URL!';
-        var raw = null;
-        if(typeof callback === 'function') callback(success, message, raw, null);
+    if(typeof callback !== 'function') return;
+
+    if(typeof portalURL !== 'string') {
+        callback(new Error('Invalid URL!'), null, null);
         return;
     }
 
-    // Make sure URL is correct protocol
-    var url = url.trim().replace('webcal://', 'https://');
+    // Parse URL first
+    var parsedURL = url.parse(portalURL);
+    var queries = querystring.parse(parsedURL.query);
 
-    request(url, function(error, response, body) {
-        if(!error) {
-            var success = true;
-            var message = 'Successfully got calendar feed!';
-            var raw = body;
-        } else {
-            var success = false;
-            var message = 'There was a problem getting the calendar feed!';
-            var raw = null;
+    console.log(parsedURL);
+    console.log(queries);
+
+    if(typeof queries.q !== 'string') {
+        callback(null, false, null);
+        return;
+    }
+
+    var validURL = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?q=' + queries.q;
+
+    // Not lets see if we can actually get any data from here
+    request(validURL, function(err, response, body) {
+        if(err) {
+            callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
+            return;
         }
-        if(typeof callback === 'function') callback(success, message, raw, url);
+
+        if(response.statusCode !== 200) {
+            callback(null, false, null);
+            return;
+        }
+
+        var data = ical.parseICS(body);
+
+        // School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+        // Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+        if(_.isEmpty(data)) {
+            callback(null, false, null);
+            return;
+        }
+
+        /** @TODO - Make sure it's a person */
+        callback(null, true, validURL);
+
     });
 }
 
@@ -196,5 +219,5 @@ function scheduleFeed(url, callback) {
 
 }
 
-module.exports.verifyFeed   = verifyFeed;
+module.exports.verifyURL    = verifyURL;
 module.exports.scheduleFeed = scheduleFeed;

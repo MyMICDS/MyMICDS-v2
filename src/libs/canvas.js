@@ -3,41 +3,66 @@
  * @module canvas
  */
 
-var request = require("request");
-var ical 	= require("ical");
+var ical 	= require('ical');
+var request = require('request');
+var url     = require('url');
 
 /**
- * Obtains object with events in it, given a Canvas URL
- * @function getEventObject
+ * Makes sure a given url is valid and it points to a Canvas calendar feed
+ * @function verifyURL
  *
- * @param {string} url - URL to Canvas iCal feed
- * @param {getEventObjCallback} callback - Callback
+ * @param {string} url - URI to iCal feed
+ * @param {verifyURLCallback} callback - Callback
  */
 
 /**
- * Callback after events are retrieved
- * @callback getEventObjCallback
+ * Returns whether url is valid or not
+ * @callback verifyURLCallback
  *
- * @param {Boolean} err - Null if success, error object if failure
- * @param {Object} events - Array containing feed. Null array if failure.
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Boolean|string} isValid - True if valid URL, string describing problem if not valid. Null if error.
+ * @param {string} url - Valid and formatted URL to our likings. Null if error or invalid url.
  */
 
-function getEventObject(url, callback) {
+function verifyURL(canvasURL, callback) {
 
-	if(typeof callback !== 'function') return;
+    if(typeof callback !== 'function') return;
 
-	if(typeof url !== 'string') {
-		callback(new Error('Invalid url!'), null);
-		return;
-	}
+    if(typeof canvaslURL !== 'string') {
+        callback(new Error('Invalid URL!'), null, null);
+        return;
+    }
 
-	request(url, function(err, response, body){
-		if(err) {
-			callback(new Error('There was an error fetching the url!'), null);
-			return;
-		}
+    // Parse URL first
+    var parsedURL = url.parse(canvasURL);
 
-		/** @TODO: Parse the actual canvas thing */
+    // Check if pathname is valid
+    if(!parsedURL.path.startsWith('/feeds/calendars/')) {
+        // Not a valid URL!
+        callback(null, false, null);
+        return;
+    }
 
-	});
+    var pathParts = parsedURL.path.split('/');
+    var userCalendar = pathParts[pathParts.length - 1];
+
+    var validURL = 'https://micds.instructure.com/feeds/calendars/' + userCalendar;
+
+    // Not lets see if we can actually get any data from here
+    request(validURL, function(err, response, body) {
+        if(err) {
+            callback(new Error('There was a problem fetching calendar data from the URL!'), null, null);
+            return;
+        }
+
+        if(response.statusCode !== 200) {
+            callback(null, false, null);
+            return;
+        }
+
+        callback(null, true, validURL);
+
+    });
 }
+
+module.exports.verifyURL = verifyURL;

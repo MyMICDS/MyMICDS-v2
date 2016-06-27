@@ -1,14 +1,18 @@
+/**
+ * @file Class manipulation endpoints
+ */
+
 var classes = require(__dirname + '/../libs/classes.js');
 
 module.exports = function(app) {
-	
+
 	app.post('/get-classes', function(req, res) {
 		var user = req.session.user;
 		classes.getClasses(user, function(success, classes) {
 			res.json(success ? classes : false);
 		});
 	});
-	
+
     app.post('/add-class', function(req, res) {
         var user = req.session.user;
         var scheduleClass =
@@ -31,19 +35,19 @@ module.exports = function(app) {
             }
         }, req.body.id);
     });
-	
+
     app.post('/delete-class', function(req, res) {
 		console.log('Deleting class ' + req.body.id + '???!');
 		classes.deleteClass(req.session.user, req.body.id, function(success, response) {
 			res.json({success: success, message: response});
 		});
     });
-    
+
     app.post('/configure-schedule', function(req, res) {
-		
+
     });
-    
+
     app.post('/delete-schedule', function(req, res) {
-		
+
     });
 };

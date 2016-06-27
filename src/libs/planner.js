@@ -144,7 +144,7 @@ function upsertEvent(user, plannerEvent, callback, id) {
 						db.close();
 						if(err) {
 							callback(new Error('There was a problem inserting the event into the database!'), null);
-							break;
+							return;
 						}
 
 						callback(null, id);

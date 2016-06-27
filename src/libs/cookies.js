@@ -179,7 +179,7 @@ function createCookie(user, callback) {
  * @param {string} user - Username
  * @param {string} selector - Selector of existing cookie, or a new cookie to be created
  * @param {Object} expires - Javascript Date object of when the cookie expires
- * @param {generateTokenCallback}
+ * @param {generateTokenCallback} callback - Callback
  */
 
 /**

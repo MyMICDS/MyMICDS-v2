@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Portal</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+        <style>
+
+            .test-url-form {
+                margin-bottom: 1rem;
+            }
+
+            .card {
+                clear: both;
+            }
+        </style>
+    </head>
+    <body>
+        <form class="test-url-form col-md-4">
+            <input class="url form-control" name="url" placeholder="Test URL">
+            <button class="btn btn-success">Test!</button>
+        </form>
+
+        <div class="error card card-inverse card-danger col-lg-4">
+            <div class="card-block">
+                Error
+            </div>
+        </div>
+
+        <div class="warning card card-inverse card-warning col-lg-4">
+            <div class="card-block">
+                Warning
+            </div>
+        </div>
+
+        <div class="success card card-inverse card-success col-lg-4">
+            <div class="card-block">
+                Success
+            </div>
+        </div>
+
+        <script src="http://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js" integrity="sha384-vZ2WRJMwsjRMW/8U7i6PWi6AlO1L79snBrmgiDpgIWJ82z8eA5lenwvxbMV1PAh7" crossorigin="anonymous"></script>
+        <script>
+            var $url  = $('.url');
+            var $form = $('.test-url-form');
+
+            var $error   = $('.error .card-block');
+            var $warning = $('.warning .card-block');
+            var $success = $('.success .card-block');
+
+            $form.submit(function(event) {
+                event.preventDefault();
+
+                $.post('/test-url', $form.serialize(), function(data) {
+                    console.log(data);
+                    $error.text(data.error);
+                    $warning.text(data.valid);
+                    $success.text(data.url);
+//                    if(data.error === null) {
+//                        $url.val(data.url);
+//                    }
+                });
+            });
+        </script>
+    </body>
+</html>

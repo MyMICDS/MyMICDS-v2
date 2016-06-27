@@ -80,8 +80,9 @@ sass.watchDir(__dirname + '/public/css/scss', __dirname + '/public/css');
  */
 
 require(__dirname + '/routes/assets.js')(app, express);
-require(__dirname + '/routes/login.js')(app);
-require(__dirname + '/routes/scheduleConfig.js')(app);
+require(__dirname + '/routes/loginJSON.js')(app);
+require(__dirname + '/routes/classJSON.js')(app);
+require(__dirname + '/routes/scheduleJSON.js')(app);
 
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/html/index.html');
@@ -98,17 +99,12 @@ app.get('/lunch', function(req, res) {
     });
 });
 
-app.get('/start', function(req, res) {
-	res.sendFile(__dirname + '/html/start.html');
+app.get('/portal', function(req, res) {
+    res.sendFile(__dirname + '/html/portal.html');
 });
 
-var portal = require(__dirname + '/libs/portal.js');
-app.get('/feed', function(req, res) {
-    portal.scheduleFeed(config.portalTestFeedURL, function(that) {
-        res.setHeader('Content-Type', 'text/html');
-        var schedule = that.getSchedule();
-        res.end(that.success + '<br>' + that.message + '<br><br>' + JSON.stringify(schedule) + '<br><br>');
-    });
+app.get('/start', function(req, res) {
+	res.sendFile(__dirname + '/html/start.html');
 });
 
 var planner = require(__dirname + '/libs/planner.js');
@@ -116,22 +112,6 @@ app.get('/planner', function(req, res) {
     planner.eventsForMonth(req.session.user, function(events) {
         res.json(events);
     });
-});
-
-app.get('/test', function(req, res) {
-	res.sendFile(__dirname + '/html/test.html');
-});
-
-app.get('/iotd', function(req, res) {
-	request('http://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1', function(error, response, body) {
-		if(!error && response.statusCode === 200) {
-			var json  = JSON.parse(body);
-			var imageURL = 'https://www.bing.com/' + json['images'][0]['url'];
-			res.json({ 'image': imageURL });
-		} else {
-			res.json({ 'image': '/images/backgrounds/middleschool/mac.jpg' });
-		}
-	});
 });
 
 /*
