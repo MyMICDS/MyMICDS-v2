@@ -65,6 +65,7 @@ app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
 }));
 
 // EJS as Default Render Engine
+app.set('views', __dirname + '/html');
 app.set('view engine', 'ejs');
 
 /*
@@ -80,12 +81,12 @@ sass.watchDir(__dirname + '/public/css/scss', __dirname + '/public/css');
  */
 
 require(__dirname + '/routes/assets.js')(app, express);
-require(__dirname + '/routes/loginJSON.js')(app);
-require(__dirname + '/routes/classJSON.js')(app);
-require(__dirname + '/routes/scheduleJSON.js')(app);
+require(__dirname + '/routes/loginAPI.js')(app);
+require(__dirname + '/routes/classAPI.js')(app);
+require(__dirname + '/routes/portalAPI.js')(app);
 
 app.get('/', function(req, res) {
-    res.sendFile(__dirname + '/html/index.html');
+    res.render('login', { user: req.session.user });
 });
 
 app.get('/classes', function(req, res) {

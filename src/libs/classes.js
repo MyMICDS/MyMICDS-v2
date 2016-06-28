@@ -179,7 +179,6 @@ function upsertClass(user, scheduleClass, callback) {
                     }
 
                     var insertClass = {
-                        _id: id,
                         user: userDoc['_id'],
     					name: scheduleClass.name,
     					teacher: teacherDoc['_id'],

@@ -5,80 +5,203 @@
 
 var config = require(__dirname + '/config.js');
 
+var cookies     = require(__dirname + '/cookies.js');
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
 var bcrypt      = require('bcrypt');
 var MongoClient = require('mongodb').MongoClient;
 var users       = require(__dirname + '/users.js');
 
 /**
- * Determines if a given password matches the encrypted one in the database
- * @function comparePassword
+ * Validates a user's credentials and updates the 'lastLogin' field.
+ * @function login
  *
- * @param {string} user - User that's trying to log in
- * @param {string} password - Unencrypted password
- * @param {comparePasswordCallback} callback - Callback
+ * @param {string} user - Username
+ * @param {string} password - Plaintext password
+ * @param {Boolean} generateCookie - Whether callback should return 'Remember Me' cookie as well
+ * @param {loginCallback} callback - Callback
  */
 
 /**
- * Callback after the password is compared
- * @callback comparePasswordCallback
+ * Callback after a user is logged in
+ * @callback loginCallback
  *
  * @param {Object} err - Null if successful, error object if failure
  * @param {Boolean} res - True if password matches in database, false if not. Null if error.
+ *
+ * @param {Object} cookie - Object containing information about cookie. Returned if login is successful and create cookie is successful, null in all other cases.
+ * @param {string} cookie.selector - Selector to be placed in cookie.
+ * @param {string} cookie.token - Token to be placed in cookie.
+ * @param {Object} cookie.expires - Javascript date object of when cookie expires.
  */
 
-function comparePassword(user, password, callback) {
+function login(user, password, callback) {
 
-	// Check inputs
 	if(typeof callback !== 'function') return;
 
-	if(typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null);
-		return;
-	}
-
 	if(typeof password !== 'string') {
-		callback(new Error('Invalid password!'), null);
+		callback(new Error('Invalid password!'), null, null);
 		return;
 	}
+	if(typeof generateCookie !== 'boolean') {
+		generateCookie = true;
+	}
 
-	// Connect to database
-    MongoClient.connect(config.mongodbURI, function(err, db) {
+	users.getUser(user, function(err, isUser, userDoc) {
 		if(err) {
-			callback(new Error('There was a problem connecting to the database!'), null);
+			callback(err, null, null);
+			return;
+		}
+		if(!isUser) {
+			callback(null, false, null);
 			return;
 		}
 
-        var userdata = db.collection('users');
-		// Find document of specified user
-        userdata.find({ user: user }).toArray(function(err, docs) {
-			db.close();
+		var hash = userDoc['password'];
 
+		// Compare passwords
+		bcrypt.compare(password, hash, function(err, res) {
 			if(err) {
-				callback(new Error('There was a problem querying the database!'), null);
+				callback(new Error('There was a problem comparing the passwords!'), null);
+				return;
+			}
+			if(!res) {
+				// Passwords do not match
+				callback(null, false, null);
 				return;
 			}
 
-			// If no documents returned, username invalid
-			if(docs.length === 0) {
-				callback(new Error('Username doesn\'t exist!'), null);
+			// Login successful!
+			// Create cookie if generateCookie is true
+			if(generateCookie) {
+				cookies.createCookie(user, function(err, cookie) {
+					if(err) {
+						callback(null, true, null);
+						return;
+					}
+
+					callback(null, true, cookie);
+				});
+			} else {
+				callback(null, true, null);
+			}
+		});
+	});
+}
+
+/**
+ * Registers a user by adding their credentials into the database. Also sends email confirmation.
+ * @function register
+ *
+ * @param {Object} user - User's credentials
+ * @param {string} user.username - Username (___@micds.org)
+ * @param {string} user.password - User's plaintext password
+ * @param {string} user.firstName - User's first name
+ * @param {string} user.lastName - User's last name
+ * @param {Number} [user.gradYear] - User's graduation year (Ex. Class of 2019). DO NOT DEFINE IF USER IS A TEACHER!
+ *
+ * @param {registerCallback} callback - Callback
+ */
+
+/**
+ * Callback after a user is registered
+ * @callback registerCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ */
+
+function register(user, callback) {
+
+    // Validate inputs
+	if(typeof callback !== 'function') callback = function() {};
+
+	if(typeof user !== 'object') { callback(new Error('Invalid user object!')); return; }
+	if(typeof user.username !== 'string') {
+		callback(new Error('Invalid username!'));
+		return;
+	} else {
+		// Make sure username is lowercase
+		user.username = user.username.toLowerCase();
+	}
+
+	if(typeof user.password  !== 'string') { callback(new Error('Invalid password!'));   return; }
+	if(typeof user.firstName !== 'string') { callback(new Error('Invalid first name!')); return; }
+	if(typeof user.lastName  !== 'string') { callback(new Error('Invalid last name!'));  return; }
+
+	if(typeof user.gradYear === 'number' && user.gradYear % 1 === 0) {
+		// Valid graduation year, make sure teacher is set to false
+		user.teacher = false;
+	} else {
+		user.teacher = true;
+	}
+
+	// Check if it's an already existing user
+	users.getUser(user.username, function(err, isUser, data) {
+		if(isUser && data.confirmed) {
+			callback(new Error('An account is already registered under the email ' + user.username + '@micds.org!'));
+			return;
+		}
+
+		// Upsert user into the database
+		MongoClient.connect(config.mongodbURI, function(err, db) {
+			if(err) {
+				callback(new Error('There was a problem connecting to the database!'));
 				return;
 			}
 
-			var hash = docs[0]['password'];
+			var userdata = db.collection('users');
 
-			// Compare passwords
-			bcrypt.compare(password, hash, function(err, res) {
-				if(err) {
-					callback(new Error('There was a problem validating the password!'), null);
+            // Generate confirmation email hash
+            crypto.randomBytes(16, function(err, buf) {
+                if(err) {
+					db.close();
+					callback(new Error('There was a problem generating a random confirmation hash!'));
 					return;
 				}
 
-				callback(null, res);
-			});
-        });
-    });
+                var hash = buf.toString('hex');
 
+                // Hash Password
+                cryptoUtils.hashPassword(user.password, function(err, hashedPassword) {
+					if(err) {
+						db.close();
+						callback(new Error('There was a problem hashing the password!'));
+						return;
+					}
+
+                    var newUser = {
+                        user      : user.user,
+                        password  : hashedPassword,
+                        firstName : user.firstName,
+                        lastName  : user.lastName,
+                        gradYear  : user.gradYear,
+                        teacher   : user.teacher,
+                        confirmed : false,
+                        registered: new Date(),
+                        confirmationHash: hash,
+                    }
+
+                    userdata.update({ user: newUser.user }, newUser, { upsert: true }, function(err, data) {
+                        db.close();
+
+						if(err) {
+							callback(new Error('There was a problem inserting the account into the database!'));
+							return;
+						}
+
+                        var email = newUser.user + '@micds.org';
+                        var emailReplace = {
+                            firstName  : newUser.firstName,
+                            lastName   : newUser.lastName,
+                            confirmLink: 'https://mymicds.net/confirm/' + newUser.user + '/' + hash,
+                        }
+
+						// Send confirmation email
+                        mail.sendHTML(email, 'Confirm your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
+                    });
+                });
+			});
+		});
+	});
 }
 
 /**
@@ -107,15 +230,22 @@ function confirm(user, hash, callback) {
 		callback(new Error('Invalid username!'));
 		return;
 	}
-
 	if(typeof hash !== 'string') {
 		callback(new Error('Invalid hash!'));
 		return;
 	}
 
-	users.getUser(user, function(err, isUser, user) {
+	users.getUser(user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('Does doesn\'t exist!'));
+			return;
+		}
 
-        var dbHash = user['confirmationHash'];
+        var dbHash = userDoc['confirmationHash'];
 
         if(cryptoUtils.safeCompare(hash, dbHash)) {
 			// Hash matches, confirm account!
@@ -133,58 +263,6 @@ function confirm(user, hash, callback) {
 	});
 }
 
-/**
- * Validates a user's credentials and updates the 'lastLogin' field.
- * @function login
- *
- * @param {string} user - Username
- * @param {string} password - Plaintext password
- * @param {loginCallback}
- */
-
-/**
- * Callback after a user is logged in
- * @callback loginCallback
- *
- * @param {Object} err - Null if successful, error object if failure
- * @param {Boolean} res- True if password matches in database, false if not. Null if error.
- */
-
-function login(user, password, callback) {
-
-	if(typeof callback !== 'function') return;
-
-	if(typeof user !== 'string') {
-		callback(new Error('Invalid username!'));
-		return;
-	}
-
-	if(typeof password !== 'string') {
-		callback(new Error('Invalid password!'));
-		return;
-	}
-
-    comparePassword(user, password, function(err, res) {
-		if(err) {
-			callback(err);
-			return;
-		}
-
-		if(response) {
-			// Credentials are valid!
-
-			// Update lastLogin and lastOnline
-            MongoClient.connect(config.mongodbURI, function(connectErr, db) {
-                var userdata = db.collection('users');
-                userdata.update({ user: user }, { $currentDate: { lastLogin: true, lastOnline: true }});
-            });
-			callback(null, true);
-		} else {
-			// Redentials are invalid
-            callback(null, false);
-        }
-	});
-}
-
-module.exports.confirm = confirm;
-module.exports.login   = login;
+module.exports.login    = login;
+module.exports.register = register;
+module.exports.confirm  = confirm;

@@ -7,9 +7,11 @@ var config = require(__dirname + '/config.js');
 
 var _           = require('underscore');
 var ical        = require('ical');
+var MongoClient = require('mongodb').MongoClient;
 var querystring = require('querystring');
 var request     = require('request');
 var url         = require('url');
+var users       = require(__dirname + '/users.js');
 
 // URL Calendars come from
 var urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?q=';
@@ -110,147 +112,111 @@ function verifyURL(portalURL, callback) {
 }
 
 /**
- * Queries a person's Portal RSS feed to get schedule and stuff
- * @function scheduleFeed
+ * Sets a user's calendar URL if valid
+ * @function setUrl
  *
- * @param {string} url - URL to iCal feed
- * @param {scheduleFeedCallback} callback - Callback after schedule is parsed
+ * @param {string} user - Username
+ * @param {string} url - Calendar url
+ * @param {setUrlCallback} callback - Callback
  */
 
-/**
- * Callback after schedule feed is parsed
- * @callback scheduleFeedCallback
- *
- * @param {Object} that - Object reference to the schedule feed
- */
+ /**
+  * Returns the valid url that was inserted into database
+  * @callback setUrlCallback
+  *
+  * @param {Object} err - Null if success, error object if failure
+  * @param {Boolean|string} isValid - True if valid URL, string describing problem if not valid. Null if error.
+  * @param {string} validURL - Valid url that was inserted into database. Null if error or url invalid.
+  */
 
-function scheduleFeed(url, callback) {
-    var that = this;
-    that.success = null;
-
-    // Parses the schedule for given date and returns arrays
-    this.getSchedule = function(day, month, year) {
-        if(this.success) {
-            // Default date
-            var current = new Date();
-            var schedule = [];
-            var events = [];
-            var scheduleDay;
-
-            day = day || current.getDate();
-            month = month || current.getMonth();
-            year = year || current.getFullYear();
-
-            // Get schedule from feed
-            _.each(this.parsed, function(event, uid) {
-                var eventDate = new Date(event.start);
-                if(eventDate.getDate() === day && eventDate.getMonth() === month && eventDate.getFullYear() === year) {
-
-                    // Check if it's an all-day event
-                    if(eventDate.getSeconds() === 0 && eventDate.getMinutes() === 0 && eventDate.getHours() === 0) {
-                        var period = {
-                            'name': event.summary,
-                            'description': event.description,
-                            'location': event.location
-                        };
-
-                        if(/^Day [1-6]/.test(period.name)) {
-                            scheduleDay = parseInt(period.name.match(/[1-6]/)[0]);
-                        } else {
-                            events.push(period);
-                        }
-
-                    } else {
-                        var startPeriod = new Date(event.start);
-                        var endPeriod   = new Date(event.end);
-
-                        var period = {
-                            'start': startPeriod,
-                            'end'  : endPeriod,
-                            'class': event.summary,
-                            'description': event.description,
-                            'location': event.location
-                        };
-
-                        // Overlap existing events
-                        var startTime = startPeriod.getTime();
-                        var endTime   = endPeriod.getTime();
-
-                        schedule.forEach(function(block, index) {
-
-                            var startBlock = block.start.getTime();
-                            var endBlock   = block.end.getTime();
-
-                            // If start is inside period but end is not
-                            if((startBlock < startTime && startTime < endBlock) && endBlock < endTime) {
-                                schedule[index].start = endPeriod;
-                            }
-
-                            // If end is inside period but start is not
-                            if((startBlock < endTime && endTime < endBlock) && startTime < startBlock) {
-                                schedule[index].end = startPeriod;
-                            }
-
-                            // If event is completely inside the event we're trying to add
-                            if((startBlock < startTime && startTime < endBlock) && (startBlock < endTime && endTime < endBlock)) {
-                                schedule.splice(index, 1);
-                            }
-
-                            // If the event is the exact same
-                            if(startBlock === startTime && endBlock === endTime) {
-                                schedule.splice(index, 1);
-                            }
-
-                            // If the event we're trying to add is completely inside the event
-                            if(startBlock < startTime && endTime < endBlock) {
-                                // Split this old event into two
-                                var oldEnd = schedule[index].end;
-                                schedule[index].end = startPeriod;
-
-                                // Create second block and push it to the schedule; We will order later
-                                var newBlock = schedule[index];
-                                newBlock.start = endPeriod;
-                                newBlock.end   = oldEnd;
-
-                                schedule.push(newBlock);
-                            }
-                        });
-                        schedule.push(period);
-                    }
-                }
-            });
-
-            // Order schedule
-            schedule.sort(function(a, b) {
-                var aStart = new Date(a.start).getTime();
-                var bStart = new Date(b.start).getTime();
-                return aStart - bStart;
-            });
-
-            return {
-                'day': scheduleDay,
-                'schedule': schedule,
-                'events'  : events
-            };
-        } else {
-            return {};
-        }
+function setURL(user, url, callback) {
+    if(typeof callback !== 'function') {
+        callback = function() {};
     }
 
-    verifyFeed(url, function(success, message, raw) {
-        if(success) {
-            that.success = true;
-            that.message = message;
-            that.parsed = ical.parseICS(raw);
-        } else {
-            that.success = false;
-            that.message = message;
-            that.parsed = null;
+    users.getUser(user, function(err, isUser, userDoc) {
+        if(err) {
+            callback(err, null, null);
+            return;
         }
-        if(typeof callback === 'function') callback(that);
-    });
+        if(!isUser) {
+            callback(new Error('User doesn\'t exist!'), null, null);
+            return;
+        }
 
+        verifyURL(url, function(err, isValid, validURL) {
+            if(err) {
+                callback(err, null, null);
+                return;
+            } else if(isValid !== true) {
+                callback(null, isValid, null);
+                return;
+            }
+
+            // URL is valid, update in database
+            MongoClient.connect(config.mongodbURI, function(err, db) {
+                if(err) {
+                    callback(new Error('There was a problem connecting to the database!'), null, null);
+                    return;
+                }
+
+                var userdata = db.collection('users');
+
+                userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, function(err, result) {
+                    db.close();
+                    if(err) {
+                        callback(new Error('There was a problem updating the URL to the database!'), null, null);
+                        return;
+                    }
+
+                    callback(null, true, validURL);
+
+                });
+            });
+        });
+    });
 }
 
-module.exports.verifyURL    = verifyURL;
-module.exports.scheduleFeed = scheduleFeed;
+/**
+ * Retrieves a person's schedule with a given date
+ * @function getSchedule
+ *
+ * @param {string} user - Username to get schedule
+ * @param {Object} date - Object containing date to retrieve schedule. Leaving fields empty will default to today
+ * @param {Number} [date.year] - What year to get schedule (Optional. Defaults to current year.)
+ * @param {Number} [date.month] - Month number to get schedule. (1-12) (Optional. Defaults to current month.)
+ * @param {Number} [date.day] - Day of month to get schedule. (Optional. Defaults to current day.)
+ * @param {getScheduleCallback} callback - Callback
+ */
+
+ /**
+  * Returns a user's schedule for that day
+  * @callback getScheduleCallback
+  *
+  * @param {Object} err - Null if success, error object if failure.
+  * @param {Object} schedule - Array containing classes
+  */
+
+function getSchedule(user, date, callback) {
+    if(typeof callback !== 'function') return;
+
+    var current = new Date();
+    // Default date to current values
+    if(typeof date !== 'object') {
+        date = {};
+    }
+    if(typeof date.year !== 'number' || date.year % 1 !== 0) {
+        date.year = current.getFullYear();
+    }
+    if(typeof date.month !== 'number' || date.month % 1 !== 0) {
+        date.month = current.getMonth();
+    }
+    if(typeof date.day !== 'number' || date.day % 1 !== 0) {
+        date.day = current.getDate();
+    }
+    var scheduleDate = new Date(date.year, date.month, date.day);
+}
+
+module.exports.verifyURL   = verifyURL;
+module.exports.setURL      = setURL;
+module.exports.getSchedule = getSchedule;

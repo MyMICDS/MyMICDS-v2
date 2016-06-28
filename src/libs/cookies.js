@@ -11,7 +11,68 @@ var moment      = require('moment');
 var MongoClient = require('mongodb').MongoClient;
 
 /**
- * Compares the
+ * Creates a selector and a token which can be used for the 'Remember Me' feature
+ * @function createCookie
+ *
+ * @param {string} user - Username of cookie
+ * @param {createCookieCallback} callback - Callback
+ */
+
+/**
+ * Callback after creating a 'remember me' cookie
+ * @callback createCookieCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ *
+ * @param {Object} cookie - Object containing information about cookie. Null if error.
+ * @param {string} cookie.selector - Selector to be placed in cookie.
+ * @param {string} cookie.token - Token to be placed in cookie.
+ * @param {Object} cookie.expires - Javascript date object of when cookie expires.
+ */
+
+function createCookie(user, callback) {
+
+    if(typeof callback !== 'function') return;
+
+    if(typeof user !== 'string') {
+        callback(new Error('Invalid username!'), null);
+        return;
+    }
+
+    // Add 30 days to get the expire date object
+    var expires = moment().add(30, 'days').toDate();
+
+    // Generate random bytes to get a selector
+    crypto.randomBytes(16, function(err, selectorBuf) {
+
+		if(err) {
+            callback(new Error('There was a problem generating the selector!'), null);
+            return;
+        }
+
+		var selector = selectorBuf.toString('hex');
+
+        // Generate a token, which will upsert the selector and username into the database
+		generateToken(user, selector, expires, function(err, token) {
+            if(err) {
+                callback(err, null);
+                return;
+            }
+
+            var cookie = {
+                selector: selector,
+                token   : token,
+                expires : expires
+            };
+
+			callback(null, cookie);
+
+		});
+    });
+}
+
+/**
+ * Checks whether cookie credentials are valid. If so, it generates a new token.
  * @function compareCookie
  *
  * @param {selector} selector - Selector, first part of cookie
@@ -37,7 +98,6 @@ function compareCookie(selector, token, callback) {
         callback(new Error('Invalid selector!'), null, null, null);
         return;
     }
-
     if(typeof token !== 'string') {
         callback(new Error('Invalid token!'), null, null, null);
         return;
@@ -53,8 +113,8 @@ function compareCookie(selector, token, callback) {
             }
 
             var rememberdata = db.collection('remember');
-            rememberdata.find({ selector: selector }).next(function(err, doc) {
 
+            rememberdata.find({ selector: selector }).next(function(err, doc) {
                 if(err) {
                     callback(new Error('There was a problem querying the database!'), null, null, null);
                     return;
@@ -112,67 +172,6 @@ function compareCookie(selector, token, callback) {
 }
 
 /**
- * Creates a selector and a token which can be used for the 'Remember Me' feature
- * @function createCookie
- *
- * @param {string} user - Username of cookie
- * @param {createCookieCallback}
- */
-
-/**
- * Callback after creating a 'remember me' cookie
- * @callback createCookieCallback
- *
- * @param {Object} err - Null if success, error object if failure
- *
- * @param {Object} cookie - Object containing information about cookie. Null if error.
- * @param {string} cookie.selector - Selector to be placed in cookie.
- * @param {string} cookie.token - Token to be placed in cookie.
- * @param {Object} cookie.expires - Javascript date object of when cookie expires.
- */
-
-function createCookie(user, callback) {
-
-    if(typeof callback !== 'function') return;
-
-    if(typeof user !== 'string') {
-        callback(new Error('Invalid username!'), null);
-        return;
-    }
-
-    // Add 30 days to get the expire date object
-    var expires = moment().add(30, 'days').toDate();
-
-    // Generate random bytes to get a selector
-    crypto.randomBytes(16, function(err, selectorBuf) {
-
-		if(err) {
-            callback(new Error('There was a problem generating the selector!'), null);
-            return;
-        }
-
-		var selector = selectorBuf.toString('hex');
-
-        // Generate a token, which will upsert the selector and username into the database
-		generateToken(user, selector, expires, function(err, token) {
-            if(err) {
-                callback(err, null);
-                return;
-            }
-
-            var cookie = {
-                selector: selector,
-                token   : token,
-                expires : expires
-            };
-
-			callback(null, cookie);
-
-		});
-    });
-}
-
-/**
  * Upsert a new token into the database with the provided selector
  * @function generateToken
  *
@@ -200,12 +199,10 @@ function generateToken(user, selector, expires, callback) {
         callback(new Error('Invalid username!'), null);
         return;
     }
-
     if(typeof selector !== 'string') {
         callback(new Error('Invalid selector!'), null);
         return;
     }
-
     if(typeof expires !== 'object') {
         callback(new Error('Invalid expiration date for cookie!'), null);
         return;
@@ -239,7 +236,7 @@ function generateToken(user, selector, expires, callback) {
                     token   : hashedToken,
                     expires : expires,
 
-                }, {upsert: true}, function(err) {
+                }, { upsert: true }, function(err) {
                     db.close();
 
                     if(err) {
@@ -269,22 +266,26 @@ function generateToken(user, selector, expires, callback) {
 function remember(req, res, next) {
     var cookie = req.cookies.rememberme;
 
-    if(cookie && !req.session.user) {
-
-        var values = cookie.split(':');
-        var selector = values[0];
-        var token    = values[1];
-
-        compareCookie(selector, token, function(user, newToken, expires) {
-            if(user) {
-                req.session.user = user;
-                res.cookie('rememberme', selector + ':' + newToken, {expires: expires});
-            }
-            next();
-		});
-    } else {
+    if(req.session.user || typeof cookie === 'undefined') {
         next();
+        return;
     }
+
+    var values = cookie.split(':');
+    var selector = values[0];
+    var token    = values[1];
+
+    compareCookie(selector, token, function(err, user, newToken, expires) {
+        if(err) {
+            res.clearCookie('rememberme');
+            next();
+            return;
+        }
+        
+        req.session.user = user;
+        res.cookie('rememberme', selector + ':' + newToken, { expires: expires });
+        next();
+	});
 }
 
 module.exports.createCookie = createCookie;

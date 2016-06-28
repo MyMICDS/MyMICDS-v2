@@ -6,25 +6,25 @@
     </head>
     <body>
         <div class="container">
-            <h1>Username: <span class="username"></span></h1>
-            
+            <h1>Username: <%= user %></h1>
+
             <button class="logout btn btn-danger">Logout</button>
-            
+
             <h3>Login Form</h3>
             <form class="login-form" action="/login" method="post">
                 <input class="form-control" name="user" placeholder="Username">
                 <input class="form-control" name="password" type="password" placeholder="Password">
-                
+
                 <div class="checkbox">
                     <label>
                         <input type="checkbox" name="remember">
                         Remember Me
                     </label>
                 </div>
-                
+
                 <button class="btn btn-info">Login</button>
             </form>
-            
+
             <h3>Register Form</h3>
             <form class="register-form" action="/register" method="post">
                 <input class="form-control" name="user" placeholder="Username">
@@ -32,33 +32,31 @@
                 <input class="form-control" name="firstName" placeholder="First Name">
                 <input class="form-control" name="lastName" placeholder="Last Name">
                 <input class="form-control" name="gradYear" placeholder="Graduation Year">
-                
+
                 <div class="checkbox">
                     <label>
                         <input type="checkbox" name="teacher">
                         I am a Teacher
                     </label>
                 </div>
-                
+
                 <button class="btn btn-info">Register</button>
             </form>
         </div>
-        
+
 		<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
 		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 		<script>
-			var socket = io.connect();
-			
 			$('form').submit(function() {
 				$.post($(this).attr('action'), $(this).serialize(), function(data) {
-					console.log(data);
-					
+					console.log(data, data.cookie);
+
 					// Create login cookie, if exists
-					var selector = data.selector;
-					var token = data.token;
-					var expires = data.expires;
-					
+					var selector = data.cookie.selector;
+					var token = data.cookie.token;
+					var expires = data.cookie.expires;
+
 					if(token) {
 						document.cookie = 'rememberme=' + selector + ':' + token + '; expires=' + expires;
 					}
@@ -66,19 +64,14 @@
 					.fail(function() {
 						console.log('There was an error submitting the form. Contact support if this keeps happening!');
 					});
-				
+
 				return false;
 			});
-            
+
             $('.logout').click(function() {
                 $.post('/logout', function(data) {
                     console.log(data);
                 });
-            });
-            
-            socket.emit('username');
-            socket.on('username', function(username) {
-                $('.username').text(username);
             });
 		</script>
     </body>

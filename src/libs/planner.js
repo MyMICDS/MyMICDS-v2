@@ -129,7 +129,6 @@ function upsertEvent(user, plannerEvent, callback, id) {
                     }
 
 					var insertEvent = {
-						_id  : id,
 						user : userDoc['_id'],
 						class: classDoc['_id'],
 						title: plannerEvent.title,
