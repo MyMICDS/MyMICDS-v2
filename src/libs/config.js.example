@@ -13,10 +13,6 @@ module.exports =
         fromEmail: '',
         fromName : ''
     },
-    portal:
-	{
-		schoolCalId: ''
-	},
 
     expressSessionSecret: '',
     forecastAPIKey      : '',

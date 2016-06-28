@@ -13,9 +13,6 @@ var url         = require('url');
 
 // URL Calendars come from
 var urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?q=';
-// Valid School Calendar ID.
-// It doesn't matter which student this calendar belongs to, we just need to compare it
-var schoolCalURL = urlPrefix + config.portal.schoolCalId;
 // RegEx to test if calendar summary is a valid Day Rotation
 var validDayRotation = /^Day [1-6] \((US|MS)\)$/;
 
@@ -76,104 +73,46 @@ function verifyURL(portalURL, callback) {
             return;
         }
 
-        // Another fun thing about working with the portal is you can't tell what type of calendar we have.
-        // We need to compare it with one of our school calendars
-        request(schoolCalURL, function(err, schoolResponse, schoolBody) {
-            if(err || response.statusCode !== 200) {
-                callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
-                return;
-            }
+        // Put calendar into array
+        var calEvents = [];
+        for(var eventUid in data) {
+            var calEvent = data[eventUid];
+            delete calEvent.uid;
+            calEvents.push(calEvent);
+        }
 
-            // Put both inputted calendar and school calendar into arrays
-            var schoolData = ical.parseICS(schoolBody);
-            var calEvents = [];
-            for(var eventUid in data) {
-                var calEvent = data[eventUid];
-                delete calEvent.uid;
-                calEvents.push(calEvent);
-            }
-            var schoolCalEvents = [];
-            for(var eventUid in schoolData) {
-                var calEvent = schoolData[eventUid];
-                delete calEvent.uid;
-                schoolCalEvents.push(calEvent);
-            }
+        // Look through every 'Day # (US/MS)' andd see how many events there are
+        var dayDates = {};
+        for(var i = 0; i < calEvents.length; i++) {
+            var calEvent = calEvents[i];
+            // If event doesn't have a summary, skip
+            if(typeof calEvent.summary !== 'string') continue;
 
-            // If both calendar lengths are the same, they're probably the same
-            /**
-             * @TODO - Maybe in the future we can actually scan how similar the calendar content is like so:
-             * https://github.com/michaelgira23/MyMICDS-v2/commit/5a6fc1184abe68666bebbd3fa0ac9b88236d9af1#diff-5ff9dd53cfe4a269b80eeaedd7a6bd5dR107
-             */
-            if(schoolCalEvents.length === calEvents.length) {
-                callback(null, 'This is your school calendar, we need your personal calendar!', null);
-                return;
-            }
+            // See if valid day
+            if(validDayRotation.test(calEvent.summary)) {
+                // Get actual day
+                var day = calEvent.summary.match(/[1-6]/)[0];
+                // Get date
+                var start = new Date(calEvent.start);
 
-            /*
-            // Make sure schedule is in the calendar - that's all we really care about
-            var eventsOccur = {};
-            for(var i = 0; i < calEvents.length; i++) {
-                var calEvent = calEvents[i];
-                if(typeof calEvent.summary === 'string') {
-                    eventsOccur[calEvent.summary] = ++eventsOccur[calEvent.summary] || 1;
+                // Add to dayDates object
+                if(typeof dayDates[day] === 'undefined') {
+                    dayDates[day] = [];
                 }
+                dayDates[day].push({
+                    year : start.getFullYear(),
+                    month: start.getMonth() + 1,
+                    day  : start.getDate()
+                });
             }
+        }
 
-            // Make an array of top events and sort them by amount of times in schedule
-            var reoccurringEvents = [];
-            for(var eventSummary in eventsOccur) {
-                if(eventsOccur[eventSummary] > 1) {
-                    reoccurringEvents.push({
-                        summary: eventSummary,
-                        times  : eventsOccur[eventSummary]
-                    });
-                }
-            }
-            reoccurringEvents.sort(function(a, b) {
-                if(a.times > b.times) {
-                    return -1;
-                } else if(a.times < b.times) {
-                    return 1;
-                } else {
-                    return 0;
-                }
-            });
-            */
+        if(_.isEmpty(data)) {
+            callback(null, 'The calendar does not contain the information we need! Make sure you\'re copying your personal calendar!', null);
+            return;
+        }
 
-            // Look through every 'Day # (US/MS)' andd see how many events there are
-            var dayDates = {};
-            for(var i = 0; i < calEvents.length; i++) {
-                var calEvent = calEvents[i];
-                // If event doesn't have a summary, skip
-                if(typeof calEvent.summary !== 'string') continue;
-
-                // See if valid day
-                if(validDayRotation.test(calEvent.summary)) {
-                    // Get actual day
-                    var day = calEvent.summary.match(/[1-6]/)[0];
-                    // Get date
-                    var start = new Date(calEvent.start);
-
-                    // Add to dayDates object
-                    if(typeof dayDates[day] === 'undefined') {
-                        dayDates[day] = [];
-                    }
-                    dayDates[day].push({
-                        year : start.getFullYear(),
-                        month: start.getMonth() + 1,
-                        day  : start.getDate()
-                    });
-                }
-            }
-
-            if(_.isEmpty(data)) {
-                callback(null, 'Invalid calendar! Make sure you\'re copying your personal calendar!', null);
-                return;
-            }
-
-            callback(null, true, validURL);
-
-        });
+        callback(null, true, validURL);
 
     });
 }
