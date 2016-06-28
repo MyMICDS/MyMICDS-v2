@@ -73,18 +73,10 @@ function verifyURL(portalURL, callback) {
             return;
         }
 
-        // Put calendar into array
-        var calEvents = [];
-        for(var eventUid in data) {
-            var calEvent = data[eventUid];
-            delete calEvent.uid;
-            calEvents.push(calEvent);
-        }
-
         // Look through every 'Day # (US/MS)' andd see how many events there are
         var dayDates = {};
-        for(var i = 0; i < calEvents.length; i++) {
-            var calEvent = calEvents[i];
+        for(var eventUid in data) {
+            var calEvent = data[eventUid];
             // If event doesn't have a summary, skip
             if(typeof calEvent.summary !== 'string') continue;
 
@@ -107,7 +99,7 @@ function verifyURL(portalURL, callback) {
             }
         }
 
-        if(_.isEmpty(data)) {
+        if(_.isEmpty(dayDates)) {
             callback(null, 'The calendar does not contain the information we need! Make sure you\'re copying your personal calendar!', null);
             return;
         }
