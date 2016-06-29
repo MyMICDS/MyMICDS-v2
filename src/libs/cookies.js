@@ -14,6 +14,7 @@ var MongoClient = require('mongodb').MongoClient;
  * Creates a selector and a token which can be used for the 'Remember Me' feature
  * @function createCookie
  *
+ * @param {Object} db - Database connection
  * @param {string} user - Username of cookie
  * @param {createCookieCallback} callback - Callback
  */
@@ -30,10 +31,14 @@ var MongoClient = require('mongodb').MongoClient;
  * @param {Object} cookie.expires - Javascript date object of when cookie expires.
  */
 
-function createCookie(user, callback) {
+function createCookie(db, user, callback) {
 
     if(typeof callback !== 'function') return;
 
+    if(typeof db !== 'object') {
+        callback(new Error('Invalid database connection!'), null);
+        return;
+    }
     if(typeof user !== 'string') {
         callback(new Error('Invalid username!'), null);
         return;
@@ -44,7 +49,6 @@ function createCookie(user, callback) {
 
     // Generate random bytes to get a selector
     crypto.randomBytes(16, function(err, selectorBuf) {
-
 		if(err) {
             callback(new Error('There was a problem generating the selector!'), null);
             return;
@@ -53,7 +57,7 @@ function createCookie(user, callback) {
 		var selector = selectorBuf.toString('hex');
 
         // Generate a token, which will upsert the selector and username into the database
-		generateToken(user, selector, expires, function(err, token) {
+		generateToken(db, user, selector, expires, function(err, token) {
             if(err) {
                 callback(err, null);
                 return;
@@ -75,6 +79,7 @@ function createCookie(user, callback) {
  * Checks whether cookie credentials are valid. If so, it generates a new token.
  * @function compareCookie
  *
+ * @param {Object} db - Database connection
  * @param {selector} selector - Selector, first part of cookie
  * @param {token} token - Token, second part of cookie, SHA-256 hashed version is stored in database
  * @param {compareCookieCallback} callback - Callback
@@ -90,10 +95,14 @@ function createCookie(user, callback) {
  * @param {Object} expires - Javascript Date Object of expiring date, null if error
  */
 
-function compareCookie(selector, token, callback) {
+function compareCookie(db, selector, token, callback) {
 
     if(typeof callback !== 'function') return;
 
+    if(typeof db !== 'object') {
+        callback(new Error('Invalid database connection!'), null, null, null);
+        return;
+    }
     if(typeof selector !== 'string') {
         callback(new Error('Invalid selector!'), null, null, null);
         return;
@@ -105,69 +114,57 @@ function compareCookie(selector, token, callback) {
 
     // Hash the token to compare with database
     cryptoUtils.shaHash(token, function(hashedToken) {
-        MongoClient.connect(config.mongodbURI, function(err, db) {
 
+        var rememberdata = db.collection('remember');
+
+        rememberdata.find({ selector: selector }).toArray(function(err, doc) {
             if(err) {
-                callback(new Error('There was a problem connecting to the database!'), null, null, null);
+                callback(new Error('There was a problem querying the database!'), null, null, null);
                 return;
             }
 
-            var rememberdata = db.collection('remember');
+            // Check if valid selector
+            if(doc === null) {
+                callback(new Error('Invalid selector!'), null, null, null);
+                return;
+            }
 
-            rememberdata.find({ selector: selector }).toArray(function(err, doc) {
-                if(err) {
-                    callback(new Error('There was a problem querying the database!'), null, null, null);
-                    return;
-                }
+            var cookie  = doc[0];
+            var user    = cookie['user'];
+            var dbToken = cookie['token'];
+            var expires = cookie['expires'];
 
-                // Check if valid selector
-                if(doc === null) {
-                    db.close();
-                    callback(new Error('Invalid selector!'), null, null, null);
-                    return;
-                }
+            var today = new Date();
 
-                var cookie  = doc[0];
-                var user    = cookie['user'];
-                var dbToken = cookie['token'];
-                var expires = cookie['expires'];
+            // Check if cookied expired
+            if(today.getTime() > expires.getTime()) {
+                callback(new Error('Cookie has expired!'), null, null, null);
+                return;
+            }
 
-                var today = new Date();
+            // Compare tokens
+            console.log(hashedToken, dbToken);
+            if(cryptoUtils.safeCompare(hashedToken, dbToken)) {
 
-                // Check if cookied expired
-                if(today.getTime() > expires.getTime()) {
-                    db.close();
-                    callback(new Error('Cookie has expired!'), null, null, null);
-                    return;
-                }
+                // Update token if successful
+                generateToken(db, user, selector, expires, function(err, newToken) {
+                    if(err) {
+                        callback(err, null, null, null);
+                        return;
+                    }
 
-                // Compare tokens
-                console.log(hashedToken, dbToken);
-                if(cryptoUtils.safeCompare(hashedToken, dbToken)) {
+                    // Update lastLogin
+                    var userdata = db.collection('users');
+                    userdata.update({ user: user }, { $currentDate: { lastLogin: true, lastOnline: true }});
 
-                    // Update token if successful
-                    generateToken(user, selector, expires, function(err, newToken) {
-                        if(err) {
-                            db.close();
-                            callback(err, null, null, null);
-                            return;
-                        }
+                    callback(null, user, newToken, expires);
+                });
 
-                        // Update lastLogin
-                        var userdata = db.collection('users');
-                        userdata.update({ user: user }, { $currentDate: { lastLogin: true, lastOnline: true }});
-                        db.close();
+            } else {
+                // Hash was invalid
+                callback(new Error('Invalid hash!'), null, null, null);
+            }
 
-                        callback(null, user, newToken, expires);
-                    });
-
-                } else {
-                    // Hash was invalid
-                    db.close();
-                    callback(new Error('Invalid hash!'), null, null, null);
-                }
-
-            });
         });
     });
 }
@@ -176,6 +173,7 @@ function compareCookie(selector, token, callback) {
  * Upsert a new token into the database with the provided selector
  * @function generateToken
  *
+ * @param {Object} db - Database connection
  * @param {string} user - Username
  * @param {string} selector - Selector of existing cookie, or a new cookie to be created
  * @param {Object} expires - Javascript Date object of when the cookie expires
@@ -190,12 +188,16 @@ function compareCookie(selector, token, callback) {
  * @param {string} token - New token to be given to client. Null if error.
  */
 
-function generateToken(user, selector, expires, callback) {
+function generateToken(db, user, selector, expires, callback) {
 
     if(typeof callback !== 'function') {
         callback = function() {};
     }
 
+    if(typeof db !== 'object') {
+        callback(new Error('Invalid database connection'), null);
+        return;
+    }
     if(typeof user !== 'string') {
         callback(new Error('Invalid username!'), null);
         return;
@@ -221,36 +223,23 @@ function generateToken(user, selector, expires, callback) {
         // Hash token for database
         cryptoUtils.shaHash(token, function(hashedToken) {
 
-            // Insert token and hashed password in database
-            MongoClient.connect(config.mongodbURI, function(err, db) {
+            var rememberdata = db.collection('remember');
+            rememberdata.update({ selector: selector }, {
+                user    : user,
+                selector: selector,
+                token   : hashedToken,
+                expires : expires,
 
+            }, { upsert: true }, function(err) {
                 if(err) {
-                    callback(new Error('There was a problem connecting to the database!'), null);
+                    callback(new Error('There was a problem updating the database!'), null);
                     return;
                 }
 
-                var rememberdata = db.collection('remember');
-                rememberdata.update({ selector: selector }, {
-                    user    : user,
-                    selector: selector,
-                    token   : hashedToken,
-                    expires : expires,
-
-                }, { upsert: true }, function(err) {
-                    db.close();
-
-                    if(err) {
-                        callback(new Error('There was a problem updating the database!'), null);
-                        return;
-                    }
-
-                    callback(null, token);
-
-                });
+                callback(null, token);
 
             });
         });
-
     });
 }
 
@@ -275,19 +264,29 @@ function remember(req, res, next) {
     var selector = values[0];
     var token    = values[1];
 
-    compareCookie(selector, token, function(err, user, newToken, expires) {
-        console.log('Cookie:', err);
+    MongoClient.connect(config.mongodbURI, function(err, db) {
         if(err) {
             res.clearCookie('rememberme');
+            db.close();
             next();
             return;
         }
 
-        req.session.user = user;
-        res.cookie('rememberme', selector + ':' + newToken, { expires: expires });
-        console.log('New token:', newToken);
-        next();
-	});
+        compareCookie(db, selector, token, function(err, user, newToken, expires) {
+            db.close();
+            console.log('Cookie:', err);
+            if(err) {
+                res.clearCookie('rememberme');
+                next();
+                return;
+            }
+
+            req.session.user = user;
+            res.cookie('rememberme', selector + ':' + newToken, { expires: expires });
+            console.log('New token:', newToken);
+            next();
+    	});
+    });
 }
 
 module.exports.createCookie = createCookie;

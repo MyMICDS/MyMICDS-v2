@@ -7,7 +7,6 @@ var config = require(__dirname + '/config.js');
 
 var _           = require('underscore');
 var ical        = require('ical');
-var MongoClient = require('mongodb').MongoClient;
 var querystring = require('querystring');
 var request     = require('request');
 var url         = require('url');
@@ -116,6 +115,7 @@ function verifyURL(portalURL, callback) {
  * Sets a user's calendar URL if valid
  * @function setUrl
  *
+ * @param {Object} db - Database connection
  * @param {string} user - Username
  * @param {string} url - Calendar url
  * @param {setUrlCallback} callback - Callback
@@ -130,12 +130,17 @@ function verifyURL(portalURL, callback) {
   * @param {string} validURL - Valid url that was inserted into database. Null if error or url invalid.
   */
 
-function setURL(user, url, callback) {
+function setURL(db, user, url, callback) {
     if(typeof callback !== 'function') {
         callback = function() {};
     }
 
-    users.getUser(user, function(err, isUser, userDoc) {
+    if(typeof db !== 'object') {
+        callback(new Error('Invalid database connection!'), null, null);
+        return;
+    }
+
+    users.getUser(db, user, function(err, isUser, userDoc) {
         if(err) {
             callback(err, null, null);
             return;
@@ -154,25 +159,17 @@ function setURL(user, url, callback) {
                 return;
             }
 
-            // URL is valid, update in database
-            MongoClient.connect(config.mongodbURI, function(err, db) {
+            var userdata = db.collection('users');
+
+            userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, function(err, result) {
+                db.close();
                 if(err) {
-                    callback(new Error('There was a problem connecting to the database!'), null, null);
+                    callback(new Error('There was a problem updating the URL to the database!'), null, null);
                     return;
                 }
 
-                var userdata = db.collection('users');
+                callback(null, true, validURL);
 
-                userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, function(err, result) {
-                    db.close();
-                    if(err) {
-                        callback(new Error('There was a problem updating the URL to the database!'), null, null);
-                        return;
-                    }
-
-                    callback(null, true, validURL);
-
-                });
             });
         });
     });
@@ -182,6 +179,7 @@ function setURL(user, url, callback) {
  * Retrieves a person's schedule with a given date
  * @function getSchedule
  *
+ * @param {Object} db - Database connection
  * @param {string} user - Username to get schedule
  * @param {Object} date - Object containing date to retrieve schedule. Leaving fields empty will default to today
  * @param {Number} [date.year] - What year to get schedule (Optional. Defaults to current year.)
@@ -202,8 +200,9 @@ function setURL(user, url, callback) {
   * @param {Object} schedule.allDay - Array containing all-day events or events spanning multiple days. Empty array if nothing is going on that day.
   */
 
-function getSchedule(user, date, callback) {
+function getSchedule(db, user, date, callback) {
     if(typeof callback !== 'function') return;
+    if(typeof db !== 'object') { new Error('Invalid database connection!'); return; }
 
     var current = new Date();
     // Default date to current values
@@ -220,7 +219,7 @@ function getSchedule(user, date, callback) {
     var scheduleDate = new Date(date.year, date.month - 1, date.day);
     var scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
 
-    users.getUser(user, function(err, isUser, userDoc) {
+    users.getUser(db, user, function(err, isUser, userDoc) {
         if(err) {
             callback(err, null, null);
             return;

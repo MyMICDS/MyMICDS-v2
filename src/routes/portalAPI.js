@@ -2,7 +2,10 @@
  * @file Manages schedule API endpoints
  */
 
- var portal = require(__dirname + '/../libs/portal.js');
+var config = require(__dirname + '/../libs/config.js');
+
+var portal     = require(__dirname + '/../libs/portal.js');
+var MongoClient = require('mongodb').MongoClient;
 
 module.exports = function(app) {
     app.post('/portal/test-url', function(req, res) {
@@ -21,16 +24,28 @@ module.exports = function(app) {
     });
 
     app.post('/portal/set-url', function(req, res) {
-        portal.setURL(req.session.user, req.body.url, function(err, isValid, validURL) {
+        MongoClient.connect(config.mongodbURI, function(err) {
             if(err) {
-                var errorMessage = err.message;
-            } else {
-                var errorMessage = null;
+                db.close();
+                res.json({
+                    error: 'There was a problem connecting to the database!',
+                    valid: null,
+                    url  : null
+                });
+                return;
             }
-            res.json({
-                error: errorMessage,
-                valid: isValid,
-                url  : validURL
+
+            portal.setURL(req.session.user, req.body.url, function(err, isValid, validURL) {
+                if(err) {
+                    var errorMessage = err.message;
+                } else {
+                    var errorMessage = null;
+                }
+                res.json({
+                    error: errorMessage,
+                    valid: isValid,
+                    url  : validURL
+                });
             });
         });
     });
@@ -42,7 +57,16 @@ module.exports = function(app) {
             day  : parseInt(req.body.day)
         };
 
-        portal.getSchedule(req.session.user, date, function(err, hasURL, schedule) {
+        MongoClient.connect(config.mongodbURI, function(err) {
+            if(err) {
+                db.close();
+                res.json({
+                    error   : 'There was a problem connecting to the database!',
+                    schedule: null
+                });
+                return;
+            }
+        portal.getSchedule(db, req.session.user, date, function(err, hasURL, schedule) {
             if(!err && hasURL) {
                 res.json({
                     error   : null,

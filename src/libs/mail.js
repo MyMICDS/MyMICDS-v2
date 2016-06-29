@@ -5,9 +5,8 @@
 
 var config = require(__dirname + '/config.js');
 
-var fs          = require('fs');
-var MongoClient = require('mongodb').MongoClient;
-var nodemailer  = require('nodemailer');
+var fs         = require('fs');
+var nodemailer = require('nodemailer');
 
 /**
  * Sends mail to the desired user
@@ -40,17 +39,14 @@ function send(users, message, callback) {
         callback(new Error('Invalid user(s)!'));
         return;
     }
-
     if(typeof message !== 'object') {
         callback(new Error('Invalid message object!'));
         return;
     }
-
     if(typeof message.subject !== 'string') {
         callback(new Error('Invalid mail subject!'));
         return;
     }
-
     if(typeof message.html !== 'string') {
         callback(new Error('Invalid mail html!'));
         return;
@@ -140,7 +136,7 @@ function sendHTML(users, subject, file, data, callback) {
         }
 
         send(users, mesesage, callback);
-    });        
+    });
 }
 
 module.exports.send     = send;

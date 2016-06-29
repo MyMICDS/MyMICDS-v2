@@ -3,18 +3,18 @@
  * @module auth
  */
 
-var config = require(__dirname + '/config.js');
-
 var cookies     = require(__dirname + '/cookies.js');
+var crypto      = require('crypto');
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
 var bcrypt      = require('bcrypt');
-var MongoClient = require('mongodb').MongoClient;
+var mail        = require(__dirname + '/mail.js');
 var users       = require(__dirname + '/users.js');
 
 /**
  * Validates a user's credentials and updates the 'lastLogin' field.
  * @function login
  *
+ * @param {Object} db - Database connection
  * @param {string} user - Username
  * @param {string} password - Plaintext password
  * @param {Boolean} generateCookie - Whether callback should return 'Remember Me' cookie as well
@@ -34,10 +34,14 @@ var users       = require(__dirname + '/users.js');
  * @param {Object} cookie.expires - Javascript date object of when cookie expires.
  */
 
-function login(user, password, callback) {
+function login(db, user, password, callback) {
 
 	if(typeof callback !== 'function') return;
 
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null, null);
+		return;
+	}
 	if(typeof password !== 'string') {
 		callback(new Error('Invalid password!'), null, null);
 		return;
@@ -46,7 +50,7 @@ function login(user, password, callback) {
 		generateCookie = true;
 	}
 
-	users.getUser(user, function(err, isUser, userDoc) {
+	users.getUser(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -73,7 +77,7 @@ function login(user, password, callback) {
 			// Login successful!
 			// Create cookie if generateCookie is true
 			if(generateCookie) {
-				cookies.createCookie(user, function(err, cookie) {
+				cookies.createCookie(db, user, function(err, cookie) {
 					if(err) {
 						callback(null, true, null);
 						return;
@@ -92,6 +96,8 @@ function login(user, password, callback) {
  * Registers a user by adding their credentials into the database. Also sends email confirmation.
  * @function register
  *
+ * @param {Object} db - Database connection
+ *
  * @param {Object} user - User's credentials
  * @param {string} user.username - Username (___@micds.org)
  * @param {string} user.password - User's plaintext password
@@ -109,12 +115,12 @@ function login(user, password, callback) {
  * @param {Object} err - Null if success, error object if failure
  */
 
-function register(user, callback) {
+function register(db, user, callback) {
 
     // Validate inputs
 	if(typeof callback !== 'function') callback = function() {};
-
-	if(typeof user !== 'object') { callback(new Error('Invalid user object!')); return; }
+	if(typeof db   !== 'object') { callback(new Error('Invalid database connection!')); return; }
+	if(typeof user !== 'object') { callback(new Error('Invalid user object!'));         return; }
 	if(typeof user.username !== 'string') {
 		callback(new Error('Invalid username!'));
 		return;
@@ -135,71 +141,59 @@ function register(user, callback) {
 	}
 
 	// Check if it's an already existing user
-	users.getUser(user.username, function(err, isUser, data) {
+	users.getUser(db, user.username, function(err, isUser, data) {
 		if(isUser && data.confirmed) {
 			callback(new Error('An account is already registered under the email ' + user.username + '@micds.org!'));
 			return;
 		}
 
-		// Upsert user into the database
-		MongoClient.connect(config.mongodbURI, function(err, db) {
-			if(err) {
-				callback(new Error('There was a problem connecting to the database!'));
+		var userdata = db.collection('users');
+
+        // Generate confirmation email hash
+        crypto.randomBytes(16, function(err, buf) {
+            if(err) {
+				callback(new Error('There was a problem generating a random confirmation hash!'));
 				return;
 			}
 
-			var userdata = db.collection('users');
+            var hash = buf.toString('hex');
 
-            // Generate confirmation email hash
-            crypto.randomBytes(16, function(err, buf) {
-                if(err) {
-					db.close();
-					callback(new Error('There was a problem generating a random confirmation hash!'));
+            // Hash Password
+            cryptoUtils.hashPassword(user.password, function(err, hashedPassword) {
+				if(err) {
+					callback(new Error('There was a problem hashing the password!'));
 					return;
 				}
 
-                var hash = buf.toString('hex');
+                var newUser = {
+                    user      : user.user,
+                    password  : hashedPassword,
+                    firstName : user.firstName,
+                    lastName  : user.lastName,
+                    gradYear  : user.gradYear,
+                    teacher   : user.teacher,
+                    confirmed : false,
+                    registered: new Date(),
+                    confirmationHash: hash,
+                }
 
-                // Hash Password
-                cryptoUtils.hashPassword(user.password, function(err, hashedPassword) {
+                userdata.update({ user: newUser.user }, newUser, { upsert: true }, function(err, data) {
 					if(err) {
-						db.close();
-						callback(new Error('There was a problem hashing the password!'));
+						callback(new Error('There was a problem inserting the account into the database!'));
 						return;
 					}
 
-                    var newUser = {
-                        user      : user.user,
-                        password  : hashedPassword,
-                        firstName : user.firstName,
-                        lastName  : user.lastName,
-                        gradYear  : user.gradYear,
-                        teacher   : user.teacher,
-                        confirmed : false,
-                        registered: new Date(),
-                        confirmationHash: hash,
+                    var email = newUser.user + '@micds.org';
+                    var emailReplace = {
+                        firstName  : newUser.firstName,
+                        lastName   : newUser.lastName,
+                        confirmLink: 'https://mymicds.net/confirm/' + newUser.user + '/' + hash,
                     }
 
-                    userdata.update({ user: newUser.user }, newUser, { upsert: true }, function(err, data) {
-                        db.close();
-
-						if(err) {
-							callback(new Error('There was a problem inserting the account into the database!'));
-							return;
-						}
-
-                        var email = newUser.user + '@micds.org';
-                        var emailReplace = {
-                            firstName  : newUser.firstName,
-                            lastName   : newUser.lastName,
-                            confirmLink: 'https://mymicds.net/confirm/' + newUser.user + '/' + hash,
-                        }
-
-						// Send confirmation email
-                        mail.sendHTML(email, 'Confirm your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
-                    });
+					// Send confirmation email
+                    mail.sendHTML(email, 'Confirm your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
                 });
-			});
+            });
 		});
 	});
 }
@@ -208,6 +202,7 @@ function register(user, callback) {
  * Confirms a user's account if hash matches
  * @function confirm
  *
+ * @param {Object} db - Database connection
  * @param {string} user - Username
  * @param {string} hash - Hashed password from the database
  * @param {confirmCallback} callback - Callback
@@ -220,12 +215,16 @@ function register(user, callback) {
  * @param {Object} err - Null if successful, error object if failure
  */
 
-function confirm(user, hash, callback) {
+function confirm(db, user, hash, callback) {
 
 	if(typeof callback !== 'function') {
 		callback = function() {};
-	};
+	}
 
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'));
+		return;
+	}
 	if(typeof user !== 'string') {
 		callback(new Error('Invalid username!'));
 		return;
@@ -235,7 +234,7 @@ function confirm(user, hash, callback) {
 		return;
 	}
 
-	users.getUser(user, function(err, isUser, userDoc) {
+	users.getUser(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err);
 			return;

@@ -2,21 +2,36 @@
  * @file Manages class API endpoints
  */
 
-var classes = require(__dirname + '/../libs/classes.js');
+var config = require(__dirname + '/../libs/config.js');
+
+var classes     = require(__dirname + '/../libs/classes.js');
+var MongoClient = require('mongodb').MongoClient;
 
 module.exports = function(app) {
 
 	app.post('/classes/list', function(req, res) {
-		classes.getClasses(req.session.user, function(err, classes) {
+		MongoClient.connect(config.mongodbURI, function(err, db) {
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				db.close();
+				res.json({
+					error: 'There was a problem connecting to the database!',
+					classes: null
+				});
+				return;
 			}
-			res.json({
-				error: errorMessage,
-				classes: classes
-			})
+
+			classes.getClasses(db, req.session.user, function(err, classes) {
+				db.close();
+				if(err) {
+					var errorMessage = err.message;
+				} else {
+					var errorMessage = null;
+				}
+				res.json({
+					error: errorMessage,
+					classes: classes
+				});
+			});
 		});
 	});
 
@@ -34,23 +49,49 @@ module.exports = function(app) {
 				lastName : req.body.teacherLastName
 			}
         };
-        classes.upsertClass(user, scheduleClass, function(err, id) {
-            if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+
+		MongoClient.connect(config.mongodbURI, function(err, db) {
+			if(err) {
+				db.close();
+				res.json({
+					error: 'There was a problem connecting to the database!',
+					id: null
+				});
+				return;
 			}
-			res.json({
-				error: errorMessage,
-				id: id
-			});
-        });
+
+	        classes.upsertClass(db, user, scheduleClass, function(err, id) {
+				db.close();
+	            if(err) {
+					var errorMessage = err.message;
+				} else {
+					var errorMessage = null;
+				}
+				res.json({
+					error: errorMessage,
+					id: id
+				});
+	        });
+		});
     });
 
     app.post('/classes/delete', function(req, res) {
-		console.log('Deleting class ' + req.body.id + '???!');
-		classes.deleteClass(req.session.user, req.body.id, function(success, response) {
-			res.json({success: success, message: response});
+		MongoClient.connect(config.mongodbURI, function(err, db) {
+			if(err) {
+				db.close();
+				res.json({ error: 'There was a problem connecting to the database!' });
+				return;
+			}
+
+			classes.deleteClass(db, req.session.user, req.body.id, function(err) {
+				db.close();
+				if(err) {
+					var errorMessage = err.message;
+				} else {
+					var errorMessage = null;
+				}
+				res.json({ error: errorMessage });
+			});
 		});
     });
 
