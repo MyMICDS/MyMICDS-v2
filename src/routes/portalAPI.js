@@ -34,4 +34,24 @@ module.exports = function(app) {
             });
         });
     });
+
+    app.post('/portal/get-schedule', function(req, res) {
+        portal.getSchedule(req.session.user, {
+            year : parseInt(req.body.year),
+            month: parseInt(req.body.month),
+            day  : parseInt(req.body.day)
+
+        }, function(err, hasURL, schedule) {
+            if(err) {
+                var errorMessage = err.message;
+            } else {
+                var errorMessage = null;
+            }
+            res.json({
+                error   : errorMessage,
+                hasURL  : hasURL,
+                schedule: schedule
+            });
+        });
+    });
 }

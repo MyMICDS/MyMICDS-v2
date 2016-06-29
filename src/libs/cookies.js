@@ -114,7 +114,7 @@ function compareCookie(selector, token, callback) {
 
             var rememberdata = db.collection('remember');
 
-            rememberdata.find({ selector: selector }).next(function(err, doc) {
+            rememberdata.find({ selector: selector }).toArray(function(err, doc) {
                 if(err) {
                     callback(new Error('There was a problem querying the database!'), null, null, null);
                     return;
@@ -127,7 +127,7 @@ function compareCookie(selector, token, callback) {
                     return;
                 }
 
-                var cookie  = doc;
+                var cookie  = doc[0];
                 var user    = cookie['user'];
                 var dbToken = cookie['token'];
                 var expires = cookie['expires'];
@@ -142,6 +142,7 @@ function compareCookie(selector, token, callback) {
                 }
 
                 // Compare tokens
+                console.log(hashedToken, dbToken);
                 if(cryptoUtils.safeCompare(hashedToken, dbToken)) {
 
                     // Update token if successful
@@ -210,7 +211,6 @@ function generateToken(user, selector, expires, callback) {
 
     // Generate very random bytes for a very random token
     crypto.randomBytes(32, function(err, tokenBuf) {
-
         if(err) {
             callback(new Error('There was a problem generating the token!'), null);
             return;
@@ -276,14 +276,16 @@ function remember(req, res, next) {
     var token    = values[1];
 
     compareCookie(selector, token, function(err, user, newToken, expires) {
+        console.log('Cookie:', err);
         if(err) {
             res.clearCookie('rememberme');
             next();
             return;
         }
-        
+
         req.session.user = user;
         res.cookie('rememberme', selector + ':' + newToken, { expires: expires });
+        console.log('New token:', newToken);
         next();
 	});
 }

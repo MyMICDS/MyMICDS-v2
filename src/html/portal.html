@@ -5,18 +5,6 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
 
         <style>
-            body {
-                display: flex;
-                justify-content: space-around;
-            }
-            
-            .test-url,
-            .set-url {
-                display: inline-block;
-                width: 50%;
-                margin-bottom: 2rem;
-            }
-
             .test-url-form {
                 margin-bottom: 1rem;
             }
@@ -28,7 +16,7 @@
     </head>
     <body>
 
-        <div class="test-url">
+        <div class="test-url col-md-6">
             <h4>Test URL</h4>
             <form class="test-url-form col-md-8">
                 <input class="form-control" name="url" placeholder="Test URL">
@@ -54,7 +42,7 @@
             </div>
         </div>
         
-        <div class="set-url">
+        <div class="set-url col-md-6">
             <h4>Set URL</h4>
             <form class="set-url-form col-md-8">
                 <input class="form-control" name="url" placeholder="Set URL">
@@ -79,6 +67,78 @@
                 </div>
             </div>
         </div>
+        
+        <div class="get-schedule col-md-12">
+            <h4>Get Schedule</h4>
+            <form class="get-schedule-form form-inline col-md-6">
+                <input class="form-control" name="year" placeholder="Year" value="2016">
+                <select class="form-control" name="month">
+                    <option value="1">January</option>
+                    <option value="2">Fubruary</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5" selected>May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+                <select class="form-control" name="day">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                    <option value="21">21</option>
+                    <option value="22">22</option>
+                    <option value="23">23</option>
+                    <option value="24" selected>24</option>
+                    <option value="25">25</option>
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                    <option value="30">30</option>
+                    <option value="31">31</option>
+                </select>
+                <button class="btn btn-info">Get Schedule</button>
+            </form>
+            <div class="get-schedule-error card card-inverse card-danger col-lg-8">
+                <div class="card-block">
+                    Error
+                </div>
+            </div>
+
+            <div class="get-schedule-warning card card-inverse card-warning col-lg-8">
+                <div class="card-block">
+                    Warning
+                </div>
+            </div>
+
+            <div class="get-schedule-success card card-inverse card-success col-lg-8">
+                <div class="card-block">
+                    Success
+                </div>
+            </div>
+        </div>
 
         <script src="http://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js" integrity="sha384-vZ2WRJMwsjRMW/8U7i6PWi6AlO1L79snBrmgiDpgIWJ82z8eA5lenwvxbMV1PAh7" crossorigin="anonymous"></script>
@@ -94,6 +154,12 @@
             var $setError   = $('.set-error .card-block');
             var $setWarning = $('.set-warning .card-block');
             var $setSuccess = $('.set-success .card-block');
+            
+            var $getScheduleForm = $('.get-schedule-form');
+
+            var $getScheduleError   = $('.get-schedule-error .card-block');
+            var $getScheduleWarning = $('.get-schedule-warning .card-block');
+            var $getScheduleSuccess = $('.get-schedule-success .card-block');
             
             
             $testForm.submit(function(event) {
@@ -118,6 +184,17 @@
 //                    if(data.error === null) {
 //                        $url.val(data.url);
 //                    }
+                });
+            });
+            
+            $getScheduleForm.submit(function(event) {
+                event.preventDefault();
+                
+                $.post('/portal/get-schedule', $getScheduleForm.serialize(), function(data) {
+                    console.log(data);
+                    $getScheduleError.text(data.error);
+                    $getScheduleWarning.text(data.hasURL);
+                    $getScheduleSuccess.text(JSON.stringify(data.schedule));
                 });
             });
         </script>
