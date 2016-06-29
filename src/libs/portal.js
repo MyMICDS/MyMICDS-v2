@@ -17,6 +17,7 @@ var users       = require(__dirname + '/users.js');
 var urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?q=';
 // RegEx to test if calendar summary is a valid Day Rotation
 var validDayRotation = /^Day [1-6] \((US|MS)\)$/;
+var validDayRotationPlain = /^Day [1-6]$/;
 
 /**
  * Makes sure a given url is valid and it points to a Canvas calendar feed
@@ -220,7 +221,7 @@ function getSchedule(user, date, callback) {
     var scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
 
     users.getUser(user, function(err, isUser, userDoc) {
-        /*if(err) {
+        if(err) {
             callback(err, null, null);
             return;
         }
@@ -232,11 +233,7 @@ function getSchedule(user, date, callback) {
         if(typeof userDoc['portalURL'] !== 'string') {
             callback(null, false, null);
             return;
-        }*/
-
-        // Just log me in for development purposes
-        userDoc = {};
-        userDoc['portalURL'] = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?q=9D1488C069C85337488FA341B9FBE2246226956AAC5EC29BDC1A0D5CC2CD245827955AE1CAABD230';
+        }
 
         request(userDoc['portalURL'], function(err, response, body) {
             if(err) {
@@ -405,6 +402,86 @@ function getSchedule(user, date, callback) {
 }
 
 /**
+ * Get schedule day rotation
+ * @function getDayRotation
+ *
+ * @param {Object} date - Object containing date to retrieve schedule. Leaving fields empty will default to today
+ * @param {Number} [date.year] - What year to get schedule (Optional. Defaults to current year.)
+ * @param {Number} [date.month] - Month number to get schedule. (1-12) (Optional. Defaults to current month.)
+ * @param {Number} [date.day] - Day of month to get schedule. (Optional. Defaults to current day.)
+ *
+ * @param {getDayRotationCallback} callback - Callback
+ */
+
+ /**
+  * Returns an integer between 1 and 6 for what day it is
+  * @callback getDayRotationCallback
+  *
+  * @param {Object} err - Null if success, error object if failure.
+  * @param {scheduleDay} - Integer between 1 and 6. Null if error or no available day.
+  */
+
+function getDayRotation(date, callback) {
+    if(typeof callback !== 'function') return;
+
+    var current = new Date();
+    // Default date to current values
+    if(typeof date.year !== 'number' || date.year % 1 !== 0) {
+        date.year = current.getFullYear();
+    }
+    if(typeof date.month !== 'number' || date.month % 1 !== 0) {
+        date.month = current.getMonth();
+    }
+    if(typeof date.day !== 'number' || date.day % 1 !== 0) {
+        date.day = current.getDate();
+    }
+
+    var scheduleDate = new Date(date.year, date.month - 1, date.day);
+    var scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
+
+    request(urlPrefix + config.portal.dayRotation, function(err, response, body) {
+        if(err || response.statusCode !== 200) {
+            callback(new Error('There was a problem fetching the day rotation!'), null);
+            return;
+        }
+
+        var data = ical.parseICS(body);
+
+        // School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+        // Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+        if(_.isEmpty(data)) {
+            callback(new Error('There was a problem fetching the day rotation!'), null);
+            return;
+        }
+
+        for(var eventUid in data) {
+            var calEvent = data[eventUid];
+            if(typeof calEvent.summary !== 'string') continue;
+
+            var start = new Date(calEvent['start']);
+            var end   = new Date(calEvent['end']);
+
+            var startTime = start.getTime();
+            var endTime   = end.getTime();
+
+            // Check if it's an all-day event
+            if(startTime <= scheduleDate.getTime() && scheduleNextDay.getTime() <= endTime) {
+                // See if valid day
+                if(validDayRotationPlain.test(calEvent.summary)) {
+                    // Get actual day
+                    var day = calEvent.summary.match(/[1-6]/)[0];
+                    callback(null, day);
+                    return;
+                }
+            }
+        }
+
+        callback(null, null);
+
+    });
+}
+
+/**
  * Cleans up the silly event titles we get from the portal
  * @function cleanUp
  *
@@ -421,6 +498,7 @@ function cleanUp(str) {
     return parts[0];
 }
 
-module.exports.verifyURL   = verifyURL;
-module.exports.setURL      = setURL;
-module.exports.getSchedule = getSchedule;
+module.exports.verifyURL      = verifyURL;
+module.exports.setURL         = setURL;
+module.exports.getSchedule    = getSchedule;
+module.exports.getDayRotation = getDayRotation;

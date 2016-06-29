@@ -7,11 +7,13 @@
 module.exports =
 {
 	port : 1420,
-    email:
-    {
+    email: {
         URI      : '',
         fromEmail: '',
         fromName : ''
+    },
+    portal: {
+        dayRotation: ''
     },
 
     expressSessionSecret: '',
