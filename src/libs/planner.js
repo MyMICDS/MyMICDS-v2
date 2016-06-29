@@ -4,8 +4,9 @@
  */
 
 var classes  = require(__dirname + '/classes.js');
-var users 	 = require(__dirname + '/users.js');
 var ObjectID = require('mongodb').ObjectID;
+var teachers = require(__dirname + '/teachers.js');
+var users 	 = require(__dirname + '/users.js');
 
 /**
  * Add/edit event to planner
@@ -284,7 +285,6 @@ function getMonthEvents(db, user, date, callback) {
 			}
 
 			// Go through all events and set user to actual username, and teacher to actual teacher
-
 			// Save teachers in object so we don't have to query database more than we need to
 			var teachers = {};
 
@@ -299,7 +299,7 @@ function getMonthEvents(db, user, date, callback) {
 					var teacherId = validEvent['teacher'];
 
 					if(typeof teachers[teacherId] === 'undefined') {
-						teachers.getTeacher(teacherId, function(err, teacherDoc) {
+						teachers.getTeacher(db, teacherId, function(err, teacherDoc) {
 							if(err) {
 								callback(err, null);
 								return;
@@ -307,11 +307,11 @@ function getMonthEvents(db, user, date, callback) {
 
 							teachers[teacherId] = teacherDoc;
 							validEvent['teacher'] = teachers[teacherId];
-							injectValues(i++);
+							injectValues(++i);
 						});
 					} else {
 						validEvent['teacher'] = teachers[teacherId];
-						injectValues(i++);
+						injectValues(++i);
 					}
 
 				} else {

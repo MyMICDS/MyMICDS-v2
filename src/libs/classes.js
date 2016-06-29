@@ -140,7 +140,6 @@ function upsertClass(db, user, scheduleClass, callback) {
                     if(    scheduleClass.name  === classDoc.name
                         && teacherDoc['_id'].toHexString() === classDoc['teacher'].toHexString()
                         && scheduleClass.block === classDoc.block
-                        && scheduleClass.color === classDoc.color
                         && scheduleClass.type  === classDoc.type) {
 
                         dupClassIds.push(classDoc['_id'].toHexString());
@@ -182,15 +181,8 @@ function upsertClass(db, user, scheduleClass, callback) {
                         return;
                     }
 
-                    teachers.deleteClasslessTeachers(db, function(err) {
-                        if(err) {
-                            callback(err, null);
-                            return;
-                        }
-
-                        callback(null, id);
-
-                    });
+                    callback(null, id);
+                    teachers.deleteClasslessTeachers(db);
 
                 });
             });
@@ -212,7 +204,7 @@ function upsertClass(db, user, scheduleClass, callback) {
  * @callback getClassesCallback
  *
  * @param {Object} err - Null if success, error object if failure
- * @param {Object} classes - Array of class documents. Null if error.
+ * @param {Object} classes - Array of class documents with teacher documents injected in. Null if error.
  */
 
 function getClasses(db, user, callback) {
@@ -248,7 +240,42 @@ function getClasses(db, user, callback) {
                 return;
             }
 
-            callback(null, classes);
+            // Go through all events and set user to actual username, and teacher to actual teacher
+			// Save teachers in object so we don't have to query database more than we need to
+			var teachersList = {};
+
+			function injectValues(i) {
+
+				if(i < classes.length) {
+					// Set user to actual username
+					classes[i]['user'] = userDoc['user'];
+
+					// Set teacher to actual teacher
+					var teacherId = classes[i]['teacher'];
+
+					if(typeof teachersList[teacherId] === 'undefined') {
+						teachers.getTeacher(db, teacherId, function(err, isTeacher, teacherDoc) {
+							if(err) {
+								callback(err, null);
+								return;
+							}
+
+							teachersList[teacherId] = teacherDoc;
+							classes[i]['teacher'] = teachersList[teacherId];
+							injectValues(++i);
+						});
+					} else {
+						classes[i]['teacher'] = teachersList[teacherId];
+						injectValues(++i);
+					}
+
+				} else {
+					// Done through all events
+					callback(null, classes);
+
+				}
+			}
+			injectValues(0);
 
         });
     });
@@ -305,15 +332,9 @@ function deleteClass(db, user, classId, callback) {
                 return;
             }
 
-            teachers.deleteClasslessTeachers(db, function(err) {
-                if(err) {
-                    callback(err);
-                    return;
-                }
+            callback(null);
+            teachers.deleteClasslessTeachers(db);
 
-                callback(null);
-
-            });
         });
     });
 }

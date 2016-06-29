@@ -40,6 +40,7 @@
         <script>
             var $getPlannerForm = $('.get-planner-form');
             var $plannerList = $('.planner-list');
+            var $classList = $('.class-list');
             
             $getPlannerForm.submit(function(event) {
                 event.preventDefault();
@@ -53,8 +54,11 @@
             });
             
             // Add list of classes for input
-            $.post('/classes/list', function(data) {
+            $.post('/classes/get', function(data) {
                 console.log(data);
+                data.classes.forEach(function(value) {
+                    $classList.append('<option value="' + value['_id'] + '">' + value.name + '</option>');
+                });
             });
         </script>
     </body>

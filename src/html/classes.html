@@ -5,7 +5,7 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
     </head>
     <body>
-        <form class="col-md-4" action="/classes/add">
+        <form class="set-class-form col-md-4">
             <h1>Insert Class</h1>
             <h3>Class</h3>
             <input class="form-control" placeholder="Optional Id" name="id">
@@ -50,22 +50,36 @@
         </form>
         
         <div class="col-md-6">
-            <form class="get-planner-form form-inline" action="/classes/list">
-                <button class="btn btn-info">Get Classes!</button>
-            </form>
+            <button class="get-classes btn btn-info">Get Classes!</button>
             <ul class="class-list list-group"></ul>
         </div>
         
         <script src="http://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js" integrity="sha384-vZ2WRJMwsjRMW/8U7i6PWi6AlO1L79snBrmgiDpgIWJ82z8eA5lenwvxbMV1PAh7" crossorigin="anonymous"></script>
         <script>
-			
-			$('form').submit(function(event) {
+            
+            var $setClassForm = $('.set-class-form');
+            var $getClasses = $('.get-classes');
+			var $classList = $('.class-list');
+            
+			$setClassForm.submit(function(event) {
                 event.preventDefault();
-				$.post($(this).prop('action'), $(this).serialize(), function(data) {
+				$.post('/classes/add', $(this).serialize(), function(data) {
 					console.log(data);
                     console.log(data.error);
 				});
+            });
+            
+            $getClasses.click(function() {
+                $.post('/classes/get', function(data) {
+                    console.log(data);
+                    
+                    $classList.html('');
+                    data.classes.forEach(function(value) {
+                        console.log(value);
+                        $classList.append('<li class="list-group-item">ID: ' + value._id + ' Name: '+ value.name + ' Teacher: ' + JSON.stringify(value.teacher) + '</li>');
+                    });
+                });
             });
             
         </script>

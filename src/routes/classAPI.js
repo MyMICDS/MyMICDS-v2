@@ -6,7 +6,7 @@ var classes = require(__dirname + '/../libs/classes.js');
 
 module.exports = function(app, db) {
 
-	app.post('/classes/list', function(req, res) {
+	app.post('/classes/get', function(req, res) {
 		classes.getClasses(db, req.session.user, function(err, classes) {
 			if(err) {
 				var errorMessage = err.message;

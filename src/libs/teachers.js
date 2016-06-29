@@ -62,7 +62,6 @@ function addTeacher(db, teacher, callback) {
     // Upsert teacher into collection
 	teacherdata.update(teacher, teacher, { upsert: true }, function(err, results) {
         if(err) {
-			console.log(err);
             callback(new Error('There was a problem inserting the teacher into the database!'), null);
             return;
         }
@@ -110,10 +109,9 @@ function addTeacher(db, teacher, callback) {
           return;
       }
 
-      var teacherdata  = db.collection('teacher');
+      var teacherdata = db.collection('teachers');
       // Query database to find possible teacher
-      userdata.find({ _id: teacherId }).toArray(function(err, docs) {
-
+      teacherdata.find({ _id: teacherId }).toArray(function(err, docs) {
           if(err) {
               callback(new Error('There was a problem querying the database!'), null, null);
               return;
@@ -166,9 +164,10 @@ function deleteTeacher(db, teacherId, callback) {
             return;
         }
 
-        if(classes === []) {
+        if(classes.length === 0) {
             // Teacher doesn't have any classes. Delete.
-            classdata.deleteMany({ _id: teacherId }, function(err, results) {
+			var teacherdata = db.collection('teachers');
+            teacherdata.deleteMany({ _id: teacherId }, function(err, results) {
                 if(err) {
                     callback(new Error('There was a problem deleting the teacher from the database!'));
                     return;

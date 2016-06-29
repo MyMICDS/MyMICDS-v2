@@ -140,7 +140,6 @@ function compareCookie(db, selector, token, callback) {
             }
 
             // Compare tokens
-            console.log(hashedToken, dbToken);
             if(cryptoUtils.safeCompare(hashedToken, dbToken)) {
 
                 // Update token if successful
@@ -263,7 +262,6 @@ function remember(db) {
         var token    = values[1];
 
         compareCookie(db, selector, token, function(err, user, newToken, expires) {
-            console.log('Cookie:', err);
             if(err) {
                 res.clearCookie('rememberme');
                 next();
@@ -272,7 +270,6 @@ function remember(db) {
 
             req.session.user = user;
             res.cookie('rememberme', selector + ':' + newToken, { expires: expires });
-            console.log('New token:', newToken);
             next();
 	       });
        };
