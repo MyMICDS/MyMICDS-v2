@@ -12,7 +12,6 @@ var querystring = require('querystring');
 var request     = require('request');
 var url         = require('url');
 var users       = require(__dirname + '/users.js');
-var utils       = require(__dirname + '/utils.js');
 
 // URL Calendars come from
 var urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?q=';
