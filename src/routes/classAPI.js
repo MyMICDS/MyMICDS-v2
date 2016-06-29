@@ -2,35 +2,20 @@
  * @file Manages class API endpoints
  */
 
-var config = require(__dirname + '/../libs/config.js');
+var classes = require(__dirname + '/../libs/classes.js');
 
-var classes     = require(__dirname + '/../libs/classes.js');
-var MongoClient = require('mongodb').MongoClient;
-
-module.exports = function(app) {
+module.exports = function(app, db) {
 
 	app.post('/classes/list', function(req, res) {
-		MongoClient.connect(config.mongodbURI, function(err, db) {
+		classes.getClasses(db, req.session.user, function(err, classes) {
 			if(err) {
-				db.close();
-				res.json({
-					error: 'There was a problem connecting to the database!',
-					classes: null
-				});
-				return;
+				var errorMessage = err.message;
+			} else {
+				var errorMessage = null;
 			}
-
-			classes.getClasses(db, req.session.user, function(err, classes) {
-				db.close();
-				if(err) {
-					var errorMessage = err.message;
-				} else {
-					var errorMessage = null;
-				}
-				res.json({
-					error: errorMessage,
-					classes: classes
-				});
+			res.json({
+				error: errorMessage,
+				classes: classes
 			});
 		});
 	});
@@ -50,48 +35,27 @@ module.exports = function(app) {
 			}
         };
 
-		MongoClient.connect(config.mongodbURI, function(err, db) {
-			if(err) {
-				db.close();
-				res.json({
-					error: 'There was a problem connecting to the database!',
-					id: null
-				});
-				return;
+        classes.upsertClass(db, user, scheduleClass, function(err, id) {
+            if(err) {
+				var errorMessage = err.message;
+			} else {
+				var errorMessage = null;
 			}
-
-	        classes.upsertClass(db, user, scheduleClass, function(err, id) {
-				db.close();
-	            if(err) {
-					var errorMessage = err.message;
-				} else {
-					var errorMessage = null;
-				}
-				res.json({
-					error: errorMessage,
-					id: id
-				});
-	        });
-		});
+			res.json({
+				error: errorMessage,
+				id: id
+			});
+        });
     });
 
     app.post('/classes/delete', function(req, res) {
-		MongoClient.connect(config.mongodbURI, function(err, db) {
+		classes.deleteClass(db, req.session.user, req.body.id, function(err) {
 			if(err) {
-				db.close();
-				res.json({ error: 'There was a problem connecting to the database!' });
-				return;
+				var errorMessage = err.message;
+			} else {
+				var errorMessage = null;
 			}
-
-			classes.deleteClass(db, req.session.user, req.body.id, function(err) {
-				db.close();
-				if(err) {
-					var errorMessage = err.message;
-				} else {
-					var errorMessage = null;
-				}
-				res.json({ error: errorMessage });
-			});
+			res.json({ error: errorMessage });
 		});
     });
 

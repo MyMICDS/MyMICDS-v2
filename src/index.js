@@ -22,6 +22,7 @@ var http         = require('http');
 var https        = require('https');
 var lunch        = require(__dirname + '/libs/lunch.js');
 var mail         = require(__dirname + '/libs/mail.js');
+var MongoClient  = require('mongodb').MongoClient;
 var request      = require('request');
 var weather      = require(__dirname + '/libs/weather.js');
 var sass         = require(__dirname + '/libs/sass.js');
@@ -55,9 +56,6 @@ io.use(function(socket, next) {
     session(socket.request, socket.request.res, next);
 });
 
-// 'Remember Me' Functionality
-app.use(cookies.remember);
-
 // Body Parser for POST Variables
 app.use(bodyParser.json());     // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
@@ -81,10 +79,17 @@ sass.watchDir(__dirname + '/public/css/scss', __dirname + '/public/css');
  */
 
 require(__dirname + '/routes/assets.js')(app, express);
-require(__dirname + '/routes/loginAPI.js')(app);
-require(__dirname + '/routes/classAPI.js')(app);
-require(__dirname + '/routes/plannerAPI.js')(app);
-require(__dirname + '/routes/portalAPI.js')(app);
+MongoClient.connect(config.mongodbURI, function(err, db) {
+    if(err) throw err;
+
+    // 'Remember Me' Functionality
+    app.use(cookies.remember(db));
+
+    require(__dirname + '/routes/loginAPI.js')(app, db);
+    require(__dirname + '/routes/classAPI.js')(app, db);
+    require(__dirname + '/routes/plannerAPI.js')(app, db);
+    require(__dirname + '/routes/portalAPI.js')(app, db);
+});
 
 app.get('/', function(req, res) {
     res.render('login', { user: req.session.user });

@@ -3,12 +3,9 @@
  * @module cookies
  */
 
-var config = require(__dirname + '/config.js');
-
 var crypto      = require('crypto');
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
 var moment      = require('moment');
-var MongoClient = require('mongodb').MongoClient;
 
 /**
  * Creates a selector and a token which can be used for the 'Remember Me' feature
@@ -252,28 +249,20 @@ function generateToken(db, user, selector, expires, callback) {
  * @param {Object} next - Callback function
  */
 
-function remember(req, res, next) {
-    var cookie = req.cookies.rememberme;
+function remember(db) {
+    return function(req, res, next) {
+        var cookie = req.cookies.rememberme;
 
-    if(req.session.user || typeof cookie === 'undefined') {
-        next();
-        return;
-    }
-
-    var values = cookie.split(':');
-    var selector = values[0];
-    var token    = values[1];
-
-    MongoClient.connect(config.mongodbURI, function(err, db) {
-        if(err) {
-            res.clearCookie('rememberme');
-            db.close();
+        if(req.session.user || typeof cookie === 'undefined') {
             next();
             return;
         }
 
+        var values = cookie.split(':');
+        var selector = values[0];
+        var token    = values[1];
+
         compareCookie(db, selector, token, function(err, user, newToken, expires) {
-            db.close();
             console.log('Cookie:', err);
             if(err) {
                 res.clearCookie('rememberme');
@@ -285,8 +274,8 @@ function remember(req, res, next) {
             res.cookie('rememberme', selector + ':' + newToken, { expires: expires });
             console.log('New token:', newToken);
             next();
-    	});
-    });
+	       });
+       };
 }
 
 module.exports.createCookie = createCookie;
