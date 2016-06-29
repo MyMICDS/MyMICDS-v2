@@ -219,7 +219,6 @@ function getSchedule(user, date, callback) {
 
     var scheduleDate = new Date(date.year, date.month - 1, date.day);
     var scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
-    console.log(scheduleDate);
 
     users.getUser(user, function(err, isUser, userDoc) {
         /*if(err) {
@@ -268,7 +267,6 @@ function getSchedule(user, date, callback) {
             for(var eventUid in data) {
                 var calEvent = data[eventUid];
                 if(typeof calEvent.summary !== 'string') continue;
-                // console.log(calEvent);
 
                 var start = new Date(calEvent['start']);
                 var end   = new Date(calEvent['end']);
@@ -289,7 +287,7 @@ function getSchedule(user, date, callback) {
                         continue;
                     }
 
-                    schedule.allDay.push(utils.decodeHTMLEntity(calEvent.summary));
+                    schedule.allDay.push(cleanUp(calEvent.summary));
                 }
 
                 // See if it's part of the schedule
@@ -381,7 +379,7 @@ function getSchedule(user, date, callback) {
                     }
 
                     schedule.classes.push({
-                        name : calEvent.summary,
+                        name : cleanUp(calEvent.summary),
                         start: start,
                         end  : end
                     });
@@ -401,7 +399,6 @@ function getSchedule(user, date, callback) {
                 return a.start - b.start;
             });
 
-            console.log(schedule);
             callback(null, true, schedule);
 
         });
@@ -409,7 +406,7 @@ function getSchedule(user, date, callback) {
 }
 
 /**
- * Cleans up the event titles
+ * Cleans up the silly event titles we get from the portal
  * @function cleanUp
  *
  * @param {string} str - Summary to clean up
@@ -417,7 +414,12 @@ function getSchedule(user, date, callback) {
  */
 
 function cleanUp(str) {
-    return str;
+    if(typeof str !== 'string') return str;
+
+    var parts = str.split('-').map(function(value) { return value.trim() });
+    parts.sort(function(a, b) { return b.length - a.length; })
+
+    return parts[0];
 }
 
 module.exports.verifyURL   = verifyURL;
