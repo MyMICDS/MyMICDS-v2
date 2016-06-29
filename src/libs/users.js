@@ -37,8 +37,6 @@ function getUser(db, user, callback) {
 	var userdata  = db.collection('users');
 	// Query database to find possible user
 	userdata.find({ user: user }).toArray(function(err, docs) {
-		db.close();
-
 		if(err) {
 			callback(new Error('There was a problem querying the database!'), null, null);
 			return;

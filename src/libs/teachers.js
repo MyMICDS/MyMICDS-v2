@@ -62,6 +62,7 @@ function addTeacher(db, teacher, callback) {
     // Upsert teacher into collection
 	teacherdata.update(teacher, teacher, { upsert: true }, function(err, results) {
         if(err) {
+			console.log(err);
             callback(new Error('There was a problem inserting the teacher into the database!'), null);
             return;
         }
@@ -241,7 +242,6 @@ function teacherTeaches(db, teacherId, callback) {
   */
 
 function deleteClasslessTeachers(db, callback) {
-    console.log('deleted useless teachers');
     if(typeof callback !== 'function') {
         callback = function() {};
     }
@@ -260,7 +260,6 @@ function deleteClasslessTeachers(db, callback) {
 
         // This delete function uses the power recursion so we can asynchronously delete teachers and provide a callback in the end
         function deleteTeachers(i) {
-            console.log('delete teacher' + i);
             if(i < docs.length) {
                 var teacherId = docs[i]['_id'];
                 deleteTeacher(db, teacherId, function(err) {

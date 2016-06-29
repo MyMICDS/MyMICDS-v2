@@ -75,9 +75,8 @@ module.exports = function(app) {
 		MongoClient.connect(config.mongodbURI, function(err) {
 			if(err) {
 				db.close();
-				res.json({
-					error:
-				});
+				res.json({ error: 'There was a problem connecting to the database!' });
+				return;
 			}
 	        auth.register(db, user, function(err) {
 				db.close();

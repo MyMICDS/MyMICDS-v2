@@ -162,7 +162,6 @@ function setURL(db, user, url, callback) {
             var userdata = db.collection('users');
 
             userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, function(err, result) {
-                db.close();
                 if(err) {
                     callback(new Error('There was a problem updating the URL to the database!'), null, null);
                     return;

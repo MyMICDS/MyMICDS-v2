@@ -61,49 +61,50 @@ module.exports = function(app) {
             if(err) {
                 db.close();
                 res.json({
-                    error   : 'There was a problem connecting to the database!',
+                    error: 'There was a problem connecting to the database!',
                     schedule: null
                 });
                 return;
             }
-        portal.getSchedule(db, req.session.user, date, function(err, hasURL, schedule) {
-            if(!err && hasURL) {
-                res.json({
-                    error   : null,
-                    schedule: schedule
-                });
-                return;
-            }
-
-            // There was an error, default to generic schedule
-            portal.getDayRotation(date, function(err, scheduleDay) {
-                if(err) {
+            portal.getSchedule(db, req.session.user, date, function(err, hasURL, schedule) {
+                if(!err && hasURL) {
                     res.json({
-                        error   : 'There was a problem fetching your schedule!',
-                        schedule: null
+                        error: null,
+                        schedule: schedule
                     });
                     return;
                 }
 
-                var end = new Date(date.year, date.month, date.day, 15, 15);
-                // If day is Wednesday, make start date 9 instead of 8
-                var start = new Date(date.year, date.month, date.day, end.getDay() === 3 ? 9:8);
+                // There was an error, default to generic schedule
+                portal.getDayRotation(date, function(err, scheduleDay) {
+                    if(err) {
+                        res.json({
+                            error: 'There was a problem fetching your schedule!',
+                            schedule: null
+                        });
+                        return;
+                    }
 
-                var schedule = {
-                    day: scheduleDay,
-                    classes: [{
-                        name : 'School',
-                        start: start,
-                        end  : end
-                    }],
-                    allDay: []
-                }
+                    var end = new Date(date.year, date.month, date.day, 15, 15);
+                    // If day is Wednesday, make start date 9 instead of 8
+                    var start = new Date(date.year, date.month, date.day, end.getDay() === 3 ? 9:8);
 
-                res.json({
-                    error   : null,
-                    schedule: schedule
+                    var schedule = {
+                        day: scheduleDay,
+                        classes: [{
+                            name : 'School',
+                            start: start,
+                            end  : end
+                        }],
+                        allDay: []
+                    }
+
+                    res.json({
+                        error: null,
+                        schedule: schedule
+                    });
+
                 });
-
             });
         });
     });

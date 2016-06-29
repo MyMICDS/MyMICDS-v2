@@ -64,6 +64,7 @@
                 event.preventDefault();
 				$.post($(this).prop('action'), $(this).serialize(), function(data) {
 					console.log(data);
+                    console.log(data.error);
 				});
             });
             
