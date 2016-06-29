@@ -222,24 +222,24 @@ function deleteEvent(user, eventId, callback) {
 
 /**
  * Gets a list of all the events for the month
- * @function eventsForMonth
+ * @function getMonthEvents
  *
  * @param {string} user - Username of events to get
  * @param {Object} date - Object containing month/year to get date. (Inputting an empty object will default to current date)
  * @param {Number} [month] - What month to get events. Starts at one. (1 - 12) (Optional, defaults to current month)
  * @param {Number} [year] - What year to get events in (Optional, defaults to current year)
- * @param {eventsMonthCallback} callback - Callback
+ * @param {getMonthEventsCallback} callback - Callback
  */
 
 /**
  * Callback after getting events
- * @callback eventsMonthCallback
+ * @callback getMonthEventsCallback
  *
  * @param {Object} err - Null if success, error object if failure
  * @param {Array} events - Array of documents of events, with teacher documents injected. Null if error.
  */
 
-function eventsForMonth(user, date, callback) {
+function getMonthEvents(user, date, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof date !== 'object') {
@@ -338,6 +338,7 @@ function eventsForMonth(user, date, callback) {
 
 					}
 				}
+				injectValues(0);
 			});
 		});
 	});
@@ -345,4 +346,4 @@ function eventsForMonth(user, date, callback) {
 
 module.exports.upsertEvent = upsertEvent;
 module.exports.deleteEvent = deleteEvent;
-module.exports.eventsForMonth = eventsForMonth;
+module.exports.getMonthEvents = getMonthEvents;

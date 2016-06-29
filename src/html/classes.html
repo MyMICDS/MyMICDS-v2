@@ -1,68 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Configure your Classes</title>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+        <title>Classes</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
     </head>
     <body>
-		<h1>Username: <span class="username"></span></h1>
-        <form class="form-inline" action="/add-class" method="post">
+        <form class="col-md-4" action="/classes/add">
+            <h1>Insert Class</h1>
+            <h3>Class</h3>
             <input class="form-control" placeholder="Optional Id" name="id">
-            <input class="form-control" placeholder="Class Name" name="name" value="Science">
+            <input class="form-control" placeholder="Class Name" name="name">
+            <input class="form-control" placeholder="Color Hex" name="color">
+            <h6>Block</h6>
+            <select class="form-control" name="block">
+                <option value="a">A</option>
+                <option value="b">B</option>
+                <option value="c">C</option>
+                <option value="d">D</option>
+                <option value="e">E</option>
+                <option value="f">F</option>
+                <option value="g">G</option>
+                <option value="sport">Sport</option>
+                <option value="other">Other</option>
+            </select>
+            <h6>Type</h6>
+            <select class="form-control" name="type">
+                <option value="art">Art</option>
+                <option value="english">English</option>
+                <option value="history">History</option>
+                <option value="math">Math</option>
+                <option value="science">Science</option>
+                <option value="french">French</option>
+                <option value="german">German</option>
+                <option value="latin">Latin</option>
+                <option value="mandarin">Mandarin</option>
+                <option value="spanish">Spanish</option>
+                <option value="other">Other</option>
+            </select>
 			
+            <h3>Teacher</h3>
 			<select class="form-control" name="teacherPrefix">
 				<option value="Mr.">Mr.</option>
 				<option value="Ms.">Ms.</option>
+				<option value="Dr.">Dr.</option>
 			</select>
-			
-            <input class="form-control" placeholder="Teacher" name="teacherFirstName" value="Señor">
-            <input class="form-control" placeholder="Teacher" name="teacherLastName" value="Satan">
-            <input class="form-control" placeholder="Block" name="block" value="a">
-            <input class="form-control" placeholder="Color" name="color" value="#123">
-            <input class="form-control" placeholder="Type" name="type" value="science">
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" name="displayPlanner" checked> Display Planner
-                </label>
-            </div>
+            <input class="form-control" placeholder="Teacher First Name" name="teacherFirstName">
+            <input class="form-control" placeholder="Teacher First Name" name="teacherLastName">
             <button class="btn btn-success">Add Class</button>
         </form>
-		<ul class="classes"></ul>
-        <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
-		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+        
+        <div class="col-md-6">
+            <form class="get-planner-form form-inline" action="/classes/list">
+                <button class="btn btn-info">Get Classes!</button>
+            </form>
+            <ul class="class-list list-group"></ul>
+        </div>
+        
+        <script src="http://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js" integrity="sha384-vZ2WRJMwsjRMW/8U7i6PWi6AlO1L79snBrmgiDpgIWJ82z8eA5lenwvxbMV1PAh7" crossorigin="anonymous"></script>
         <script>
-			var socket = io.connect();
 			
-			$.post('/get-classes', function(data) {
-				data.forEach(function(value, index) {
-					$('.classes').append('<li><button class="delete btn btn-danger" data-id="' + value._id + '">Delete</button>' + JSON.stringify(value, null, 4) + '</li>');
-				});
-				
-				$('.delete').click(function() {
-					var classId = $(this).data('id');
-					console.log(classId);
-					$.post('/delete-class', { id: classId }, function(deleteData) {
-						console.log(deleteData);
-					});
-				});
-			});
-			
-			$('form').submit(function() {
+			$('form').submit(function(event) {
+                event.preventDefault();
 				$.post($(this).prop('action'), $(this).serialize(), function(data) {
 					console.log(data);
-				})
-					.fail(function() {
-						console.log('There was an error submitting the form. Contact support if this keeps happening!');
-					});
-
-				return false;
-			});
-			
-			socket.emit('username');
-            socket.on('username', function(username) {
-                $('.username').text(username);
+				});
             });
+            
         </script>
     </body>
 </html>

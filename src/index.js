@@ -83,6 +83,7 @@ sass.watchDir(__dirname + '/public/css/scss', __dirname + '/public/css');
 require(__dirname + '/routes/assets.js')(app, express);
 require(__dirname + '/routes/loginAPI.js')(app);
 require(__dirname + '/routes/classAPI.js')(app);
+require(__dirname + '/routes/plannerAPI.js')(app);
 require(__dirname + '/routes/portalAPI.js')(app);
 
 app.get('/', function(req, res) {
@@ -98,6 +99,10 @@ app.get('/lunch', function(req, res) {
     lunch.getLunch(function(lunchJSON) {
         res.send(JSON.stringify(lunchJSON, null, 3));
     });
+});
+
+app.get('/planner', function(req, res) {
+    res.sendFile(__dirname + '/html/planner.html');
 });
 
 app.get('/portal', function(req, res) {

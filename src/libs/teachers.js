@@ -66,21 +66,14 @@ function addTeacher(teacher, callback) {
 
 		var teacherdata = db.collection('teachers');
         // Upsert teacher into collection
-		teacherdata.update({ prefix: prefix, firstName: firstName, lastName: lastName }, { $set: {
-
-			prefix   : prefix,
-			firstName: firstName,
-			lastName : lastName,
-
-		}}, { upsert: true }, function(err, results) {
-
+		teacherdata.update(teacher, teacher, { upsert: true }, function(err, results) {
             if(err) {
                 callback(new Error('There was a problem inserting the teacher into the database!'), null);
                 return;
             }
 
             // Get document of teacher we just added
-            teacherdata.find({ prefix: prefix, firstName: firstName, lastName: lastName }).toArray(function(err, docs) {
+            teacherdata.find(teacher).toArray(function(err, docs) {
                 if(err) {
                     callback(new Error('There was a problem querying the database!'), null);
                     return;
@@ -266,13 +259,12 @@ function teacherTeaches(teacherId, callback) {
   */
 
 function deleteClasslessTeachers(callback) {
-
+    console.log('deleted useless teachers');
     if(typeof callback !== 'function') {
         callback = function() {};
     }
 
 	MongoClient.connect(config.mongodbURI, function(err, db) {
-
         if(err) {
             callback(new Error('There was a problem connecting to the database!'));
             return;
@@ -280,9 +272,8 @@ function deleteClasslessTeachers(callback) {
 
 		var teacherdata = db.collection('teachers');
         // Find all teachers
-		teacherData.find({}).toArray(function(err, docs) {
+		teacherdata.find({}).toArray(function(err, docs) {
             db.close();
-
             if(err) {
                 callback(new Error('There was a problem querying the database!'));
                 return;
@@ -290,6 +281,7 @@ function deleteClasslessTeachers(callback) {
 
             // This delete function uses the power recursion so we can asynchronously delete teachers and provide a callback in the end
             function deleteTeachers(i) {
+                console.log('delete teacher' + i);
                 if(i < docs.length) {
                     var teacherId = docs[i]['_id'];
                     deleteTeacher(teacherId, function(err) {
@@ -298,7 +290,7 @@ function deleteClasslessTeachers(callback) {
                             return;
                         }
 
-                        deleteTeachers(i++);
+                        deleteTeachers(++i);
                     });
                 } else {
                     // It's done iterating over the teachers, and there's no error!

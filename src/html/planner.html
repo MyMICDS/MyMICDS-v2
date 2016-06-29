@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Planner</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="get-planner col-md-6">
+            <form class="get-planner-form form-inline">
+                <input class="form-control" name="year" placeholder="Year" value="2016">
+                <select class="form-control" name="month">
+                    <option value="1">January</option>
+                    <option value="2">Fubruary</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5" selected>May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+                <button class="btn btn-info">Get Planner!</button>
+            </form>
+            <ul class="planner-list list-group"></ul>
+        </div>
+        
+        <div class="set-event col-md-6">
+            <form class="set-event-form form-inline">
+                <input class="form-control" name="title" placeholder="Event Title">
+                <input class="form-control" name="desc" placeholder="Event Description">
+                <select class="class-list form-control" name="id"></select>
+            </form>
+        </div>
+        
+        <script src="http://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js" integrity="sha384-vZ2WRJMwsjRMW/8U7i6PWi6AlO1L79snBrmgiDpgIWJ82z8eA5lenwvxbMV1PAh7" crossorigin="anonymous"></script>
+        <script>
+            var $getPlannerForm = $('.get-planner-form');
+            var $plannerList = $('.planner-list');
+            
+            $getPlannerForm.submit(function(event) {
+                event.preventDefault();
+                $.post('/planner/get-events', $getPlannerForm.serialize(), function(data) {
+                    console.log(data);
+                    
+//                    data.events.forEach(function(value) {
+//                        $plannerList
+//                    });
+                });
+            });
+            
+            // Add list of classes for input
+            $.post('/classes/list', function(data) {
+                console.log(data);
+            });
+        </script>
+    </body>
+</html>

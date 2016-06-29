@@ -52,10 +52,9 @@ var validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
  * @param {Object} scheduleClass - JSON of class to add
  * @param {string} [scheduleClass.id] - Id to modify class under (Optional)
  * @param {string} scheduleClass.name - Name of class
+ * @param {string} [scheduleClass.color] - Hex value of class color. Please include hash ('#') symbol. (Optional, default random color)
  * @param {string} [scheduleClass.block] - Which block the class takes place (Optional. Default to 'other')
  * @param {string} [scheduleClass.type] - Type of class (Optional, default to 'other')
- * @param {string} [scheduleClass.color] - Hex value of class color. Please include hash ('#') symbol. (Optional, default random color)
- * @param {Boolean} [scheduleClass.displayPlanner] - Whether to display the class on the planner (Optional, default to true)
  *
  * @param {Object} scheduleClass.teacher - Information about teacher
  * @param {string} scheduleClass.teacher.prefix - Either 'Mr.' or 'Ms.'
@@ -84,7 +83,6 @@ function upsertClass(user, scheduleClass, callback) {
     // If no valid block or type, default to 'other'
     if(!_.contains(validBlocks, scheduleClass.block)) scheduleClass.block = 'other';
     if(!_.contains(validTypes, scheduleClass.type))   scheduleClass.type = 'other';
-    if(typeof scheduleClass.displayPlanner !== 'boolean') scheduleClass.displayPlanner = true;
     // If not valid color, generate random
     if(!validColor.test(scheduleClass.color)) {
         // You think we're playing around here? No. This is MyMICDS.
@@ -107,7 +105,7 @@ function upsertClass(user, scheduleClass, callback) {
         }
 
         // Add teacher to database
-        addTeacher(scheduleClass.teacher, function(err, teacherDoc) {
+        teachers.addTeacher(scheduleClass.teacher, function(err, teacherDoc) {
             if(err) {
                 callback(err, null);
                 return;
@@ -135,7 +133,7 @@ function upsertClass(user, scheduleClass, callback) {
                     if(scheduleClass.id !== '') {
                         for(var i = 0; i < classes.length; i++) {
                             var classId = classes[i]['_id'];
-                            if(editId === classId.toHexString()) {
+                            if(scheduleClass.id === classId.toHexString()) {
                                 validEditId = classId;
                                 break;
                             }
@@ -185,11 +183,10 @@ function upsertClass(user, scheduleClass, callback) {
     					type : scheduleClass.type,
     					block: scheduleClass.block,
     					color: scheduleClass.color,
-    					displayPlanner: scheduleClass.displayPlanner
                     }
 
                     // Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
-                    classData.update({ _id: id }, insertClass, { upsert: true }, function(err, results) {
+                    classdata.update({ _id: id }, insertClass, { upsert: true }, function(err, results) {
                         if(err) {
                             callback(new Error('There was a problem upserting the class into the database!'), null);
                             return;

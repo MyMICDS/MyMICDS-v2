@@ -1,5 +1,5 @@
 /**
- * @file Login API Endpoints
+ * @file Manages login API endpoints
  */
 
 var auth    = require(__dirname + '/../libs/auth.js');
@@ -70,4 +70,5 @@ module.exports = function(app) {
             res.end(response);
         });
     });
+
 }
