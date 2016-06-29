@@ -77,10 +77,16 @@
                     $classList.html('');
                     data.classes.forEach(function(value) {
                         console.log(value);
-                        $classList.append('<li class="list-group-item">ID: ' + value._id + ' Name: '+ value.name + ' Teacher: ' + JSON.stringify(value.teacher) + '</li>');
+                        $classList.append('<li class="list-group-item">ID: ' + value._id + ' Name: '+ value.name + ' Teacher: ' + JSON.stringify(value.teacher) + ' <button class="btn btn-danger" onclick="deleteClass(\'' + value._id + '\')">Delete</button></li>');
                     });
                 });
             });
+            
+            function deleteClass(id) {
+                $.post('/classes/delete', { id: id }, function(data) {
+                    console.log(data);
+                });
+            }
             
         </script>
     </body>

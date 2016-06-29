@@ -312,6 +312,13 @@ function deleteClass(db, user, classId, callback) {
         callback(new Error('Invalid username!'));
         return;
     }
+    // Try to create object id
+	try {
+		var id = new ObjectID(classId);
+	} catch(e) {
+		callback(new Error('Invalid event id!'));
+		return;
+	}
 
     // Make sure valid user
     users.getUser(db, user, function(err, isUser, userDocs) {
@@ -325,8 +332,7 @@ function deleteClass(db, user, classId, callback) {
         }
 
         var classdata = db.collection('classes');
-
-        classdata.deleteMany({ _id: classId, user: userDocs['_id'] }, function(err, results) {
+        classdata.deleteMany({ _id: id, user: userDocs['_id'] }, function(err, results) {
             if(err) {
                 callback(new Error('There was a problem deleting the class from the database!'));
                 return;
