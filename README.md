@@ -18,6 +18,7 @@ $ nodemon
 ```
 
 ## Todo
+- Add basic profile management functions like change password, change background, etc.
 - Daily Bulletin fetcher
 - Angular front-end
 - Mobile App
