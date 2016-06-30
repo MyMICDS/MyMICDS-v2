@@ -11,6 +11,7 @@ You can type `node src/index.js` to start the server, and press `Ctrl + C` twice
 
 Run `npm run docs` to build documentation.
 #### For Development
+In order for your back-end code to take affect in a node.js application, you must restart it. We recommend you install an npm package called Nodemon during development. It will automatically restart the application when it detects a change in one of the files. In order to install and run nodemon, type the following:
 ```
 $ npm install -g nodemon
 $ nodemon
