@@ -19,10 +19,10 @@ var validDayRotation = /^Day [1-6] \((US|MS)\)$/;
 var validDayRotationPlain = /^Day [1-6]$/;
 
 /**
- * Makes sure a given url is valid and it points to a Canvas calendar feed
+ * Makes sure a given url is valid and it points to a Portal calendar feed
  * @function verifyURL
  *
- * @param {string} url - URI to iCal feed
+ * @param {string} portalURL - URI to iCal feed
  * @param {verifyURLCallback} callback - Callback
  */
 
@@ -175,7 +175,7 @@ function setURL(db, user, url, callback) {
 }
 
 /**
- * Retrieves a person's schedule with a given date
+ * Retrieves a user's schedule with a given date
  * @function getSchedule
  *
  * @param {Object} db - Database connection
@@ -258,6 +258,7 @@ function getSchedule(db, user, date, callback) {
                 allDay : []
             };
 
+            // Loop through all of the events in the calendar feed
             for(var eventUid in data) {
                 var calEvent = data[eventUid];
                 if(typeof calEvent.summary !== 'string') continue;

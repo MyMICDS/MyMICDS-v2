@@ -16,12 +16,23 @@ module.exports = function(app, db) {
 			return;
 		}
 
-        auth.login(db, req.body.user, req.body.password, function(err, response, cookie) {
+		if(req.body.remember === 'on') {
+			var generateCookie = true;
+		} else {
+			var generateCookie = false;
+		}
+
+        auth.login(db, req.body.user, req.body.password, generateCookie, function(err, response, cookie) {
             if(err) {
                 var errorMessage = err.message;
             } else {
                 var errorMessage = null;
             }
+
+			// Set user to req.session.user if successful
+			if(response) {
+				req.session.user = req.body.user.toLowerCase();
+			}
 
             res.json({
                 error  : errorMessage,

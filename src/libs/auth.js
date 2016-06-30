@@ -26,7 +26,7 @@ var users       = require(__dirname + '/users.js');
  * @callback loginCallback
  *
  * @param {Object} err - Null if successful, error object if failure
- * @param {Boolean} res - True if password matches in database, false if not. Null if error.
+ * @param {Boolean} response - True if credentials match in database, false if not. Null if error.
  *
  * @param {Object} cookie - Object containing information about cookie. Returned if login is successful and create cookie is successful, null in all other cases.
  * @param {string} cookie.selector - Selector to be placed in cookie.
@@ -34,7 +34,7 @@ var users       = require(__dirname + '/users.js');
  * @param {Object} cookie.expires - Javascript date object of when cookie expires.
  */
 
-function login(db, user, password, callback) {
+function login(db, user, password, generateCookie, callback) {
 
 	if(typeof callback !== 'function') return;
 

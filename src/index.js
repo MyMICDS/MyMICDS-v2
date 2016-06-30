@@ -79,6 +79,8 @@ sass.watchDir(__dirname + '/public/css/scss', __dirname + '/public/css');
  */
 
 require(__dirname + '/routes/assets.js')(app, express);
+
+// Connect to database
 MongoClient.connect(config.mongodbURI, function(err, db) {
     if(err) throw err;
 
@@ -86,6 +88,7 @@ MongoClient.connect(config.mongodbURI, function(err, db) {
     app.use(cookies.remember(db));
 
     require(__dirname + '/routes/loginAPI.js')(app, db);
+    require(__dirname + '/routes/canvasAPI.js')(app, db);
     require(__dirname + '/routes/classAPI.js')(app, db);
     require(__dirname + '/routes/plannerAPI.js')(app, db);
     require(__dirname + '/routes/portalAPI.js')(app, db);
@@ -93,6 +96,10 @@ MongoClient.connect(config.mongodbURI, function(err, db) {
 
 app.get('/', function(req, res) {
     res.render('login', { user: req.session.user });
+});
+
+app.get('/canvas', function(req, res) {
+    res.sendFile(__dirname + '/html/canvas.html');
 });
 
 app.get('/classes', function(req, res) {
