@@ -36,6 +36,7 @@
   },
   "homepage": "https://github.com/michaelgira23/MyMICDS-v2#readme",
   "dependencies": {
+    "async": "^2.0.0-rc.6",
     "bcrypt": "^0.8.6",
     "body-parser": "^1.15.0",
     "cheerio": "^0.20.0",
