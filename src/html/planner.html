@@ -10,7 +10,7 @@
                 <input class="form-control" name="year" placeholder="Year" value="2016">
                 <select class="form-control" name="month">
                     <option value="1">January</option>
-                    <option value="2">Fubruary</option>
+                    <option value="2">February</option>
                     <option value="3">March</option>
                     <option value="4">April</option>
                     <option value="5" selected>May</option>
@@ -24,7 +24,7 @@
                 </select>
                 <button class="btn btn-info">Get Planner!</button>
             </form>
-            <ul class="planner-list list-group"></ul>
+            <ul class="event-list list-group"></ul>
         </div>
         
         <div class="set-event col-md-6">
@@ -32,7 +32,7 @@
                 <input class="form-control" name="id" placeholder="Edit ID">
                 <input class="form-control" name="title" placeholder="Event Title">
                 <input class="form-control" name="desc" placeholder="Description (Optional)">
-                <select class="class-list form-control" name="id"></select>
+                <select class="class-list form-control" name="class-id"></select>
                 <input class="form-control" name="link" placeholder="Link (Optional)">
                 <h3>Start Date</h3>
                 <input class="form-control" name="start-year" placeholder="Year" value="2016">
@@ -142,22 +142,40 @@
             var $getPlannerForm = $('.get-planner-form');
             var $plannerList = $('.planner-list');
             var $classList = $('.class-list');
+            var $eventList = $('.event-list');
+            var $setEventForm = $('.set-event-form');
             
             $getPlannerForm.submit(function(event) {
                 event.preventDefault();
-                $.post('/planner/get-events', $getPlannerForm.serialize(), function(data) {
+                $.post('/planner/get', $getPlannerForm.serialize(), function(data) {
                     console.log(data);
                     
-//                    data.events.forEach(function(value) {
-//                        $plannerList
-//                    });
+                    $eventList.html('');
+                    data.events.forEach(function(value) {
+                        console.log(value);
+                        $eventList.append('<li class="list-group-item">ID: ' + value._id + ' Title: '+ value.title + ' Class: ' + JSON.stringify(value.class) + ' <button class="btn btn-danger" onclick="deleteEvent(\'' + value._id + '\')">Delete</button></li>');
+                    });
                 });
             });
+            
+            $setEventForm.submit(function(event) {
+                event.preventDefault();
+                $.post('/planner/add', $setEventForm.serialize(), function(data) {
+                    console.log(data);
+                });
+            });
+            
+            function deleteEvent(id) {
+                $.post('/planner/delete', { id: id }, function(data) {
+                    console.log(data);
+                });
+            }
             
             // Add list of classes for input
             $.post('/classes/get', function(data) {
                 console.log(data);
                 data.classes.forEach(function(value) {
+                    console.log(value);
                     $classList.append('<option value="' + value['_id'] + '">' + value.name + '</option>');
                 });
             });

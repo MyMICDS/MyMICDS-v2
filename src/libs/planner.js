@@ -5,7 +5,6 @@
 
 var classes  = require(__dirname + '/classes.js');
 var ObjectID = require('mongodb').ObjectID;
-var teachers = require(__dirname + '/teachers.js');
 var users 	 = require(__dirname + '/users.js');
 
 /**
@@ -17,11 +16,11 @@ var users 	 = require(__dirname + '/users.js');
  * @param {Object} plannerEvent - Event object
  * @param {string} [plannerEvent.id] - Optional id to edit event under
  * @param {string} plannerEvent.title - Main summary/label of the event
- * @param {string} [plannerEvent.desc] - Event description with details (optional)
- * @param {string} plannerEvent.classId - Object ID of associated class
+ * @param {string} [plannerEvent.desc] - Event description with details (Optional)
+ * @param {string} [plannerEvent.classId] - Object ID of associated class (Optional)
  * @param {Object} plannerEvent.start - Javascript date object when event starts
  * @param {Object} plannerEvent.end - Javascript date object when event ends
- * @param {string} [plannerEvent.link] - Link to canvas assignment (optional)
+ * @param {string} [plannerEvent.link] - Link to canvas assignment (Optional)
  *
  * @param {upsertEventCallback} callback - Callback
  */
@@ -34,7 +33,7 @@ var users 	 = require(__dirname + '/users.js');
  * @param {Object} id - ID of event that was upserted. Null if error.
  */
 
-function upsertEvent(db, user, plannerEvent, callback, id) {
+function upsertEvent(db, user, plannerEvent, callback) {
 
 	// Validate inputs
 	if(typeof callback !== 'function') callback = function() {};
@@ -42,23 +41,17 @@ function upsertEvent(db, user, plannerEvent, callback, id) {
 	if(typeof db   !== 'object') { callback(new Error('Invalid database connection!'), null); return; }
 	if(typeof user !== 'string') { callback(new Error('Invalid user!'),                null); return; }
 
-	if(typeof plannerEvent !== 'object') { callback(new Error('Invalid event object!'), null); return; }
-
-	plannerEvent.id = plannerEvent.id || '';
-	if(typeof plannerEvent.id    !== 'string') { callback(new Error('Invalid event id!')), null;    return; }
-	if(typeof plannerEvent.title !== 'string') { callback(new Error('Invalid event title!'), null); return; }
-
-	plannerEvent.desc = plannerEvent.desc || '';
-	if(typeof plannerEvent.desc    !== 'string') { callback(new Error('Invalid event description!'), null); return; }
-	if(typeof plannerEvent.classId !== 'string') { callback(new Error('Invalid event class id!'), null);    return; }
+	if(typeof plannerEvent         !== 'object') { callback(new Error('Invalid event object!'), null); return; }
+	if(typeof plannerEvent.id      !== 'string') plannerEvent.id = '';
+	if(typeof plannerEvent.title   !== 'string') { callback(new Error('Invalid event title!'), null); return; }
+	if(typeof plannerEvent.desc    !== 'string') plannerEvent.desc = '';
+	if(typeof plannerEvent.classId !== 'string') { plannerEvent.classId = null; }
 	if(typeof plannerEvent.start   !== 'object') { callback(new Error('Invalid event start!'), null);       return; }
 	if(typeof plannerEvent.end     !== 'object') { callback(new Error('Invalid event end!'), null);         return; }
-
-	plannerEvent.link = plannerEvent.link || '';
-	if(typeof plannerEvent.link !== 'string' ) { callback(new Error('Invalid event link!'), null); return; }
+	if(typeof plannerEvent.link    !== 'string') plannerEvent.link = '';
 
 	// Made sure start time and end time are consecutive or the same
-	if(plannerEvent.start.getTime() > event.end.getTime()) {
+	if(plannerEvent.start.getTime() > plannerEvent.end.getTime()) {
 		callback(new Error('Start and end time are not consecutive!'), null);
 		return;
 	}
@@ -73,14 +66,22 @@ function upsertEvent(db, user, plannerEvent, callback, id) {
 			return;
 		}
 
-		classes.getClass(db, user, plannerEvent.classId, function(err, hasClass, classDoc) {
+		classes.getClasses(db, user, function(err, classes) {
 			if(err) {
 				callback(err);
 				return;
 			}
-			if(!hasClass) {
-				callback(new Error('Invalid class id!'), null);
-				return;
+
+			// Check if class id is valid if it isn't null already
+			var validClassId = null;
+			if(plannerEvent.classId !== null) {
+				for(var i = 0; i < classes.length; i++) {
+					var classId = classes[i]['_id'];
+					if(plannerEvent.classId === classId.toHexString()) {
+						validClassId = classId;
+						break;
+					}
+				}
 			}
 
 			var plannerdata = db.collection('planner');
@@ -121,7 +122,7 @@ function upsertEvent(db, user, plannerEvent, callback, id) {
 
 				var insertEvent = {
 					user : userDoc['_id'],
-					class: classDoc['_id'],
+					class: validClassId,
 					title: plannerEvent.title,
 					desc : plannerEvent.desc,
 					start: plannerEvent.start,
@@ -163,7 +164,7 @@ function upsertEvent(db, user, plannerEvent, callback, id) {
 
 function deleteEvent(db, user, eventId, callback) {
 
-	if(typeof callback !== 'callback') {
+	if(typeof callback !== 'function') {
 		callback = function() {};
 	}
 
@@ -239,10 +240,11 @@ function getMonthEvents(db, user, date, callback) {
 	}
 	// Default month and year to current date
 	var current = new Date();
-	if(date.month < 1 || 12 < date.month || date.month % 1 !== 0) {
+
+	if(typeof date.month !== 'number' || Number.isNaN(date.month) || date.month < 1 || 12 < date.month || date.month % 1 !== 0) {
 		date.month = current.getMonth() + 1;
 	}
-	if(typeof date.year !== 'number' || date.year % 1 !== 0) {
+	if(typeof date.year !== 'number' || Number.isNaN(date.month) || date.year % 1 !== 0) {
 		date.year = current.getFullYear();
 	}
 
@@ -269,11 +271,14 @@ function getMonthEvents(db, user, date, callback) {
 			for(var i = 0; i < events.length; i++) {
 				var possibleEvent = events[i];
 
-				var start = new Date(possibleEvent.start);
-				var end   = new Date(possibleEvent.end);
+				var start = possibleEvent.start;
+				var end   = possibleEvent.end;
 
 				var startMonth = start.getMonth() + 1;
-				var startYear  = start.getYear();
+				var startYear  = start.getFullYear();
+
+				var endMonth = end.getMonth() + 1;
+				var endYear  = end.getFullYear();
 
 				if((startMonth === date.month && startYear === date.year) || (endMonth === date.month && endYear === date.year)) {
 					// If event start or end is in month
@@ -284,43 +289,36 @@ function getMonthEvents(db, user, date, callback) {
 				}
 			}
 
-			// Go through all events and set user to actual username, and teacher to actual teacher
-			// Save teachers in object so we don't have to query database more than we need to
-			var teachers = {};
-
-			function injectValues(i) {
-				if(i < validEvents.length) {
-					var validEvent = validEvents[i];
-
-					// Set user to actual username
-					validEvent['user'] = userDoc['user'];
-
-					// Set teacher to actual teacher
-					var teacherId = validEvent['teacher'];
-
-					if(typeof teachers[teacherId] === 'undefined') {
-						teachers.getTeacher(db, teacherId, function(err, teacherDoc) {
-							if(err) {
-								callback(err, null);
-								return;
-							}
-
-							teachers[teacherId] = teacherDoc;
-							validEvent['teacher'] = teachers[teacherId];
-							injectValues(++i);
-						});
-					} else {
-						validEvent['teacher'] = teachers[teacherId];
-						injectValues(++i);
-					}
-
-				} else {
-					// Done through all events
-					callback(null, validEvents);
-
+			// Insert classes in place of class id's
+			classes.getClasses(db, user, function(err, classes) {
+				if(err) {
+					callback(err, null);
+					return;
 				}
-			}
-			injectValues(0);
+
+				// Go through each event
+				for(var i = 0; i < validEvents.length; i++) {
+					// Set user to username
+					validEvents[i]['user'] = userDoc['user'];
+					// Default class to null
+					var classId = validEvents[i]['class'];
+					validEvents[i]['class'] = null;
+					// Go through each class to search for matching id
+					if(classId !== null) {
+						var classIdHex = classId.toHexString();
+						for(var j = 0; j < classes.length; j++) {
+							if(classIdHex === classes[j]['_id'].toHexString()) {
+								validEvents[i]['class'] = classes[j];
+								break;
+							}
+						}
+					}
+				}
+
+				callback(null, validEvents);
+
+			});
+
 		});
 	});
 }
