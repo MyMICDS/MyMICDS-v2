@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Reads calendar feed to determine schedule / day and other important events
  * @module portal

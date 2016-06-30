@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Functions for inserting class data
  * @module classes

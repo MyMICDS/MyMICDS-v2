@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Manages Canvas API endpoints
  */

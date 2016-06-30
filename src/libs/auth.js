@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Defines authorization-related functions.
  * @module auth

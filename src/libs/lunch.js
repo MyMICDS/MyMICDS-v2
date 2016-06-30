@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Scraps the lunch from the school website
  * @module lunch

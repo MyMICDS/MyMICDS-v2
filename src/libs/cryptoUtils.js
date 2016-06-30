@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Defines some general cryptography and authorization functions
  * @module cryptoUtils

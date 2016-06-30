@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Gets weather from forecast.io
  * @module weather

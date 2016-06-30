@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Sends emails
  * @module mail

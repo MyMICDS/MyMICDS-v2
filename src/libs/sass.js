@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Compiles Sass files. That's it.
  * @module sass
@@ -16,7 +18,7 @@ var validSassExt = [
 /**
  * Renders a Sass file and outputs to a directory
  * @function renderFile
- * 
+ *
  * @param {string} sassDir - Path to .scss file you want to compile
  * @param {string} cssDir - Directory you want the Sass files to compile to
  * @param {renderFileCallback} callback - Callback
@@ -25,33 +27,33 @@ var validSassExt = [
 /**
  * Calls back whether success or error compiling Sass file
  * @callback renderFileCallback
- * 
+ *
  * @param {Object} err - Null if successful, error object if error
  */
 
 function renderFile(sassFile, cssDir, callback) {
-    
+
     if(typeof callback !== 'function') {
         callback = function() {};
     }
-    
+
     // Don't render files beginning in underscore (_)
     var fileMeta = path.parse(sassFile);
     if(fileMeta.name.substr(0, 1) === '_') {
         callback(null);
         return;
     }
-    
+
     // Compile Sass
     sass.render({
         file: sassFile
     }, function(sassErr, result) {
-        
+
         if(sassErr) {
             callback(sassErr);
             return;
         }
-        
+
         // Write Sass to file
         var filename = fileMeta.base.replace('.scss', '.css');
         var pathname = cssDir + '/' + filename;
@@ -68,17 +70,12 @@ function renderFile(sassFile, cssDir, callback) {
 /**
  * Renders all files in a directory
  * @function renderDir
- * 
+ *
  * @param {string} sassDir - Path to .scss files you want to compile
  * @param {string} cssDir - Directory you want the Sass files to compile to
  */
 
 function renderDir(sassDir, cssDir) {
-    
-    if(typeof callback !== 'function') {
-        callback = function() {};
-    }
-    
     // Get all files in directory
     fs.readdir(sassDir, function(readErr, files) {
         files.forEach(function(file, index) {
@@ -99,7 +96,7 @@ function renderDir(sassDir, cssDir) {
 /**
  * Watches a directory for any changes and compiles this new Sass
  * @function watchDir
- * 
+ *
  * @param {string} sassDir - Directory you want to watch all Sass files
  * @param {string} cssDir - Directory you want all Sass files to compile to
  */

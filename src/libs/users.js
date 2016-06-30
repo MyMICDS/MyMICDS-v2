@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file User management functions
  * @module users

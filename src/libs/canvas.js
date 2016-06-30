@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Reads Canvas calendar and retrieves events to integrate in our planner
  * @module canvas

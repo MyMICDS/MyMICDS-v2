@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Functions for dealing with planner data
  * @module planner

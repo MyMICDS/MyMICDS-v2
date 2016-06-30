@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Main file of the whole project.
  */

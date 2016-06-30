@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Handles the login 'Remember Me' cookies
  * @module cookies

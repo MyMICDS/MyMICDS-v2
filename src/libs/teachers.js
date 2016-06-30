@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Functions for managing teachers
  * @module teachers
