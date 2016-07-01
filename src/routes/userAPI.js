@@ -9,6 +9,17 @@ var passwords = require(__dirname + '/../libs/passwords.js');
 
 module.exports = function(app, db) {
 
+    app.post('/user/grad-year-to-grade', function(req, res) {
+        var grade = users.gradYearToGrade(parseInt(req.body['grad-year']));
+        console.log(grade);
+        res.json({ grade: grade });
+    });
+
+    app.post('/user/grade-to-grad-year', function(req, res) {
+        var gradYear = users.gradeToGradYear(parseInt(req.body['grade']));
+        res.json({ gradYear: gradYear });
+    });
+
     app.post('/user/change-password', function(req, res) {
         passwords.changePassword(db, req.session.user, req.body['old-password'], req.body['new-password'], function(err) {
             if(err) {
