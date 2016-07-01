@@ -39,78 +39,78 @@ var validDayRotationPlain = /^Day [1-6]$/;
 
 function verifyURL(portalURL, callback) {
 
-    if(typeof callback !== 'function') return;
+	if(typeof callback !== 'function') return;
 
-    if(typeof portalURL !== 'string') {
-        callback(new Error('Invalid URL!'), null, null);
-        return;
-    }
+	if(typeof portalURL !== 'string') {
+		callback(new Error('Invalid URL!'), null, null);
+		return;
+	}
 
-    // Parse URL first
-    var parsedURL = url.parse(portalURL);
-    var queries = querystring.parse(parsedURL.query);
+	// Parse URL first
+	var parsedURL = url.parse(portalURL);
+	var queries = querystring.parse(parsedURL.query);
 
-    if(typeof queries.q !== 'string') {
-        callback(null, 'URL does not contain calendar ID!', null);
-        return;
-    }
+	if(typeof queries.q !== 'string') {
+		callback(null, 'URL does not contain calendar ID!', null);
+		return;
+	}
 
-    var validURL = urlPrefix + queries.q;
+	var validURL = urlPrefix + queries.q;
 
-    // Not lets see if we can actually get any data from here
-    request(validURL, function(err, response, body) {
-        if(err) {
-            callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
-            return;
-        }
-        if(response.statusCode !== 200) {
-            callback(null, 'Invalid URL!', null);
-            return;
-        }
+	// Not lets see if we can actually get any data from here
+	request(validURL, function(err, response, body) {
+		if(err) {
+			callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
+			return;
+		}
+		if(response.statusCode !== 200) {
+			callback(null, 'Invalid URL!', null);
+			return;
+		}
 
-        var data = ical.parseICS(body);
+		var data = ical.parseICS(body);
 
-        // School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-        // Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-        if(_.isEmpty(data)) {
-            callback(null, 'Invalid URL!', null);
-            return;
-        }
+		// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+		// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+		if(_.isEmpty(data)) {
+			callback(null, 'Invalid URL!', null);
+			return;
+		}
 
-        // Look through every 'Day # (US/MS)' andd see how many events there are
-        var dayDates = {};
-        for(var eventUid in data) {
-            var calEvent = data[eventUid];
-            // If event doesn't have a summary, skip
-            if(typeof calEvent.summary !== 'string') continue;
+		// Look through every 'Day # (US/MS)' andd see how many events there are
+		var dayDates = {};
+		for(var eventUid in data) {
+			var calEvent = data[eventUid];
+			// If event doesn't have a summary, skip
+			if(typeof calEvent.summary !== 'string') continue;
 
-            // See if valid day
-            if(validDayRotation.test(calEvent.summary)) {
-                // Get actual day
-                var day = calEvent.summary.match(/[1-6]/)[0];
-                // Get date
-                var start = new Date(calEvent.start);
+			// See if valid day
+			if(validDayRotation.test(calEvent.summary)) {
+				// Get actual day
+				var day = calEvent.summary.match(/[1-6]/)[0];
+				// Get date
+				var start = new Date(calEvent.start);
 
-                // Add to dayDates object
-                if(typeof dayDates[day] === 'undefined') {
-                    dayDates[day] = [];
-                }
-                dayDates[day].push({
-                    year : start.getFullYear(),
-                    month: start.getMonth() + 1,
-                    day  : start.getDate()
-                });
-            }
-        }
+				// Add to dayDates object
+				if(typeof dayDates[day] === 'undefined') {
+					dayDates[day] = [];
+				}
+				dayDates[day].push({
+					year : start.getFullYear(),
+					month: start.getMonth() + 1,
+					day  : start.getDate()
+				});
+			}
+		}
 
-        if(_.isEmpty(dayDates)) {
-            callback(null, 'The calendar does not contain the information we need! Make sure you\'re copying your personal calendar!', null);
-            return;
-        }
+		if(_.isEmpty(dayDates)) {
+			callback(null, 'The calendar does not contain the information we need! Make sure you\'re copying your personal calendar!', null);
+			return;
+		}
 
-        callback(null, true, validURL);
+		callback(null, true, validURL);
 
-    });
+	});
 }
 
 /**
@@ -133,47 +133,47 @@ function verifyURL(portalURL, callback) {
   */
 
 function setURL(db, user, url, callback) {
-    if(typeof callback !== 'function') {
-        callback = function() {};
-    }
+	if(typeof callback !== 'function') {
+		callback = function() {};
+	}
 
-    if(typeof db !== 'object') {
-        callback(new Error('Invalid database connection!'), null, null);
-        return;
-    }
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null, null);
+		return;
+	}
 
-    users.getUser(db, user, function(err, isUser, userDoc) {
-        if(err) {
-            callback(err, null, null);
-            return;
-        }
-        if(!isUser) {
-            callback(new Error('User doesn\'t exist!'), null, null);
-            return;
-        }
+	users.getUser(db, user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err, null, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null, null);
+			return;
+		}
 
-        verifyURL(url, function(err, isValid, validURL) {
-            if(err) {
-                callback(err, null, null);
-                return;
-            } else if(isValid !== true) {
-                callback(null, isValid, null);
-                return;
-            }
+		verifyURL(url, function(err, isValid, validURL) {
+			if(err) {
+				callback(err, null, null);
+				return;
+			} else if(isValid !== true) {
+				callback(null, isValid, null);
+				return;
+			}
 
-            var userdata = db.collection('users');
+			var userdata = db.collection('users');
 
-            userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, function(err, result) {
-                if(err) {
-                    callback(new Error('There was a problem updating the URL to the database!'), null, null);
-                    return;
-                }
+			userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, function(err, result) {
+				if(err) {
+					callback(new Error('There was a problem updating the URL to the database!'), null, null);
+					return;
+				}
 
-                callback(null, true, validURL);
+				callback(null, true, validURL);
 
-            });
-        });
-    });
+			});
+		});
+	});
 }
 
 /**
@@ -202,204 +202,204 @@ function setURL(db, user, url, callback) {
   */
 
 function getSchedule(db, user, date, callback) {
-    if(typeof callback !== 'function') return;
-    if(typeof db !== 'object') { new Error('Invalid database connection!'); return; }
+	if(typeof callback !== 'function') return;
+	if(typeof db !== 'object') { new Error('Invalid database connection!'); return; }
 
-    var current = new Date();
-    // Default date to current values
-    if(typeof date.year !== 'number' || date.year % 1 !== 0) {
-        date.year = current.getFullYear();
-    }
-    if(typeof date.month !== 'number' || date.month % 1 !== 0) {
-        date.month = current.getMonth();
-    }
-    if(typeof date.day !== 'number' || date.day % 1 !== 0) {
-        date.day = current.getDate();
-    }
+	var current = new Date();
+	// Default date to current values
+	if(typeof date.year !== 'number' || date.year % 1 !== 0) {
+		date.year = current.getFullYear();
+	}
+	if(typeof date.month !== 'number' || date.month % 1 !== 0) {
+		date.month = current.getMonth();
+	}
+	if(typeof date.day !== 'number' || date.day % 1 !== 0) {
+		date.day = current.getDate();
+	}
 
-    var scheduleDate = new Date(date.year, date.month - 1, date.day);
-    var scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
+	var scheduleDate = new Date(date.year, date.month - 1, date.day);
+	var scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
 
-    users.getUser(db, user, function(err, isUser, userDoc) {
-        if(err) {
-            callback(err, null, null);
-            return;
-        }
-        if(!isUser) {
-            callback(new Error('User doesn\'t exist!'), null, null);
-            return;
-        }
+	users.getUser(db, user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err, null, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null, null);
+			return;
+		}
 
-        if(typeof userDoc['portalURL'] !== 'string') {
-            callback(null, false, null);
-            return;
-        }
+		if(typeof userDoc['portalURL'] !== 'string') {
+			callback(null, false, null);
+			return;
+		}
 
-        request(userDoc['portalURL'], function(err, response, body) {
-            if(err) {
-                callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
-                return;
-            }
-            if(response.statusCode !== 200) {
-                callback(new Error('Invalid URL!'), null, null);
-                return;
-            }
+		request(userDoc['portalURL'], function(err, response, body) {
+			if(err) {
+				callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
+				return;
+			}
+			if(response.statusCode !== 200) {
+				callback(new Error('Invalid URL!'), null, null);
+				return;
+			}
 
-            var data = ical.parseICS(body);
+			var data = ical.parseICS(body);
 
-            // School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-            // Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-            if(_.isEmpty(data)) {
-                callback(new Error('Invalid URL!'), null, null);
-                return;
-            }
+			// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+			// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+			if(_.isEmpty(data)) {
+				callback(new Error('Invalid URL!'), null, null);
+				return;
+			}
 
-            var schedule = {
-                day: null,
-                classes: [],
-                allDay : []
-            };
+			var schedule = {
+				day: null,
+				classes: [],
+				allDay : []
+			};
 
-            // Loop through all of the events in the calendar feed
-            for(var eventUid in data) {
-                var calEvent = data[eventUid];
-                if(typeof calEvent.summary !== 'string') continue;
+			// Loop through all of the events in the calendar feed
+			for(var eventUid in data) {
+				var calEvent = data[eventUid];
+				if(typeof calEvent.summary !== 'string') continue;
 
-                var start = new Date(calEvent['start']);
-                var end   = new Date(calEvent['end']);
+				var start = new Date(calEvent['start']);
+				var end   = new Date(calEvent['end']);
 
-                var startTime = start.getTime();
-                var endTime   = end.getTime();
+				var startTime = start.getTime();
+				var endTime   = end.getTime();
 
-                // Make sure the event isn't all whacky
-                if(endTime < startTime) continue;
+				// Make sure the event isn't all whacky
+				if(endTime < startTime) continue;
 
-                // Check if it's an all-day event
-                if(startTime <= scheduleDate.getTime() && scheduleNextDay.getTime() <= endTime) {
-                    // See if valid day
-                    if(validDayRotation.test(calEvent.summary)) {
-                        // Get actual day
-                        var day = calEvent.summary.match(/[1-6]/)[0];
-                        schedule.day = day;
-                        continue;
-                    }
+				// Check if it's an all-day event
+				if(startTime <= scheduleDate.getTime() && scheduleNextDay.getTime() <= endTime) {
+					// See if valid day
+					if(validDayRotation.test(calEvent.summary)) {
+						// Get actual day
+						var day = calEvent.summary.match(/[1-6]/)[0];
+						schedule.day = day;
+						continue;
+					}
 
-                    schedule.allDay.push(cleanUp(calEvent.summary));
-                }
+					schedule.allDay.push(cleanUp(calEvent.summary));
+				}
 
-                // See if it's part of the schedule
-                if(scheduleDate.getTime() < startTime && endTime < scheduleNextDay.getTime()) {
+				// See if it's part of the schedule
+				if(scheduleDate.getTime() < startTime && endTime < scheduleNextDay.getTime()) {
 
-                    // Move other (if any) events with conflicting times
-                    var conflictIndexes = [];
-                    for(var classIndex in schedule.classes) {
-                        var scheduleClass = schedule.classes[classIndex];
+					// Move other (if any) events with conflicting times
+					var conflictIndexes = [];
+					for(var classIndex in schedule.classes) {
+						var scheduleClass = schedule.classes[classIndex];
 
-                        var blockStart = scheduleClass.start.getTime();
-                        var blockEnd   = scheduleClass.end.getTime();
+						var blockStart = scheduleClass.start.getTime();
+						var blockEnd   = scheduleClass.end.getTime();
 
-                        // Determine start/end times relative to the class we're currently trying to add
+						// Determine start/end times relative to the class we're currently trying to add
 
-                        if(startTime === blockStart) {
-                            var startRelation = 'same start';
+						if(startTime === blockStart) {
+							var startRelation = 'same start';
 
-                        } else if(startTime === blockEnd) {
-                            var startRelation = 'same end';
+						} else if(startTime === blockEnd) {
+							var startRelation = 'same end';
 
-                        } else if(startTime < blockStart) {
-                            var startRelation = 'before';
+						} else if(startTime < blockStart) {
+							var startRelation = 'before';
 
-                        } else if(blockEnd < startTime) {
-                            var startRelation = 'after';
+						} else if(blockEnd < startTime) {
+							var startRelation = 'after';
 
-                        } else if(blockStart < startTime && startTime < blockEnd) {
-                            var startRelation = 'inside';
-                        }
+						} else if(blockStart < startTime && startTime < blockEnd) {
+							var startRelation = 'inside';
+						}
 
-                        if(endTime === blockStart) {
-                            var endRelation = 'same start';
+						if(endTime === blockStart) {
+							var endRelation = 'same start';
 
-                        } else if(endTime === blockEnd) {
-                            var endRelation = 'same end';
+						} else if(endTime === blockEnd) {
+							var endRelation = 'same end';
 
-                        } else if(endTime < blockStart) {
-                            var endRelation = 'before';
+						} else if(endTime < blockStart) {
+							var endRelation = 'before';
 
-                        } else if(blockEnd < endTime) {
-                            var endRelation = 'after';
+						} else if(blockEnd < endTime) {
+							var endRelation = 'after';
 
-                        } else if(blockStart < endTime && endTime < blockEnd) {
-                            var endRelation = 'inside';
-                        }
+						} else if(blockStart < endTime && endTime < blockEnd) {
+							var endRelation = 'inside';
+						}
 
-                        // If new event is totally unrelated to the block, just ignore
-                        if(startRelation === 'same end' || startRelation === 'after') continue;
-                        if(endRelation === 'same start' || endRelation === 'before') continue;
+						// If new event is totally unrelated to the block, just ignore
+						if(startRelation === 'same end' || startRelation === 'after') continue;
+						if(endRelation === 'same start' || endRelation === 'before') continue;
 
-                        // If same times, delete
-                        if(startRelation === 'same start' && endRelation === 'same end') {
-                            // Only push to array if index isn't already in array
-                            if(!_.contains(conflictIndexes, classIndex)) {
-                                conflictIndexes.push(classIndex);
-                            }
-                        }
+						// If same times, delete
+						if(startRelation === 'same start' && endRelation === 'same end') {
+							// Only push to array if index isn't already in array
+							if(!_.contains(conflictIndexes, classIndex)) {
+								conflictIndexes.push(classIndex);
+							}
+						}
 
-                        // If new event completely engulfs the block, delete the block
-                        if(startRelation === 'before' && endRelation === 'after') {
-                            // Only push to array if index isn't already in array
-                            if(!_.contains(conflictIndexes, classIndex)) {
-                                conflictIndexes.push(classIndex);
-                            }
-                        }
+						// If new event completely engulfs the block, delete the block
+						if(startRelation === 'before' && endRelation === 'after') {
+							// Only push to array if index isn't already in array
+							if(!_.contains(conflictIndexes, classIndex)) {
+								conflictIndexes.push(classIndex);
+							}
+						}
 
-                        // If new event is inside block
-                        if(startRelation === 'inside' && endRelation == 'inside') {
-                            // Split event into two
-                            var newBlock = scheduleClass;
-                            var oldEnd   = scheduleClass.end;
+						// If new event is inside block
+						if(startRelation === 'inside' && endRelation == 'inside') {
+							// Split event into two
+							var newBlock = scheduleClass;
+							var oldEnd   = scheduleClass.end;
 
-                            schedule.classes[classIndex].end = start;
-                            newBlock.start = end;
+							schedule.classes[classIndex].end = start;
+							newBlock.start = end;
 
-                            schedule.classes.push(newBlock);
-                        }
+							schedule.classes.push(newBlock);
+						}
 
-                        // If start is inside block but end is not
-                        if(startRelation === 'inside' && (endRelation === 'after' || endRelation === 'same end')) {
-                            schedule.classes[classIndex].end = start;
-                        }
+						// If start is inside block but end is not
+						if(startRelation === 'inside' && (endRelation === 'after' || endRelation === 'same end')) {
+							schedule.classes[classIndex].end = start;
+						}
 
-                        // If end is inside block but start is not
-                        if(endRelation === 'inside' && (startRelation === 'before' || startRelation === 'same start')) {
-                            schedule.classes[classIndex].start = end;
-                        }
-                    }
+						// If end is inside block but start is not
+						if(endRelation === 'inside' && (startRelation === 'before' || startRelation === 'same start')) {
+							schedule.classes[classIndex].start = end;
+						}
+					}
 
-                    schedule.classes.push({
-                        name : cleanUp(calEvent.summary),
-                        start: start,
-                        end  : end
-                    });
-                }
-            }
+					schedule.classes.push({
+						name : cleanUp(calEvent.summary),
+						start: start,
+						end  : end
+					});
+				}
+			}
 
-            // Delete all conflicting classes
-            conflictIndexes.sort();
-            var deleteOffset = 0;
-            for(var i = 0; i < conflictIndexes.length; i++) {
-                var index = conflictIndexes[i] - deleteOffset++;
-                schedule.classes.splice(index, 1);
-            }
+			// Delete all conflicting classes
+			conflictIndexes.sort();
+			var deleteOffset = 0;
+			for(var i = 0; i < conflictIndexes.length; i++) {
+				var index = conflictIndexes[i] - deleteOffset++;
+				schedule.classes.splice(index, 1);
+			}
 
-            // Reorder schedule because of deleted classes
-            schedule.classes.sort(function(a, b) {
-                return a.start - b.start;
-            });
+			// Reorder schedule because of deleted classes
+			schedule.classes.sort(function(a, b) {
+				return a.start - b.start;
+			});
 
-            callback(null, true, schedule);
+			callback(null, true, schedule);
 
-        });
-    });
+		});
+	});
 }
 
 /**
@@ -423,63 +423,63 @@ function getSchedule(db, user, date, callback) {
   */
 
 function getDayRotation(date, callback) {
-    if(typeof callback !== 'function') return;
+	if(typeof callback !== 'function') return;
 
-    var current = new Date();
-    // Default date to current values
-    if(typeof date.year !== 'number' || date.year % 1 !== 0) {
-        date.year = current.getFullYear();
-    }
-    if(typeof date.month !== 'number' || date.month % 1 !== 0) {
-        date.month = current.getMonth();
-    }
-    if(typeof date.day !== 'number' || date.day % 1 !== 0) {
-        date.day = current.getDate();
-    }
+	var current = new Date();
+	// Default date to current values
+	if(typeof date.year !== 'number' || date.year % 1 !== 0) {
+		date.year = current.getFullYear();
+	}
+	if(typeof date.month !== 'number' || date.month % 1 !== 0) {
+		date.month = current.getMonth();
+	}
+	if(typeof date.day !== 'number' || date.day % 1 !== 0) {
+		date.day = current.getDate();
+	}
 
-    var scheduleDate = new Date(date.year, date.month - 1, date.day);
-    var scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
+	var scheduleDate = new Date(date.year, date.month - 1, date.day);
+	var scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
 
-    request(urlPrefix + config.portal.dayRotation, function(err, response, body) {
-        if(err || response.statusCode !== 200) {
-            callback(new Error('There was a problem fetching the day rotation!'), null);
-            return;
-        }
+	request(urlPrefix + config.portal.dayRotation, function(err, response, body) {
+		if(err || response.statusCode !== 200) {
+			callback(new Error('There was a problem fetching the day rotation!'), null);
+			return;
+		}
 
-        var data = ical.parseICS(body);
+		var data = ical.parseICS(body);
 
-        // School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-        // Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-        if(_.isEmpty(data)) {
-            callback(new Error('There was a problem fetching the day rotation!'), null);
-            return;
-        }
+		// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+		// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+		if(_.isEmpty(data)) {
+			callback(new Error('There was a problem fetching the day rotation!'), null);
+			return;
+		}
 
-        for(var eventUid in data) {
-            var calEvent = data[eventUid];
-            if(typeof calEvent.summary !== 'string') continue;
+		for(var eventUid in data) {
+			var calEvent = data[eventUid];
+			if(typeof calEvent.summary !== 'string') continue;
 
-            var start = new Date(calEvent['start']);
-            var end   = new Date(calEvent['end']);
+			var start = new Date(calEvent['start']);
+			var end   = new Date(calEvent['end']);
 
-            var startTime = start.getTime();
-            var endTime   = end.getTime();
+			var startTime = start.getTime();
+			var endTime   = end.getTime();
 
-            // Check if it's an all-day event
-            if(startTime <= scheduleDate.getTime() && scheduleNextDay.getTime() <= endTime) {
-                // See if valid day
-                if(validDayRotationPlain.test(calEvent.summary)) {
-                    // Get actual day
-                    var day = calEvent.summary.match(/[1-6]/)[0];
-                    callback(null, day);
-                    return;
-                }
-            }
-        }
+			// Check if it's an all-day event
+			if(startTime <= scheduleDate.getTime() && scheduleNextDay.getTime() <= endTime) {
+				// See if valid day
+				if(validDayRotationPlain.test(calEvent.summary)) {
+					// Get actual day
+					var day = calEvent.summary.match(/[1-6]/)[0];
+					callback(null, day);
+					return;
+				}
+			}
+		}
 
-        callback(null, null);
+		callback(null, null);
 
-    });
+	});
 }
 
 /**
@@ -491,12 +491,12 @@ function getDayRotation(date, callback) {
  */
 
 function cleanUp(str) {
-    if(typeof str !== 'string') return str;
+	if(typeof str !== 'string') return str;
 
-    var parts = str.split('-').map(function(value) { return value.trim() });
-    parts.sort(function(a, b) { return b.length - a.length; })
+	var parts = str.split('-').map(function(value) { return value.trim() });
+	parts.sort(function(a, b) { return b.length - a.length; })
 
-    return parts[0];
+	return parts[0];
 }
 
 module.exports.verifyURL      = verifyURL;

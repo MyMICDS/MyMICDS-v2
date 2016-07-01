@@ -30,30 +30,30 @@ var JSONPath = __dirname + '/../public/json/weather.json';
 
 function getLunch(callback) {
 
-    if(typeof callback !== 'function') return;
+	if(typeof callback !== 'function') return;
 
-    // Test to see if JSON path is valid. If not, create one.
-    fs.stat(JSONPath, function(err, stats) {
-        if(err) {
-            callback(new Error('There was a problem reading the lunch JSON!'), null);
-            return;
-        }
+	// Test to see if JSON path is valid. If not, create one.
+	fs.stat(JSONPath, function(err, stats) {
+		if(err) {
+			callback(new Error('There was a problem reading the lunch JSON!'), null);
+			return;
+		}
 
-        if(stats.isFile()) {
-            // Great! JSONPath is valid!
-            fs.readJSON(JSONPath, function(err, lunch) {
-                if(err) {
-                    callback(new Error('There was a problem retrieving the lunch JSON!'), null);
-                    return;
-                }
+		if(stats.isFile()) {
+			// Great! JSONPath is valid!
+			fs.readJSON(JSONPath, function(err, lunch) {
+				if(err) {
+					callback(new Error('There was a problem retrieving the lunch JSON!'), null);
+					return;
+				}
 
-                callback(null, lunch);
-            });
-        } else {
-            // If the lunch JSON file does not exist, let's create one
-            updateLunch(null, callback);
-        }
-    });
+				callback(null, lunch);
+			});
+		} else {
+			// If the lunch JSON file does not exist, let's create one
+			updateLunch(null, callback);
+		}
+	});
 }
 
 /**
@@ -76,62 +76,62 @@ function getLunch(callback) {
   */
 
 function parseLunch(body, callback) {
-    var $        = cheerio.load(body);
-    var json     = {};
-    json['info'] = 'Visit https://mymicds.net/api for more information!';
+	var $        = cheerio.load(body);
+	var json     = {};
+	json['info'] = 'Visit https://mymicds.net/api for more information!';
 
-    var table       = $('table#table_calendar_week');
-    var weekColumns = table.find('td');
+	var table       = $('table#table_calendar_week');
+	var weekColumns = table.find('td');
 
-    weekColumns.each(function(index) {
+	weekColumns.each(function(index) {
 
-        var day  = $(this);
-        var date = day.attr('day_no');
+		var day  = $(this);
+		var date = day.attr('day_no');
 
-        schools.forEach(function(school) {
+		schools.forEach(function(school) {
 
-            var schoolLunch = day.find('div[location="' + school + '"]');
+			var schoolLunch = day.find('div[location="' + school + '"]');
 
-            // Make sure it's not the weekend
+			// Make sure it's not the weekend
 
-            if(schoolLunch.length > 0) {
+			if(schoolLunch.length > 0) {
 
-                var lunchTitle = schoolLunch.find('span.period-value').text().trim();
-                var categories = schoolLunch.find('div.category-week');
+				var lunchTitle = schoolLunch.find('span.period-value').text().trim();
+				var categories = schoolLunch.find('div.category-week');
 
-                categories.each(function() {
+				categories.each(function() {
 
-                    var category      = $(this);
-                    var food          = [];
-                    var categoryTitle = category.find('span.category-value').text().trim();
-                    var items         = category.find('div.item-week');
+					var category      = $(this);
+					var food          = [];
+					var categoryTitle = category.find('span.category-value').text().trim();
+					var items         = category.find('div.item-week');
 
-                    items.each(function() {
-                        food.push($(this).text().trim());
-                    });
+					items.each(function() {
+						food.push($(this).text().trim());
+					});
 
-                    // Add to JSON
+					// Add to JSON
 
-                    json[date] = json[date] || {};
-                    json[date][school] = json[date][school] || {};
+					json[date] = json[date] || {};
+					json[date][school] = json[date][school] || {};
 
-                    json[date][school]['title'] = lunchTitle;
+					json[date][school]['title'] = lunchTitle;
 
-                    json[date][school][categoryTitle] = json[date][school][categoryTitle] || [];
+					json[date][school][categoryTitle] = json[date][school][categoryTitle] || [];
 
-                    food.forEach(function(singularVersionOfFood) {
-                        json[date][school][categoryTitle].push(singularVersionOfFood);
-                    });
+					food.forEach(function(singularVersionOfFood) {
+						json[date][school][categoryTitle].push(singularVersionOfFood);
+					});
 
-                });
+				});
 
-            }
+			}
 
-        });
+		});
 
-    });
+	});
 
-    callback(json);
+	callback(json);
 }
 
 /**
@@ -152,32 +152,32 @@ function parseLunch(body, callback) {
 
 function updateLunch(callback) {
 
-    if(typeof callback !== 'function') return;
+	if(typeof callback !== 'function') return;
 
-    // Retrieve the HTML from the school lunch website
-    request(lunchURL, function(err, res, body) {
+	// Retrieve the HTML from the school lunch website
+	request(lunchURL, function(err, res, body) {
 
-        if(err) {
-            callback(new Error('There was a problem retrieving the lunch from the school website!'), null);
-            return;
-        }
+		if(err) {
+			callback(new Error('There was a problem retrieving the lunch from the school website!'), null);
+			return;
+		}
 
-        // Parse the HTML into JSON
-        parseLunch(body, function(lunchJSON) {
+		// Parse the HTML into JSON
+		parseLunch(body, function(lunchJSON) {
 
-            // Write the JSON into a file
-            fs.outputJSON(JSONPath, lunchJSON, function(err) {
+			// Write the JSON into a file
+			fs.outputJSON(JSONPath, lunchJSON, function(err) {
 
-                if(err) {
-                    callback(new Error('There was a problem writing the JSON into file!'), null);
-                    return;
-                }
+				if(err) {
+					callback(new Error('There was a problem writing the JSON into file!'), null);
+					return;
+				}
 
-                callback(null, lunchJSON);
+				callback(null, lunchJSON);
 
-            });
-        });
-    });
+			});
+		});
+	});
 }
 
 module.exports.getLunch    = getLunch;

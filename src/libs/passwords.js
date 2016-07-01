@@ -130,12 +130,12 @@ function resetPasswordEmail(db, user, callback) {
 
 		// Generate password hash for confirmation link
 		crypto.randomBytes(16, function(err, buf) {
-             if(err) {
+			 if(err) {
 				callback(new Error('There was a problem generating a random confirmation hash!'));
 				return;
 			}
 
-            var hash = buf.toString('hex');
+			var hash = buf.toString('hex');
 			var hashedHash = cryptoUtils.shaHash(hash);
 
 			// Now let's insert the passwordChangeHash into the database

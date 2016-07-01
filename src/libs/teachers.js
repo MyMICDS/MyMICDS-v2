@@ -35,49 +35,49 @@ var validTeacherPrefixes = [
 
 function addTeacher(db, teacher, callback) {
 
-    if(typeof callback !== 'function') {
-        callback = function() {};
-    }
+	if(typeof callback !== 'function') {
+		callback = function() {};
+	}
 
-    if(typeof db !== 'object') {
-        callback(new Error('Invalid database connection!'), null);
-        return;
-    }
-    if(typeof teacher !== 'object') {
-        callback(new Error('Invalid teacher object!'), null);
-        return;
-    }
-    if(!_.contains(validTeacherPrefixes, teacher.prefix)) {
-        callback(new Error('Invalid teacher prefix!'), null);
-        return;
-    }
-    if(typeof teacher.firstName !== 'string') {
-        callback(new Error('Invalid teacher first name!'), null);
-        return;
-    }
-    if(typeof teacher.lastName !== 'string') {
-        callback(new Error('Invalid teacher last name!'), null);
-        return;
-    }
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+	if(typeof teacher !== 'object') {
+		callback(new Error('Invalid teacher object!'), null);
+		return;
+	}
+	if(!_.contains(validTeacherPrefixes, teacher.prefix)) {
+		callback(new Error('Invalid teacher prefix!'), null);
+		return;
+	}
+	if(typeof teacher.firstName !== 'string') {
+		callback(new Error('Invalid teacher first name!'), null);
+		return;
+	}
+	if(typeof teacher.lastName !== 'string') {
+		callback(new Error('Invalid teacher last name!'), null);
+		return;
+	}
 
 	var teacherdata = db.collection('teachers');
-    // Upsert teacher into collection
+	// Upsert teacher into collection
 	teacherdata.update(teacher, teacher, { upsert: true }, function(err, results) {
-        if(err) {
-            callback(new Error('There was a problem inserting the teacher into the database!'), null);
-            return;
-        }
+		if(err) {
+			callback(new Error('There was a problem inserting the teacher into the database!'), null);
+			return;
+		}
 
-        // Get document of teacher we just added
-        teacherdata.find(teacher).toArray(function(err, docs) {
-            if(err) {
-                callback(new Error('There was a problem querying the database!'), null);
-                return;
-            }
+		// Get document of teacher we just added
+		teacherdata.find(teacher).toArray(function(err, docs) {
+			if(err) {
+				callback(new Error('There was a problem querying the database!'), null);
+				return;
+			}
 
-            callback(null, docs[0]);
+			callback(null, docs[0]);
 
-        });
+		});
 	});
 }
 
@@ -100,32 +100,32 @@ function addTeacher(db, teacher, callback) {
   */
 
   function getTeacher(db, teacherId, callback) {
-      if(typeof callback !== 'function') return;
+	  if(typeof callback !== 'function') return;
 
-      if(typeof db !== 'object') {
-          callback(new Error('Invalid database connection!'), null, null);
-          return;
-      }
-      if(typeof teacherId !== 'object') {
-          callback(new Error('Invalid teacher id object!'), null, null);
-          return;
-      }
+	  if(typeof db !== 'object') {
+		  callback(new Error('Invalid database connection!'), null, null);
+		  return;
+	  }
+	  if(typeof teacherId !== 'object') {
+		  callback(new Error('Invalid teacher id object!'), null, null);
+		  return;
+	  }
 
-      var teacherdata = db.collection('teachers');
-      // Query database to find possible teacher
-      teacherdata.find({ _id: teacherId }).toArray(function(err, docs) {
-          if(err) {
-              callback(new Error('There was a problem querying the database!'), null, null);
-              return;
-          }
+	  var teacherdata = db.collection('teachers');
+	  // Query database to find possible teacher
+	  teacherdata.find({ _id: teacherId }).toArray(function(err, docs) {
+		  if(err) {
+			  callback(new Error('There was a problem querying the database!'), null, null);
+			  return;
+		  }
 
-          if(docs.length === 0) {
-              callback(null, false, null)
-          } else {
-              callback(null, true, docs[0]);
-          }
+		  if(docs.length === 0) {
+			  callback(null, false, null)
+		  } else {
+			  callback(null, true, docs[0]);
+		  }
 
-      });
+	  });
   }
 
 /**
@@ -146,42 +146,42 @@ function addTeacher(db, teacher, callback) {
 
 function deleteTeacher(db, teacherId, callback) {
 
-    if(typeof callback !== 'function') {
-        callback = function() {};
-    }
+	if(typeof callback !== 'function') {
+		callback = function() {};
+	}
 
-    if(typeof db !== 'object') {
-        callback(new Error('Invalid database connection!'));
-        return;
-    }
-    if(typeof teacherId !== 'object') {
-        callback(new Error('Invalid teacher id object!'));
-        return;
-    }
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'));
+		return;
+	}
+	if(typeof teacherId !== 'object') {
+		callback(new Error('Invalid teacher id object!'));
+		return;
+	}
 
-    // Don't delete teacher if there are classes it teaches!
+	// Don't delete teacher if there are classes it teaches!
 	teacherTeaches(db, teacherId, function(err, classes) {
-        if(err) {
-            callback(err);
-            return;
-        }
+		if(err) {
+			callback(err);
+			return;
+		}
 
-        if(classes.length === 0) {
-            // Teacher doesn't have any classes. Delete.
+		if(classes.length === 0) {
+			// Teacher doesn't have any classes. Delete.
 			var teacherdata = db.collection('teachers');
-            teacherdata.deleteMany({ _id: teacherId }, function(err, results) {
-                if(err) {
-                    callback(new Error('There was a problem deleting the teacher from the database!'));
-                    return;
-                }
+			teacherdata.deleteMany({ _id: teacherId }, function(err, results) {
+				if(err) {
+					callback(new Error('There was a problem deleting the teacher from the database!'));
+					return;
+				}
 
-                callback(null);
+				callback(null);
 
-            });
-        } else {
-            // Teacher has other classes. Don't delete!
-            callback(null);
-        }
+			});
+		} else {
+			// Teacher has other classes. Don't delete!
+			callback(null);
+		}
 	});
 }
 
@@ -203,28 +203,28 @@ function deleteTeacher(db, teacherId, callback) {
   */
 
 function teacherTeaches(db, teacherId, callback) {
-    if(typeof callback !== 'function') return;
+	if(typeof callback !== 'function') return;
 
-    if(typeof db !== 'object') {
-        callback(new Error('Invalid database connection!'), null);
-        return;
-    }
-    if(typeof teacherId !== 'object') {
-        callback(new Error('Invalid teacher id object!'), null);
-        return;
-    }
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+	if(typeof teacherId !== 'object') {
+		callback(new Error('Invalid teacher id object!'), null);
+		return;
+	}
 
-    var classdata = db.collection('classes');
+	var classdata = db.collection('classes');
 
-    classdata.find({ teacher: teacherId }).toArray(function(err, docs) {
-        if(err) {
-            callback(new Error('There was a problem querying the database!'), null);
-            return;
-        }
+	classdata.find({ teacher: teacherId }).toArray(function(err, docs) {
+		if(err) {
+			callback(new Error('There was a problem querying the database!'), null);
+			return;
+		}
 
-        callback(null, docs);
+		callback(null, docs);
 
-    });
+	});
 }
 
 /**
@@ -243,40 +243,40 @@ function teacherTeaches(db, teacherId, callback) {
   */
 
 function deleteClasslessTeachers(db, callback) {
-    if(typeof callback !== 'function') {
-        callback = function() {};
-    }
-    if(typeof db !== 'object') {
-        callback(new Error('Invalid database connection!'));
-        return;
-    }
+	if(typeof callback !== 'function') {
+		callback = function() {};
+	}
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'));
+		return;
+	}
 
 	var teacherdata = db.collection('teachers');
-    // Find all teachers
+	// Find all teachers
 	teacherdata.find({}).toArray(function(err, docs) {
-        if(err) {
-            callback(new Error('There was a problem querying the database!'));
-            return;
-        }
+		if(err) {
+			callback(new Error('There was a problem querying the database!'));
+			return;
+		}
 
-        // This delete function uses the power recursion so we can asynchronously delete teachers and provide a callback in the end
-        function deleteTeachers(i) {
-            if(i < docs.length) {
-                var teacherId = docs[i]['_id'];
-                deleteTeacher(db, teacherId, function(err) {
-                    if(err) {
-                        callback(err);
-                        return;
-                    }
+		// This delete function uses the power recursion so we can asynchronously delete teachers and provide a callback in the end
+		function deleteTeachers(i) {
+			if(i < docs.length) {
+				var teacherId = docs[i]['_id'];
+				deleteTeacher(db, teacherId, function(err) {
+					if(err) {
+						callback(err);
+						return;
+					}
 
-                    deleteTeachers(++i);
-                });
-            } else {
-                // It's done iterating over the teachers, and there's no error!
-                callback(null);
-            }
-        }
-        deleteTeachers(0);
+					deleteTeachers(++i);
+				});
+			} else {
+				// It's done iterating over the teachers, and there's no error!
+				callback(null);
+			}
+		}
+		deleteTeachers(0);
 	});
 }
 

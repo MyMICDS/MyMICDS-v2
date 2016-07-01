@@ -1,51 +1,51 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>MyMICDS - Home</title>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-    </head>
-    <body>
-        <div class="container">
-            <h1>Username: <%= user %></h1>
+	<head>
+		<title>MyMICDS - Home</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+	</head>
+	<body>
+		<div class="container">
+			<h1>Username: <%= user %></h1>
 
-            <button class="logout btn btn-danger">Logout</button>
+			<button class="logout btn btn-danger">Logout</button>
 
-            <h3>Login Form</h3>
-            <form class="login-form" action="/login" method="post">
-                <input class="form-control" name="user" placeholder="Username">
-                <input class="form-control" name="password" type="password" placeholder="Password">
+			<h3>Login Form</h3>
+			<form class="login-form" action="/login" method="post">
+				<input class="form-control" name="user" placeholder="Username">
+				<input class="form-control" name="password" type="password" placeholder="Password">
 
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="remember">
-                        Remember Me
-                    </label>
-                </div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" name="remember">
+						Remember Me
+					</label>
+				</div>
 
-                <button class="btn btn-info">Login</button>
-            </form>
+				<button class="btn btn-info">Login</button>
+			</form>
 
-            <h3>Register Form</h3>
-            <form class="register-form" action="/register" method="post">
-                <input class="form-control" name="user" placeholder="Username">
-                <input class="form-control" name="password" type="password" placeholder="Password">
-                <input class="form-control" name="firstName" placeholder="First Name">
-                <input class="form-control" name="lastName" placeholder="Last Name">
-                <input class="form-control" name="gradYear" placeholder="Graduation Year">
+			<h3>Register Form</h3>
+			<form class="register-form" action="/register" method="post">
+				<input class="form-control" name="user" placeholder="Username">
+				<input class="form-control" name="password" type="password" placeholder="Password">
+				<input class="form-control" name="firstName" placeholder="First Name">
+				<input class="form-control" name="lastName" placeholder="Last Name">
+				<input class="form-control" name="gradYear" placeholder="Graduation Year">
 
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="teacher">
-                        I am a Teacher
-                    </label>
-                </div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" name="teacher">
+						I am a Teacher
+					</label>
+				</div>
 
-                <button class="btn btn-info">Register</button>
-            </form>
-        </div>
+				<button class="btn btn-info">Register</button>
+			</form>
+		</div>
 
 		<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 		<script>
 			$('form').submit(function() {
 				$.post($(this).attr('action'), $(this).serialize(), function(data) {
@@ -67,11 +67,11 @@
 				return false;
 			});
 
-            $('.logout').click(function() {
-                $.post('/logout', function(data) {
-                    console.log(data);
-                });
-            });
+			$('.logout').click(function() {
+				$.post('/logout', function(data) {
+					console.log(data);
+				});
+			});
 		</script>
-    </body>
+	</body>
 </html>

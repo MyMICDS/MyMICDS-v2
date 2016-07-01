@@ -22,23 +22,23 @@ module.exports = function(app, db) {
 		});
 	});
 
-    app.post('/classes/add', function(req, res) {
-        var user = req.session.user;
-        var scheduleClass = {
+	app.post('/classes/add', function(req, res) {
+		var user = req.session.user;
+		var scheduleClass = {
 			id  : req.body.id,
-            name: req.body.name,
-            color: req.body.color,
-            block: req.body.block,
-            type : req.body.type,
+			name: req.body.name,
+			color: req.body.color,
+			block: req.body.block,
+			type : req.body.type,
 			teacher: {
 				prefix: req.body.teacherPrefix,
-            	firstName: req.body.teacherFirstName,
+				firstName: req.body.teacherFirstName,
 				lastName : req.body.teacherLastName
 			}
-        };
+		};
 
-        classes.upsertClass(db, user, scheduleClass, function(err, id) {
-            if(err) {
+		classes.upsertClass(db, user, scheduleClass, function(err, id) {
+			if(err) {
 				var errorMessage = err.message;
 			} else {
 				var errorMessage = null;
@@ -47,10 +47,10 @@ module.exports = function(app, db) {
 				error: errorMessage,
 				id: id
 			});
-        });
-    });
+		});
+	});
 
-    app.post('/classes/delete', function(req, res) {
+	app.post('/classes/delete', function(req, res) {
 		classes.deleteClass(db, req.session.user, req.body.id, function(err) {
 			if(err) {
 				var errorMessage = err.message;
@@ -59,6 +59,6 @@ module.exports = function(app, db) {
 			}
 			res.json({ error: errorMessage });
 		});
-    });
+	});
 
 };

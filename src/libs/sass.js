@@ -11,8 +11,8 @@ var sass = require('node-sass');
 
 // Valid file extentions Sass can compile
 var validSassExt = [
-    '.css',
-    '.scss'
+	'.css',
+	'.scss'
 ];
 
 /**
@@ -33,38 +33,38 @@ var validSassExt = [
 
 function renderFile(sassFile, cssDir, callback) {
 
-    if(typeof callback !== 'function') {
-        callback = function() {};
-    }
+	if(typeof callback !== 'function') {
+		callback = function() {};
+	}
 
-    // Don't render files beginning in underscore (_)
-    var fileMeta = path.parse(sassFile);
-    if(fileMeta.name.substr(0, 1) === '_') {
-        callback(null);
-        return;
-    }
+	// Don't render files beginning in underscore (_)
+	var fileMeta = path.parse(sassFile);
+	if(fileMeta.name.substr(0, 1) === '_') {
+		callback(null);
+		return;
+	}
 
-    // Compile Sass
-    sass.render({
-        file: sassFile
-    }, function(sassErr, result) {
+	// Compile Sass
+	sass.render({
+		file: sassFile
+	}, function(sassErr, result) {
 
-        if(sassErr) {
-            callback(sassErr);
-            return;
-        }
+		if(sassErr) {
+			callback(sassErr);
+			return;
+		}
 
-        // Write Sass to file
-        var filename = fileMeta.base.replace('.scss', '.css');
-        var pathname = cssDir + '/' + filename;
-        fs.writeFile(pathname, result.css, function(writeErr) {
-            if(writeErr) {
-                callback(writeErr);
-            } else {
-                callback(null);
-            }
-        });
-    });
+		// Write Sass to file
+		var filename = fileMeta.base.replace('.scss', '.css');
+		var pathname = cssDir + '/' + filename;
+		fs.writeFile(pathname, result.css, function(writeErr) {
+			if(writeErr) {
+				callback(writeErr);
+			} else {
+				callback(null);
+			}
+		});
+	});
 }
 
 /**
@@ -76,21 +76,21 @@ function renderFile(sassFile, cssDir, callback) {
  */
 
 function renderDir(sassDir, cssDir) {
-    // Get all files in directory
-    fs.readdir(sassDir, function(readErr, files) {
-        files.forEach(function(file, index) {
-            var fileMeta = path.parse(file);
-            // See if valid file extention
-            if(validSassExt.indexOf(fileMeta.ext) > -1) {
-                // Render file if valid
-                renderFile(sassDir + '/' + fileMeta.base, cssDir, function(renderErr) {
-                    if(renderErr) {
-                        console.log('Uh oh! Failed to compile ' + fileMeta.base + '! Error: ' + renderErr.message);
-                    }
-                });
-            }
-        });
-    });
+	// Get all files in directory
+	fs.readdir(sassDir, function(readErr, files) {
+		files.forEach(function(file, index) {
+			var fileMeta = path.parse(file);
+			// See if valid file extention
+			if(validSassExt.indexOf(fileMeta.ext) > -1) {
+				// Render file if valid
+				renderFile(sassDir + '/' + fileMeta.base, cssDir, function(renderErr) {
+					if(renderErr) {
+						console.log('Uh oh! Failed to compile ' + fileMeta.base + '! Error: ' + renderErr.message);
+					}
+				});
+			}
+		});
+	});
 }
 
 /**
@@ -102,17 +102,17 @@ function renderDir(sassDir, cssDir) {
  */
 
 function watchDir(sassDir, cssDir) {
-    fs.watch(sassDir, function(event, filename) {
-        // Check if valid Sass extention
-        var fileMeta = path.parse(filename);
-        if(validSassExt.indexOf(fileMeta.ext) > -1) {
-            renderFile(sassDir + '/' + filename, cssDir, function(renderErr) {
-                if(renderErr) {
-                    console.log('Uh oh! Failed to compile ' + filename + '! Error: ' + renderErr.message);
-                }
-            });
-        }
-    });
+	fs.watch(sassDir, function(event, filename) {
+		// Check if valid Sass extention
+		var fileMeta = path.parse(filename);
+		if(validSassExt.indexOf(fileMeta.ext) > -1) {
+			renderFile(sassDir + '/' + filename, cssDir, function(renderErr) {
+				if(renderErr) {
+					console.log('Uh oh! Failed to compile ' + filename + '! Error: ' + renderErr.message);
+				}
+			});
+		}
+	});
 }
 
 module.exports.renderFile = renderFile;

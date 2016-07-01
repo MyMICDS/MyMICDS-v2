@@ -5,9 +5,9 @@
  */
 
 try {
-    var config = require(__dirname + '/libs/config.js');
+	var config = require(__dirname + '/libs/config.js');
 } catch(e) {
-    throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.JS.EXAMPLE***');
+	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.JS.EXAMPLE***');
 }
 
 var port = process.env.PORT || config.port;
@@ -47,21 +47,21 @@ app.use(cookieParser());
 
 // Sessions
 var session = require('express-session')({
-    secret           : config.expressSessionSecret,
-    resave           : false,
-    saveUninitialized: false,
+	secret           : config.expressSessionSecret,
+	resave           : false,
+	saveUninitialized: false,
 });
 
 app.use(session);
 
 io.use(function(socket, next) {
-    session(socket.request, socket.request.res, next);
+	session(socket.request, socket.request.res, next);
 });
 
 // Body Parser for POST Variables
 app.use(bodyParser.json());     // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
-    extended: true
+	extended: true
 }));
 
 // EJS as Default Render Engine
@@ -84,48 +84,48 @@ require(__dirname + '/routes/assets.js')(app, express);
 
 // Connect to database
 MongoClient.connect(config.mongodbURI, function(err, db) {
-    if(err) throw err;
+	if(err) throw err;
 
-    // 'Remember Me' Functionality
-    app.use(cookies.remember(db));
+	// 'Remember Me' Functionality
+	app.use(cookies.remember(db));
 
-    require(__dirname + '/routes/loginAPI.js')(app, db);
-    require(__dirname + '/routes/canvasAPI.js')(app, db);
-    require(__dirname + '/routes/classAPI.js')(app, db);
-    require(__dirname + '/routes/plannerAPI.js')(app, db);
-    require(__dirname + '/routes/portalAPI.js')(app, db);
-    require(__dirname + '/routes/userAPI.js')(app, db);
+	require(__dirname + '/routes/loginAPI.js')(app, db);
+	require(__dirname + '/routes/canvasAPI.js')(app, db);
+	require(__dirname + '/routes/classAPI.js')(app, db);
+	require(__dirname + '/routes/plannerAPI.js')(app, db);
+	require(__dirname + '/routes/portalAPI.js')(app, db);
+	require(__dirname + '/routes/userAPI.js')(app, db);
 });
 
 app.get('/', function(req, res) {
-    res.render('login', { user: req.session.user });
+	res.render('login', { user: req.session.user });
 });
 
 app.get('/canvas', function(req, res) {
-    res.sendFile(__dirname + '/html/canvas.html');
+	res.sendFile(__dirname + '/html/canvas.html');
 });
 
 app.get('/classes', function(req, res) {
-    res.sendFile(__dirname + '/html/classes.html');
+	res.sendFile(__dirname + '/html/classes.html');
 });
 
 app.get('/lunch', function(req, res) {
-    res.setHeader('Content-Type', 'application/json');
-    lunch.getLunch(function(lunchJSON) {
-        res.send(JSON.stringify(lunchJSON, null, 3));
-    });
+	res.setHeader('Content-Type', 'application/json');
+	lunch.getLunch(function(lunchJSON) {
+		res.send(JSON.stringify(lunchJSON, null, 3));
+	});
 });
 
 app.get('/planner', function(req, res) {
-    res.sendFile(__dirname + '/html/planner.html');
+	res.sendFile(__dirname + '/html/planner.html');
 });
 
 app.get('/portal', function(req, res) {
-    res.sendFile(__dirname + '/html/portal.html');
+	res.sendFile(__dirname + '/html/portal.html');
 });
 
 app.get('/users', function(req, res) {
-    res.sendFile(__dirname + '/html/users.html');
+	res.sendFile(__dirname + '/html/users.html');
 })
 
 app.get('/start', function(req, res) {
@@ -138,9 +138,9 @@ app.get('/start', function(req, res) {
 
 io.on('connection', function(socket){
 
-    socket.on('username', function() {
-        socket.emit('username', socket.request.session.user);
-    });
+	socket.on('username', function() {
+		socket.emit('username', socket.request.session.user);
+	});
 
 	socket.on('disconnect', function() {
 //		console.log('user disconnected');
@@ -148,5 +148,5 @@ io.on('connection', function(socket){
 });
 
 server.listen(port, function() {
-    console.log('Server listening on *:' + port);
+	console.log('Server listening on *:' + port);
 });

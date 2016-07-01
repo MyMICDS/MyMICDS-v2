@@ -118,11 +118,11 @@ function upsertEvent(db, user, plannerEvent, callback) {
 			function insertEvent() {
 
 				// Generate an Object ID, or use the id that we are editting
-                if(validEditId) {
-                    var id = validEditId;
-                } else {
-                    var id = new ObjectID();
-                }
+				if(validEditId) {
+					var id = validEditId;
+				} else {
+					var id = new ObjectID();
+				}
 
 				var insertEvent = {
 					user : userDoc['_id'],

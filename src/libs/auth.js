@@ -162,7 +162,7 @@ function passwordMatches(db, user, password, callback) {
 
 function register(db, user, callback) {
 
-    // Validate inputs
+	// Validate inputs
 	if(typeof callback !== 'function') callback = function() {};
 	if(typeof db   !== 'object') { callback(new Error('Invalid database connection!')); return; }
 	if(typeof user !== 'object') { callback(new Error('Invalid user object!'));         return; }
@@ -194,51 +194,51 @@ function register(db, user, callback) {
 
 		var userdata = db.collection('users');
 
-        // Generate confirmation email hash
-        crypto.randomBytes(16, function(err, buf) {
-            if(err) {
+		// Generate confirmation email hash
+		crypto.randomBytes(16, function(err, buf) {
+			if(err) {
 				callback(new Error('There was a problem generating a random confirmation hash!'));
 				return;
 			}
 
-            var hash = buf.toString('hex');
+			var hash = buf.toString('hex');
 
-            // Hash Password
-            cryptoUtils.hashPassword(user.password, function(err, hashedPassword) {
+			// Hash Password
+			cryptoUtils.hashPassword(user.password, function(err, hashedPassword) {
 				if(err) {
 					callback(err);
 					return;
 				}
 
-                var newUser = {
-                    user      : user.user,
-                    password  : hashedPassword,
-                    firstName : user.firstName,
-                    lastName  : user.lastName,
-                    gradYear  : user.gradYear,
-                    teacher   : user.teacher,
-                    confirmed : false,
-                    registered: new Date(),
-                    confirmationHash: hash,
-                }
+				var newUser = {
+					user      : user.user,
+					password  : hashedPassword,
+					firstName : user.firstName,
+					lastName  : user.lastName,
+					gradYear  : user.gradYear,
+					teacher   : user.teacher,
+					confirmed : false,
+					registered: new Date(),
+					confirmationHash: hash,
+				}
 
-                userdata.update({ user: newUser.user }, newUser, { upsert: true }, function(err, data) {
+				userdata.update({ user: newUser.user }, newUser, { upsert: true }, function(err, data) {
 					if(err) {
 						callback(new Error('There was a problem inserting the account into the database!'));
 						return;
 					}
 
-                    var email = newUser.user + '@micds.org';
-                    var emailReplace = {
-                        firstName  : newUser.firstName,
-                        lastName   : newUser.lastName,
-                        confirmLink: 'https://mymicds.net/confirm/' + newUser.user + '/' + hash,
-                    }
+					var email = newUser.user + '@micds.org';
+					var emailReplace = {
+						firstName  : newUser.firstName,
+						lastName   : newUser.lastName,
+						confirmLink: 'https://mymicds.net/confirm/' + newUser.user + '/' + hash,
+					}
 
 					// Send confirmation email
-                    mail.sendHTML(email, 'Confirm your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
-                });
-            });
+					mail.sendHTML(email, 'Confirm your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
+				});
+			});
 		});
 	});
 }
@@ -289,21 +289,21 @@ function confirm(db, user, hash, callback) {
 			return;
 		}
 
-        var dbHash = userDoc['confirmationHash'];
+		var dbHash = userDoc['confirmationHash'];
 
-        if(cryptoUtils.safeCompare(hash, dbHash)) {
+		if(cryptoUtils.safeCompare(hash, dbHash)) {
 			// Hash matches, confirm account!
-            userdata.update({ user: user }, {$set: { confirmed: true }}, function(err, results) {
+			userdata.update({ user: user }, {$set: { confirmed: true }}, function(err, results) {
 				if(err) {
 					callback(new Error('There was a problem updating the database!'));
 					reutrn;
 				}
-                callback(null);
-            });
-        } else {
+				callback(null);
+			});
+		} else {
 			// Hash does not match
-            callback(new Error('Hash not valid!'));
-        }
+			callback(new Error('Hash not valid!'));
+		}
 	});
 }
 

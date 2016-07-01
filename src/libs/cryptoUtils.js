@@ -25,13 +25,13 @@ var crypto = require('crypto');
  */
 
 function hashPassword(password, callback) {
-    bcrypt.hash(password, 10, function(err, hash) {
-        if(err) {
-            callback(new Error('There was a problem hashing the password!'), null);
-            return;
-        }
-        callback(null, hash);
-    });
+	bcrypt.hash(password, 10, function(err, hash) {
+		if(err) {
+			callback(new Error('There was a problem hashing the password!'), null);
+			return;
+		}
+		callback(null, hash);
+	});
 }
 
 /**
@@ -46,22 +46,22 @@ function hashPassword(password, callback) {
 
 function safeCompare(a, b) {
 
-    if(typeof a !== 'string' || typeof b !== 'string') {
-        return false;
-    }
+	if(typeof a !== 'string' || typeof b !== 'string') {
+		return false;
+	}
 
-    var mismatch = (a.length === b.length ? 0 : 1);
-    if(mismatch) {
-        b = a;
-    }
+	var mismatch = (a.length === b.length ? 0 : 1);
+	if(mismatch) {
+		b = a;
+	}
 
-    for(var i = 0; i < a.length; ++i) {
-        var ac = a.charCodeAt(i);
-        var bc = b.charCodeAt(i);
-        mismatch |= (ac ^ bc);
-    }
+	for(var i = 0; i < a.length; ++i) {
+		var ac = a.charCodeAt(i);
+		var bc = b.charCodeAt(i);
+		mismatch |= (ac ^ bc);
+	}
 
-    return (mismatch === 0);
+	return (mismatch === 0);
 }
 
 /**
@@ -75,7 +75,7 @@ function safeCompare(a, b) {
  */
 
 function shaHash(str) {
-    return crypto.createHash('sha256').update(str).digest('hex');
+	return crypto.createHash('sha256').update(str).digest('hex');
 }
 
 /**
@@ -87,8 +87,8 @@ function shaHash(str) {
  */
 
 function safeCompareSHA(str, hash) {
-    var hashedStr = shaHash(str);
-    return safeCompare(hashedStr, hash);
+	var hashedStr = shaHash(str);
+	return safeCompare(hashedStr, hash);
 }
 
 module.exports.hashPassword   = hashPassword;

@@ -36,45 +36,45 @@ var validDayRotationPlain = /^Day [1-6]$/;
 
 function verifyURL(canvasURL, callback) {
 
-    if(typeof callback !== 'function') return;
+	if(typeof callback !== 'function') return;
 
-    if(typeof canvasURL !== 'string') {
-        callback(new Error('Invalid URL!'), null, null);
-        return;
-    }
+	if(typeof canvasURL !== 'string') {
+		callback(new Error('Invalid URL!'), null, null);
+		return;
+	}
 
-    // Parse URL first
-    var parsedURL = url.parse(canvasURL);
+	// Parse URL first
+	var parsedURL = url.parse(canvasURL);
 
-    // Check if pathname is valid
-    if(!parsedURL.pathname.startsWith('/feeds/calendars/')) {
-        // Not a valid URL!
-        callback(null, 'Invalid URL path!', null);
-        return;
-    }
+	// Check if pathname is valid
+	if(!parsedURL.pathname.startsWith('/feeds/calendars/')) {
+		// Not a valid URL!
+		callback(null, 'Invalid URL path!', null);
+		return;
+	}
 
-    var pathParts = parsedURL.path.split('/');
-    var userCalendar = pathParts[pathParts.length - 1];
+	var pathParts = parsedURL.path.split('/');
+	var userCalendar = pathParts[pathParts.length - 1];
 
-    var validURL = urlPrefix + userCalendar;
+	var validURL = urlPrefix + userCalendar;
 
-    // Not lets see if we can actually get any data from here
-    request(validURL, function(err, response, body) {
-        if(err) {
-            callback(new Error('There was a problem fetching calendar data from the URL!'), null, null);
-            return;
-        }
+	// Not lets see if we can actually get any data from here
+	request(validURL, function(err, response, body) {
+		if(err) {
+			callback(new Error('There was a problem fetching calendar data from the URL!'), null, null);
+			return;
+		}
 
 
 
-        if(response.statusCode !== 200) {
-            callback(null, 'Invalid URL!', null);
-            return;
-        }
+		if(response.statusCode !== 200) {
+			callback(null, 'Invalid URL!', null);
+			return;
+		}
 
-        callback(null, true, validURL);
+		callback(null, true, validURL);
 
-    });
+	});
 }
 
 /**
@@ -97,47 +97,47 @@ function verifyURL(canvasURL, callback) {
   */
 
 function setURL(db, user, url, callback) {
-    if(typeof callback !== 'function') {
-        callback = function() {};
-    }
+	if(typeof callback !== 'function') {
+		callback = function() {};
+	}
 
-    if(typeof db !== 'object') {
-        callback(new Error('Invalid database connection!'), null, null);
-        return;
-    }
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null, null);
+		return;
+	}
 
-    users.getUser(db, user, function(err, isUser, userDoc) {
-        if(err) {
-            callback(err, null, null);
-            return;
-        }
-        if(!isUser) {
-            callback(new Error('User doesn\'t exist!'), null, null);
-            return;
-        }
+	users.getUser(db, user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err, null, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null, null);
+			return;
+		}
 
-        verifyURL(url, function(err, isValid, validURL) {
-            if(err) {
-                callback(err, null, null);
-                return;
-            } else if(isValid !== true) {
-                callback(null, isValid, null);
-                return;
-            }
+		verifyURL(url, function(err, isValid, validURL) {
+			if(err) {
+				callback(err, null, null);
+				return;
+			} else if(isValid !== true) {
+				callback(null, isValid, null);
+				return;
+			}
 
-            var userdata = db.collection('users');
+			var userdata = db.collection('users');
 
-            userdata.update({ _id: userDoc['_id'] }, { $set: { canvasURL: validURL }}, { upsert: true }, function(err, result) {
-                if(err) {
-                    callback(new Error('There was a problem updating the URL to the database!'), null, null);
-                    return;
-                }
+			userdata.update({ _id: userDoc['_id'] }, { $set: { canvasURL: validURL }}, { upsert: true }, function(err, result) {
+				if(err) {
+					callback(new Error('There was a problem updating the URL to the database!'), null, null);
+					return;
+				}
 
-                callback(null, true, validURL);
+				callback(null, true, validURL);
 
-            });
-        });
-    });
+			});
+		});
+	});
 }
 
 /**
@@ -162,10 +162,10 @@ function setURL(db, user, url, callback) {
   */
 
 function getEvents(db, user, date, callback) {
-    if(typeof callback !== 'function') return;
-    if(typeof db !== 'object') { new Error('Invalid database connection!'); return; }
+	if(typeof callback !== 'function') return;
+	if(typeof db !== 'object') { new Error('Invalid database connection!'); return; }
 
-    // Default month and year to current date
+	// Default month and year to current date
 	var current = new Date();
 
 	if(typeof date.month !== 'number' || Number.isNaN(date.month) || date.month < 1 || 12 < date.month || date.month % 1 !== 0) {
@@ -175,69 +175,69 @@ function getEvents(db, user, date, callback) {
 		date.year = current.getFullYear();
 	}
 
-    users.getUser(db, user, function(err, isUser, userDoc) {
-        if(err) {
-            callback(err, null, null);
-            return;
-        }
-        if(!isUser) {
-            callback(new Error('User doesn\'t exist!'), null, null);
-            return;
-        }
+	users.getUser(db, user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err, null, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null, null);
+			return;
+		}
 
-        if(typeof userDoc['canvasURL'] !== 'string') {
-            callback(null, false, null);
-            return;
-        }
+		if(typeof userDoc['canvasURL'] !== 'string') {
+			callback(null, false, null);
+			return;
+		}
 
-        request(userDoc['canvasURL'], function(err, response, body) {
-            if(err) {
-                callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
-                return;
-            }
-            if(response.statusCode !== 200) {
-                callback(new Error('Invalid URL!'), null, null);
-                return;
-            }
+		request(userDoc['canvasURL'], function(err, response, body) {
+			if(err) {
+				callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
+				return;
+			}
+			if(response.statusCode !== 200) {
+				callback(new Error('Invalid URL!'), null, null);
+				return;
+			}
 
-            var data = ical.parseICS(body);
+			var data = ical.parseICS(body);
 
-            // School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-            // Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-            if(_.isEmpty(data)) {
-                callback(new Error('Invalid URL!'), null, null);
-                return;
-            }
+			// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+			// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+			if(_.isEmpty(data)) {
+				callback(new Error('Invalid URL!'), null, null);
+				return;
+			}
 
-            // Loop through all of the events in the calendar feed and push events within month to validEvents
-            var validEvents = [];
-            for(var eventUid in data) {
-                var canvasEvent = data[eventUid];
+			// Loop through all of the events in the calendar feed and push events within month to validEvents
+			var validEvents = [];
+			for(var eventUid in data) {
+				var canvasEvent = data[eventUid];
 
-                var start = new Date(canvasEvent['start']);
-                var end   = new Date(canvasEvent['end']);
+				var start = new Date(canvasEvent['start']);
+				var end   = new Date(canvasEvent['end']);
 
-                var startMonth = start.getMonth() + 1;
+				var startMonth = start.getMonth() + 1;
 				var startYear  = start.getFullYear();
 
 				var endMonth = end.getMonth() + 1;
 				var endYear  = end.getFullYear();
 
-                var insertEvent = {
-                    _id  : canvasEvent.uid,
-                    user : userDoc['user'],
-                    class: canvasEvent.class,
-                    title: canvasEvent.summary,
-                    start: start,
-                    end  : end,
-                    link : canvasEvent.url
-                };
+				var insertEvent = {
+					_id  : canvasEvent.uid,
+					user : userDoc['user'],
+					class: canvasEvent.class,
+					title: canvasEvent.summary,
+					start: start,
+					end  : end,
+					link : canvasEvent.url
+				};
 
-                if(typeof canvasEvent['ALT-DESC'] === 'object') {
-                    insertEvent['desc'] = canvasEvent['ALT-DESC']['val'];
-                } else {
-                    insertEvent['desc'] = '';
-                }
+				if(typeof canvasEvent['ALT-DESC'] === 'object') {
+					insertEvent['desc'] = canvasEvent['ALT-DESC']['val'];
+				} else {
+					insertEvent['desc'] = '';
+				}
 
 				if((startMonth === date.month && startYear === date.year) || (endMonth === date.month && endYear === date.year)) {
 					// If event start or end is in month
@@ -246,12 +246,12 @@ function getEvents(db, user, date, callback) {
 					// If event spans before and after month
 					validEvents.push(insertEvent);
 				}
-            }
+			}
 
-            callback(null, true, validEvents);
+			callback(null, true, validEvents);
 
-        });
-    });
+		});
+	});
 }
 
 module.exports.verifyURL = verifyURL;

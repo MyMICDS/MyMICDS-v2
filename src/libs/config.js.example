@@ -9,16 +9,16 @@
 module.exports =
 {
 	port : 1420,
-    email: {
-        URI      : '',
-        fromEmail: '',
-        fromName : ''
-    },
-    portal: {
-        dayRotation: ''
-    },
+	email: {
+		URI      : '',
+		fromEmail: '',
+		fromName : ''
+	},
+	portal: {
+		dayRotation: ''
+	},
 
-    expressSessionSecret: '',
-    forecastAPIKey      : '',
-    mongodbURI          : ''
+	expressSessionSecret: '',
+	forecastAPIKey      : '',
+	mongodbURI          : ''
 }

@@ -32,47 +32,47 @@ var nodemailer = require('nodemailer');
 
 function send(users, message, callback) {
 
-    // Validate inputs
-    if(typeof callback !== 'function') {
-        callback = function() {};
-    }
+	// Validate inputs
+	if(typeof callback !== 'function') {
+		callback = function() {};
+	}
 
-    if(typeof users !== 'string' && typeof users !== 'object') {
-        callback(new Error('Invalid user(s)!'));
-        return;
-    }
-    if(typeof message !== 'object') {
-        callback(new Error('Invalid message object!'));
-        return;
-    }
-    if(typeof message.subject !== 'string') {
-        callback(new Error('Invalid mail subject!'));
-        return;
-    }
-    if(typeof message.html !== 'string') {
-        callback(new Error('Invalid mail html!'));
-        return;
-    }
+	if(typeof users !== 'string' && typeof users !== 'object') {
+		callback(new Error('Invalid user(s)!'));
+		return;
+	}
+	if(typeof message !== 'object') {
+		callback(new Error('Invalid message object!'));
+		return;
+	}
+	if(typeof message.subject !== 'string') {
+		callback(new Error('Invalid mail subject!'));
+		return;
+	}
+	if(typeof message.html !== 'string') {
+		callback(new Error('Invalid mail html!'));
+		return;
+	}
 
-    var transporter = nodemailer.createTransport(config.email.URI);
+	var transporter = nodemailer.createTransport(config.email.URI);
 
-    var mailOptions = {
-        from   : config.email.fromName + ' <' + config.email.fromEmail + '>',
-        to     : users.toString(),
-        subject: message.subject,
-        html   : message.html,
-    }
+	var mailOptions = {
+		from   : config.email.fromName + ' <' + config.email.fromEmail + '>',
+		to     : users.toString(),
+		subject: message.subject,
+		html   : message.html,
+	}
 
-    transporter.sendMail(mailOptions, function(err, info) {
+	transporter.sendMail(mailOptions, function(err, info) {
 
-        if(err) {
-            callback(new Error('There was a problem sending the mail!'));
-            return;
-        }
+		if(err) {
+			callback(new Error('There was a problem sending the mail!'));
+			return;
+		}
 
-        callback(null);
+		callback(null);
 
-    });
+	});
 }
 
 /**
@@ -95,37 +95,37 @@ function send(users, message, callback) {
 
 function sendHTML(users, subject, file, data, callback) {
 
-    // Validate inputs
-    if(typeof callback !== 'function') {
-        callback = function() {};
-    }
+	// Validate inputs
+	if(typeof callback !== 'function') {
+		callback = function() {};
+	}
 
-    if(typeof file !== 'string') {
-        callback(new Error('Invalid mail file path!'));
-        return;
-    }
-    if(typeof data !== 'object') {
-        data = {};
-    }
+	if(typeof file !== 'string') {
+		callback(new Error('Invalid mail file path!'));
+		return;
+	}
+	if(typeof data !== 'object') {
+		data = {};
+	}
 
-    fs.readFile(file, 'utf8', function(err, body) {
-        if(err) {
-            callback(new Error('There was a problem reading the HTML path for the mail!'));
-            return;
-        }
+	fs.readFile(file, 'utf8', function(err, body) {
+		if(err) {
+			callback(new Error('There was a problem reading the HTML path for the mail!'));
+			return;
+		}
 
-        // Replace JSON Key values with custom data
-        for(var key in data) {
-            body = body.replace('{{' + key + '}}', data[key]);
-        }
+		// Replace JSON Key values with custom data
+		for(var key in data) {
+			body = body.replace('{{' + key + '}}', data[key]);
+		}
 
-        var mesesage = {
-            subject: subject,
-            html   : body,
-        }
+		var mesesage = {
+			subject: subject,
+			html   : body,
+		}
 
-        send(users, mesesage, callback);
-    });
+		send(users, mesesage, callback);
+	});
 }
 
 module.exports.send     = send;

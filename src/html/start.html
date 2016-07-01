@@ -2,238 +2,238 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-		
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta http-equiv="x-ua-compatible" content="ie=edge">
+
 		<title>MyMICDS - Start</title>
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-		
+
 		<style>
 			@import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800);
-			
+
 			html, body {
 				height: 100%;
 				font-family: 'Open Sans', sans-serif;
 			}
-            
-            body {
-                background-image: url('https://www.bing.com//az/hprichbg/rb/AxiaVillage_EN-US11040385228_1920x1080.jpg');
+
+			body {
+				background-image: url('https://www.bing.com//az/hprichbg/rb/AxiaVillage_EN-US11040385228_1920x1080.jpg');
 				background-size: cover;
 				background-attachment: fixed;
-                
+
 				color: white;
 			}
-			
+
 			.blink {
 				animation: blink 0.75s infinite alternate;
 			}
-			
+
 			@keyframes blink {
 				from { opacity: 0; }
 				to   { opacity: 1; }
 			}
-            
-            /* Blur */
-            
-            .blur, .active .greeting {
-                position: relative;
-                overflow: hidden;
+
+			/* Blur */
+
+			.blur, .active .greeting {
+				position: relative;
+				overflow: hidden;
 				border: 1px solid rgba(255, 255, 255, 0.5);
-            }
-            
-            .active .greeting::before {
-                background-image: url('https://www.bing.com//az/hprichbg/rb/AxiaVillage_EN-US11040385228_1920x1080.jpg');
+			}
+
+			.active .greeting::before {
+				background-image: url('https://www.bing.com//az/hprichbg/rb/AxiaVillage_EN-US11040385228_1920x1080.jpg');
 				background-size: cover;
 				background-attachment: fixed;
-                
-                position: absolute;
-                content: ' ';
-                z-index: -1;
-                -webkit-filter: blur(5px);
-                filter: blur(5px);
-                
-                /* So the whole thing is blurred */
-                margin: calc(-5px + -1em);
-                /* Regular Size plus double the blur radius to compensate for margin */
-                height: calc(100% + 10px);
-                width: calc(100% + 10px);
-            }
-			
+
+				position: absolute;
+				content: ' ';
+				z-index: -1;
+				-webkit-filter: blur(5px);
+				filter: blur(5px);
+
+				/* So the whole thing is blurred */
+				margin: calc(-5px + -1em);
+				/* Regular Size plus double the blur radius to compensate for margin */
+				height: calc(100% + 10px);
+				width: calc(100% + 10px);
+			}
+
 			.directions {
 				position: fixed;
 				bottom: 0;
 				left: 0;
 				right: 0;
-                
-                
+
+
 				color: #fff;
 				font-size: 1.5em;
 				text-align: center;
 				text-shadow: 2px 2px 2px #333;
-				
-                opacity: 0;
+
+				opacity: 0;
 			}
-            
-            .frame {
-                position: fixed;
-                height: 100%;
-                width: 100%;
-                
-                transition-duration: 1s;
-                margin-top: 100vh;
-            }
-            
-            .frame.active {
-                margin-top: 0;
-            }
-            
-            .frame.up {
-                margin-top: -100vh;
-            }
-            
-            /* First Frame */
-            
-            .frame:nth-of-type(1) {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-            
-            .greeting {
-                padding: 1em;
-                margin: 1em;
-            }
-            
-            .greeting h1 {
-                display: inline-block;
-                position: relative;
-                margin-top: 0;
-                margin-bottom: 0;
-                
-                visibility: visible;
-                
-                font-size: 3em;
-                font-weight: 300;
-                text-shadow: 0px 4px 3px rgba(0,0,0,0.4),
-                    0px 8px 13px rgba(0,0,0,0.1),
-                    0px 18px 23px rgba(0,0,0,0.1);
-            }
-            
-            .active .greeting h1:first-of-type {
-                animation: greeting-fadein-left 1s;
-            }
-            
-            .active .greeting h1:last-of-type {
-                animation: greeting-fadein-right 1s;
-            }
-            
-            @keyframes greeting-fadein-left {
-                from { left: -100vw; }
-                to   { left: 0;      }
-            }
-            
-            @keyframes greeting-fadein-right {
-                from { right: -100vw; }
-                to   { right: 0;      }
-            }
-            
-            /* Second Frame */
-            
-            .schedule-header {
-                font-weight: 300;
-            }
+
+			.frame {
+				position: fixed;
+				height: 100%;
+				width: 100%;
+
+				transition-duration: 1s;
+				margin-top: 100vh;
+			}
+
+			.frame.active {
+				margin-top: 0;
+			}
+
+			.frame.up {
+				margin-top: -100vh;
+			}
+
+			/* First Frame */
+
+			.frame:nth-of-type(1) {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+
+			.greeting {
+				padding: 1em;
+				margin: 1em;
+			}
+
+			.greeting h1 {
+				display: inline-block;
+				position: relative;
+				margin-top: 0;
+				margin-bottom: 0;
+
+				visibility: visible;
+
+				font-size: 3em;
+				font-weight: 300;
+				text-shadow: 0px 4px 3px rgba(0,0,0,0.4),
+					0px 8px 13px rgba(0,0,0,0.1),
+					0px 18px 23px rgba(0,0,0,0.1);
+			}
+
+			.active .greeting h1:first-of-type {
+				animation: greeting-fadein-left 1s;
+			}
+
+			.active .greeting h1:last-of-type {
+				animation: greeting-fadein-right 1s;
+			}
+
+			@keyframes greeting-fadein-left {
+				from { left: -100vw; }
+				to   { left: 0;      }
+			}
+
+			@keyframes greeting-fadein-right {
+				from { right: -100vw; }
+				to   { right: 0;      }
+			}
+
+			/* Second Frame */
+
+			.schedule-header {
+				font-weight: 300;
+			}
 		</style>
 	</head>
 	<body>
 		<span class="directions">Click any key or press the screen</span>
-		
+
 		<div class="frame active">
 			<div class="greeting">
 				<h1>Good Morning,</h1>
 				<h1>Michael</h1>
 			</div>
 		</div>
-		
+
 		<div class="frame">
 			<div class="container">
 				<h1 class="schedule-header">Here is your schedule for today</h1>
 			</div>
 		</div>
-        
-		<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-        <script src="/js/jquery.mousewheel.min.js"></script>
-        <script src="/js/swipe.js"></script>
-		<script>
-            $body = $('body');
-			$directions = $('.directions');
-            
-            var currentFrame = 0;
-            var $frame = $('.frame');
-            
-            function nextSlide() {
-                if(currentFrame < $frame.length - 1) {
-                    currentFrame++;
-                    
-                    // There can't be a frame before the first frame
-                    if(currentFrame !== 0) {
-                        $frame.eq(currentFrame - 1).removeClass('active').addClass('up');
-                    }
-                    
-                    $frame.eq(currentFrame).addClass('active');
-                }
-            }
-            
-            function lastSlide() {
-                if(currentFrame > 0) {
-                    currentFrame--;
-                    
-                    // There can't be a frame after the last frame
-                    if(currentFrame !== $frame.length - 1) {
-                        $frame.eq(currentFrame + 1).removeClass('active');
-                    }
-                    
-                    $frame.eq(currentFrame).removeClass('up').addClass('active');
-                }
-            }
-            
-            var lastScroll = Date.now();
-            function slideController(event) {
-                
-                // Prevent spamming the scroll wheel
-                if(typeof event.deltaY !== 'undefined') {
-                    var now = Date.now();
-                    if(now - lastScroll > 500) {
-                        lastScroll = now;
-                    } else {
-                        return;
-                    }
-                }
-                
-                if(event.key === 'ArrowUp' || event.deltaY > 0) {
-                    lastSlide();
-                } else {
-                    nextSlide();
-                }
-            }
-            
-            $(document).on('click keypress mousewheel', slideController);
 
-            // Remember, mobile first kids!
-            $(document).swipe({
-                swipeUp: function(event, direction, distance, duration, fingerCount) {
-                    nextSlide();
-                },
-                
-                swipeDown: function(event, direction, distance, duration, fingerCount) {
-                    lastSlide();
-                }
-            });
-            
-            // Disable iOS scroll bounce when it hits the end of the page
-            $(document).bind('touchmove', function(event) {
-                event.preventDefault();
-            });
-    </script>
+		<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+		<script src="/js/jquery.mousewheel.min.js"></script>
+		<script src="/js/swipe.js"></script>
+		<script>
+			$body = $('body');
+			$directions = $('.directions');
+
+			var currentFrame = 0;
+			var $frame = $('.frame');
+
+			function nextSlide() {
+				if(currentFrame < $frame.length - 1) {
+					currentFrame++;
+
+					// There can't be a frame before the first frame
+					if(currentFrame !== 0) {
+						$frame.eq(currentFrame - 1).removeClass('active').addClass('up');
+					}
+
+					$frame.eq(currentFrame).addClass('active');
+				}
+			}
+
+			function lastSlide() {
+				if(currentFrame > 0) {
+					currentFrame--;
+
+					// There can't be a frame after the last frame
+					if(currentFrame !== $frame.length - 1) {
+						$frame.eq(currentFrame + 1).removeClass('active');
+					}
+
+					$frame.eq(currentFrame).removeClass('up').addClass('active');
+				}
+			}
+
+			var lastScroll = Date.now();
+			function slideController(event) {
+
+				// Prevent spamming the scroll wheel
+				if(typeof event.deltaY !== 'undefined') {
+					var now = Date.now();
+					if(now - lastScroll > 500) {
+						lastScroll = now;
+					} else {
+						return;
+					}
+				}
+
+				if(event.key === 'ArrowUp' || event.deltaY > 0) {
+					lastSlide();
+				} else {
+					nextSlide();
+				}
+			}
+
+			$(document).on('click keypress mousewheel', slideController);
+
+			// Remember, mobile first kids!
+			$(document).swipe({
+				swipeUp: function(event, direction, distance, duration, fingerCount) {
+					nextSlide();
+				},
+
+				swipeDown: function(event, direction, distance, duration, fingerCount) {
+					lastSlide();
+				}
+			});
+
+			// Disable iOS scroll bounce when it hits the end of the page
+			$(document).bind('touchmove', function(event) {
+				event.preventDefault();
+			});
+	</script>
 	</body>
 </html>
