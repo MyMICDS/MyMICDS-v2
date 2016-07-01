@@ -4,12 +4,13 @@
  * @file Manages user API endpoints
  */
 
-var users = require(__dirname + '/../libs/users.js');
+var users     = require(__dirname + '/../libs/users.js');
+var passwords = require(__dirname + '/../libs/passwords.js');
 
 module.exports = function(app, db) {
 
     app.post('/user/change-password', function(req, res) {
-        users.changePassword(db, req.session.user, req.body['old-password'], req.body['new-password'], function(err) {
+        passwords.changePassword(db, req.session.user, req.body['old-password'], req.body['new-password'], function(err) {
             if(err) {
                 var errorMessage = err.message;
             } else {
@@ -24,7 +25,7 @@ module.exports = function(app, db) {
             res.json({ error: 'You are already logged in, silly!' });
             return;
         }
-        users.resetPasswordEmail(db, req.body.user, function(err) {
+        passwords.resetPasswordEmail(db, req.body.user, function(err) {
             if(err) {
                 var errorMessage = err.message;
             } else {
@@ -39,7 +40,7 @@ module.exports = function(app, db) {
             res.json({ error: 'You are already logged in, silly!' });
             return;
         }
-        users.resetPassword(db, req.body.user, req.body.password, req.body.hash, function(err) {
+        passwords.resetPassword(db, req.body.user, req.body.password, req.body.hash, function(err) {
             if(err) {
                 var errorMessage = err.message;
             } else {
