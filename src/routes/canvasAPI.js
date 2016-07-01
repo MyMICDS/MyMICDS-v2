@@ -23,9 +23,7 @@ module.exports = function(app, db) {
     });
 
     app.post('/canvas/set-url', function(req, res) {
-        console.log('set url')
         canvas.setURL(db, req.session.user, req.body.url, function(err, isValid, validURL) {
-            console.log(err, isValid, validURL);
             if(err) {
                 var errorMessage = err.message;
             } else {

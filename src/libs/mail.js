@@ -37,7 +37,7 @@ function send(users, message, callback) {
         callback = function() {};
     }
 
-    if(typeof users !== 'string' || typeof users !== 'object') {
+    if(typeof users !== 'string' && typeof users !== 'object') {
         callback(new Error('Invalid user(s)!'));
         return;
     }
@@ -100,28 +100,15 @@ function sendHTML(users, subject, file, data, callback) {
         callback = function() {};
     }
 
-    if(typeof users !== 'string' || typeof users !== 'object') {
-        callback(new Error('Invalid user(s)!'));
-        return;
-    }
-
-    if(typeof subject !== 'string') {
-        callback(new Error('Invalid mail subject!'));
-        return;
-    }
-
     if(typeof file !== 'string') {
         callback(new Error('Invalid mail file path!'));
         return;
     }
-
     if(typeof data !== 'object') {
-        callback(new Error('Invalid data to replace in mail!'));
-        return;
+        data = {};
     }
 
     fs.readFile(file, 'utf8', function(err, body) {
-
         if(err) {
             callback(new Error('There was a problem reading the HTML path for the mail!'));
             return;

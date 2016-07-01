@@ -37,7 +37,6 @@ var users       = require(__dirname + '/users.js');
  */
 
 function login(db, user, password, generateCookie, callback) {
-
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
@@ -52,44 +51,88 @@ function login(db, user, password, generateCookie, callback) {
 		generateCookie = true;
 	}
 
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	passwordMatches(db, user, password, function(err, passwordMatches) {
 		if(err) {
 			callback(err, null, null);
 			return;
 		}
-		if(!isUser) {
+		if(!passwordMatches) {
 			callback(null, false, null);
+			return;
+		}
+
+		// Update lastLogin in database
+		var userdata = db.collection('users');
+		userdata.update({ user: user }, { $currentDate: { lastLogin: true }});
+
+		// Login successful!
+		// Create cookie if generateCookie is true
+		if(generateCookie) {
+			cookies.createCookie(db, user, function(err, cookie) {
+				if(err) {
+					callback(null, true, null);
+					return;
+				}
+
+				callback(null, true, cookie);
+
+			});
+		} else {
+			callback(null, true, null);
+		}
+	});
+}
+
+/**
+ * Determines whether a password matches for a certain user
+ * @function passwordMatches
+ *
+ * @param {Object} db - Database connection
+ * @param {string} user - Username
+ * @param {string} password - Plaintext password
+ * @param {passwordMatchesCallback} callback - Callback
+ */
+
+/**
+ * Returns whether password matches or not
+ * @callback passwordMatchesCallback
+ *
+ * @param {Object} err - Null if successful, error object if failure.
+ * @param {Boolean} matches - True if password matches, false if not. Null if error.
+ */
+
+function passwordMatches(db, user, password, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+	if(typeof password !== 'string') {
+		callback(new Error('Invalid password!'), null);
+		return;
+	}
+
+	users.getUser(db, user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null);
 			return;
 		}
 
 		var hash = userDoc['password'];
 
-		// Compare passwords
 		bcrypt.compare(password, hash, function(err, res) {
 			if(err) {
 				callback(new Error('There was a problem comparing the passwords!'), null);
 				return;
 			}
-			if(!res) {
-				// Passwords do not match
-				callback(null, false, null);
-				return;
-			}
 
-			// Login successful!
-			// Create cookie if generateCookie is true
-			if(generateCookie) {
-				cookies.createCookie(db, user, function(err, cookie) {
-					if(err) {
-						callback(null, true, null);
-						return;
-					}
+			callback(null, res);
 
-					callback(null, true, cookie);
-				});
-			} else {
-				callback(null, true, null);
-			}
 		});
 	});
 }
@@ -163,7 +206,7 @@ function register(db, user, callback) {
             // Hash Password
             cryptoUtils.hashPassword(user.password, function(err, hashedPassword) {
 				if(err) {
-					callback(new Error('There was a problem hashing the password!'));
+					callback(err);
 					return;
 				}
 
@@ -201,7 +244,7 @@ function register(db, user, callback) {
 }
 
 /**
- * Confirms a user's account if hash matches
+ * Confirms a user's account if hash matches. This is used to confirm the user's email and account via email.
  * @function confirm
  *
  * @param {Object} db - Database connection
@@ -250,7 +293,7 @@ function confirm(db, user, hash, callback) {
 
         if(cryptoUtils.safeCompare(hash, dbHash)) {
 			// Hash matches, confirm account!
-            userdata.update({ user: user.toLowerCase() }, {$set: {confirmed: true}}, function(err, results) {
+            userdata.update({ user: user }, {$set: { confirmed: true }}, function(err, results) {
 				if(err) {
 					callback(new Error('There was a problem updating the database!'));
 					reutrn;
@@ -264,6 +307,7 @@ function confirm(db, user, hash, callback) {
 	});
 }
 
-module.exports.login    = login;
-module.exports.register = register;
-module.exports.confirm  = confirm;
+module.exports.login           = login;
+module.exports.passwordMatches = passwordMatches;
+module.exports.register        = register;
+module.exports.confirm         = confirm;

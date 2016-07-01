@@ -94,6 +94,7 @@ MongoClient.connect(config.mongodbURI, function(err, db) {
     require(__dirname + '/routes/classAPI.js')(app, db);
     require(__dirname + '/routes/plannerAPI.js')(app, db);
     require(__dirname + '/routes/portalAPI.js')(app, db);
+    require(__dirname + '/routes/userAPI.js')(app, db);
 });
 
 app.get('/', function(req, res) {
@@ -123,15 +124,12 @@ app.get('/portal', function(req, res) {
     res.sendFile(__dirname + '/html/portal.html');
 });
 
+app.get('/users', function(req, res) {
+    res.sendFile(__dirname + '/html/users.html');
+})
+
 app.get('/start', function(req, res) {
 	res.sendFile(__dirname + '/html/start.html');
-});
-
-var planner = require(__dirname + '/libs/planner.js');
-app.get('/planner', function(req, res) {
-    planner.eventsForMonth(req.session.user, function(events) {
-        res.json(events);
-    });
 });
 
 /*

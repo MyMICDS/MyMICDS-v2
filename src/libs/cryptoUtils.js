@@ -21,41 +21,17 @@ var crypto = require('crypto');
  * @callback hashPasswordCallback
  *
  * @param {Object} err - Null if success, error object if failure
- * @param {string} hash - Encrypted password
+ * @param {string} hash - Encrypted password. Null if error.
  */
 
 function hashPassword(password, callback) {
     bcrypt.hash(password, 10, function(err, hash) {
-        callback(err, hash);
+        if(err) {
+            callback(new Error('There was a problem hashing the password!'), null);
+            return;
+        }
+        callback(null, hash);
     });
-}
-
-/**
- * Encrypt a string in SHA-256
- * @function shaHash
- *
- * @param {string} string - String to be encrypted
- * @param {shaHashCallback} [callback] - Optional Callback
- *
- * @returns {string}
- */
-
-/**
- * Callback after it hashes a string in SHA-256
- * @callback shaHashCallback
- *
- * @param {string} hash - Hashed string
- */
-
-function shaHash(string, callback) {
-    var sha = crypto.createHash('sha256');
-    sha.update(string);
-    var hash = sha.digest('hex');
-
-    if(typeof callback === 'function') {
-        callback(hash);
-    }
-    return hash;
 }
 
 /**
@@ -88,6 +64,34 @@ function safeCompare(a, b) {
     return (mismatch === 0);
 }
 
-module.exports.hashPassword = hashPassword;
-module.exports.shaHash      = shaHash;
-module.exports.safeCompare  = safeCompare;
+/**
+ * Encrypt a string in SHA-256
+ * @function shaHash
+ *
+ * @param {string} string - String to be encrypted
+ * @param {shaHashCallback} [callback] - Optional Callback
+ *
+ * @returns {string}
+ */
+
+function shaHash(str) {
+    return crypto.createHash('sha256').update(str).digest('hex');
+}
+
+/**
+ * Safely compares a plaintext and a sha hash to see if they are the same
+ * @function safeCompareSHA
+ *
+ * @param {string} str - Plaintext string
+ * @param {string} hash - SHA-256 hash
+ */
+
+function safeCompareSHA(str, hash) {
+    var hashedStr = shaHash(str);
+    return safeCompare(hashedStr, hash);
+}
+
+module.exports.hashPassword   = hashPassword;
+module.exports.safeCompare    = safeCompare;
+module.exports.shaHash        = shaHash;
+module.exports.safeCompareSHA = safeCompareSHA;

@@ -111,59 +111,55 @@ function compareCookie(db, selector, token, callback) {
         return;
     }
 
-    // Hash the token to compare with database
-    cryptoUtils.shaHash(token, function(hashedToken) {
+    var rememberdata = db.collection('remember');
 
-        var rememberdata = db.collection('remember');
+    rememberdata.find({ selector: selector }).toArray(function(err, doc) {
+        if(err) {
+            callback(new Error('There was a problem querying the database!'), null, null, null);
+            return;
+        }
 
-        rememberdata.find({ selector: selector }).toArray(function(err, doc) {
-            if(err) {
-                callback(new Error('There was a problem querying the database!'), null, null, null);
-                return;
-            }
+        // Check if valid selector
+        if(doc === null) {
+            callback(new Error('Invalid selector!'), null, null, null);
+            return;
+        }
 
-            // Check if valid selector
-            if(doc === null) {
-                callback(new Error('Invalid selector!'), null, null, null);
-                return;
-            }
+        var cookie  = doc[0];
+        var user    = cookie['user'];
+        var dbToken = cookie['token'];
+        var expires = cookie['expires'];
 
-            var cookie  = doc[0];
-            var user    = cookie['user'];
-            var dbToken = cookie['token'];
-            var expires = cookie['expires'];
+        var today = new Date();
 
-            var today = new Date();
+        // Check if cookied expired
+        if(today.getTime() > expires.getTime()) {
+            callback(new Error('Cookie has expired!'), null, null, null);
+            return;
+        }
 
-            // Check if cookied expired
-            if(today.getTime() > expires.getTime()) {
-                callback(new Error('Cookie has expired!'), null, null, null);
-                return;
-            }
+        // Compare tokens
+        if(cryptoUtils.safeCompareSHA(token, dbToken)) {
 
-            // Compare tokens
-            if(cryptoUtils.safeCompare(hashedToken, dbToken)) {
+            // Update token if successful
+            generateToken(db, user, selector, expires, function(err, newToken) {
+                if(err) {
+                    callback(err, null, null, null);
+                    return;
+                }
 
-                // Update token if successful
-                generateToken(db, user, selector, expires, function(err, newToken) {
-                    if(err) {
-                        callback(err, null, null, null);
-                        return;
-                    }
+                // Update lastLogin
+                var userdata = db.collection('users');
+                userdata.update({ user: user }, { $currentDate: { lastLogin: true, lastOnline: true }});
 
-                    // Update lastLogin
-                    var userdata = db.collection('users');
-                    userdata.update({ user: user }, { $currentDate: { lastLogin: true, lastOnline: true }});
+                callback(null, user, newToken, expires);
+            });
 
-                    callback(null, user, newToken, expires);
-                });
+        } else {
+            // Hash was invalid
+            callback(new Error('Invalid hash!'), null, null, null);
+        }
 
-            } else {
-                // Hash was invalid
-                callback(new Error('Invalid hash!'), null, null, null);
-            }
-
-        });
     });
 }
 
@@ -219,24 +215,23 @@ function generateToken(db, user, selector, expires, callback) {
         var token = tokenBuf.toString('hex');
 
         // Hash token for database
-        cryptoUtils.shaHash(token, function(hashedToken) {
+        var hashedToken = cryptoUtils.shaHash(token);
 
-            var rememberdata = db.collection('remember');
-            rememberdata.update({ selector: selector }, {
-                user    : user,
-                selector: selector,
-                token   : hashedToken,
-                expires : expires,
+        var rememberdata = db.collection('remember');
+        rememberdata.update({ selector: selector }, {
+            user    : user,
+            selector: selector,
+            token   : hashedToken,
+            expires : expires,
 
-            }, { upsert: true }, function(err) {
-                if(err) {
-                    callback(new Error('There was a problem updating the database!'), null);
-                    return;
-                }
+        }, { upsert: true }, function(err) {
+            if(err) {
+                callback(new Error('There was a problem updating the database!'), null);
+                return;
+            }
 
-                callback(null, token);
+            callback(null, token);
 
-            });
         });
     });
 }

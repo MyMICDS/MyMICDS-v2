@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>MyMICDS - Home</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    </head>
+    <body>
+        
+        <form class="form-inline col-md-12" action="/user/change-password">
+            <h3>Change Password</h3>
+            <input type="password" class="form-control" name="old-password" placeholder="Old Password">
+            <input type="password" class="form-control" name="new-password" placeholder="New Password">
+            <button class="btn btn-info">Change Password</button>
+        </form>
+        
+        <form class="form-inline col-md-12" action="/user/forgot-password">
+            <h3>Forgot Password?</h3>
+            <div class="form-group">
+                <div class="input-group">
+                    <input class="form-control" name="user" placeholder="Username">
+                    <div class="input-group-addon">@micds.org</div>
+                </div>
+            </div>
+            <button class="btn btn-success">Send me an email!</button>
+        </form>
+        
+        <form class="form-inline col-md-12" action="/user/reset-password">
+            <h3>Change Password with Hash</h3>
+            <div class="form-group">
+                <div class="input-group">
+                    <input class="form-control" name="user" placeholder="Username">
+                    <div class="input-group-addon">@micds.org</div>
+                </div>
+            </div>
+            <input type="password" class="form-control" name="password" placeholder="New Password">
+            <input class="form-control" name="hash" placeholder="Hash">
+            <button class="btn btn-info">Change Password</button>
+        </form>
+        
+        <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+        
+        <script>
+            var $forms = $('form');
+            
+            $forms.submit(function(event) {
+                event.preventDefault();
+                var url = $(this).prop('action');
+                $.post(url, $(this).serialize(), function(data) {
+                    console.log(data);
+                });
+            });
+        </script>
+    </body>
+</html>
