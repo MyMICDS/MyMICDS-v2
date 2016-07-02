@@ -61,9 +61,12 @@ module.exports = function(app, db) {
 			password : req.body.password,
 			firstName: req.body.firstName,
 			lastName : req.body.lastName,
-			gradYear : req.body.gradYear,
-			teacher  : (req.body.teacher !== undefined),
+			gradYear : parseInt(req.body.gradYear)
 		};
+
+		if(typeof req.body.teacher !== 'undefined') {
+			user.gradYear = null;
+		}
 
 		auth.register(db, user, function(err) {
 			if(err) {

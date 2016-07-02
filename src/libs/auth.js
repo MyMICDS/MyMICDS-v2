@@ -5,6 +5,7 @@
  * @module auth
  */
 
+var _           = require('underscore');
 var cookies     = require(__dirname + '/cookies.js');
 var crypto      = require('crypto');
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
@@ -148,7 +149,7 @@ function passwordMatches(db, user, password, callback) {
  * @param {string} user.password - User's plaintext password
  * @param {string} user.firstName - User's first name
  * @param {string} user.lastName - User's last name
- * @param {Number} [user.gradYear] - User's graduation year (Ex. Class of 2019). DO NOT DEFINE IF USER IS A TEACHER!
+ * @param {Number} user.gradYear - User's graduation year (Ex. Class of 2019). Set to null if faculty.
  *
  * @param {registerCallback} callback - Callback
  */
@@ -178,11 +179,9 @@ function register(db, user, callback) {
 	if(typeof user.firstName !== 'string') { callback(new Error('Invalid first name!')); return; }
 	if(typeof user.lastName  !== 'string') { callback(new Error('Invalid last name!'));  return; }
 
-	if(typeof user.gradYear === 'number' && user.gradYear % 1 === 0) {
-		// Valid graduation year, make sure teacher is set to false
-		user.teacher = false;
-	} else {
-		user.teacher = true;
+	// If gradYear not valid, default to faculty
+	if(typeof user.gradYear !== 'number' || user.gradYear % 1 !== 0 || _.isNaN(user.gradYear)) {
+		user.gradYear = null;
 	}
 
 	// Check if it's an already existing user
@@ -216,7 +215,6 @@ function register(db, user, callback) {
 					firstName : user.firstName,
 					lastName  : user.lastName,
 					gradYear  : user.gradYear,
-					teacher   : user.teacher,
 					confirmed : false,
 					registered: new Date(),
 					confirmationHash: hash,

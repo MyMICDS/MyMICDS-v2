@@ -25,6 +25,34 @@ module.exports = function(app, db) {
 		res.json({ ends: ends });
 	});
 
+	app.post('/user/change-info', function(req, res) {
+		var info = {};
+
+		if(typeof req.body['first-name'] === 'string' && req.body['first-name'] !== '') {
+			info.firstName = req.body['first-name'];
+		}
+		if(typeof req.body['last-name'] === 'string' && req.body['last-name'] !== '') {
+			info.lastName = req.body['last-name'];
+		}
+
+		if(typeof req.body.teacher !== 'undefined') {
+			info.gradYear = null;
+		} else {
+			info.gradYear = parseInt(req.body['grad-year']);
+		}
+
+		console.log('Info', info);
+
+		users.changeInfo(db, req.session.user, info, function(err) {
+			if(err) {
+				var errorMessage = err.message;
+			} else {
+				var errorMessage = null;
+			}
+			res.json({ error: errorMessage });
+		});
+	});
+
 	app.post('/user/change-password', function(req, res) {
 		passwords.changePassword(db, req.session.user, req.body['old-password'], req.body['new-password'], function(err) {
 			if(err) {

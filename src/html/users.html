@@ -5,6 +5,23 @@
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 	</head>
 	<body>
+		
+		<form class="form-inline col-md-12" action="/user/change-info">
+			<h3>Change Info</h3>
+			<input class="form-control" name="first-name" placeholder="First Name">
+			<input class="form-control" name="last-name" placeholder="Last Name">
+			<input class="form-control" name="grad-year" placeholder="Graduation Year">
+			
+			<div class="checkbox">
+				<label>
+					<input type="checkbox" name="teacher">
+					I am a Teacher
+				</label>
+			</div>
+			
+			<button class="btn btn-info">Save</button>
+			
+		</form>
 
 		<form class="form-inline col-md-12" action="/user/change-password">
 			<h3>Change Password</h3>

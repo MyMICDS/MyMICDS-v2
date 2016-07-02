@@ -5,7 +5,8 @@
  * @module users
  */
 
- var moment = require('moment');
+var _      = require('underscore');
+var moment = require('moment');
 
 /**
  * Get data about user
@@ -50,6 +51,87 @@ function getUser(db, user, callback) {
 			callback(null, true, docs[0]);
 		}
 
+	});
+}
+
+/**
+ * Change basic user information such as name or grade
+ * @function changeInfo
+ *
+ * @param {Object} db - Database connection
+ * @param {string} user - Username
+ * @param {Object} info - Information to change about user.
+ * @param {string} [info.firstName] - First name of user
+ * @param {string} [info.lastName] - Last name of user
+ * @param {Number} [info.gradYear] - Graduation year of user. Set null if faculty.
+ * @param {changeInfoCallback} callback - Callback
+ */
+
+/**
+ * Returns whether successful or not.
+ * @callback changeInfoCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ */
+
+function changeInfo(db, user, info, callback) {
+	if(typeof callback !== 'function') {
+		callback = function() {};
+	}
+
+	if(typeof info !== 'object') {
+		callback(new Error('Invalid information!'));
+		return;
+	}
+	// I mean if they want nothing changed, I guess there's no error
+	if(_.isEmpty(info)) {
+		callback(null);
+		return;
+	}
+
+	getUser(db, user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'));
+			return;
+		}
+
+		// See what information the user wants changed
+		var set = {};
+
+		if(typeof info.firstName === 'string') {
+			set.firstName = info.firstName;
+		}
+		if(typeof info.lastName === 'string') {
+			set.lastName = info.lastName;
+		}
+		if(info.gradYear === null) {
+			set.gradYear = null;
+		} else if(typeof info.gradYear === 'number' && info.gradYear % 1 === 0 && !_.isNaN(info.gradYear)) {
+			set.gradYear = info.gradYear;
+		}
+
+		console.log('set', set);
+
+		if(_.isEmpty(set)) {
+			callback(null);
+			return;
+		}
+
+		// Update data
+		var userdata = db.collection('users');
+		userdata.update({ _id: userDoc['_id'], user: user }, { $set: set }, { upsert: true }, function(err, results) {
+			if(err) {
+				callback(new Error('There was a problem updating the databse!'));
+				return;
+			}
+
+			callback(null);
+
+		});
 	});
 }
 
@@ -157,7 +239,8 @@ function gradeToGradYear(grade) {
 	return gradYear;
 }
 
-module.exports.getUser = getUser;
+module.exports.getUser    = getUser;
+module.exports.changeInfo = changeInfo;
 module.exports.schoolEnds      = schoolEnds;
 module.exports.gradYearToGrade = gradYearToGrade;
 module.exports.gradeToGradYear = gradeToGradYear;
