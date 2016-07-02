@@ -117,19 +117,13 @@ function nextSchoolEnd() {
  */
 
 function gradYearToGrade(gradYear) {
-	var current = moment();
 	if(typeof gradYear !== 'number' || gradYear % 1 !== 0) return null;
 
-	var schoolEnd = lastFridayMay(current.year());
-	var gradEnd = lastFridayMay(gradYear);
-
-	console.log('School end this year: ' + schoolEnd.year());
-	console.log('School end on ' + gradYear + ': ' + gradEnd.year());
-
-	var difference = schoolEnd.diff(gradEnd, 'days');
-	var differenceYears = Math.round(difference / 365);
+	var current = moment();
+	var differenceYears = current.year() - gradYear;
 	var grade = 12 + differenceYears;
 
+	// If last day of school has already passed, you completed a grade of school
 	if(current.isAfter(schoolEnd)) {
 		grade++;
 	}
@@ -149,7 +143,18 @@ function gradYearToGrade(gradYear) {
 function gradeToGradYear(grade) {
 	if(typeof grade !== 'number' || grade % 1 !== 0) return null;
 
-	return 0;
+	var current = moment();
+
+	// If last day of school has already passed, round year down
+	var schoolEnd = lastFridayMay();
+	if(current.isAfter(schoolEnd)) {
+		grade--;
+	}
+
+	var differenceYears = grade - 12;
+	var gradYear = current.year() - differenceYears;
+
+	return gradYear;
 }
 
 module.exports.getUser = getUser;
