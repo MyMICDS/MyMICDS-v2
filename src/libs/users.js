@@ -305,6 +305,7 @@ function gradeToGradYear(grade) {
 	return gradYear;
 }
 
+module.exports.getUser          = getUser;
 module.exports.changeInfo       = changeInfo;
 module.exports.uploadBackground = uploadBackground;
 module.exports.schoolEnds       = schoolEnds;
