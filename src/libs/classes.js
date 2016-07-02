@@ -83,7 +83,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 	if(typeof scheduleClass.name !== 'string') { callback(new Error('Invalid class name!'),   null); return; }
 	// If no valid block or type, default to 'other'
 	if(!_.contains(validBlocks, scheduleClass.block)) scheduleClass.block = 'other';
-	if(!_.contains(validTypes, scheduleClass.type))   scheduleClass.type = 'other';
+	if(!_.contains(validTypes, scheduleClass.type))   scheduleClass.type  = 'other';
 	// If not valid color, generate random
 	if(!validColor.test(scheduleClass.color)) {
 		// You think we're playing around here? No. This is MyMICDS.

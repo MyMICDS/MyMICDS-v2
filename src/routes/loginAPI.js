@@ -18,7 +18,7 @@ module.exports = function(app, db) {
 			return;
 		}
 
-		var generateCookie = req.body.remember === 'on';
+		var generateCookie = typeof req.body.remember !== 'undefined';
 
 		auth.login(db, req.body.user, req.body.password, generateCookie, function(err, response, cookie) {
 			if(err) {
@@ -45,11 +45,12 @@ module.exports = function(app, db) {
 		res.clearCookie('rememberme');
 		req.session.destroy(function(err) {
 			if(err) {
-				res.json({success: false, message: 'There was an error logging out.'});
-				return;
+				var errorMessage = 'There was a problem logging out!';
+			} else {
+				var errorMessage = null;
 			}
 
-			res.json({success: true, message: 'Logged out!'});
+			res.json({ error: errorMessage });
 
 		});
 	});
@@ -61,7 +62,7 @@ module.exports = function(app, db) {
 			password : req.body.password,
 			firstName: req.body.firstName,
 			lastName : req.body.lastName,
-			gradYear : parseInt(req.body.gradYear)
+			gradYear : parseInt(req.body['grad-year'])
 		};
 
 		if(typeof req.body.teacher !== 'undefined') {

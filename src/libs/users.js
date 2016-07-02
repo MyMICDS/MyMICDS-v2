@@ -257,7 +257,7 @@ function schoolEnds() {
 
 /**
  * Converts a graduation year to a grade.
- * If the grade is Pre-Kindergarten (PK) or Junior-Kindergarten (JK) then respective -1 and 0 integers are returned.
+ * If the grade is Junior-Kindergarten (JK) or Senior-Kindergarten (SK) then the respective -1 and 0 integers are returned.
  * @function gradYearToGrade
  *
  * @param {Number} gradYear - Graduation year
@@ -281,7 +281,7 @@ function gradYearToGrade(gradYear) {
 
 /**
  * Converts a grade to a graduation year.
- * If you want to enter the grade Pre-Kindergarten (PK) or Junior-Kindergarten (JK) then insert the respective integers -1 and 0.
+ * If you want to enter the grade Junior-Kindergarten (JK) or Senior-Kindergarten (SK) then insert the respective integers -1 and 0.
  * @function gradeToGradYear
  *
  * @param {Number} grade - Grade
