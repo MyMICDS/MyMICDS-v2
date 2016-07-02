@@ -6,7 +6,12 @@
  */
 
 var _      = require('underscore');
+var fs     = require('fs-extra');
 var moment = require('moment');
+var multer = require('multer');
+
+// Where to store user backgrounds
+var userBackgroundsDir = __dirname + '/../public/images/backgrounds/user-backgrounds';
 
 /**
  * Get data about user
@@ -114,8 +119,6 @@ function changeInfo(db, user, info, callback) {
 			set.gradYear = info.gradYear;
 		}
 
-		console.log('set', set);
-
 		if(_.isEmpty(set)) {
 			callback(null);
 			return;
@@ -133,6 +136,69 @@ function changeInfo(db, user, info, callback) {
 
 		});
 	});
+}
+
+/**
+ * Returns a function to upload a user background. Can be used as Express middleware, or by itself.
+ * @function uploadBackground
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {function}
+ */
+
+/**
+ * Returns any error the occurs
+ * @callback uploadBackgroundCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ */
+
+function uploadBackground(db) {
+
+	var validMimeTypes = {
+		'image/png' : 'png',
+		'image/jpeg': 'jpg',
+		'image/gif' : 'gif'
+	};
+
+	var storage = multer.diskStorage({
+		destination: function(req, file, cb) {
+
+			fs.ensureDir(userBackgroundsDir, function(err) {
+				if(err) {
+					cb(new Error('There was a problem saving the image!'), null);
+					return;
+				}
+				cb(null, dirName);
+			});
+		},
+
+		filename: function(req, file, cb) {
+			var extention = validMimeTypes[file.mimetype];
+			var filename = req.session.user + '.' + extention;
+			cb(null, filename);
+		}
+	});
+
+	var upload = multer({
+		storage: storage,
+		fileFilter: function(req, file, cb) {
+			if(!req.session.user) {
+				cb(new Error('You must be logged in!'), null);
+				return;
+			}
+			var extention = validMimeTypes[file.mimetype];
+			if(typeof extention !== 'string') {
+				cb(new Error('Invalid file type!'), null);
+				return;
+			}
+
+			cb(null, true);
+		}
+	});
+
+	return upload.single('background');
 }
 
 /**
@@ -239,8 +305,8 @@ function gradeToGradYear(grade) {
 	return gradYear;
 }
 
-module.exports.getUser    = getUser;
-module.exports.changeInfo = changeInfo;
-module.exports.schoolEnds      = schoolEnds;
-module.exports.gradYearToGrade = gradYearToGrade;
-module.exports.gradeToGradYear = gradeToGradYear;
+module.exports.changeInfo       = changeInfo;
+module.exports.uploadBackground = uploadBackground;
+module.exports.schoolEnds       = schoolEnds;
+module.exports.gradYearToGrade  = gradYearToGrade;
+module.exports.gradeToGradYear  = gradeToGradYear;

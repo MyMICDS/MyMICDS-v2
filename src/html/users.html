@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<title>MyMICDS - Home</title>
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
 	</head>
 	<body>
 		
@@ -21,6 +21,14 @@
 			
 			<button class="btn btn-info">Save</button>
 			
+		</form>
+		
+		<form class="upload-background col-md-12" action="/user/change-background">
+			<h3>Change Background</h3>
+			<label>
+				<input type="file" name="background">
+			</label>
+			<button class="btn btn-info">Upload</button>
 		</form>
 
 		<form class="form-inline col-md-12" action="/user/change-password">
@@ -77,7 +85,8 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
 		<script>
-			var $forms = $('form');
+			var $forms = $('form:not(.upload-background)');
+			var $uploadBackground = $('.upload-background');
 
 			$forms.submit(function(event) {
 				event.preventDefault();
@@ -103,6 +112,26 @@
 					}
 				}
 				getGrade(-4);
+			});
+			
+			$uploadBackground.submit(function(event) {
+				event.preventDefault();
+				var url = $(this).prop('action');
+				var formData = new FormData(this);
+				$.ajax({
+					type: 'POST',
+					url: url,
+					data: formData,
+					cache: false,
+					contentType: false,
+					processData: false,
+					success: function(data) {
+						console.log(data);
+					},
+					error: function(data) {
+						console.log('There was a problem uploading your background!');
+					}
+				});
 			});
 		</script>
 	</body>

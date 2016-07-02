@@ -7,7 +7,7 @@
 
 var config   = require(__dirname + '/config.js');
 var Forecast = require('forecast.io');
-var fs       = require('node-fs-extra');
+var fs       = require('fs-extra');
 
 var JSONPath = __dirname + '/../public/json/weather.json';
 

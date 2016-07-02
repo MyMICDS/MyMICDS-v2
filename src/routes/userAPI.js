@@ -4,8 +4,8 @@
  * @file Manages user API endpoints
  */
 
-var users     = require(__dirname + '/../libs/users.js');
 var passwords = require(__dirname + '/../libs/passwords.js');
+var users     = require(__dirname + '/../libs/users.js');
 
 module.exports = function(app, db) {
 
@@ -41,9 +41,18 @@ module.exports = function(app, db) {
 			info.gradYear = parseInt(req.body['grad-year']);
 		}
 
-		console.log('Info', info);
-
 		users.changeInfo(db, req.session.user, info, function(err) {
+			if(err) {
+				var errorMessage = err.message;
+			} else {
+				var errorMessage = null;
+			}
+			res.json({ error: errorMessage });
+		});
+	});
+
+	app.post('/user/change-background', function(req, res) {
+		users.uploadBackground(db)(req, res, function(err) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

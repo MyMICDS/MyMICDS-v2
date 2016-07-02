@@ -5,7 +5,7 @@
  * @module lunch
  */
 
-var fs      = require('node-fs-extra');
+var fs      = require('fs-extra');
 var request = require('request');
 var cheerio = require('cheerio');
 
