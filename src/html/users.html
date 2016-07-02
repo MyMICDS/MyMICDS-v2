@@ -39,9 +39,12 @@
 
 		<form class="form-inline col-md-12" action="/user/grad-year-to-grade">
 			<h3>Graduation Year to Grade Converter</h3>
-			<input class="form-control" name="grad-year">
+			<input class="form-control" name="year">
 			<button class="btn btn-info">Convert</button>
 		</form>
+		
+		<button class="test-converter btn btn-info">Test All Grades</button>
+		<ul class="test-grades list-group"></ul>
 
 		<form class="form-inline col-md-12" action="/user/grade-to-grad-year">
 			<h3>Grade to Graduation Year Converter</h3>
@@ -61,6 +64,24 @@
 				$.post(url, $(this).serialize(), function(data) {
 					console.log(data);
 				});
+			});
+			
+			var $testConverter = $('.test-converter');
+			var $testGrades = $('.test-grades');
+			
+			$testConverter.click(function() {
+				$testGrades.html('');
+				function getGrade(i) {
+					if(i < 14) {
+						var year = 2017 + i;
+						$.post('/user/grad-year-to-grade', { year: year }, function(data) {
+							console.log(data);
+							$testGrades.append('<li class="list-group-item">Class of ' + year + ' is in grade ' + data.grade + '</li>')
+							getGrade(++i);
+						});
+					}
+				}
+				getGrade(-4);
 			});
 		</script>
 	</body>

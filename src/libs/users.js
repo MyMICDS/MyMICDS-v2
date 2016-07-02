@@ -56,45 +56,60 @@ function getUser(db, user, callback) {
 /**
  * Returns a Moment.js object the date and time school is going to end
  * Based on two consecutive years, we have gather enough data and deeply analyzed that the last day of school is _probably_ the last Friday of May.
- * @function lastSchoolDay
+ * @function lastFridayMay
+ * @param {Number} year - Which May to get last Friday from
  * @returns {Object}
  */
 
-function lastSchoolDay(year) {
-	console.log('last school day for ' + year);
-	var current = new Date();
+function lastFridayMay(year) {
+	var current = moment();
 	if(typeof year !== 'number' || year % 1 !== 0) {
-		year = current.getFullYear();
+		year = current.year();
 	}
 
-	// Get next May
-	var currentMonth = current.getMonth() + 1;
-
-	/** TODO - help */
-
-	var lastDayOfNextMay = moment().year(year).month('May').endOf('month').startOf('day').hours(11).minutes(30);
+	var lastDayOfMay = moment().year(year).month('May').endOf('month').startOf('day').hours(11).minutes(30);
 
 	/*
 	 * Fun fact: This is literally the only switch statement in the whole MyMICDS codebase.
 	 */
 
-	switch(lastDayOfNextMay.day()) {
+	switch(lastDayOfMay.day()) {
 		case 5:
 			// If day is already Friday
-			return lastDayOfNextMay;
+			var lastDay = lastDayOfMay;
 		case 6:
 			// Last day is Sunday
-			return lastDayOfNextMay.subtract(1, 'day');
+			var lastDay = lastDayOfMay.subtract(1, 'day');
 		default:
 			// Subtract day of week (which cancels it out) and start on Saturday.
 			// Then subtract to days to get from Saturday to Friday.
-			return lastDayOfNextMay.subtract(lastDayOfNextMay.day() + 2, 'days');
+			var lastDay = lastDayOfMay.subtract(lastDayOfMay.day() + 2, 'days');
+	}
+
+	return lastDay;
+}
+
+/**
+ * Returns a Moment.js object when the next last day of school is.
+ * Based on two consecutive years, we have gather enough data and deeply analyzed that the last day of school is _probably_ the last Friday of May.
+ * @function nextSchoolEnd
+ * @returns {Object}
+ */
+
+function nextSchoolEnd() {
+	var current = moment();
+	var lastDayThisYear = lastFridayMay();
+
+	if(lastDayThisYear.isAfter(current)) {
+		return lastDayThisYear;
+	} else {
+		return lastFridayMay(current.year() + 1);
 	}
 }
 
 /**
  * Converts a graduation year to a grade.
- * If the grade is Pre-Kindergarten (PK) or Junion-Kindergarten (JK) then respective -1 and 0 integers are returned.
+ * If the grade is Pre-Kindergarten (PK) or Junior-Kindergarten (JK) then respective -1 and 0 integers are returned.
  * @function gradYearToGrade
  *
  * @param {Number} gradYear - Graduation year
@@ -102,23 +117,29 @@ function lastSchoolDay(year) {
  */
 
 function gradYearToGrade(gradYear) {
+	var current = moment();
 	if(typeof gradYear !== 'number' || gradYear % 1 !== 0) return null;
 
-	// End of school
-	var schoolEnd = lastSchoolDay();
-	var gradEnd = lastSchoolDay(gradYear);
+	var schoolEnd = lastFridayMay(current.year());
+	var gradEnd = lastFridayMay(gradYear);
 
-	console.log(schoolEnd.format(), gradEnd.format());
+	console.log('School end this year: ' + schoolEnd.year());
+	console.log('School end on ' + gradYear + ': ' + gradEnd.year());
 
-	var difference = schoolEnd.diff(gradEnd, 'years');
-	var grade = 12 + difference;
+	var difference = schoolEnd.diff(gradEnd, 'days');
+	var differenceYears = Math.round(difference / 365);
+	var grade = 12 + differenceYears;
+
+	if(current.isAfter(schoolEnd)) {
+		grade++;
+	}
 
 	return grade;
 }
 
 /**
  * Converts a grade to a graduation year.
- * If you want to enter the grade Pre-Kindergarten (PK) or Junion-Kindergarten (JK) then insert the respective integers -1 and 0.
+ * If you want to enter the grade Pre-Kindergarten (PK) or Junior-Kindergarten (JK) then insert the respective integers -1 and 0.
  * @function gradeToGradYear
  *
  * @param {Number} grade - Grade
