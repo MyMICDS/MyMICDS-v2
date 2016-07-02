@@ -92,11 +92,11 @@ function lastFridayMay(year) {
 /**
  * Returns a Moment.js object when the next last day of school is.
  * Based on two consecutive years, we have gather enough data and deeply analyzed that the last day of school is _probably_ the last Friday of May.
- * @function nextSchoolEnd
+ * @function schoolEnds
  * @returns {Object}
  */
 
-function nextSchoolEnd() {
+function schoolEnds() {
 	var current = moment();
 	var lastDayThisYear = lastFridayMay();
 
@@ -158,5 +158,6 @@ function gradeToGradYear(grade) {
 }
 
 module.exports.getUser = getUser;
+module.exports.schoolEnds      = schoolEnds;
 module.exports.gradYearToGrade = gradYearToGrade;
 module.exports.gradeToGradYear = gradeToGradYear;

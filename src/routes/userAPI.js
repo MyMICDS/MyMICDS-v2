@@ -20,6 +20,11 @@ module.exports = function(app, db) {
 		res.json({ year: gradYear });
 	});
 
+	app.post('/user/school-ends', function(req, res) {
+		var ends = users.schoolEnds();
+		res.json({ ends: ends });
+	});
+
 	app.post('/user/change-password', function(req, res) {
 		passwords.changePassword(db, req.session.user, req.body['old-password'], req.body['new-password'], function(err) {
 			if(err) {
