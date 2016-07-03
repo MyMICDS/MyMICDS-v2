@@ -9,6 +9,7 @@ var _      = require('underscore');
 var fs     = require('fs-extra');
 var moment = require('moment');
 var multer = require('multer');
+var path   = require('path');
 
 // Where to store user backgrounds
 var userBackgroundsDir = __dirname + '/../public/images/backgrounds/user-backgrounds';
@@ -148,10 +149,10 @@ function changeInfo(db, user, info, callback) {
  */
 
 /**
- * Returns any error the occurs
+ * Returns function to upload images
  * @callback uploadBackgroundCallback
  *
- * @param {Object} err - Null if success, error object if failure
+ * @param {Object} upload - Function to call to upload images
  */
 
 function uploadBackground(db) {
@@ -164,20 +165,30 @@ function uploadBackground(db) {
 
 	var storage = multer.diskStorage({
 		destination: function(req, file, cb) {
-
+			// Make sure directory is created for user backgrounds
 			fs.ensureDir(userBackgroundsDir, function(err) {
 				if(err) {
 					cb(new Error('There was a problem saving the image!'), null);
 					return;
 				}
-				cb(null, dirName);
+				cb(null, userBackgroundsDir);
 			});
 		},
 
 		filename: function(req, file, cb) {
+			// Get valid extention
 			var extention = validMimeTypes[file.mimetype];
+			// Set base file name to username
 			var filename = req.session.user + '.' + extention;
-			cb(null, filename);
+
+			// Also delete any existing user backgrounds
+			deleteBackground(req.session.user, function(err) {
+				if(err) {
+					cb(err, null);
+					return;
+				}
+				cb(null, filename);
+			});
 		}
 	});
 
@@ -199,6 +210,67 @@ function uploadBackground(db) {
 	});
 
 	return upload.single('background');
+}
+
+/**
+ * Deletes all images of user
+ * @function deleteBackground
+ *
+ * @param {string} user - Username
+ * @param {deleteBackgroundCallback} callback - Callback
+ */
+
+/**
+ * Returns an error if any
+ * @callback deleteBackgroundCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ */
+
+function deleteBackground(user, callback) {
+	if(typeof callback !== 'function') {
+		callback = function() {};
+	}
+
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid user!'));
+		return;
+	}
+
+	// List all files in user backgrounds directory
+	fs.readdir(userBackgroundsDir, function(err, files) {
+		if(err) {
+			callback(new Error('There was a problem getting the contents of the user backgrounds folder!'));
+			return;
+		}
+
+		// Go through all of the files.
+		function filterFile(i) {
+			if(i < files.length) {
+				var file = path.parse(files[i]);
+
+				// If basename is equivalent to the username, add to delete queue.
+				if(file.name === user) {
+					var deletePath = userBackgroundsDir + '/' + file.base;
+					fs.remove(deletePath, function(err) {
+						if(err) {
+							callback(new Error('There was a problem deleting your existing background!'));
+							return;
+						}
+
+						filterFile(++i);
+					});
+				} else {
+					filterFile(++i);
+				}
+			} else {
+				// Done going through files
+				callback(null);
+			}
+		}
+		filterFile(0);
+
+	});
 }
 
 /**
