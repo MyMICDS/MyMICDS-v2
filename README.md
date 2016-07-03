@@ -17,8 +17,10 @@ $ npm install -g nodemon
 $ nodemon
 ```
 
+### MyMICDS API for Front-end and Mobile App
+Documentation for the different JSON API endpoints [can be found here.](API Endpoints.md)
+
 ## Todo
-- Add basic profile management functions like change password, change background, etc.
 - Daily Bulletin fetcher
 - Angular front-end
 - Mobile App

@@ -13,7 +13,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
 The part of the API that relates to Canvas. Can be found under `src/routes/canvasAPI.js`. The associated canvas module can be found under `src/libs/canvas.js`.
 
 
-### /canvas/test-url
+### `/canvas/test-url`
 This will test any given URL to see if it is a valid Canvas calendar feed.
 
 #### Parameters
@@ -25,7 +25,7 @@ This will test any given URL to see if it is a valid Canvas calendar feed.
 - `url` - Cleaned up URL to actually use.
 
 
-### /canvas/set-url
+### `/canvas/set-url`
 **Requires user to be logged in.** This will test any given URL, and if valid, insert into the database.
 
 #### Parameters
@@ -37,14 +37,14 @@ This will test any given URL to see if it is a valid Canvas calendar feed.
 - `url` - Cleaned up URL to actually use.
 
 
-### /canvas/get-events
+### `/canvas/get-events`
 **Requires user to be logged in.** This will get any calendar events for a given month. _Refer to `/planner/get-events` if you also want to retrieve the events stored on MyMICDS.net._
 
 #### Parameters
 - `year` - Year to get events from. _(Optional, defaults to current year.)_
 - `month` - Month to get events from. _(Optional, defaults to current month.)_
 
-### Response
+#### Response
 - `error` - Null if successful, string containing error if failure.
 - `hasURL` - Whether or not the user has set a Canvas URL in the database.
 - `events` - Array of events from the given month. Null if usr does not have URL set in database.
@@ -55,7 +55,7 @@ This will test any given URL to see if it is a valid Canvas calendar feed.
 The part of the API relates to the classes. Can be found under `src/routes/classAPI.js`. The associated class and teacher module can be found under `src/libs/classes.js` and `src/libs/teachers.js`.
 
 
-### /classes/get
+### `/classes/get`
 **Requires user to be logged in.** This will return a list of classes the user has in the database.
 
 #### Response
@@ -63,7 +63,7 @@ The part of the API relates to the classes. Can be found under `src/routes/class
 - `classes` - Array of classes the user has
 
 
-### /classes/add
+### `/classes/add`
 **Requires user to be logged in.** Update/insert (also known as upsert) a class into the database.
 
 #### Parameters
@@ -82,7 +82,7 @@ The part of the API relates to the classes. Can be found under `src/routes/class
 - 'id' - Id of class inserted.
 
 
-### /classes/delete
+### `/classes/delete`
 **Requires user to be logged in.** Delete a class with a certain id
 
 ### Parameters
@@ -96,7 +96,7 @@ The part of the API relates to the classes. Can be found under `src/routes/class
 ## Login API
 The part of the API that relates to the login system. Can be found in `src/routes/loginAPI.js`. The associated auth and cookie modules can be found under `src/libs/auth.js` and `src/libs/cookies.js`.
 
-### /login
+### `/login`
 If valid credentials are entered, it will log a user in by associating their session with a username.
 
 #### Parameters
@@ -113,14 +113,14 @@ If valid credentials are entered, it will log a user in by associating their ses
 - `cookie.expires` - Date when the cookie expires. This can be parsed by a Javascript date object, or inserted directly into a cookie's 'expires' parameter.
 
 
-### /logout
+### `/logout`
 **Requires user to be logged in.** Will log out a user and clear any 'Remember Me' cookie they have stored on their browser.
 
 #### Response
 - `error` - Null if success, string containing error if failure.
 
 
-### /register
+### `/register`
 Will create a new user and send an email to confirm the user's account.
 
 #### Parameters
@@ -135,7 +135,7 @@ Will create a new user and send an email to confirm the user's account.
 - `error` - Null if success, string containing error if failure.
 
 
-### /confirm/:user/:hash
+### `/confirm/:user/:hash`
 **This is one of the few routes in these files that isn't technically part of the API. This is a normal HTTP GET request instead of POST.** This is the link that is sent in the email to confirm a user's account.
 
 #### Parameters
@@ -150,7 +150,7 @@ Will direct the user accordingly and give any error.
 This is the part of the API that relates to the planner. Can be found in `src/routes/plannerAPI.js`. The associated planner module can be found in `src/libs/planner.js`.
 
 
-### /planner/get
+### `/planner/get`
 **Requires user to be logged in.** Returns a list of events user has for a given month. **If a Canvas URL is set for the user, it will also include any Canvas events for the month.** Refer to /canvas/get for retrieving only Canvas-related events.
 
 #### Parameters
@@ -162,7 +162,7 @@ This is the part of the API that relates to the planner. Can be found in `src/ro
 - `events` - Array of events from a given month.
 
 
-### /planner/add
+### `/planner/add`
 **Requires user to be logged in.** Update/insert (also known as upsert) an event in user's planner.
 
 #### Parameters
@@ -182,7 +182,7 @@ This is the part of the API that relates to the planner. Can be found in `src/ro
 - 'id' - Id of event inserted.
 
 
-### /planner/delete
+### `/planner/delete`
 **Requires user to be logged in.** Delete an event with a certain id
 
 #### Parameters
@@ -197,7 +197,7 @@ This is the part of the API that relates to the planner. Can be found in `src/ro
 This is the part of the API that relates to the Portal. Can be found under `src/routes/portalAPI.js`. The associated portal module can be found under `src/libs/portal.js`.
 
 
-### /portal/test-url
+### `/portal/test-url`
 This will test any given URL to see if it is a valid Portal calendar feed.
 
 #### Parameters
@@ -209,7 +209,7 @@ This will test any given URL to see if it is a valid Portal calendar feed.
 - `url` - Cleaned up URL to actually use.
 
 
-### /portal/set-url
+### `/portal/set-url`
 **Requires user to be logged in.** This will test any given URL, and if valid, insert into the database.
 
 #### Parameters
@@ -221,7 +221,7 @@ This will test any given URL to see if it is a valid Portal calendar feed.
 - `url` - Cleaned up URL to actually use.
 
 
-### /canvas/get-events
+### `/canvas/get-events`
 **Requires user to be logged in.** This will retrieve a user's schedule for a given date.
 
 #### Parameters
@@ -241,7 +241,7 @@ This will test any given URL to see if it is a valid Portal calendar feed.
 ## User API
 This is the part of the API that relates to the user. Can be found under `src/routes/userAPI.js`. The associated user module can be found under `src/libs/users.js`.
 
-### /user/grad-year-to-grade
+### `/user/grad-year-to-grade`
 A little utility that convert a high school graduation year into a grade.
 
 #### Parameters
@@ -251,7 +251,7 @@ A little utility that convert a high school graduation year into a grade.
 - `grade` - Grade of class. If the grade is Junior-Kindergarten (JK) or Senior-Kindergarten (SK) then the respective -1 and 0 integers are returned.
 
 
-### /user/grade-to-grad-year
+### `/user/grade-to-grad-year`
 A little utility that converts a grade into a high school graduation year.
 
 #### Parameters
@@ -261,14 +261,14 @@ A little utility that converts a grade into a high school graduation year.
 - `year` - Class graduation year.
 
 
-### /user/school-ends
+### `/user/school-ends`
 Returns the date when school ends. During Summer, returns the date next school year ends.
 
 #### Response
 - `date` - Date when school ends. Last Friday of may at 11:30.
 
 
-### /user/change-info
+### `/user/change-info`
 **Requires user to be logged in.** Change basic information about the user including first name, last name, and graduation year.
 
 #### Parameters
@@ -280,7 +280,7 @@ Returns the date when school ends. During Summer, returns the date next school y
 - `error` - Null if success, string containing error if failure.
 
 
-### /user/change-background
+### `/user/change-background`
 **Requires user to be logged in.** Upload a new background picture for the user.
 
 #### Parameters
@@ -290,7 +290,7 @@ Returns the date when school ends. During Summer, returns the date next school y
 - `error` - Null if success, string containing error if failure.
 
 
-### /user/change-password
+### `/user/change-password`
 **Requires user to be logged in.** Change user's password.
 
 #### Parameters
@@ -301,7 +301,7 @@ Returns the date when school ends. During Summer, returns the date next school y
 - `error` - Null if success, string containing error if failure.
 
 
-### /user/forgot-password
+### `/user/forgot-password`
 Sends an email to a user if they forgot their password. **Does not actually change password at this point, just sends email.**
 
 #### Parameters
@@ -311,7 +311,7 @@ Sends an email to a user if they forgot their password. **Does not actually chan
 - `error` - Null if success, string containing error if failure.
 
 
-### /user/reset-password
+### `/user/reset-password`
 Resets a user's password after clicking on the link from email sent by `/user/forgot-password`.
 
 #### Parameters
