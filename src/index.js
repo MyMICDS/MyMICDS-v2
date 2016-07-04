@@ -89,9 +89,11 @@ MongoClient.connect(config.mongodbURI, function(err, db) {
 	// 'Remember Me' Functionality
 	app.use(cookies.remember(db));
 
-	require(__dirname + '/routes/loginAPI.js')(app, db);
+	// API Routes
+	require(__dirname + '/routes/bulletinAPI.js')(app, db);
 	require(__dirname + '/routes/canvasAPI.js')(app, db);
 	require(__dirname + '/routes/classAPI.js')(app, db);
+	require(__dirname + '/routes/loginAPI.js')(app, db);
 	require(__dirname + '/routes/plannerAPI.js')(app, db);
 	require(__dirname + '/routes/portalAPI.js')(app, db);
 	require(__dirname + '/routes/userAPI.js')(app, db);
@@ -107,6 +109,10 @@ app.get('/canvas', function(req, res) {
 
 app.get('/classes', function(req, res) {
 	res.sendFile(__dirname + '/html/classes.html');
+});
+
+app.get('/daily-bulletin', function(req, res) {
+	res.sendFile(__dirname + '/html/daily-bulletin.html');
 });
 
 app.get('/lunch', function(req, res) {

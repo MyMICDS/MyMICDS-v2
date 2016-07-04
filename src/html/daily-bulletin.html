@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>MyMICDS - Daily Bulletin</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+	</head>
+	<body>
+		
+        <form class="form-inline col-md-12" action="/daily-bulletin/query">
+            <button class="btn btn-info">Query Bulletin</button>
+        </form>
+
+		<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+		<script>
+            var formData = {};
+			var $forms = $('form');
+
+			$forms.submit(function(event) {
+				event.preventDefault();
+				var url = $(this).prop('action');
+				$.post(url, $(this).serialize(), function(data) {
+                    formData = data;
+					console.log(data);
+				});
+			});
+		</script>
+	</body>
+</html>
