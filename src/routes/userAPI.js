@@ -51,6 +51,20 @@ module.exports = function(app, db) {
 		});
 	});
 
+	app.post('/user/get-background', function(req, res) {
+		users.getBackground(req.session.user, function(err, backgroundURL) {
+			if(err) {
+				var errorMessage = err.message;
+			} else {
+				var errorMessage = null;
+			}
+			res.json({
+				error: errorMessage,
+				url  : backgroundURL
+			});
+		});
+	});
+
 	app.post('/user/change-background', function(req, res) {
 		users.uploadBackground(db)(req, res, function(err) {
 			if(err) {

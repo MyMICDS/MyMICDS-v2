@@ -20,8 +20,12 @@
 			</div>
 			
 			<button class="btn btn-info">Save</button>
-			
 		</form>
+        
+        <form class="form-inline col-md-12" action="/user/get-background">
+            <h3>Get Background</h3>
+            <button class="btn btn-info">Get Background</button>
+        </form>
 		
 		<form class="upload-background col-md-12" action="/user/change-background">
 			<h3>Change Background</h3>
@@ -85,6 +89,7 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
 		<script>
+            var formData = {};
 			var $forms = $('form:not(.upload-background)');
 			var $uploadBackground = $('.upload-background');
 
@@ -92,6 +97,7 @@
 				event.preventDefault();
 				var url = $(this).prop('action');
 				$.post(url, $(this).serialize(), function(data) {
+                    formData = data;
 					console.log(data);
 				});
 			});

@@ -213,6 +213,51 @@ function uploadBackground(db) {
 }
 
 /**
+ * Scans the user backgrounds directory and returns any files that have a base name of the specified user
+ * @function scanBackgrounds
+ *
+ * @param {string} user - Username
+ * @param {scanBackgroundsCallback} callback - Callback
+ */
+
+/**
+ * Returns an array of filenames
+ * @callback scanBackgroundsCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Object} files - Array of filenames in the user backgrounds directory. Null if error.
+ */
+
+function scanBackgrounds(user, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid username!'), null);
+		return;
+	}
+
+	fs.readdir(userBackgroundsDir, function(err, files) {
+		if(err) {
+			callback(new Error('There was a problem fetching a list of user backgrounds!'), null);
+			return;
+		}
+
+		var validBackgrounds = [];
+		for(var i = 0; i < files.length; i++) {
+			var file = path.parse(files[i]);
+
+			// If basename is equivalent to the username, add to delete queue.
+			if(file.name === user) {
+				validBackgrounds.push(file.base);
+			}
+		}
+
+		callback(null, validBackgrounds);
+
+	});
+}
+
+/**
  * Deletes all images of user
  * @function deleteBackground
  *
@@ -238,31 +283,20 @@ function deleteBackground(user, callback) {
 	}
 
 	// List all files in user backgrounds directory
-	fs.readdir(userBackgroundsDir, function(err, files) {
-		if(err) {
-			callback(new Error('There was a problem getting the contents of the user backgrounds folder!'));
-			return;
-		}
+	scanBackgrounds(user, function(err, files) {
 
 		// Go through all of the files.
 		function filterFile(i) {
 			if(i < files.length) {
-				var file = path.parse(files[i]);
+				var deletePath = userBackgroundsDir + '/' + files[i];
+				fs.remove(deletePath, function(err) {
+					if(err) {
+						callback(new Error('There was a problem deleting your existing background!'));
+						return;
+					}
 
-				// If basename is equivalent to the username, add to delete queue.
-				if(file.name === user) {
-					var deletePath = userBackgroundsDir + '/' + file.base;
-					fs.remove(deletePath, function(err) {
-						if(err) {
-							callback(new Error('There was a problem deleting your existing background!'));
-							return;
-						}
-
-						filterFile(++i);
-					});
-				} else {
 					filterFile(++i);
-				}
+				});
 			} else {
 				// Done going through files
 				callback(null);
@@ -270,6 +304,51 @@ function deleteBackground(user, callback) {
 		}
 		filterFile(0);
 
+	});
+}
+
+/**
+ * Returns a URL to display as a background for a certain user
+ * @function getBackground
+ *
+ * @param {string} user - Username
+ * @param {getBackgroundCallback} callback - Callback
+ */
+
+/**
+ * Returns valid URL
+ * @callback getBackgroundCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {string} backgroundURL - URL of background to display to user.
+ */
+
+function getBackground(user, callback) {
+	if(typeof callback !== 'function') return;
+
+	var defaultBackground = '/images/backgrounds/middleschool/mac.jpg';
+
+	if(typeof user !== 'string') {
+		callback(null, defaultBackground);
+		return;
+	}
+
+	// Scan directory
+	scanBackgrounds(user, function(err, files) {
+		if(err) {
+			callback(err, null);
+			return;
+		}
+
+		if(err || files.length === 0) {
+			// Fallback to default background
+			var backgroundURL = defaultBackground;
+		} else {
+			// User background
+			var backgroundURL = '/images/backgrounds/user-backgrounds/' + files[0];
+		}
+
+		callback(null, backgroundURL);
 	});
 }
 
@@ -379,6 +458,7 @@ function gradeToGradYear(grade) {
 
 module.exports.getUser          = getUser;
 module.exports.changeInfo       = changeInfo;
+module.exports.getBackground    = getBackground;
 module.exports.uploadBackground = uploadBackground;
 module.exports.schoolEnds       = schoolEnds;
 module.exports.gradYearToGrade  = gradYearToGrade;

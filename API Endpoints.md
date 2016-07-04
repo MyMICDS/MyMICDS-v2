@@ -280,6 +280,17 @@ Returns the date when school ends. During Summer, returns the date next school y
 - `error` - Null if success, string containing error if failure.
 
 
+### `/user/get-background`
+Get URL to display as a background for a user.
+
+#### Parameters
+- `user` - Username of background. _(Optional, will return default background image.)_
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+- `url` - URL of background.
+
+
 ### `/user/change-background`
 **Requires user to be logged in.** Upload a new background picture for the user.
 

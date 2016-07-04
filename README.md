@@ -24,6 +24,7 @@ Documentation for the different JSON API endpoints [can be found here.](API Endp
 - Daily Bulletin fetcher
 - Angular front-end
 - Mobile App
+- Holiday Backgrounds
 
 ## Other Repositories
 ### [MyMICDS-Mobile](https://github.com/michaelgira23/MyMICDS-Mobile)
