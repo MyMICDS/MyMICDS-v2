@@ -46,6 +46,7 @@
     "express-session": "^1.13.0",
     "forecast.io": "0.0.9",
     "fs-extra": "^0.30.0",
+    "google-batch": "0.0.7",
     "googleapis": "^9.0.0",
     "ical": "^0.5.0",
     "jsdoc": "^3.4.0",

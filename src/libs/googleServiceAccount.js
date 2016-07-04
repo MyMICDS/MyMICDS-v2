@@ -28,9 +28,7 @@ var impersonate = 'support@mymicds.net';
  * @callback createServiceAccountCallback
  *
  * @param {Object} err - Null if success, error object if failure.
- * @param {Object} google - Google module we can create different API's from
  * @param {Object} jwtClient - Authorized Google Service Account client. Null if error.
- * @param {Object} tokens - Something something client authentication
  */
 
 function createServiceAccount(callback) {
@@ -44,9 +42,9 @@ function createServiceAccount(callback) {
 			return;
 		}
 
-		callback(null, google, jwtClient, tokens);
+		callback(null, jwtClient);
 
 	});
 }
 
-module.exports.createServiceAccount = createServiceAccount;
+module.exports.create = createServiceAccount;
