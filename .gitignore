@@ -2,7 +2,8 @@ docs
 node_modules
 npm-debug.log
 src/libs/config.js
-src/public/json
 src/public/css/*.css
-src/public/scss/*.log
+src/public/daily-bulletin
 src/public/images/backgrounds/user-backgrounds
+src/public/json
+src/public/scss/*.log
