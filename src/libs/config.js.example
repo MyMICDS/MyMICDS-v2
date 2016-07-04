@@ -9,16 +9,31 @@
 module.exports =
 {
 	port : 1420,
-	email: {
+
+	expressSessionSecret: '',
+	forecastAPIKey      : '',
+	mongodbURI          : '',
+
+	email:
+	{
 		URI      : '',
-		fromEmail: '',
-		fromName : ''
+		fromEmail: 'support@mymicds.net',
+		fromName : 'MyMICDS Support',
 	},
 	portal: {
 		dayRotation: ''
 	},
-
-	expressSessionSecret: '',
-	forecastAPIKey      : '',
-	mongodbURI          : ''
+	googleServiceAccount:
+	{
+		"type": "",
+		"project_id": "",
+		"private_key_id": "",
+		"private_key": "",
+		"client_email": "",
+		"client_id": "",
+		"auth_uri": "",
+		"token_uri": "",
+		"auth_provider_x509_cert_url": "",
+		"client_x509_cert_url": ""
+	}
 }
