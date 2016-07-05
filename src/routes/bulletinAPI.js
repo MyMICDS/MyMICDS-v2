@@ -22,6 +22,10 @@ module.exports = function(app, db) {
 		});
 	});
 
+	/**
+	 * @TODO: Testing only! Please remove for actual version!
+	 */
+
 	app.post('/daily-bulletin/query', function(req, res) {
 		dailyBulletin.queryLatest(function(err) {
 			if(err) {
@@ -32,6 +36,10 @@ module.exports = function(app, db) {
 			res.json({ error: errorMessage });
 		});
 	});
+
+	/**
+	 * @TODO: Testing only! Please remove for actual version!
+	 */
 
 	app.post('/daily-bulletin/query-all', function(req, res) {
 		dailyBulletin.queryAll(function(err) {

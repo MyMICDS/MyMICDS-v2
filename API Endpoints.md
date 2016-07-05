@@ -93,6 +93,18 @@ The part of the API relates to the classes. Can be found under `src/routes/class
 
 
 
+### Daily Bulletin API
+The part of the API that relates to the Daily Bulletin. Can be found in `src/routes/bulletinAPI.js`. This associated dailyBulletin module can be found under `src/libs/dailyBulletin.js`.
+
+
+### `/daily-bulletin/get-list`
+Gets an array of bulletin filenames from newest to oldest.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+- `bulletins` - Array of bulletins from newest to oldest. Null if error.
+
+
 ## Login API
 The part of the API that relates to the login system. Can be found in `src/routes/loginAPI.js`. The associated auth and cookie modules can be found under `src/libs/auth.js` and `src/libs/cookies.js`.
 
