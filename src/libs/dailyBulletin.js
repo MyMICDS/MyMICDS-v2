@@ -5,7 +5,8 @@
  * @module dailyBulletin
  */
 
-var fs = require('fs-extra');
+var _    = require('underscore');
+var fs   = require('fs-extra');
 var path = require('path');
 
 var googleServiceAccount = require(__dirname + '/googleServiceAccount.js');
@@ -318,6 +319,13 @@ function queryAll(callback) {
 														var originalFilename = path.parse(attachmentIdFilenames[m]);
 														// Parse base filename to date
 														var bulletinDate = new Date(originalFilename.name);
+
+														// If not valid date, it isn't the Daily Bulletin
+														if(_.isNaN(bulletinDate.getTime())) {
+															writeBulletin(++m);
+															return;
+														}
+
 														// Get PDF name
 														var bulletinName = bulletinDate.getFullYear()
 															+ '-' + leadingZeros(bulletinDate.getMonth() + 1)
@@ -336,6 +344,7 @@ function queryAll(callback) {
 														});
 													} else {
 														// All done writing Daily Bulletins!
+														console.log('Done!');
 														callback(null);
 													}
 												}
@@ -361,6 +370,55 @@ function queryAll(callback) {
 
 }
 
+/**
+ * Returns an array of the Daily Bulletin names in the Daily Bulletin directory.
+ * @function getList
+ * @param {getListCallback} callback - Callback
+ */
+
+/**
+ * Returns an array of bulletin names from newest to oldest
+ * @callback getListCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Object} bulletins - Array of bulletins from newest to oldest. Null if error.
+ */
+
+function getList(callback) {
+	if(typeof callback !== 'function') return;
+
+	// Read directory
+	fs.readdir(bulletinDir, function(err, files) {
+		if(err) {
+			callback(new Error('There was a problem reading the bulletin directory!'), null);
+			return;
+		}
+
+		// Only return files that are a PDF
+		var bulletins = [];
+		for(var i = 0; i < files.length; i++) {
+			var file = path.parse(files[i]);
+			if(file.ext === '.pdf') {
+				bulletins.push(files[i]);
+			}
+		}
+
+		// Sort bulletins to get most recent
+		bulletins.sort();
+		bulletins.reverse();
+
+		callback(null, bulletins);
+
+	});
+}
+
+/**
+ * Returns a number with possible leading zero if under 10
+ * @function leadingZeros
+ * @param {Number} n - number
+ * @returns {Number|String}
+ */
+
 function leadingZeros(n) {
 	if(n < 10) {
 		return '0' + n;
@@ -371,3 +429,4 @@ function leadingZeros(n) {
 
 module.exports.queryLatest = queryLatest;
 module.exports.queryAll    = queryAll;
+module.exports.getList     = getList;

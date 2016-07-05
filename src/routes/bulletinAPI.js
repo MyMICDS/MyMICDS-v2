@@ -8,6 +8,20 @@ var dailyBulletin = require(__dirname + '/../libs/dailyBulletin.js');
 
 module.exports = function(app, db) {
 
+	app.post('/daily-bulletin/get-list', function(req, res) {
+		dailyBulletin.getList(function(err, bulletins) {
+			if(err) {
+				var errorMessage = err.message;
+			} else {
+				var errorMessage = null;
+			}
+			res.json({
+				error: errorMessage,
+				bulletins: bulletins
+			});
+		});
+	});
+
 	app.post('/daily-bulletin/query', function(req, res) {
 		dailyBulletin.queryLatest(function(err) {
 			if(err) {

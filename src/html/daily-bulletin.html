@@ -5,28 +5,48 @@
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
 	</head>
 	<body>
-		
-        <form class="form-inline col-md-12" action="/daily-bulletin/query">
-            <button class="btn btn-info">Query Latest Bulletin</button>
-        </form>
-        
-        <form class="form-inline col-md-12" action="/daily-bulletin/query-all">
-            <button class="btn btn-info">Query All Bulletins</button>
-        </form>
+
+		<form class="form-inline col-md-12" action="/daily-bulletin/query">
+			<button class="btn btn-info">Query Latest Bulletin</button>
+		</form>
+
+		<form class="form-inline col-md-12" action="/daily-bulletin/query-all">
+			<button class="btn btn-info">Query All Bulletins</button>
+		</form>
+
+		<form class="get-bulletins-form form-inline col-md-12" action="/daily-bulletin/get-list">
+			<button class="btn btn-info">Get Bulletin List</button>
+		</form>
+
+		<ul class="bulletin-list col-md-3 list-group"></ul>
 
 		<script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
 		<script>
-            var formData = {};
-			var $forms = $('form');
+			var formData = {};
+			var $forms = $('form:not(.get-bulletins-form)');
 
 			$forms.submit(function(event) {
 				event.preventDefault();
 				var url = $(this).prop('action');
 				$.post(url, $(this).serialize(), function(data) {
-                    formData = data;
+					formData = data;
 					console.log(data);
+				});
+			});
+
+			var $bulletinForm = $('.get-bulletins-form');
+			var $bulletinList = $('.bulletin-list');
+
+			$bulletinForm.submit(function(event) {
+				event.preventDefault();
+				var url = $(this).prop('action');
+				$.post(url, $(this).serialize(), function(data) {
+					console.log(data);
+					data.bulletins.forEach(function(value) {
+						$bulletinList.append('<li class="list-group-item">' + value + '</li>');
+					});
 				});
 			});
 		</script>
