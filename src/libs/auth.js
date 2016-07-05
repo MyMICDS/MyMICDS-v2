@@ -145,7 +145,7 @@ function passwordMatches(db, user, password, callback) {
  * @param {Object} db - Database connection
  *
  * @param {Object} user - User's credentials
- * @param {string} user.username - Username (___@micds.org)
+ * @param {string} user.Username - Username (___@micds.org)
  * @param {string} user.password - User's plaintext password
  * @param {string} user.firstName - User's first name
  * @param {string} user.lastName - User's last name
@@ -167,12 +167,12 @@ function register(db, user, callback) {
 	if(typeof callback !== 'function') callback = function() {};
 	if(typeof db   !== 'object') { callback(new Error('Invalid database connection!')); return; }
 	if(typeof user !== 'object') { callback(new Error('Invalid user object!'));         return; }
-	if(typeof user.username !== 'string') {
+	if(typeof user.user !== 'string') {
 		callback(new Error('Invalid username!'));
 		return;
 	} else {
 		// Make sure username is lowercase
-		user.username = user.username.toLowerCase();
+		user.user = user.user.toLowerCase();
 	}
 
 	if(typeof user.password  !== 'string') { callback(new Error('Invalid password!'));   return; }
@@ -185,9 +185,9 @@ function register(db, user, callback) {
 	}
 
 	// Check if it's an already existing user
-	users.getUser(db, user.username, function(err, isUser, data) {
+	users.getUser(db, user.user, function(err, isUser, data) {
 		if(isUser && data.confirmed) {
-			callback(new Error('An account is already registered under the email ' + user.username + '@micds.org!'));
+			callback(new Error('An account is already registered under the email ' + user.user + '@micds.org!'));
 			return;
 		}
 
