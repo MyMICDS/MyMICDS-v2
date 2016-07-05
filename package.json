@@ -87,7 +87,6 @@
   "devDependencies": {
     "concurrently": "^2.0.0",
     "express": "^4.14.0",
-    "lite-server": "^2.2.0",
     "typescript": "^1.8.10",
     "typings": "^1.0.5"
   }
