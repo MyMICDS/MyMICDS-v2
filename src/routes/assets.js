@@ -6,5 +6,5 @@
 
 module.exports = function(app, express) {
 	app.use(express.static(__dirname + '/../public'));
-	app.use(express.static(__dirname + '/../WIPFrontEnd'));
+	app.use(express.static(__dirname + '/../angular-front-end'));
 }

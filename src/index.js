@@ -99,7 +99,7 @@ MongoClient.connect(config.mongodbURI, function(err, db) {
 	require(__dirname + '/routes/userAPI.js')(app, db);
 });
 
-app.get('/', function(req, res) {
+app.get('/login', function(req, res) {
 	res.render('login', { user: req.session.user });
 });
 
