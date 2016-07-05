@@ -73,12 +73,14 @@ function queryLatest(callback) {
 				// Search through the email for any PDF
 				var parts = recentMessage.payload.parts;
 				var attachmentId = null;
+				var originalFilename = null;
 				for(var i = 0; i < parts.length; i++) {
 					var part = parts[i];
 
 					// If part contains PDF attachment, we're done boys.
 					if(part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
 						attachmentId = part.body.attachmentId;
+						originalFilename = path.parse(part.filename);
 						break;
 					}
 				}
@@ -102,27 +104,13 @@ function queryLatest(callback) {
 
 					// PDF Contents
 					var pdf = Buffer.from(attachment.data, 'base64');
+					// Parse base filename to date
+					var bulletinDate = new Date(originalFilename.name);
 
-					// Get date of PDF
-					var bulletinDate = null;
-					// Search through email headers to find date of Daily Bulletin
-					var headers = recentMessage.payload.headers;
-					for(var i = 0; i < headers.length; i++) {
-						var header = headers[i];
-						if(header.name === 'Date') {
-							bulletinDate = new Date(header.value);
-							break;
-						}
-					}
-
-					if(bulletinDate === null) {
-						callback(new Error('Couldn\'t find Bulletin Date!'));
-						return;
-					}
 
 					// Get PDF name
 					var bulletinName = bulletinDate.getFullYear()
-						+ '-' + leadingZeros(bulletinDate.getMonth())
+						+ '-' + leadingZeros(bulletinDate.getMonth() + 1)
 						+ '-' + leadingZeros(bulletinDate.getDate())
 						+ '.pdf';
 
@@ -168,6 +156,10 @@ function queryAll(callback) {
 	}
 
 	googleServiceAccount.create(function(err, jwtClient) {
+		if(err) {
+			callback(err);
+			return;
+		}
 
 		// Array to store all message ids
 		console.log('Get Daily Bulletin message ids...');
@@ -253,7 +245,7 @@ function queryAll(callback) {
 									for(var k = 0; k < parts.length; k++) {
 										var part = parts[k];
 
-										// If part contains PDF attachment, we're done boys.
+										// If part contains PDF attachment, append attachment id and filename to arrays.
 										if(part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
 											var attachmentId = part.body.attachmentId;
 											attachments.push({
@@ -313,8 +305,9 @@ function queryAll(callback) {
 												function writeBulletin(m) {
 													if(m < dailyBulletins.length) {
 														var dailyBulletin = dailyBulletins[m];
-														var pdf = Buffer.from(dailyBulletin.body.data, 'base64');
 
+														// PDF contents
+														var pdf = Buffer.from(dailyBulletin.body.data, 'base64');
 														// We must now get the filename of the Daily Bulletin
 														var originalFilename = path.parse(attachmentIdFilenames[m]);
 														// Parse base filename to date

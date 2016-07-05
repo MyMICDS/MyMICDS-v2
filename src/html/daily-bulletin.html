@@ -44,6 +44,7 @@
 				var url = $(this).prop('action');
 				$.post(url, $(this).serialize(), function(data) {
 					console.log(data);
+                    $bulletinList.html('');
 					data.bulletins.forEach(function(value) {
 						$bulletinList.append('<li class="list-group-item">' + value + '</li>');
 					});

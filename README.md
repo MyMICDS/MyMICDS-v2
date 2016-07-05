@@ -21,7 +21,6 @@ $ nodemon
 Documentation for the different JSON API endpoints [can be found here.](API Endpoints.md)
 
 ## Todo
-- Daily Bulletin fetcher
 - Angular front-end
 - Mobile App
 - Holiday Backgrounds
