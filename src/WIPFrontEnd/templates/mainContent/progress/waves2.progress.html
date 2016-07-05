@@ -1,0 +1,9 @@
+<div id="my-progressbar">
+<span id="my-progressbar-msg">Your day is {{percentage}}% complete.</span>    
+<svg id="my-progressbar-svg"  height="60" width="820" viewBox="0 0 1200 60">
+    <g>
+        <line id="outer" x1="30" y1="30" x2="1000" y2="30" stroke="#aaa" stroke-width="60px" stroke-linecap="round"/> 
+        <line id="inner" x1="30" y1="30" [attr.x2]="percentage/100*(1000)+10" y2="30" stroke="#002040" stroke-width="40px" stroke-linecap="round"/> 
+    </g>
+</svg>
+</div>

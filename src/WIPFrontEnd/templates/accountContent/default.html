@@ -1,0 +1,52 @@
+<div class="container">
+<div [hidden]="submitted">
+<h1>Create Your MyMICDS Account</h1>
+<form (ngSubmit)="onSubmit(theForm)" #theForm="ngForm">
+    <div class="row">
+        <fieldset class="form-group col-lg-4">
+        <label for="InputEmail1">Email address</label>
+        <input [style.border-color]="!(email.valid || email.pristine) ? '#d9534f' : 'none'" #email="ngModel" type="email" class="form-control" id="InputEmail1" placeholder="example@micds.org" [(ngModel)]="form.email" name="email" required>
+        <div [hidden]="email.valid || email.pristine" class="alert alert-danger">Name is required</div>
+        <small class="text-muted">Only MICDS emails should be used here.</small>
+        </fieldset>
+    </div>
+
+    <div class="row">  
+        <fieldset class="form-group col-lg-4">
+        <label for="InputPassword1">Password</label>
+        <input [style.border-color]="!(password1.valid || password1.pristine) ? '#d9534f' : 'none'" #password1="ngModel" type="password" class="form-control" id="InputPassword1" placeholder="Password" [(ngModel)]="form.password1" name ="password1" required>
+        <div [hidden]="password1.valid || password1.pristine" class="alert alert-danger">Password is required</div>
+        </fieldset>
+    </div>
+
+    <div class="row">
+        <fieldset class="form-group col-lg-4">
+        <label for="InputPassword2">Repeat Password</label>
+        <input [style.border-color]="!(password2.valid || password2.pristine) ? '#d9534f' : 'none'" #password2="ngModel" type="password" class="form-control" id="InputPassword2" placeholder="Password" [(ngModel)]="form.password2" name="password2" required>
+        <div [hidden]="password2.valid || password2.pristine" class="alert alert-danger">Password is required</div>
+        <div [hidden]="form.password1==form.password2" class="alert alert-danger">Passwords don't match</div>
+        </fieldset>
+        <div class="col-lg-1"></div>
+        <fieldset class="form-groupcol-lg-4">
+        <label for="exampleInputFile">Select a profile picture</label>
+        <input type="file" class="form-control-file" id="exampleInputFile">
+        <small class="text-muted">Anime images are strongly encouraged</small>
+        </fieldset>
+    </div>
+
+    <div class="row">
+
+    </div>
+    
+  <button type="submit" class="btn btn-primary" [disabled]="!theForm.form.valid">Submit</button>
+</form>
+</div>
+
+<div [hidden]="!((!submitted && submitSuccess) || (submitted && !submitSuccess))" id="loader">
+    <h1 class="navbar-brand"><span id="MyMICDS">MyMICDS</span><div id="loading">Loading</div><div id="dot"></div><div id="net"><span id="bold">net</span></div></h1>
+</div>
+
+<div [hidden]="!submitSuccess">
+    <h1>Account Created</h1>
+</div>
+</div>

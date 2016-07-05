@@ -1,0 +1,42 @@
+h2 {
+    text-align: center;
+}
+
+button {
+    transition: all 0.4s ease;
+}
+
+
+.row {
+    margin: 0 auto 1em;
+    animation: 1s ease 0s 1 normal backwards running fadeIn;
+    -moz-animation: 1s ease 0s 1 normal backwards running fadeIn;
+}
+
+@keyframes fadeIn {
+    from {opacity: 0}
+    to {opacity: 1}
+}
+
+.flex-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+.flex-item {
+    margin: 1em;
+    min-width: 200px;
+    width: 320px;
+}
+
+.flex-container img {
+    overflow: hidden;
+    height: 300px;
+    width: inherit;
+    padding: 5px
+}
+
+#lunch-nav {
+    margin-top: 100px;
+}

@@ -1,0 +1,62 @@
+<div id="my-fadeout">
+    <div class="main-page">
+        <div class="row">
+            <div id="my-date" class="col-lg-6">
+                <div class="card card-block">
+                    <h3 class="card-title">{{date.dateString}}</h3>
+                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                </div>
+            </div>
+            <div id="my-rotation" class="col-lg-6">
+                <div class="card card-block">
+                    <h3 class="card-title">Day {{rotation_day}}</h3>
+                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="alert alert-info" role="alert" [hidden]="school_avaliable">
+                <strong>School is not in session!</strong>
+            </div>
+            <div id="my-progressbar">
+                <progress class="progress" [value]="percentage" max="100">{{percentage}}</progress>
+                <h2 [hidden]="!school_avaliable">Your day is {{percentage}}% complete.</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div id="my-schedule" class="col-md-6">
+                <div class="card-header">
+                    <h3>Current Class:</h3> 
+                </div>
+                <div class="card card-block schedule-container">
+                    <h3 class="card-title round-letter">{{current_class.class}}</h3>
+                    <p class="card-text">Mr. McSmartypants</p>
+                </div>
+                <div class="card-header">
+                    <h3>Up Next:</h3>  
+                </div>
+                <div class="card card-block">
+                    <h3 class="card-title round-letter">F</h3>
+                    <p class="card-text">W ith supporting text below as a natural lead-in to additional content.</p>
+                </div>
+            </div>
+            <div id="my-reminder" class="col-md-6">
+                <div class="card-header">
+                    <h3>Your events for today:</h3>  
+                </div>
+                <div class="card card-block">
+                    <h3 class="card-title ">some Homework</h3>
+                    <p class="card-text">Homework for Mr. McSmartypants</p>
+                </div>
+                <div class="card card-block">
+                    <h3 class="card-title ">some Homework</h3>
+                    <p class="card-text">Homework for Mr. McSmartypants</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scroll-page">
+        <my-progress class="flex-item" id="my-progress-details"></my-progress>
+    </div>
+</div>

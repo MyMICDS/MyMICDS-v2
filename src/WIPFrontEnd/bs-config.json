@@ -1,0 +1,7 @@
+{
+    "browser" : ["google-chrome", "firefox"],
+   "open": true,
+   "files" : "./app/**/*.{js, html, css}",
+    "server" : { "baseDir" : "./" },
+    "port": 420,
+}

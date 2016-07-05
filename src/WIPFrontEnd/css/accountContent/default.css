@@ -1,0 +1,83 @@
+h1 {
+    color: black;
+} 
+
+input {
+    border-width: 2px;
+    transition: all 0.4s ease;
+}
+
+.ng-valid[required] {
+    border-color: #5cb85c;
+}
+
+.navbar-brand {
+    font-size: 4em;
+    margin: auto;
+    margin-right: 5px;
+    font-weight: 400;
+  text-align: center;
+  padding-top: 40vh;
+  padding-bottom: 40vh;
+  font-family: Arial;
+  line-height: 0.8em
+}
+
+#dot{
+    display: inline-block;
+    height: 0.25em;
+    width: 0.25em;
+    background-color: #0074d9;
+    border-radius: 50%;
+  transform-origin: -145.5px -36px;
+    animation: 3s cubic-bezier(0.645, 0.045, 0.355, 1) 0.6s infinite normal forwards running revolve;
+    animation: 3s cubic-bezier(0.445, 0.05, 0.55, 0.95) 0.6s infinite normal forwards running pulse;
+}
+
+#net {
+  display: inline-block; 
+    overflow: hidden;
+  text-align: left;
+  width: 2.5em;
+}
+
+#bold {
+    display: block;
+    font-weight: 800;
+    overflow: hidden;
+  animation:  0.6s cubic-bezier(0.6, -0.30, 0.735, 0.045) 0s 1 normal forwards running moveLeft;
+}
+
+@keyframes moveLeft {
+  100% {transform: translate(-120%)}
+}
+
+@keyframes revolve {
+  100% {}
+}
+
+@keyframes pulse {
+  25% {height: 0.5em}
+  50% {height: 0.25em}
+  75% {height: 0.5em}
+  100% {height: 0.25em;transform: rotate(1turn)}
+}
+
+#loading {
+  position: absolute;
+  display: inline-block;
+  width: 291.53px;
+  transform: translate(-291.53px);
+  text-align: center; 
+  animation: 2s cubic-bezier(0.86, 0, 0.07, 1) 2.6s infinite alternate none running fade; 
+  opacity: 0; 
+}
+
+@keyframes fade{
+  0%{opacity: 1}
+100%{opacity: 0}
+}
+
+#MyMICDS {
+  animation: 2s cubic-bezier(0.86, 0, 0.07, 1) 0.6s infinite alternate forwards running fade;
+}

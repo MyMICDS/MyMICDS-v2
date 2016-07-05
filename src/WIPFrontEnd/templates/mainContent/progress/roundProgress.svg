@@ -1,0 +1,7 @@
+<svg id="my-progressbar-svg"  height="400" width="400" >
+    <text id="my-progressbar-msg" x="200" y="200" text-anchor="middle">Your day is {{percentage}}% complete.</text>    
+    <g>
+        <circle id="outer" cx="200" cy="200" r="170" stroke="#aaa" stroke-width="50px" fill="none"/>
+        <path id="inner" [attr.d]="describeArc(200, 200, 170, 0, 360/100*percentage)" fill="none" stroke="#002040" stroke-width="30px" stroke-linecap="round"/>
+    </g>
+</svg>

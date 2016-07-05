@@ -1,0 +1,10 @@
+.flex-container {
+    display: flex;
+    margin: 10vh auto auto;
+    padding:auto;
+    justify-content: center;
+}
+
+.flex-item {
+    margin:auto;
+}

@@ -1,0 +1,87 @@
+body{
+    background-color: inherit;
+} 
+.startup {
+	background-color: #29ABE2; /*e-hentai.org* is my motivation nhentai.net*/
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+.house {
+	height: 70vh;
+}
+.loading {
+	height: 30vh;
+}
+.startup {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+#startup-animation {
+	width: 25%;
+    margin: 9% auto 0;
+}
+
+#startup-animation path {
+	stroke: black;
+	stroke-width: 2;
+	stroke-dasharray: 3348.4091796875;
+	stroke-dashoffset: 3348.4091796875;
+	fill-opacity: 0;
+}
+
+.house-shadow {
+	fill: #006837;
+}
+
+.house {
+	fill: #009245;
+}
+
+svg.toggled path {
+	animation-name: house;
+	animation-duration: 2s;
+	animation-fill-mode: forwards;
+}
+
+@keyframes house {
+	50% {
+		stroke-dashoffset: 0;
+		fill-opacity: 0;
+	}
+	100% {
+		fill-opacity: 1;
+	}
+}
+
+h1 {
+    color: #eee;
+    margin:auto 0 10%;
+}
+/*
+  SVG loader
+*/
+.loader{
+    margin:auto 0 9%;
+}
+
+.loader svg path,
+.loader svg rect {
+  fill: #eee;
+}
+
+my-navbar {
+	z-index: 0
+}
+
+.fade-out {
+    animation: 0.4s ease 0s 1 normal forwards running fadeOut;
+    -moz-animation: 0.4s ease 0s 1 normal forwards running fadeOut;
+}
+
+@keyframes fadeOut {
+    from {opacity: 1}
+    to {opacity: 0}
+}

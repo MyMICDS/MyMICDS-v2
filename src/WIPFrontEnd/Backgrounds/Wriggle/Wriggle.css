@@ -1,0 +1,15 @@
+html, canvas {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+canvas {
+  background-color: #00080C;
+  margin: 0;
+}
+
+.bokeh {
+  top: 0;
+  position: fixed;
+  z-index: -100;
+}

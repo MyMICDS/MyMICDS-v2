@@ -10,6 +10,10 @@
     {
       "name": "Nick Clifford",
       "email": "nick@nickclifford.me"
+    },
+    {
+      "name": "Jack Cai",
+      "email": "jackcai1206@gmail.com"
     }
   ],
   "main": "src/index.js",

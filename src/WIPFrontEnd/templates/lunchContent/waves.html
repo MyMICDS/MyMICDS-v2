@@ -1,0 +1,14 @@
+<div id="my-lunch">
+<div id="lunch-nav">
+    <button id="lunch-previous"><span><<</span></button>
+    <div id="lunch-date"><span>{{date.year}}-{{date.month}}-{{date.day}}</span></div>
+    <button id="lunch-next"><span>>></span></button>
+</div>
+<div id="lunch-content">
+    <div class="lunch-item" (click)="onClickBubble(0)" [ngStyle]="setStyles(0)"><h3 class="lunch-item-text">Main Dish</h3><p class="lunch-item-detail"></p></div>
+    <div class="lunch-item" (click)="onClickBubble(1)" [ngStyle]="setStyles(1)"><h3 class="lunch-item-text">Action Station</h3><p class="lunch-item-detail"></p></div>
+    <div class="lunch-item" (click)="onClickBubble(2)" [ngStyle]="setStyles(2)"><h3 class="lunch-item-text">Soup</h3><p class="lunch-item-detail"></p></div>
+    <div class="lunch-item" (click)="onClickBubble(3)" [ngStyle]="setStyles(3)"><h3 class="lunch-item-text">Salad Bar</h3><p class="lunch-item-detail"></p></div>
+    <div class="lunch-item" (click)="onClickBubble(4)" [ngStyle]="setStyles(4)"><h3 class="lunch-item-text">Dessert</h3><p class="lunch-item-detail"></p></div>
+</div>
+</div>
