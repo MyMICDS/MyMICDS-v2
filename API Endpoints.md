@@ -108,7 +108,7 @@ Gets an array of bulletin filenames from newest to oldest.
 ## Login API
 The part of the API that relates to the login system. Can be found in `src/routes/loginAPI.js`. The associated auth and cookie modules can be found under `src/libs/auth.js` and `src/libs/cookies.js`.
 
-### `/login`
+### `/auth/login`
 If valid credentials are entered, it will log a user in by associating their session with a username.
 
 #### Parameters
@@ -125,14 +125,14 @@ If valid credentials are entered, it will log a user in by associating their ses
 - `cookie.expires` - Date when the cookie expires. This can be parsed by a Javascript date object, or inserted directly into a cookie's 'expires' parameter.
 
 
-### `/logout`
+### `/auth/logout`
 **Requires user to be logged in.** Will log out a user and clear any 'Remember Me' cookie they have stored on their browser.
 
 #### Response
 - `error` - Null if success, string containing error if failure.
 
 
-### `/register`
+### `/auth/register`
 Will create a new user and send an email to confirm the user's account.
 
 #### Parameters
