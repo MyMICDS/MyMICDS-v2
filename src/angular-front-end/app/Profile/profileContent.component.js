@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
-var mockauth_service_1 = require('../mockauth.service');
+var auth_service_1 = require('../services/auth.service');
 var mockdata_service_1 = require('../mockdata.service');
 var _navService = new mockdata_service_1.DomData();
 var styleUrl = _navService.getProfile().selectedStyle.StyleUrl;
@@ -25,9 +25,9 @@ var profileContent = (function () {
             selector: 'app-content',
             templateUrl: templateUrl,
             styleUrls: [styleUrl],
-            providers: [mockauth_service_1.AuthService]
+            providers: [auth_service_1.AuthService]
         }), 
-        __metadata('design:paramtypes', [mockauth_service_1.AuthService])
+        __metadata('design:paramtypes', [auth_service_1.AuthService])
     ], profileContent);
     return profileContent;
 }());

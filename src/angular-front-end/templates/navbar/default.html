@@ -3,9 +3,11 @@
     <nav class="navbar navbar-fixed-top navbar-light bg-faded">
         <div class="nav navbar-nav">
             <a *ngFor="let page of pages; let i = index" [ngClass]="{active: isActive[i], 'nav-item': true, 'nav-link': true}"  (click)="onSelect(i)">{{page}}</a>
-            <button *ngIf="!authService.isLoggedIn" id="loginButton" type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#loginModal">login</button>
-            <button *ngIf="authService.isLoggedIn" (click)="onClickLogout()" id="logoutButton" type="button" class="btn btn-primary btn-lg" >logout</button>
+            <button *ngIf="!isLoggedIn" id="loginButton" type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#loginModal">login</button>
+            <button *ngIf="isLoggedIn" (click)="onClickLogout()" id="logoutButton" type="button" class="btn btn-primary btn-lg" >logout</button>
+            <p class="text-muted" *ngIf="isLoggedIn">Logged in as {{loginModel.user}}.</p>
             <h1 class="navbar-brand">MyMICDS<div id="dot"></div><div id="bold">net</div></h1><!--Fancy animation needed for the logo-->
+            
         </div>
     </nav>
 
@@ -22,12 +24,12 @@
             <div class="modal-body">
                 <form *ngIf="formActive" (ngSubmit)="onClickLogin()" #loginForm="ngForm" id="login-form">
                     <fieldset class="form-group">
-                        <label for="loginEmail">Email address</label>
-                        <input type="text" class="form-control" id="loginEmail" placeholder="Enter email" required
-                        [(ngModel)]="loginModel.email"
-                            name="email"  #email="ngModel" >
-                        <div [hidden]="email.valid || email.pristine" class="alert alert-danger">
-                        Email is required
+                        <label for="loginUser">Username</label>
+                        <input type="text" class="form-control" id="loginUser" placeholder="Enter username" required
+                        [(ngModel)]="loginModel.user"
+                            name="user"  #user="ngModel" >
+                        <div [hidden]="user.valid || user.pristine" class="alert alert-danger">
+                        Username is required
                         </div>
                     </fieldset>
                     <fieldset class="form-group">

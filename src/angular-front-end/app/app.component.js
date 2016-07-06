@@ -16,7 +16,7 @@ var mockdata_service_1 = require('./mockdata.service');
 var common_1 = require('@angular/common');
 var platform_browser_1 = require('@angular/platform-browser');
 var router_2 = require('@angular/router');
-var mockauth_service_1 = require('./mockauth.service');
+var auth_service_1 = require('./services/auth.service');
 var http_1 = require('@angular/http');
 var _navService = new mockdata_service_1.DomData();
 var styleUrl = _navService.getNav().selectedStyle.StyleUrl;
@@ -32,10 +32,8 @@ var AppComponent = (function () {
         this.pages = this._DomService.getNav().navTitles;
         //emit events to alert the other components to render the app
         this.selectedPage = 'Home';
-        //form related variables and methods
-        //todo: separate this into another component
         this.loginModel = {
-            email: '',
+            user: '',
             password: '',
             remember: '',
         };
@@ -89,26 +87,37 @@ var AppComponent = (function () {
             });
         }
     };
+    //form related variables and methods
+    //todo: separate this into another component
+    AppComponent.prototype.ngOnInit = function () {
+        console.log('logging out');
+        this.onClickLogout();
+    };
     AppComponent.prototype.onClickLogin = function () {
         var _this = this;
         this.authService.logIn(this.loginModel).subscribe(function (loginRes) {
             _this.loginRes = loginRes;
             if (loginRes.error) {
-                _this.serverErrorMessage = loginRes.error;
-                console.log(_this.serverErrorMessage);
+                _this.errorMessage = loginRes.error;
+                console.log(_this.errorMessage);
             }
             else {
+                _this.isLoggedIn = true;
                 $('#loginModal').modal('hide');
                 _this.router.navigate(['/' + _this.selectedPage]);
             }
         }, function (error) {
             _this.errorMessage = error;
-            console.log(_this.errorMessage);
+            console.log('If this keeps happening, contact the support!');
         });
     };
     AppComponent.prototype.onClickLogout = function () {
+        var _this = this;
         this.authService.logOut().subscribe(function (logoutRes) {
             console.log(logoutRes.error ? logoutRes.error : 'Logout Successful!');
+            if (!logoutRes.error) {
+                _this.isLoggedIn = false;
+            }
         });
     };
     AppComponent.prototype.onClickAccount = function () {
@@ -119,10 +128,10 @@ var AppComponent = (function () {
             selector: 'mymicds-app',
             templateUrl: templateUrl,
             directives: [background_component_1.BgComponent, common_1.NgClass, router_1.ROUTER_DIRECTIVES, common_1.NgIf],
-            providers: [mockdata_service_1.DomData, mockauth_service_1.AuthService, http_1.HTTP_PROVIDERS],
+            providers: [mockdata_service_1.DomData, auth_service_1.AuthService, http_1.HTTP_PROVIDERS],
             styleUrls: ['./css/main.css', styleUrl]
         }), 
-        __metadata('design:paramtypes', [platform_browser_1.Title, mockdata_service_1.DomData, router_2.Router, mockauth_service_1.AuthService])
+        __metadata('design:paramtypes', [platform_browser_1.Title, mockdata_service_1.DomData, router_2.Router, auth_service_1.AuthService])
     ], AppComponent);
     return AppComponent;
 }());

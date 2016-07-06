@@ -8,7 +8,7 @@ var auth = require(__dirname + '/../libs/auth.js');
 
 module.exports = function(app, db) {
 
-	app.post('/auth/login', function(req, res) {
+	app.post('/login', function(req, res) {
 		if(req.session.user) {
 			res.json({
 				error  : 'You\'re already logged in, silly!',
@@ -40,7 +40,7 @@ module.exports = function(app, db) {
 		});
 	});
 
-	app.post('/auth/logout', function(req, res) {
+	app.post('/logout', function(req, res) {
 		// Clear Remember Me cookie and destroy active login session
 		res.clearCookie('rememberme');
 		req.session.destroy(function(err) {
@@ -55,7 +55,7 @@ module.exports = function(app, db) {
 		});
 	});
 
-	app.post('/auth/register', function(req, res) {
+	app.post('/register', function(req, res) {
 
 		var user = {
 			user     : req.body.user,

@@ -41,6 +41,11 @@ progress {
     line-height: 1;
 }
 
-.schedule-container {
+.schedule-item {
     text-align: center;
+}
+
+.schedule-container {
+    overflow-y: scroll;
+    height: 60vh;
 }

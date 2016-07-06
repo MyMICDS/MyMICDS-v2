@@ -1,7 +1,8 @@
 import {Component} from '@angular/core';
 import {MyProgress} from './progress/progress.component'
 import {DomData} from '../mockdata.service'
-//import {NgIf} from '@angular/common'
+import {PortalService} from '../services/planner.service'
+import {NgFor, NgIf} from '@angular/common'
 
 var _navService = new DomData();
 var styleUrl = _navService.getMain().selectedStyle.StyleUrl;
@@ -12,7 +13,8 @@ var i;
     selector: 'app-content',
     templateUrl: templateUrl,
     styleUrls: [styleUrl],
-    directives: [MyProgress]
+    directives: [MyProgress, NgFor, NgIf],
+    providers: [PortalService]
 })
 
 export class mainContent{
@@ -38,44 +40,91 @@ export class mainContent{
             seconds: d.getSeconds(),
             dayInWeek: week[d.getDay()],
             dateString: d.toString()
-        };
+        }
     };
-
-    ngOnInit() { 
-        let duration = (this.end_time - this.start_time) * 3600;
-        i = setInterval(()=>{
-            this.date = this.getDate();
-            if (this.school_avaliable) {
-                let elapsed_time = this.date.hours * 3600 + this.date.minutes * 60 + this.date.seconds - this.start_time * 3600;
-                let percentage = Math.round((elapsed_time / duration) * 10000) / 100;
-                if (percentage>=100) {this.school_avaliable=false} 
-                else {
-                    this.school_avaliable=true;
-                    this.percentage = percentage;
-                    
-                };
-            }
-        }, 100) 
-    }
-    
-    ngOnDestroy() { clearInterval(i) }
 
     public percentage: number;
     public current_class: {
         class: string;
-        class_percentage: number};
+        percentage: number};
     public rotation_day: number;
     private end_time: number = 15.25;
     private start_time: number;
     public school_avaliable: boolean;
-    private schedule;
-    public constructor(private _DomService: DomData) {
+    public schedule: {
+        day: number;
+        classes: {
+            start: string;
+            end: string;
+            name: string;
+        }[];
+        allDay: string[];
+    };
+    public scheduleReady:boolean;
+    public errorMsg;
+    constructor(private portalService: PortalService) {
         this.percentage = 0;
-        this.current_class = {class: 'E', class_percentage: 50};//figure out a way to dsiplay the percentage
-        this.rotation_day = _DomService.getProgress().classData.day;
         this.date = this.getDate();
         this.date.dayInWeek == 'Wednesday' ? this.start_time = 9 : this.start_time = 8;
         this.date.dayInWeek=='Saturday'||this.date.dayInWeek=='Sunday' ? this.school_avaliable=false : this.school_avaliable=true;
-        this.schedule = _DomService.getProgress().classData.schedule;
+        this.schedule = {day:0,classes:[],allDay:[]};
+        this.current_class = {class: '',percentage:0}
     };
+
+    getSchedule(date) {
+        this.portalService.getSchedule(date).subscribe(
+            scheduleData => {
+                if (scheduleData.error) {
+                    this.errorMsg = scheduleData.error;
+                    console.log('Error getting schedule: '+this.errorMsg);
+                } else {
+                    this.schedule = scheduleData.schedule;
+                    this.rotation_day = scheduleData.schedule.day;
+                    this.scheduleReady = true;
+                } 
+            },
+            error => {
+                this.errorMsg = <any>error;
+            }
+        );
+    }
+
+    calcPercentage() {
+        let duration = (this.end_time - this.start_time) * 3600;
+        this.date = this.getDate();
+        if (this.school_avaliable) {
+            let elapsed_time = this.date.hours * 3600 + this.date.minutes * 60 + this.date.seconds - this.start_time * 3600;
+            let percentage = Math.round((elapsed_time / duration) * 10000) / 100;
+            if (percentage>=100 || percentage<=0) {
+                this.school_avaliable=false;
+                let date = {year: this.getDate().year, month: this.getDate().month+1, day: this.getDate().day+1};
+                this.getSchedule(date);
+                clearInterval(i);
+            } else {
+                this.school_avaliable=true;
+                this.percentage = percentage;
+                let classes = this.schedule.classes
+                for (let i=0;i<classes.length;i++){
+                    let cStart = new Date(classes[i].start);
+                    let cEnd = new Date(classes[i].end);
+                    let csElapsed = cStart.getHours()*3600 + cStart.getMinutes()*60 + cStart.getSeconds() - this.start_time*3600;
+                    let ceElapsed = cEnd.getHours()*3600 + cEnd.getMinutes()*60 + cEnd.getSeconds() - this.start_time*3600;
+                    if (csElapsed<elapsed_time && ceElapsed>elapsed_time) {
+                        this.current_class.class = classes[i].name;
+                        this.current_class.percentage = Math.round((elapsed_time-csElapsed)/(ceElapsed-csElapsed)*10000)/100
+                    }
+                }
+            };
+        }
+    }
+
+    ngOnInit() { 
+        let date = {year: this.getDate().year, month: this.getDate().month+1, day: this.getDate().day}
+        this.getSchedule(date);
+        i = setInterval(()=>{
+            this.calcPercentage();
+        }, 100) 
+    }
+    
+    ngOnDestroy() { clearInterval(i) }
 }

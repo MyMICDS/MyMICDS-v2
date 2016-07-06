@@ -4,12 +4,10 @@ import {Component} from '@angular/core';
 import {BgComponent} from './background.component'
 import {mainContent} from './Home/mainContent.component'
 import {DomData} from './mockdata.service';
-import {NgClass, NgIf} from '@angular/common';
+import {NgClass, NgIf, NgFor, NgForm} from '@angular/common';
 import { Title } from '@angular/platform-browser';
-import {NgFor} from '@angular/common';
 import {Router} from '@angular/router'
-import {AuthService} from './mockauth.service'
-import {NgForm} from '@angular/common'
+import {AuthService} from './services/auth.service'
 import {HTTP_PROVIDERS} from '@angular/http';
 
 var _navService = new DomData();
@@ -90,12 +88,17 @@ export class AppComponent {
 
     //form related variables and methods
     //todo: separate this into another component
+    ngOnInit() {
+        console.log('logging out');
+        this.onClickLogout();
+    }
+
     public loginModel: {
-        email: string;
+        user: string;
         password: string;
         remember: any;
     } = {
-        email: '',
+        user: '',
         password: '',
         remember: '',
     }
@@ -108,23 +111,24 @@ export class AppComponent {
             expires:string
             }
     } 
+    public isLoggedIn: boolean;
     public errorMessage:string; 
-    public serverErrorMessage:string;
     public onClickLogin() {
         this.authService.logIn(this.loginModel).subscribe(
             loginRes => {
                 this.loginRes = loginRes;
                 if (loginRes.error) { 
-                    this.serverErrorMessage = loginRes.error;
-                    console.log(this.serverErrorMessage);
+                    this.errorMessage = loginRes.error;
+                    console.log(this.errorMessage);
                 } else { 
+                    this.isLoggedIn = true;
                     $('#loginModal').modal('hide');
                     this.router.navigate(['/'+this.selectedPage]);
                 }
             },
             error => {
                 this.errorMessage = <any>error;
-                console.log(this.errorMessage);
+                console.log('If this keeps happening, contact the support!')
             }
         )
     }
@@ -133,6 +137,9 @@ export class AppComponent {
         this.authService.logOut().subscribe(
             logoutRes => {
                 console.log(logoutRes.error ? logoutRes.error : 'Logout Successful!')
+                if (!logoutRes.error) {
+                    this.isLoggedIn = false;
+                }
             }
         )
     }

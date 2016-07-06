@@ -9,46 +9,54 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
-require('./rxjs-operators');
+require('../rxjs-operators');
 var http_1 = require('@angular/http');
 var Observable_1 = require('rxjs/Observable');
 var http_2 = require('@angular/http');
-var AuthService = (function () {
-    function AuthService(http) {
+var PortalService = (function () {
+    function PortalService(http) {
         this.http = http;
-        this.authUrl = 'localhost:1420/';
+        this.Url = 'http://localhost:1420/portal';
     }
-    AuthService.prototype.extractData = function (res) {
+    PortalService.prototype.extractData = function (res) {
         var body = res.json();
-        return body.data || {};
+        return body || {};
     };
-    AuthService.prototype.handleError = function (error) {
+    PortalService.prototype.handleError = function (error) {
         var errMsg = (error.message) ? error.message :
             error.status ? error.status + " - " + error.statusText : error;
         console.error(errMsg); // log to console instead
         return Observable_1.Observable.throw(errMsg);
     };
-    AuthService.prototype.logIn = function (loginModel) {
-        var body = JSON.stringify(loginModel);
+    PortalService.prototype.getSchedule = function (date) {
+        var body = JSON.stringify(date);
         var headers = new http_2.Headers({ 'Content-Type': 'application/json' });
         var options = new http_2.RequestOptions({ headers: headers });
-        return this.http.post(this.authUrl + 'login', body, options)
+        return this.http.post(this.Url + '/get-schedule', body, options)
             .map(this.extractData)
             .catch(this.handleError);
     };
-    AuthService.prototype.logOut = function () {
-        var body = null;
+    PortalService.prototype.setUrl = function (url) {
+        var body = JSON.stringify({ url: url });
         var headers = new http_2.Headers({ 'Content-Type': 'application/json' });
         var options = new http_2.RequestOptions({ headers: headers });
-        return this.http.post(this.authUrl + 'logout', body, options)
+        return this.http.post(this.Url + '/set-url', body, options)
             .map(this.extractData)
             .catch(this.handleError);
     };
-    AuthService = __decorate([
+    PortalService.prototype.testUrl = function (url) {
+        var body = JSON.stringify({ url: url });
+        var headers = new http_2.Headers({ 'Content-Type': 'application/json' });
+        var options = new http_2.RequestOptions({ headers: headers });
+        return this.http.post(this.Url + '/test-url', body, options)
+            .map(this.extractData)
+            .catch(this.handleError);
+    };
+    PortalService = __decorate([
         core_1.Injectable(), 
         __metadata('design:paramtypes', [http_1.Http])
-    ], AuthService);
-    return AuthService;
+    ], PortalService);
+    return PortalService;
 }());
-exports.AuthService = AuthService;
-//# sourceMappingURL=mockauth.service.js.map
+exports.PortalService = PortalService;
+//# sourceMappingURL=planner.service.js.map

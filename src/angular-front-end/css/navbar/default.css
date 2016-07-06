@@ -68,3 +68,10 @@ nav {
 .form-control {
     transition: all 0.4s ease;
 }
+
+.nav p {
+    text-align: center;
+    font-size: 1em;
+    display: inline-block;
+    margin-left: 1em;
+}

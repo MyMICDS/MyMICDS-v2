@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {AuthService} from '../mockauth.service'
+import {AuthService} from '../services/auth.service'
 import {DomData} from '../mockdata.service'
 
 var _navService = new DomData();
@@ -15,10 +15,6 @@ var templateUrl = _navService.getProfile().selectedStyle.TemplateUrl;
  
 export class profileContent{
     user: {
-        firstName: string,
-        lastName: string,
-        email: string,
-        gradYear: number
     };
     constructor (private userService: AuthService) {
         this.user = this.userService.getUser()

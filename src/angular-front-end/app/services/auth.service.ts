@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import './rxjs-operators';
+import '../rxjs-operators';
 import {Http, Response} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import { Headers, RequestOptions } from '@angular/http';
@@ -10,7 +10,7 @@ export class AuthService {
 
     private extractData(res: Response) {
         let body = res.json();
-        return body.data || { };
+        return body || { };
     }
     private handleError (error: any) {
         let errMsg = (error.message) ? error.message :
@@ -18,9 +18,9 @@ export class AuthService {
         console.error(errMsg); // log to console instead
         return Observable.throw(errMsg);
     }
-    private authUrl = 'localhost:1420/'
 
-    public logIn(loginModel:{email:string,password:string,remember:any}):
+    private authUrl = 'http://localhost:1420'
+    public logIn(loginModel:{user:string,password:string,remember:any}):
     Observable<{
         error: string;
         success: boolean;
@@ -32,8 +32,8 @@ export class AuthService {
         let body = JSON.stringify(loginModel);
         let headers = new Headers({ 'Content-Type': 'application/json' });
         let options = new RequestOptions({ headers: headers });
-
-        return this.http.post(this.authUrl+'login', body, options)
+        
+        return this.http.post(this.authUrl+'/login', body, options)
                         .map(this.extractData)
                         .catch(this.handleError);
     }
@@ -43,8 +43,12 @@ export class AuthService {
         let headers = new Headers({ 'Content-Type': 'application/json' });
         let options = new RequestOptions({ headers: headers });
 
-        return this.http.post(this.authUrl+'logout', body, options)
+        return this.http.post(this.authUrl+'/logout', body, options)
                         .map(this.extractData)
                         .catch(this.handleError);
+    }
+
+    public getUser () {
+        return {}
     }
 }

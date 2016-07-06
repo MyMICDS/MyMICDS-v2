@@ -11,22 +11,22 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var core_1 = require('@angular/core');
 var progress_component_1 = require('./progress/progress.component');
 var mockdata_service_1 = require('../mockdata.service');
-//import {NgIf} from '@angular/common'
+var planner_service_1 = require('../services/planner.service');
+var common_1 = require('@angular/common');
 var _navService = new mockdata_service_1.DomData();
 var styleUrl = _navService.getMain().selectedStyle.StyleUrl;
 var templateUrl = _navService.getMain().selectedStyle.TemplateUrl;
 var i;
 var mainContent = (function () {
-    function mainContent(_DomService) {
-        this._DomService = _DomService;
+    function mainContent(portalService) {
+        this.portalService = portalService;
         this.end_time = 15.25;
         this.percentage = 0;
-        this.current_class = { class: 'E', class_percentage: 50 }; //figure out a way to dsiplay the percentage
-        this.rotation_day = _DomService.getProgress().classData.day;
         this.date = this.getDate();
         this.date.dayInWeek == 'Wednesday' ? this.start_time = 9 : this.start_time = 8;
         this.date.dayInWeek == 'Saturday' || this.date.dayInWeek == 'Sunday' ? this.school_avaliable = false : this.school_avaliable = true;
-        this.schedule = _DomService.getProgress().classData.schedule;
+        this.schedule = { day: 0, classes: [], allDay: [] };
+        this.current_class = { class: '', percentage: 0 };
     }
     mainContent.prototype.getDate = function () {
         var d = new Date();
@@ -43,35 +43,71 @@ var mainContent = (function () {
         };
     };
     ;
+    ;
+    mainContent.prototype.getSchedule = function (date) {
+        var _this = this;
+        this.portalService.getSchedule(date).subscribe(function (scheduleData) {
+            if (scheduleData.error) {
+                _this.errorMsg = scheduleData.error;
+                console.log('Error getting schedule: ' + _this.errorMsg);
+            }
+            else {
+                _this.schedule = scheduleData.schedule;
+                _this.rotation_day = scheduleData.schedule.day;
+                _this.scheduleReady = true;
+            }
+        }, function (error) {
+            _this.errorMsg = error;
+        });
+    };
+    mainContent.prototype.calcPercentage = function () {
+        var duration = (this.end_time - this.start_time) * 3600;
+        this.date = this.getDate();
+        if (this.school_avaliable) {
+            var elapsed_time = this.date.hours * 3600 + this.date.minutes * 60 + this.date.seconds - this.start_time * 3600;
+            var percentage = Math.round((elapsed_time / duration) * 10000) / 100;
+            if (percentage >= 100 || percentage <= 0) {
+                this.school_avaliable = false;
+                var date = { year: this.getDate().year, month: this.getDate().month + 1, day: this.getDate().day + 1 };
+                this.getSchedule(date);
+                clearInterval(i);
+            }
+            else {
+                this.school_avaliable = true;
+                this.percentage = percentage;
+                var classes = this.schedule.classes;
+                for (var i_1 = 0; i_1 < classes.length; i_1++) {
+                    var cStart = new Date(classes[i_1].start);
+                    var cEnd = new Date(classes[i_1].end);
+                    var csElapsed = cStart.getHours() * 3600 + cStart.getMinutes() * 60 + cStart.getSeconds() - this.start_time * 3600;
+                    var ceElapsed = cEnd.getHours() * 3600 + cEnd.getMinutes() * 60 + cEnd.getSeconds() - this.start_time * 3600;
+                    if (csElapsed < elapsed_time && ceElapsed > elapsed_time) {
+                        this.current_class.class = classes[i_1].name;
+                        this.current_class.percentage = Math.round((elapsed_time - csElapsed) / (ceElapsed - csElapsed) * 10000) / 100;
+                    }
+                }
+            }
+            ;
+        }
+    };
     mainContent.prototype.ngOnInit = function () {
         var _this = this;
-        var duration = (this.end_time - this.start_time) * 3600;
+        var date = { year: this.getDate().year, month: this.getDate().month + 1, day: this.getDate().day };
+        this.getSchedule(date);
         i = setInterval(function () {
-            _this.date = _this.getDate();
-            if (_this.school_avaliable) {
-                var elapsed_time = _this.date.hours * 3600 + _this.date.minutes * 60 + _this.date.seconds - _this.start_time * 3600;
-                var percentage = Math.round((elapsed_time / duration) * 10000) / 100;
-                if (percentage >= 100) {
-                    _this.school_avaliable = false;
-                }
-                else {
-                    _this.school_avaliable = true;
-                    _this.percentage = percentage;
-                }
-                ;
-            }
+            _this.calcPercentage();
         }, 100);
     };
     mainContent.prototype.ngOnDestroy = function () { clearInterval(i); };
-    ;
     mainContent = __decorate([
         core_1.Component({
             selector: 'app-content',
             templateUrl: templateUrl,
             styleUrls: [styleUrl],
-            directives: [progress_component_1.MyProgress]
+            directives: [progress_component_1.MyProgress, common_1.NgFor, common_1.NgIf],
+            providers: [planner_service_1.PortalService]
         }), 
-        __metadata('design:paramtypes', [mockdata_service_1.DomData])
+        __metadata('design:paramtypes', [planner_service_1.PortalService])
     ], mainContent);
     return mainContent;
 }());
