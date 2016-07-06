@@ -233,7 +233,7 @@ This will test any given URL to see if it is a valid Portal calendar feed.
 - `url` - Cleaned up URL to actually use.
 
 
-### `/canvas/get-events`
+### `/portal/get-schedule`
 **Requires user to be logged in.** This will retrieve a user's schedule for a given date.
 
 #### Parameters
