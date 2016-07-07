@@ -59,4 +59,50 @@ var PortalService = (function () {
     return PortalService;
 }());
 exports.PortalService = PortalService;
+var CanvasService = (function () {
+    function CanvasService(http) {
+        this.http = http;
+        this.Url = 'http://localhost:1420/canvas';
+    }
+    CanvasService.prototype.extractData = function (res) {
+        var body = res.json();
+        return body || {};
+    };
+    CanvasService.prototype.handleError = function (error) {
+        var errMsg = (error.message) ? error.message :
+            error.status ? error.status + " - " + error.statusText : error;
+        console.error(errMsg); // log to console instead
+        return Observable_1.Observable.throw(errMsg);
+    };
+    CanvasService.prototype.getEvents = function (date) {
+        var body = JSON.stringify(date);
+        var headers = new http_2.Headers({ 'Content-Type': 'application/json' });
+        var options = new http_2.RequestOptions({ headers: headers });
+        return this.http.post(this.Url + '/get-events', body, options)
+            .map(this.extractData)
+            .catch(this.handleError);
+    };
+    CanvasService.prototype.setUrl = function (url) {
+        var body = JSON.stringify({ url: url });
+        var headers = new http_2.Headers({ 'Content-Type': 'application/json' });
+        var options = new http_2.RequestOptions({ headers: headers });
+        return this.http.post(this.Url + '/set-url', body, options)
+            .map(this.extractData)
+            .catch(this.handleError);
+    };
+    CanvasService.prototype.testUrl = function (url) {
+        var body = JSON.stringify({ url: url });
+        var headers = new http_2.Headers({ 'Content-Type': 'application/json' });
+        var options = new http_2.RequestOptions({ headers: headers });
+        return this.http.post(this.Url + '/test-url', body, options)
+            .map(this.extractData)
+            .catch(this.handleError);
+    };
+    CanvasService = __decorate([
+        core_1.Injectable(), 
+        __metadata('design:paramtypes', [http_1.Http])
+    ], CanvasService);
+    return CanvasService;
+}());
+exports.CanvasService = CanvasService;
 //# sourceMappingURL=planner.service.js.map

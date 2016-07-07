@@ -44,6 +44,14 @@ var UserService = (function () {
             .map(this.extractData)
             .catch(this.handleError);
     };
+    UserService.prototype.changeInfo = function (user) {
+        var body = JSON.stringify(user);
+        var headers = new http_2.Headers({ 'Content-Type': 'application/json' });
+        var options = new http_2.RequestOptions({ headers: headers });
+        return this.http.post(this.userUrl + '/grade-range', body, options)
+            .map(this.extractData)
+            .catch(this.handleError);
+    };
     UserService = __decorate([
         core_1.Injectable(), 
         __metadata('design:paramtypes', [http_1.Http])

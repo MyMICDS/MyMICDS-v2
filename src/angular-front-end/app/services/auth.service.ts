@@ -6,6 +6,7 @@ import { Headers, RequestOptions } from '@angular/http';
 
 @Injectable()
 export class AuthService {
+
     constructor (private http: Http) {}
 
     private extractData(res: Response) {

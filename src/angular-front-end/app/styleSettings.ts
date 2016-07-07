@@ -53,6 +53,9 @@ export var styleList = {
             TemplateUrl: '../templates/accountContent/default.html'},
         profile: {
             StyleUrl: '../css/profileContent/default.css',
-            TemplateUrl: '../templates/profileContent/default.html'}
+            TemplateUrl: '../templates/profileContent/default.html'},
+        settings: {
+            StyleUrl: '../css/settingsContent/default.css',
+            TemplateUrl: '../templates/settingsContent/default.html'}
     },
 };

@@ -92,4 +92,10 @@ export class DomData {
         var selectedStyle = styleList[styleName].profile;
         return {selectedStyle}
     }
+
+    public getSettings() {
+        var styleName = this.getStyleName();
+        var selectedStyle = styleList[styleName].profile;
+        return {selectedStyle}
+    }
 }

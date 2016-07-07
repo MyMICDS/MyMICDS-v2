@@ -89,6 +89,11 @@ var DomData = (function () {
         var selectedStyle = styleSettings_1.styleList[styleName].profile;
         return { selectedStyle: selectedStyle };
     };
+    DomData.prototype.getSettings = function () {
+        var styleName = this.getStyleName();
+        var selectedStyle = styleSettings_1.styleList[styleName].profile;
+        return { selectedStyle: selectedStyle };
+    };
     DomData = __decorate([
         core_1.Injectable(), 
         __metadata('design:paramtypes', [])

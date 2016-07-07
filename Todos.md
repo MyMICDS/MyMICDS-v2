@@ -5,3 +5,10 @@
 - separate the navbar into another component
 - clean up appcomponents.ts
 - choose between hash url or html5 url for local routes
+- tell squash coach I cant go next week
+- 39 days until release, WIP funcitonality: lunch, planner, settings
+- take out all the ts and js.map files once everything's done
+- change profile component to display bulletin board
+- make the hidden form alerts float to the right so they dont change the height of the elements
+- display the errors in setting page
+- fix list dropdown in account creation
