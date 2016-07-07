@@ -280,6 +280,13 @@ Returns the date when school ends. During Summer, returns the date next school y
 - `date` - Date when school ends. Last Friday of may at 11:30.
 
 
+### `/user/grade-range`
+Returns an array of school graduation years from Junior Kindergarten to 12th grade.
+
+#### Response
+- `gradYears` - Array of graduation years spanning K-12
+
+
 ### `/user/get-info`
 **Requires user to be logged in.** Get basic information about the user such as name and grade. You can also get canvasURL and portalURL. If canvasURL or portalURL is not set, they will be null.
 

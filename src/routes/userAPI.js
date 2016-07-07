@@ -24,6 +24,17 @@ module.exports = function(app, db) {
 		var ends = users.schoolEnds();
 		res.json({ ends: ends });
 	});
+    
+    app.post('/user/grade-range', function(req, res) {
+        var gradYears = [];
+        // Set min (inclusive) and max (inclusive)
+        var min = -1; // JK
+        var max = 12; // Senior
+        for(var i = min; i <= max; i++) {
+            gradYears.push(users.gradeToGradYear(i));
+        }
+        res.json({ gradYears });
+    });
 
 	app.post('/user/get-info', function(req, res) {
 		users.getInfo(db, req.session.user, true, function(err, userInfo) {
