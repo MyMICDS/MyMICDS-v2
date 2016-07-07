@@ -33,6 +33,8 @@ module.exports = function(app, db) {
         for(var i = min; i <= max; i++) {
             gradYears.push(users.gradeToGradYear(i));
         }
+        // Put most recent years first
+        gradYears.reverse();
         res.json({ gradYears });
     });
 
