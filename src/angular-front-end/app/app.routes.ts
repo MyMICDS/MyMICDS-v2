@@ -8,7 +8,7 @@ import {settingsContent} from './Settings/settingsContent.component'
 import {accountContent} from './Account/accountContent.component'
 
 export const routes: RouterConfig = [
-  { path: '', component: mainContent },
+  { path: '', redirectTo: 'Home', pathMatch: 'full' },
   { path: 'Home', component: mainContent },
   { path: 'Lunch', component: lunchContent },
   { path: 'Planner', component: plannerContent },

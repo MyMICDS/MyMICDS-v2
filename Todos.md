@@ -2,3 +2,6 @@
 - the tomorrow schedule on main page doesn't display time.
 - add gmail link to the account created page.
 - make checkboxes look nicer
+- separate the navbar into another component
+- clean up appcomponents.ts
+- choose between hash url or html5 url for local routes

@@ -9,6 +9,7 @@ import { Title } from '@angular/platform-browser';
 import {Router} from '@angular/router'
 import {AuthService} from './services/auth.service'
 import {HTTP_PROVIDERS} from '@angular/http';
+import {UserService} from './services/user.service'
 
 var _navService = new DomData();
 var styleUrl = _navService.getNav().selectedStyle.StyleUrl;
@@ -18,7 +19,7 @@ var templateUrl = _navService.getNav().selectedStyle.TemplateUrl;
     selector: 'mymicds-app',
     templateUrl: templateUrl,
     directives: [BgComponent, NgClass, ROUTER_DIRECTIVES, NgIf],
-    providers: [DomData, AuthService, HTTP_PROVIDERS],
+    providers: [DomData, AuthService, HTTP_PROVIDERS, UserService],
     styleUrls: ['./css/main.css', styleUrl]
 })
 
@@ -57,7 +58,7 @@ export class AppComponent {
     private blur:boolean[] = [false,false,false,false,false]
     private isActive:boolean[] = [true,false,false,false,false]
     
-    public constructor(private _titleService: Title, private _DomService: DomData, private router:Router, private authService: AuthService) { }
+    public constructor(private _titleService: Title, private _DomService: DomData, private router:Router, private authService: AuthService, private userService: UserService) { }
     public pages = this._DomService.getNav().navTitles
   //emit events to alert the other components to render the app
     
@@ -113,6 +114,8 @@ export class AppComponent {
     } 
     public isLoggedIn: boolean;
     public errorMessage:string; 
+    public userErrMsg:string;
+    public userName:string;
     public onClickLogin() {
         this.authService.logIn(this.loginModel).subscribe(
             loginRes => {
@@ -124,6 +127,15 @@ export class AppComponent {
                     this.isLoggedIn = true;
                     $('#loginModal').modal('hide');
                     this.router.navigate(['/'+this.selectedPage]);
+                    this.userService.getInfo().subscribe(
+                        userInfo => {
+                            if (userInfo.error) {this.userErrMsg = userInfo.error}
+                            else {this.userName = userInfo.user.firstName+' '+userInfo.user.lastName}
+                        },
+                        error => {
+                            this.userErrMsg = error;
+                        }
+                    )
                 }
             },
             error => {

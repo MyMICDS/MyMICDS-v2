@@ -5,7 +5,8 @@
             <a *ngFor="let page of pages; let i = index" [ngClass]="{active: isActive[i], 'nav-item': true, 'nav-link': true}"  (click)="onSelect(i)">{{page}}</a>
             <button *ngIf="!isLoggedIn" id="loginButton" type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#loginModal">login</button>
             <button *ngIf="isLoggedIn" (click)="onClickLogout()" id="logoutButton" type="button" class="btn btn-primary btn-lg" >logout</button>
-            <p class="text-muted" *ngIf="isLoggedIn">Logged in as {{loginModel.user}}.</p>
+            <p class="text-muted" *ngIf="isLoggedIn">Logged in as {{userName}}.</p>
+            <div class="alert alert-danger" *ngIf="userErrMsg"><strong>Error getting user information!</strong>{{userErrMsg}}</div>
             <h1 class="navbar-brand">MyMICDS<div id="dot"></div><div id="bold">net</div></h1><!--Fancy animation needed for the logo-->
             
         </div>
@@ -19,7 +20,7 @@
                 <span aria-hidden="true">&times;</span>
                 </button>
                 <h4 class="modal-title" id="myModalLabel">LOGIN</h4>
-                <div class="alert alert-danger" *ngIf="errorMessage"><strong>Error Logging in!</strong> {{errorMessage}} <span *ngIf="serverErrorMessage">{{serverErrorMessage}}</span></div>
+                <div class="alert alert-danger" *ngIf="errorMessage"><strong>Error Logging in!</strong> {{errorMessage}} </div>
             </div>
             <div class="modal-body">
                 <form *ngIf="formActive" (ngSubmit)="onClickLogin()" #loginForm="ngForm" id="login-form">

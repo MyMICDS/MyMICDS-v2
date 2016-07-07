@@ -18,15 +18,17 @@ var platform_browser_1 = require('@angular/platform-browser');
 var router_2 = require('@angular/router');
 var auth_service_1 = require('./services/auth.service');
 var http_1 = require('@angular/http');
+var user_service_1 = require('./services/user.service');
 var _navService = new mockdata_service_1.DomData();
 var styleUrl = _navService.getNav().selectedStyle.StyleUrl;
 var templateUrl = _navService.getNav().selectedStyle.TemplateUrl;
 var AppComponent = (function () {
-    function AppComponent(_titleService, _DomService, router, authService) {
+    function AppComponent(_titleService, _DomService, router, authService, userService) {
         this._titleService = _titleService;
         this._DomService = _DomService;
         this.router = router;
         this.authService = authService;
+        this.userService = userService;
         this.blur = [false, false, false, false, false];
         this.isActive = [true, false, false, false, false];
         this.pages = this._DomService.getNav().navTitles;
@@ -105,6 +107,16 @@ var AppComponent = (function () {
                 _this.isLoggedIn = true;
                 $('#loginModal').modal('hide');
                 _this.router.navigate(['/' + _this.selectedPage]);
+                _this.userService.getInfo().subscribe(function (userInfo) {
+                    if (userInfo.error) {
+                        _this.userErrMsg = userInfo.error;
+                    }
+                    else {
+                        _this.userName = userInfo.user.firstName + ' ' + userInfo.user.lastName;
+                    }
+                }, function (error) {
+                    _this.userErrMsg = error;
+                });
             }
         }, function (error) {
             _this.errorMessage = error;
@@ -128,10 +140,10 @@ var AppComponent = (function () {
             selector: 'mymicds-app',
             templateUrl: templateUrl,
             directives: [background_component_1.BgComponent, common_1.NgClass, router_1.ROUTER_DIRECTIVES, common_1.NgIf],
-            providers: [mockdata_service_1.DomData, auth_service_1.AuthService, http_1.HTTP_PROVIDERS],
+            providers: [mockdata_service_1.DomData, auth_service_1.AuthService, http_1.HTTP_PROVIDERS, user_service_1.UserService],
             styleUrls: ['./css/main.css', styleUrl]
         }), 
-        __metadata('design:paramtypes', [platform_browser_1.Title, mockdata_service_1.DomData, router_2.Router, auth_service_1.AuthService])
+        __metadata('design:paramtypes', [platform_browser_1.Title, mockdata_service_1.DomData, router_2.Router, auth_service_1.AuthService, user_service_1.UserService])
     ], AppComponent);
     return AppComponent;
 }());

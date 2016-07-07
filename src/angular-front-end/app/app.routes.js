@@ -7,7 +7,7 @@ var profileContent_component_1 = require('./Profile/profileContent.component');
 var settingsContent_component_1 = require('./Settings/settingsContent.component');
 var accountContent_component_1 = require('./Account/accountContent.component');
 exports.routes = [
-    { path: '', component: mainContent_component_1.mainContent },
+    { path: '', redirectTo: 'Home', pathMatch: 'full' },
     { path: 'Home', component: mainContent_component_1.mainContent },
     { path: 'Lunch', component: lunchContent_component_1.lunchContent },
     { path: 'Planner', component: plannerContent_component_1.plannerContent },

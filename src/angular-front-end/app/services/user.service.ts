@@ -21,7 +21,19 @@ export class UserService {
 
     private userUrl = 'http://localhost:1420/user'
 
-    public getInfo():Observable<{error:any,user:Object}> {
+    public getInfo():Observable<{
+        error:any,
+        user:{
+            canvasURL:string
+            firstName:string;
+            gradYear:string;
+            grade:string;
+            lastName:string;
+            password:string;
+            portalURL:string;
+            user:string;
+        }
+    }> {
         let body = null;
         let headers = new Headers({ 'Content-Type': 'application/json' });
         let options = new RequestOptions({ headers: headers });
