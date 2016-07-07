@@ -27,6 +27,7 @@ var mainContent = (function () {
         this.date.dayInWeek == 'Saturday' || this.date.dayInWeek == 'Sunday' ? this.school_avaliable = false : this.school_avaliable = true;
         this.schedule = { day: 0, classes: [], allDay: [] };
         this.current_class = { class: '', percentage: 0 };
+        this.class_times = [{ start: '', end: '' }];
     }
     mainContent.prototype.getDate = function () {
         var d = new Date();
@@ -60,6 +61,12 @@ var mainContent = (function () {
             _this.errorMsg = error;
         });
     };
+    mainContent.prototype.getHrMin = function (date) {
+        var hrs, min;
+        date.getHours() == 0 ? hrs = "00" : hrs = date.getHours().toString();
+        date.getMinutes() == 0 ? min = "00" : min = date.getMinutes().toString();
+        return hrs + ':' + min;
+    };
     mainContent.prototype.calcPercentage = function () {
         var duration = (this.end_time - this.start_time) * 3600;
         this.date = this.getDate();
@@ -79,6 +86,7 @@ var mainContent = (function () {
                 for (var i_1 = 0; i_1 < classes.length; i_1++) {
                     var cStart = new Date(classes[i_1].start);
                     var cEnd = new Date(classes[i_1].end);
+                    this.class_times[i_1] = { start: this.getHrMin(cStart), end: this.getHrMin(cEnd) };
                     var csElapsed = cStart.getHours() * 3600 + cStart.getMinutes() * 60 + cStart.getSeconds() - this.start_time * 3600;
                     var ceElapsed = cEnd.getHours() * 3600 + cEnd.getMinutes() * 60 + cEnd.getSeconds() - this.start_time * 3600;
                     if (csElapsed < elapsed_time && ceElapsed > elapsed_time) {

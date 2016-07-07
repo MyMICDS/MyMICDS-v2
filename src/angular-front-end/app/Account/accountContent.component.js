@@ -10,36 +10,58 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require('@angular/core');
 var mockdata_service_1 = require('../mockdata.service');
+var auth_service_1 = require('../services/auth.service');
 var _navService = new mockdata_service_1.DomData();
 var styleUrl = _navService.getAccount().selectedStyle.StyleUrl;
 var templateUrl = _navService.getAccount().selectedStyle.TemplateUrl;
 var accountContent = (function () {
-    function accountContent() {
+    function accountContent(authService) {
+        this.authService = authService;
+        this.repeatPass = '';
         this.form = {
-            email: '',
-            password1: '',
-            password2: '',
+            user: '',
+            password: '',
+            firstName: '',
+            lastName: '',
+            'grad-year': '',
+            teacher: ''
         };
         this.submitted = false;
         this.submitSuccess = false;
+        this.errMsg = '';
     }
     accountContent.prototype.onSubmit = function () {
         var _this = this;
-        var p = new Promise(function (resolve, reject) {
-            _this.submitted = true;
-            setTimeout(function () { resolve(); }, 6000);
+        this.submitted = true;
+        this.authService.register(this.form).subscribe(function (res) {
+            if (res.error) {
+                _this.submitSuccess = false;
+                _this.submitted = false;
+                _this.errMsg = res.error;
+            }
+            else {
+                _this.submitSuccess = true;
+                _this.submitted = true;
+            }
+        }, function (error) {
+            _this.errMsg = error;
+            _this.submitSuccess = false;
+            _this.submitted = false;
         });
-        p.then(function () { return _this.submitSuccess = true; })
-            .catch(function (e) { return console.log(e); });
+    };
+    accountContent.prototype.changeEmail = function () {
+        this.submitted = false;
+        this.submitSuccess = false;
     };
     accountContent = __decorate([
         core_1.Component({
             selector: 'app-content',
             templateUrl: templateUrl,
             styleUrls: [styleUrl],
-            directives: []
+            directives: [],
+            providers: [auth_service_1.AuthService]
         }), 
-        __metadata('design:paramtypes', [])
+        __metadata('design:paramtypes', [auth_service_1.AuthService])
     ], accountContent);
     return accountContent;
 }());

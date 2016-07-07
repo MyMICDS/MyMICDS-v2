@@ -8,7 +8,10 @@ input {
 }
 
 .ng-valid[required] {
-    border-color: #5cb85c;
+  border-left: 5px solid #42A948; /* green */
+}
+.ng-invalid {
+  border-left: 5px solid #a94442; /* red */
 }
 
 .navbar-brand {
@@ -80,4 +83,12 @@ input {
 
 #MyMICDS {
   animation: 2s cubic-bezier(0.86, 0, 0.07, 1) 0.6s infinite alternate forwards running fade;
+}
+
+#inputGradyear:disabled {
+  background-color: grey;
+}
+
+#accountCreation {
+  margin-top: 100px;
 }

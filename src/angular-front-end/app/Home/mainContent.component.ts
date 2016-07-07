@@ -60,6 +60,7 @@ export class mainContent{
         }[];
         allDay: string[];
     };
+    public class_times:{start:string, end:string}[]
     public scheduleReady:boolean;
     public errorMsg;
     constructor(private portalService: PortalService) {
@@ -69,6 +70,7 @@ export class mainContent{
         this.date.dayInWeek=='Saturday'||this.date.dayInWeek=='Sunday' ? this.school_avaliable=false : this.school_avaliable=true;
         this.schedule = {day:0,classes:[],allDay:[]};
         this.current_class = {class: '',percentage:0}
+        this.class_times = [{start:'',end:''}]
     };
 
     getSchedule(date) {
@@ -89,6 +91,13 @@ export class mainContent{
         );
     }
 
+    getHrMin(date: Date) {
+        let hrs:string, min:string;
+        date.getHours() == 0 ? hrs = "00" : hrs = date.getHours().toString();
+        date.getMinutes() ==0 ? min = "00" : min = date.getMinutes().toString();
+        return hrs + ':' + min;
+    }
+
     calcPercentage() {
         let duration = (this.end_time - this.start_time) * 3600;
         this.date = this.getDate();
@@ -107,6 +116,7 @@ export class mainContent{
                 for (let i=0;i<classes.length;i++){
                     let cStart = new Date(classes[i].start);
                     let cEnd = new Date(classes[i].end);
+                    this.class_times[i] = {start: this.getHrMin(cStart), end:this.getHrMin(cEnd)};
                     let csElapsed = cStart.getHours()*3600 + cStart.getMinutes()*60 + cStart.getSeconds() - this.start_time*3600;
                     let ceElapsed = cEnd.getHours()*3600 + cEnd.getMinutes()*60 + cEnd.getSeconds() - this.start_time*3600;
                     if (csElapsed<elapsed_time && ceElapsed>elapsed_time) {

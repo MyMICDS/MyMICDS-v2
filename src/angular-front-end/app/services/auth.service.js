@@ -16,7 +16,7 @@ var http_2 = require('@angular/http');
 var AuthService = (function () {
     function AuthService(http) {
         this.http = http;
-        this.authUrl = 'http://localhost:1420';
+        this.authUrl = 'http://localhost:1420/auth';
     }
     AuthService.prototype.extractData = function (res) {
         var body = res.json();
@@ -41,6 +41,14 @@ var AuthService = (function () {
         var headers = new http_2.Headers({ 'Content-Type': 'application/json' });
         var options = new http_2.RequestOptions({ headers: headers });
         return this.http.post(this.authUrl + '/logout', body, options)
+            .map(this.extractData)
+            .catch(this.handleError);
+    };
+    AuthService.prototype.register = function (info) {
+        var body = JSON.stringify(info);
+        var headers = new http_2.Headers({ 'Content-Type': 'application/json' });
+        var options = new http_2.RequestOptions({ headers: headers });
+        return this.http.post(this.authUrl + '/register', body, options)
             .map(this.extractData)
             .catch(this.handleError);
     };
