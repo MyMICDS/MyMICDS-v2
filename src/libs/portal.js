@@ -261,6 +261,8 @@ function getSchedule(db, user, date, callback) {
 			};
 
 			// Loop through all of the events in the calendar feed
+            var conflictIndexes = [];
+            
 			for(var eventUid in data) {
 				var calEvent = data[eventUid];
 				if(typeof calEvent.summary !== 'string') continue;
@@ -291,7 +293,6 @@ function getSchedule(db, user, date, callback) {
 				if(scheduleDate.getTime() < startTime && endTime < scheduleNextDay.getTime()) {
 
 					// Move other (if any) events with conflicting times
-					var conflictIndexes = [];
 					for(var classIndex in schedule.classes) {
 						var scheduleClass = schedule.classes[classIndex];
 
