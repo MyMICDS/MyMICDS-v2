@@ -2,12 +2,12 @@
 
 ## Very Important (Do this first!)
 1. Clean up project internally
-..* Clean up appcomponents.ts
-..* Separate the navbar into another component
+  * Clean up appcomponents.ts
+  * Separate the navbar into another component
 2. Clean up project interface
-..* Make the hidden form alerts float to the right so they don't change the height of the elements
-..* Make checkboxes look nicer
-..* Fix list dropdown in account creation
+  * Make the hidden form alerts float to the right so they don't change the height of the elements
+  * Make checkboxes look nicer
+  * Fix list dropdown in account creation
 3. Complete Home Page
 4. Complete Planner Page
 5. Complete Settings Page
