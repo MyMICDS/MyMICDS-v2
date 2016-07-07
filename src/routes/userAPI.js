@@ -25,6 +25,20 @@ module.exports = function(app, db) {
 		res.json({ ends: ends });
 	});
 
+	app.post('/user/get-info', function(req, res) {
+		users.getInfo(db, req.session.user, true, function(err, userInfo) {
+			if(err) {
+				var errorMessage = err.message;
+			} else {
+				var errorMessage = null;
+			}
+			res.json({
+				error: errorMessage,
+				user: userInfo
+			});
+		});
+	});
+
 	app.post('/user/change-info', function(req, res) {
 		var info = {};
 

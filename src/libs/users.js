@@ -61,6 +61,74 @@ function getUser(db, user, callback) {
 }
 
 /**
+ * Retrieves basic information about a specific user
+ * @function getInfo
+ *
+ * @param {Object} db - Database connection
+ * @param {string} user - Username
+ * @param {Boolean} privateInfo - Whether to include sensitive information such as canvasURL and portalURL. Set to true if only the user is viewing it. Defaults to false.
+ * @param {getInfoCallback} callback - Callback
+ */
+
+/**
+ * Returns basic information about the user
+ * @callback getInfoCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Object} userInfo - Object containing information about the user. Null if error.
+ */
+
+function getInfo(db, user, privateInfo, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+	if(typeof privateInfo !== 'boolean') {
+		privateInfo = false;
+	}
+
+	getUser(db, user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null);
+			return;
+		}
+
+		// Create userInfo object and manually move values from database.
+		// We don't want something accidentally being released to user.
+		var userInfo = {};
+		userInfo.user      = userDoc['user'];
+		userInfo.password  = 'Hunter2'; /** @TODO: Fix glitch? Shows up as ******* for me. */
+		userInfo.firstName = userDoc['firstName'];
+		userInfo.lastName  = userDoc['lastName'];
+		userInfo.gradYear  = userDoc['gradYear'];
+		userInfo.grade     = gradYearToGrade(userDoc['gradYear']);
+
+		if(privateInfo) {
+			if(typeof userDoc['canvasURL'] === 'string') {
+				userInfo.canvasURL = userDoc['canvasURL'];
+			} else {
+				userInfo.canvasURL = null;
+			}
+
+			if(typeof userDoc['portalURL'] === 'string') {
+				userInfo.portalURL = userDoc['portalURL'];
+			} else {
+				userInfo.portalURL = null;
+			}
+		}
+
+		callback(null, userInfo);
+
+	});
+}
+
+/**
  * Change basic user information such as name or grade
  * @function changeInfo
  *
@@ -423,6 +491,7 @@ function gradYearToGrade(gradYear) {
 	var grade = 12 + differenceYears;
 
 	// If last day of school has already passed, you completed a grade of school
+	var schoolEnd = lastFridayMay();
 	if(current.isAfter(schoolEnd)) {
 		grade++;
 	}
@@ -457,6 +526,7 @@ function gradeToGradYear(grade) {
 }
 
 module.exports.getUser          = getUser;
+module.exports.getInfo          = getInfo;
 module.exports.changeInfo       = changeInfo;
 module.exports.getBackground    = getBackground;
 module.exports.uploadBackground = uploadBackground;

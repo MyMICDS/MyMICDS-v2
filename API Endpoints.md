@@ -280,6 +280,14 @@ Returns the date when school ends. During Summer, returns the date next school y
 - `date` - Date when school ends. Last Friday of may at 11:30.
 
 
+### `/user/get-info`
+**Requires user to be logged in.** Get basic information about the user such as name and grade. You can also get canvasURL and portalURL. If canvasURL or portalURL is not set, they will be null.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+- `user` - Object containing basic information about the user.
+
+
 ### `/user/change-info`
 **Requires user to be logged in.** Change basic information about the user including first name, last name, and graduation year.
 
