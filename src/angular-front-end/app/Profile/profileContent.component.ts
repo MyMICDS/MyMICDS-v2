@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {AuthService} from '../services/auth.service'
+import {UserService} from '../services/user.service'
 import {DomData} from '../mockdata.service'
 
 var _navService = new DomData();
@@ -10,13 +10,13 @@ var templateUrl = _navService.getProfile().selectedStyle.TemplateUrl;
     selector: 'app-content',
     templateUrl: templateUrl,
     styleUrls: [styleUrl],
-    providers: [AuthService]
+    providers: [UserService]
 })
  
 export class profileContent{
     user: {
     };
-    constructor (private userService: AuthService) {
-        this.user = this.userService.getUser()
+    constructor (private userService: UserService) {
+        this.user = this.userService.getInfo()
     };
 }

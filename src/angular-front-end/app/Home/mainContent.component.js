@@ -73,7 +73,7 @@ var mainContent = (function () {
         if (this.school_avaliable) {
             var elapsed_time = this.date.hours * 3600 + this.date.minutes * 60 + this.date.seconds - this.start_time * 3600;
             var percentage = Math.round((elapsed_time / duration) * 10000) / 100;
-            if (percentage >= 100 || percentage <= 0) {
+            if (percentage >= 100 || percentage < 0) {
                 this.school_avaliable = false;
                 var date = { year: this.getDate().year, month: this.getDate().month + 1, day: this.getDate().day + 1 };
                 this.getSchedule(date);

@@ -1,7 +1,8 @@
 import {Component} from '@angular/core';
-import {NgForm} from '@angular/common';
+import {NgForm, NgFor} from '@angular/common';
 import {DomData} from '../mockdata.service';
-import {AuthService} from '../services/auth.service'
+import {AuthService} from '../services/auth.service';
+import {UserService} from '../services/user.service';
 
 var _navService = new DomData();
 var styleUrl = _navService.getAccount().selectedStyle.StyleUrl;
@@ -11,12 +12,27 @@ var templateUrl = _navService.getAccount().selectedStyle.TemplateUrl;
     selector: 'app-content',
     templateUrl: templateUrl,
     styleUrls: [styleUrl],
-    directives: [],
-    providers: [AuthService]
+    directives: [NgFor],
+    providers: [AuthService, UserService]
 })
 
 export class accountContent{
-    constructor(private authService: AuthService) {}
+    constructor(private authService: AuthService, private userService: UserService) {}
+
+    ngOnInit() {
+        this.userService.getGradeRange().subscribe(
+            gradeRange => {
+                this.gradeRange = gradeRange.gradYears;
+                console.log(gradeRange)
+            },
+            error => {
+                this.errMsg = error;
+                this.submitted = true;
+            }
+        )
+    }
+
+    gradeRange = [];
     repeatPass = '';
     form = {
         user:'',
@@ -40,6 +56,7 @@ export class accountContent{
                 } else {
                     this.submitSuccess = true;
                     this.submitted = true;
+                    console.dir(this.form)
                 }
             },
             error => {

@@ -92,3 +92,7 @@ input {
 #accountCreation {
   margin-top: 100px;
 }
+
+#errMsg {
+  margin-top: 100px;
+}

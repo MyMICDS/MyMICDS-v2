@@ -9,14 +9,18 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
+var common_1 = require('@angular/common');
 var mockdata_service_1 = require('../mockdata.service');
 var auth_service_1 = require('../services/auth.service');
+var user_service_1 = require('../services/user.service');
 var _navService = new mockdata_service_1.DomData();
 var styleUrl = _navService.getAccount().selectedStyle.StyleUrl;
 var templateUrl = _navService.getAccount().selectedStyle.TemplateUrl;
 var accountContent = (function () {
-    function accountContent(authService) {
+    function accountContent(authService, userService) {
         this.authService = authService;
+        this.userService = userService;
+        this.gradeRange = [];
         this.repeatPass = '';
         this.form = {
             user: '',
@@ -30,6 +34,16 @@ var accountContent = (function () {
         this.submitSuccess = false;
         this.errMsg = '';
     }
+    accountContent.prototype.ngOnInit = function () {
+        var _this = this;
+        this.userService.getGradeRange().subscribe(function (gradeRange) {
+            _this.gradeRange = gradeRange.gradYears;
+            console.log(gradeRange);
+        }, function (error) {
+            _this.errMsg = error;
+            _this.submitted = true;
+        });
+    };
     accountContent.prototype.onSubmit = function () {
         var _this = this;
         this.submitted = true;
@@ -42,6 +56,7 @@ var accountContent = (function () {
             else {
                 _this.submitSuccess = true;
                 _this.submitted = true;
+                console.dir(_this.form);
             }
         }, function (error) {
             _this.errMsg = error;
@@ -58,10 +73,10 @@ var accountContent = (function () {
             selector: 'app-content',
             templateUrl: templateUrl,
             styleUrls: [styleUrl],
-            directives: [],
-            providers: [auth_service_1.AuthService]
+            directives: [common_1.NgFor],
+            providers: [auth_service_1.AuthService, user_service_1.UserService]
         }), 
-        __metadata('design:paramtypes', [auth_service_1.AuthService])
+        __metadata('design:paramtypes', [auth_service_1.AuthService, user_service_1.UserService])
     ], accountContent);
     return accountContent;
 }());

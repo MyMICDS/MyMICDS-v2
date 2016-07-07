@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
-var auth_service_1 = require('../services/auth.service');
+var user_service_1 = require('../services/user.service');
 var mockdata_service_1 = require('../mockdata.service');
 var _navService = new mockdata_service_1.DomData();
 var styleUrl = _navService.getProfile().selectedStyle.StyleUrl;
@@ -17,7 +17,7 @@ var templateUrl = _navService.getProfile().selectedStyle.TemplateUrl;
 var profileContent = (function () {
     function profileContent(userService) {
         this.userService = userService;
-        this.user = this.userService.getUser();
+        this.user = this.userService.getInfo();
     }
     ;
     profileContent = __decorate([
@@ -25,9 +25,9 @@ var profileContent = (function () {
             selector: 'app-content',
             templateUrl: templateUrl,
             styleUrls: [styleUrl],
-            providers: [auth_service_1.AuthService]
+            providers: [user_service_1.UserService]
         }), 
-        __metadata('design:paramtypes', [auth_service_1.AuthService])
+        __metadata('design:paramtypes', [user_service_1.UserService])
     ], profileContent);
     return profileContent;
 }());

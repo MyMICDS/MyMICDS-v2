@@ -1,7 +1,7 @@
 <div class="container">
+<div class="alert alert-danger" [hidden]="!errMsg" id="errMsg"><strong>Error registering!</strong> {{errMsg}}</div>
 <div [hidden]="submitted">
 <h1>Create Your MyMICDS Account</h1>
-<div class="alert alert-danger" [hidden]="!errMsg"><strong>Error registering!</strong> {{errMsg}}</div>
 <form (ngSubmit)="onSubmit(theForm)" #theForm="ngForm">
     <div class="row">
         <fieldset class="form-group col-lg-4">
@@ -28,7 +28,7 @@
         <div class="input-group">
             <input #password2="ngModel" type="password" class="form-control" id="InputPassword2" placeholder="Repeat Password" [(ngModel)]="repeatedPass" name="password2" required>
             <div [hidden]="password2.valid || password2.pristine" class="alert alert-danger">Password is required</div>
-            <div [hidden]="password1.value==password2.value" class="alert alert-danger">Passwords don't match</div>
+            <div [hidden]="(password1.value==password2.value) || password2.pristine" class="alert alert-danger">Passwords don't match</div>
         </div>
         </fieldset>
         <div class="col-lg-1"></div>
@@ -47,12 +47,16 @@
         <div [hidden]="lastname.valid || lastname.pristine" class="alert alert-danger">Name is required</div>
         </fieldset>
     </div>
-
+ 
     <div class="row">  
         <fieldset class="form-group col-lg-4">
         <label for="gradyear">Year of graduation</label>
         <div class="input-group">
-            <input #gradyear="ngModel" type="gradyear" class="form-control" id="InputGradyear" placeholder="9th grade: 2019" [(ngModel)]="form['grad-year']" name ="gradyear">
+            <!--<input #gradyear="ngModel" type="gradyear" class="form-control" id="InputGradyear" placeholder="9th grade: 2019" [(ngModel)]="form['grad-year']" name ="gradyear">-->
+            <select class="c-select" #gradyear="ngModel" type="gradyear" id="InputGradyear" placeholder="9th grade: 2019" [(ngModel)]="form['grad-year']" name ="gradyear">
+                <option selected [value]="null">Select your year of graduation.</option>
+                <option *ngFor="let g of gradeRange" [value]="g">{{g}}</option>
+            </select>
             <div [hidden]="gradyear.valid || gradyear.pristine" class="alert alert-danger">Year of graduation is required</div>
         </div>
         </fieldset>

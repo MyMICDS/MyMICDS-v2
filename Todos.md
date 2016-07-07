@@ -1,0 +1,4 @@
+- enable user to get the schedule of any day he wants.
+- the tomorrow schedule on main page doesn't display time.
+- add gmail link to the account created page.
+- make checkboxes look nicer
