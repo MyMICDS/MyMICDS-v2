@@ -4,3 +4,9 @@
 .ng-invalid {
   border-left: 5px solid #a94442; /* red */
 }
+
+.my-top-content {
+  margin-top: 100px; /*I added this because there is a position-fixed navbar at the top*/
+}
+
+h1 {color: black}

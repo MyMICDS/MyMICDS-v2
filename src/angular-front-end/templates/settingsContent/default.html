@@ -1,35 +1,42 @@
 <div class="container">
-<h1>Update your information</h1>
-<form #theForm="ngForm">
-    <div class="row">
-        <h3>Username: {{username}}</h3>
-    </div>
 
-    <div class="row">
-        <fieldset class="form-group col-lg-4">
-        <label for="firstname">First Name</label>
-        <input #firstname="ngModel" type="text" class="form-control" id="InputFirstName" placeholder="" [(ngModel)]="firstName" name="firstname" required>
-        <div [hidden]="firstname.valid || firstname.pristine" class="alert alert-danger">Name is required</div>
-        </fieldset>
+<div class="my-top-content"><div class="jumbotron"><h1 class="display-3">Please log in before you continue.</h1></div></div>
 
-        <fieldset class="form-group col-lg-4">
-        <label for="lastname">Last Name</label>
-        <input #lastname="ngModel" type="text" class="form-control" id="InputLastName" placeholder="" [(ngModel)]="lastName" name="lastname" required>
-        <div [hidden]="lastname.valid || lastname.pristine" class="alert alert-danger">Name is required</div>
-        </fieldset>
-    </div>
- 
-    <div class="row">  
-        <fieldset class="form-group col-lg-4">
-        <label for="gradyear">Year of graduation</label>
-        <div class="input-group">
-            <select class="c-select" #gradyear="ngModel" type="gradyear" id="InputGradyear" placeholder="9th grade: 2019" [(ngModel)]="gradYear" name ="gradyear" required>
-                <option *ngFor="let g of gradeRange" [value]="g">{{g}}</option>
-            </select>
-            <div [hidden]="gradyear.valid || gradyear.pristine" class="alert alert-danger">Year of graduation is required</div>
+<div class="protected-settings my-top-content" *ngIf="isLoggedIn">
+    <div class="alert alert-danger col-xs-12" *ngIf="errMsg">{{errMsg}}</div>
+    <h1>Update your information</h1>
+    <form #theForm="ngForm">
+        <div class="row">
+            <h3>Username: {{username}}</h3>
         </div>
-        </fieldset>
-    </div>
+
+        <div class="row">
+            <fieldset class="form-group col-lg-4">
+            <label for="firstname">First Name</label>
+            <input #firstname="ngModel" type="text" class="form-control" id="InputFirstName" placeholder="" [(ngModel)]="firstName" name="firstname" required>
+            <div [hidden]="firstname.valid || firstname.pristine" class="alert alert-danger">Name is required</div>
+            </fieldset>
+
+            <fieldset class="form-group col-lg-4">
+            <label for="lastname">Last Name</label>
+            <input #lastname="ngModel" type="text" class="form-control" id="InputLastName" placeholder="" [(ngModel)]="lastName" name="lastname" required>
+            <div [hidden]="lastname.valid || lastname.pristine" class="alert alert-danger">Name is required</div>
+            </fieldset>
+        </div>
     
-</form>
+        <div class="row">  
+            <fieldset class="form-group col-lg-4">
+            <label for="gradyear">Year of graduation</label>
+            <div class="input-group">
+                <select class="c-select" #gradyear="ngModel" type="gradyear" id="InputGradyear" placeholder="9th grade: 2019" [(ngModel)]="gradYear" name ="gradyear" required>
+                    <option *ngFor="let g of gradeRange" [value]="g">{{g}}</option>
+                </select>
+                <div [hidden]="gradyear.valid || gradyear.pristine" class="alert alert-danger">Year of graduation is required</div>
+            </div>
+            </fieldset>
+        </div>
+        
+    </form>
+</div>
+
 </div>
