@@ -9,7 +9,8 @@ export class AuthService {
 
     constructor (private http: Http) {}
 
-    private extractData(res: Response) {
+    private extractData(res: Response
+    ) {
         let body = res.json();
         return body || { };
     }
@@ -19,6 +20,8 @@ export class AuthService {
         console.error(errMsg); // log to console instead
         return Observable.throw(errMsg);
     }
+
+    isLoggedIn: boolean = false; //How to get user's login state?
 
     private authUrl = 'http://localhost:1420/auth'
     public logIn(loginModel:{user:string,password:string,remember:any}):

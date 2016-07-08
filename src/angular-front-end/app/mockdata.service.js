@@ -91,7 +91,7 @@ var DomData = (function () {
     };
     DomData.prototype.getSettings = function () {
         var styleName = this.getStyleName();
-        var selectedStyle = styleSettings_1.styleList[styleName].profile;
+        var selectedStyle = styleSettings_1.styleList[styleName].settings;
         return { selectedStyle: selectedStyle };
     };
     DomData = __decorate([

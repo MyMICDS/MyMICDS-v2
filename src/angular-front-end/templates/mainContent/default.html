@@ -4,13 +4,14 @@
             <div id="my-date" class="col-lg-6">
                 <div class="card card-block">
                     <h3 class="card-title">{{date.dateString}}</h3>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                    <p class="card-text"></p>
                 </div>
             </div>
             <div id="my-rotation" class="col-lg-6">
                 <div class="card card-block">
-                    <h3 class="card-title">Day {{rotation_day}}</h3>
-                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                    <h3 *ngIf="rotation_day" class="card-title">Day {{rotation_day}}</h3>
+                    <h3 *ngIf="!rotation_day" class="card-title">No school today</h3>
+                    <p class="card-text"></p>
                 </div>
             </div>
         </div>

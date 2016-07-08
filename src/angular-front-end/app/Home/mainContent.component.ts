@@ -30,7 +30,7 @@ export class mainContent{
 
     public getDate() {//get local date
         var d = new Date();
-        var week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        var week = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         return {
             year: d.getFullYear(),
             month: d.getMonth(),
@@ -69,8 +69,9 @@ export class mainContent{
         this.date.dayInWeek == 'Wednesday' ? this.start_time = 9 : this.start_time = 8;
         this.date.dayInWeek=='Saturday'||this.date.dayInWeek=='Sunday' ? this.school_avaliable=false : this.school_avaliable=true;
         this.schedule = {day:0,classes:[],allDay:[]};
-        this.current_class = {class: '',percentage:0}
-        this.class_times = [{start:'',end:''}]
+        this.current_class = {class: '',percentage:0};
+        this.class_times = [{start:'',end:''}];
+        this.rotation_day = 0;
     };
 
     getSchedule(date) {
@@ -106,7 +107,7 @@ export class mainContent{
             let percentage = Math.round((elapsed_time / duration) * 10000) / 100;
             if (percentage>=100 || percentage<0) {
                 this.school_avaliable=false;
-                let date = {year: this.getDate().year, month: this.getDate().month+1, day: this.getDate().day+1};
+                let date = {year: this.getDate().year, month: this.getDate().month, day: this.getDate().day+1};
                 this.getSchedule(date);
                 clearInterval(i);
             } else {

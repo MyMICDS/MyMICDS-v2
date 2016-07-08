@@ -17,38 +17,36 @@ var templateUrl = themeService.getSettings().selectedStyle.TemplateUrl;
 })
 
 export class settingsContent{
-    // constructor (private protalService: PortalService, private canvasService: CanvasService, private userService: UserService) {}
+    constructor (private protalService: PortalService, private canvasService: CanvasService, private userService: UserService) {}
 
-    // username = '';
-    // firstName = '';
-    // lastName = '';
-    // gradYear = '';
-    // gradeRange = []
+    username = '';
+    firstName = '';
+    lastName = '';
+    gradYear = '';
+    gradeRange = []
 
-    // ngOnInit() {
-    //     this.userService.getInfo().subscribe(
-    //         userInfo => {
-    //             if (userInfo.error) {console.log(userInfo.error)}
-    //             else {
-    //                 this.username = userInfo.user.user;
-    //                 this.firstName = userInfo.user.firstName;
-    //                 this.lastName = userInfo.user.lastName;
-    //                 this.gradYear = userInfo.user.gradYear;
-    //             }
-    //         },
-    //         error => {
-    //             console.log(error);
-    //         }
-    //     );
-    //     this.userService.getGradeRange().subscribe(
-    //         gradeRange => {
-    //             this.gradeRange = gradeRange.gradYears;
-    //         },
-    //         error => {
-    //             console.log(error)
-    //         }
-    //     )
-    // }
-
-    
+    ngOnInit() {
+        this.userService.getInfo().subscribe(
+            userInfo => {
+                if (userInfo.error) {console.log(userInfo.error)}
+                else {
+                    this.username = userInfo.user.user;
+                    this.firstName = userInfo.user.firstName;
+                    this.lastName = userInfo.user.lastName;
+                    this.gradYear = userInfo.user.gradYear;
+                }
+            },
+            error => {
+                console.log(error);
+            }
+        );
+        this.userService.getGradeRange().subscribe(
+            gradeRange => {
+                this.gradeRange = gradeRange.gradYears;
+            },
+            error => {
+                console.log(error)
+            }
+        )
+    }
 }

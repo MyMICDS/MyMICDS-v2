@@ -12,9 +12,7 @@ var core_1 = require('@angular/core');
 var nav_component_1 = require('./navbar/nav.component');
 var background_component_1 = require('./background.component');
 var mockdata_service_1 = require('./mockdata.service');
-var auth_service_1 = require('./services/auth.service');
 var http_1 = require('@angular/http');
-var user_service_1 = require('./services/user.service');
 var AppComponent = (function () {
     function AppComponent() {
     }
@@ -23,7 +21,7 @@ var AppComponent = (function () {
             selector: 'mymicds-app',
             template: "\n    <div class=\"fluid-container\">\n    <my-bg></my-bg>\n    <my-nav></my-nav>\n    </div>",
             directives: [background_component_1.BgComponent, nav_component_1.NavComponent],
-            providers: [mockdata_service_1.DomData, auth_service_1.AuthService, http_1.HTTP_PROVIDERS, user_service_1.UserService],
+            providers: [mockdata_service_1.DomData, http_1.HTTP_PROVIDERS],
             styleUrls: ['./css/main.css']
         }), 
         __metadata('design:paramtypes', [])

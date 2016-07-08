@@ -6,7 +6,8 @@ import {plannerContent} from './Planner/plannerContent.component';
 import {profileContent} from './Profile/profileContent.component'
 import {settingsContent} from './Settings/settingsContent.component'
 import {accountContent} from './Account/accountContent.component';
-import {AuthGuard} from './auth.guard'
+import {AuthGuard} from './auth.guard';
+import {AuthService} from './services/auth.service'
 
 export const routes: RouterConfig = [
   { path: '', redirectTo: 'Home', pathMatch: 'full' },
@@ -20,5 +21,5 @@ export const routes: RouterConfig = [
 
 export const APP_ROUTER_PROVIDERS = [
   provideRouter(routes),
-  AuthGuard
+  AuthService, AuthGuard
 ];

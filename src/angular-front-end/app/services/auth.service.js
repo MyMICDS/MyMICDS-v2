@@ -16,6 +16,7 @@ var http_2 = require('@angular/http');
 var AuthService = (function () {
     function AuthService(http) {
         this.http = http;
+        this.isLoggedIn = false; //How to get user's login state?
         this.authUrl = 'http://localhost:1420/auth';
     }
     AuthService.prototype.extractData = function (res) {

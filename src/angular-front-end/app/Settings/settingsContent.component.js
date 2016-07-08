@@ -17,8 +17,37 @@ var themeService = new mockdata_service_1.DomData();
 var styleUrl = themeService.getSettings().selectedStyle.StyleUrl;
 var templateUrl = themeService.getSettings().selectedStyle.TemplateUrl;
 var settingsContent = (function () {
-    function settingsContent() {
+    function settingsContent(protalService, canvasService, userService) {
+        this.protalService = protalService;
+        this.canvasService = canvasService;
+        this.userService = userService;
+        this.username = '';
+        this.firstName = '';
+        this.lastName = '';
+        this.gradYear = '';
+        this.gradeRange = [];
     }
+    settingsContent.prototype.ngOnInit = function () {
+        var _this = this;
+        this.userService.getInfo().subscribe(function (userInfo) {
+            if (userInfo.error) {
+                console.log(userInfo.error);
+            }
+            else {
+                _this.username = userInfo.user.user;
+                _this.firstName = userInfo.user.firstName;
+                _this.lastName = userInfo.user.lastName;
+                _this.gradYear = userInfo.user.gradYear;
+            }
+        }, function (error) {
+            console.log(error);
+        });
+        this.userService.getGradeRange().subscribe(function (gradeRange) {
+            _this.gradeRange = gradeRange.gradYears;
+        }, function (error) {
+            console.log(error);
+        });
+    };
     settingsContent = __decorate([
         core_1.Component({
             selector: 'app-content',
@@ -27,7 +56,7 @@ var settingsContent = (function () {
             providers: [planner_service_1.PortalService, planner_service_1.CanvasService, user_service_1.UserService],
             directives: [common_1.NgFor]
         }), 
-        __metadata('design:paramtypes', [])
+        __metadata('design:paramtypes', [planner_service_1.PortalService, planner_service_1.CanvasService, user_service_1.UserService])
     ], settingsContent);
     return settingsContent;
 }());

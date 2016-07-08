@@ -28,10 +28,11 @@ var mainContent = (function () {
         this.schedule = { day: 0, classes: [], allDay: [] };
         this.current_class = { class: '', percentage: 0 };
         this.class_times = [{ start: '', end: '' }];
+        this.rotation_day = 0;
     }
     mainContent.prototype.getDate = function () {
         var d = new Date();
-        var week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        var week = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         return {
             year: d.getFullYear(),
             month: d.getMonth(),
@@ -75,7 +76,7 @@ var mainContent = (function () {
             var percentage = Math.round((elapsed_time / duration) * 10000) / 100;
             if (percentage >= 100 || percentage < 0) {
                 this.school_avaliable = false;
-                var date = { year: this.getDate().year, month: this.getDate().month + 1, day: this.getDate().day + 1 };
+                var date = { year: this.getDate().year, month: this.getDate().month, day: this.getDate().day + 1 };
                 this.getSchedule(date);
                 clearInterval(i);
             }

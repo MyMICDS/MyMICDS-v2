@@ -1,13 +1,8 @@
-import {ROUTER_DIRECTIVES} from '@angular/router';
 import {Component} from '@angular/core';
 import {NavComponent} from './navbar/nav.component';
 import {BgComponent} from './background.component'
-import {mainContent} from './Home/mainContent.component'
 import {DomData} from './mockdata.service';
-import {Router} from '@angular/router'
-import {AuthService} from './services/auth.service'
 import {HTTP_PROVIDERS} from '@angular/http';
-import {UserService} from './services/user.service'
 
 @Component({
     selector: 'mymicds-app',
@@ -17,7 +12,7 @@ import {UserService} from './services/user.service'
     <my-nav></my-nav>
     </div>`,
     directives: [BgComponent, NavComponent],
-    providers: [DomData, AuthService, HTTP_PROVIDERS, UserService],
+    providers: [DomData, HTTP_PROVIDERS],
     styleUrls: ['./css/main.css']
 })
 
