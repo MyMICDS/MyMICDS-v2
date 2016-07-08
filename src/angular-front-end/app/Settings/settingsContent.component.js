@@ -13,6 +13,7 @@ var mockdata_service_1 = require('../mockdata.service');
 var planner_service_1 = require('../services/planner.service');
 var user_service_1 = require('../services/user.service');
 var common_1 = require('@angular/common');
+var router_1 = require('@angular/router');
 var themeService = new mockdata_service_1.DomData();
 var styleUrl = themeService.getSettings().selectedStyle.StyleUrl;
 var templateUrl = themeService.getSettings().selectedStyle.TemplateUrl;
@@ -26,21 +27,23 @@ var settingsContent = (function () {
         this.lastName = '';
         this.gradYear = '';
         this.gradeRange = [];
+        this.isLoggedIn = false;
     }
     settingsContent.prototype.ngOnInit = function () {
         var _this = this;
         this.userService.getInfo().subscribe(function (userInfo) {
             if (userInfo.error) {
-                console.log(userInfo.error);
+                _this.errMsg = userInfo.error + ' (this is not a connection problem)';
             }
             else {
+                _this.isLoggedIn = true;
                 _this.username = userInfo.user.user;
                 _this.firstName = userInfo.user.firstName;
                 _this.lastName = userInfo.user.lastName;
                 _this.gradYear = userInfo.user.gradYear;
             }
         }, function (error) {
-            console.log(error);
+            _this.errMsg = 'Connection Error: ' + error;
         });
         this.userService.getGradeRange().subscribe(function (gradeRange) {
             _this.gradeRange = gradeRange.gradYears;
@@ -54,7 +57,7 @@ var settingsContent = (function () {
             templateUrl: templateUrl,
             styleUrls: [styleUrl],
             providers: [planner_service_1.PortalService, planner_service_1.CanvasService, user_service_1.UserService],
-            directives: [common_1.NgFor]
+            directives: [common_1.NgFor, router_1.ROUTER_DIRECTIVES, common_1.NgIf]
         }), 
         __metadata('design:paramtypes', [planner_service_1.PortalService, planner_service_1.CanvasService, user_service_1.UserService])
     ], settingsContent);

@@ -57,9 +57,8 @@ export class NavComponent {
     
     public constructor(private _titleService: Title, private _DomService: DomData, private router:Router, private authService: AuthService, private userService: UserService) { }
     public pages = this._DomService.getNav().navTitles
-  //emit events to alert the other components to render the app
     
-    public selectedPage: string = 'Home';
+    public selectedPage: string;
     private previousSelectedPage: string;
     public onSelect(x: number):void {
         this.restore(x);
@@ -89,6 +88,11 @@ export class NavComponent {
     ngOnInit() {
         console.log('logging out');
         this.onClickLogout();
+    }
+
+    ngAfterViewChecked() {
+        this.selectedPage = this.router.url.split('/').pop();
+        this.magnify(this.pages.indexOf(this.selectedPage))
     }
 
     public loginModel: {

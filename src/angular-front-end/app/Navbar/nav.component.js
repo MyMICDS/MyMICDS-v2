@@ -30,8 +30,6 @@ var NavComponent = (function () {
         this.blur = [false, false, false, false, false];
         this.isActive = [true, false, false, false, false];
         this.pages = this._DomService.getNav().navTitles;
-        //emit events to alert the other components to render the app
-        this.selectedPage = 'Home';
         this.loginModel = {
             user: '',
             password: '',
@@ -92,6 +90,10 @@ var NavComponent = (function () {
     NavComponent.prototype.ngOnInit = function () {
         console.log('logging out');
         this.onClickLogout();
+    };
+    NavComponent.prototype.ngAfterViewChecked = function () {
+        this.selectedPage = this.router.url.split('/').pop();
+        this.magnify(this.pages.indexOf(this.selectedPage));
     };
     NavComponent.prototype.onClickLogin = function () {
         var _this = this;

@@ -1,9 +1,10 @@
 # Front-end Todo:
 
 ## Very Important (Do this first!)
-1. get the url the user is navigating to, 
+1. fix auth.guard
+1. make urls all lowercased.
 1. Clean up project internally
-  * Clean up appcomponents.ts
+  * Clean up navcomponent.ts, make ngOnViewChecked() call less
 2. Clean up project interface
   * Make the hidden form alerts float to the right so they don't change the height of the elements
   * Make checkboxes look nicer
@@ -19,7 +20,6 @@
 11. Display errors, warnings, and other information
 12. Server-side Angular rendering
 13. create login page
-14. create 
 
 ## Low Priority
 - Enable user to get the schedule of any day he wants.

@@ -9,21 +9,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
-var auth_service_1 = require('./services/auth.service');
+//import { AuthService } from './services/auth.service'
 var AuthGuard = (function () {
-    function AuthGuard(authService) {
-        this.authService = authService;
+    function AuthGuard() {
     }
+    //constructor (private authService: AuthService) {}
     AuthGuard.prototype.canActivate = function () {
-        alert('Please log in before continuing.');
-        if (this.authService.isLoggedIn) {
-            return true;
-        }
-        return false;
+        //if (this.authService.testLogin()) {return true;}
+        console.info("auth.guard.ts is currently not working...");
+        return true;
     };
     AuthGuard = __decorate([
         core_1.Injectable(), 
-        __metadata('design:paramtypes', [auth_service_1.AuthService])
+        __metadata('design:paramtypes', [])
     ], AuthGuard);
     return AuthGuard;
 }());

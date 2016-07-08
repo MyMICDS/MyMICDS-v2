@@ -13,6 +13,13 @@ var nav_component_1 = require('./navbar/nav.component');
 var background_component_1 = require('./background.component');
 var mockdata_service_1 = require('./mockdata.service');
 var http_1 = require('@angular/http');
+//components to add to the precompile array
+var mainContent_component_1 = require('./Home/mainContent.component');
+var lunchContent_component_1 = require('./Lunch/lunchContent.component');
+var plannerContent_component_1 = require('./Planner/plannerContent.component');
+var profileContent_component_1 = require('./Profile/profileContent.component');
+var settingsContent_component_1 = require('./Settings/settingsContent.component');
+var accountContent_component_1 = require('./Account/accountContent.component');
 var AppComponent = (function () {
     function AppComponent() {
     }
@@ -22,7 +29,8 @@ var AppComponent = (function () {
             template: "\n    <div class=\"fluid-container\">\n    <my-bg></my-bg>\n    <my-nav></my-nav>\n    </div>",
             directives: [background_component_1.BgComponent, nav_component_1.NavComponent],
             providers: [mockdata_service_1.DomData, http_1.HTTP_PROVIDERS],
-            styleUrls: ['./css/main.css']
+            styleUrls: ['./css/main.css'],
+            precompile: [mainContent_component_1.mainContent, lunchContent_component_1.lunchContent, plannerContent_component_1.plannerContent, profileContent_component_1.profileContent, settingsContent_component_1.settingsContent, accountContent_component_1.accountContent]
         }), 
         __metadata('design:paramtypes', [])
     ], AppComponent);

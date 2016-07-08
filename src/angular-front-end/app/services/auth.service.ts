@@ -3,11 +3,12 @@ import '../rxjs-operators';
 import {Http, Response} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import { Headers, RequestOptions } from '@angular/http';
+import {UserService} from './user.service'
 
 @Injectable()
 export class AuthService {
 
-    constructor (private http: Http) {}
+    constructor (private http: Http, private userService: UserService) {}
 
     private extractData(res: Response
     ) {
@@ -21,7 +22,14 @@ export class AuthService {
         return Observable.throw(errMsg);
     }
 
-    isLoggedIn: boolean = false; //How to get user's login state?
+    public testLogin():boolean { //this might not be the best solution to test a user's login state
+        let state: boolean;
+        this.userService.getInfo().subscribe(
+            Info => Info.error ? state = false : state = true,
+            error => {state = false; console.error("error getting user info: ", error)}
+        )
+        return state;
+    }
 
     private authUrl = 'http://localhost:1420/auth'
     public logIn(loginModel:{user:string,password:string,remember:any}):
