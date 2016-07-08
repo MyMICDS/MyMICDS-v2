@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {AuthService} from '../services/auth.service'
 import {UserService} from '../services/user.service'
 import {DomData} from '../mockdata.service';
@@ -20,10 +20,7 @@ var templateUrl = styleService.getLogin().selectedStyle.TemplateUrl;
 export class LoginComponent {
     constructor(private router:Router, private authService: AuthService, private userService: UserService) {}
 
-    ngOnInit() {
-        console.log('logging out');
-        this.onClickLogout();
-    }
+    @Input() displayText: boolean;
 
     public loginModel: {
         user: string;
@@ -57,7 +54,6 @@ export class LoginComponent {
                 } else { 
                     this.isLoggedIn = true;
                     $('#loginModal').modal('hide');
-                    this.router.navigate([this.router.url]);
                     this.userService.getInfo().subscribe(
                         userInfo => {
                             if (userInfo.error) {this.userErrMsg = userInfo.error}
@@ -66,7 +62,8 @@ export class LoginComponent {
                         error => {
                             this.userErrMsg = error;
                         }
-                    )
+                    );
+                    this.router.navigate([this.router.url]);
                 }
             },
             error => {
@@ -79,10 +76,15 @@ export class LoginComponent {
     public onClickLogout() {
         this.authService.logOut().subscribe(
             logoutRes => {
-                console.log(logoutRes.error ? logoutRes.error : 'Logout Successful!')
-                if (!logoutRes.error) {
+                if (logoutRes.error) {
+                    console.log(logoutRes.error)
+                } else {
                     this.isLoggedIn = false;
+                    this.router.navigate([this.router.url])
                 }
+            },
+            error => {
+                console.error(error)
             }
         )
     }
@@ -92,4 +94,12 @@ export class LoginComponent {
     }
 
     public formActive:boolean = true;
+
+    ngOnInit() {
+        this.userService.getInfo().subscribe(
+            info => {if (info.error) {this.isLoggedIn = false} else {this.isLoggedIn = true;this.userName=info.user.user}},
+            error => this.isLoggedIn = false
+        )
+    }
+
 }

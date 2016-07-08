@@ -78,7 +78,6 @@ var mainContent = (function () {
                 this.school_avaliable = false;
                 var date = { year: this.getDate().year, month: this.getDate().month, day: this.getDate().day + 1 };
                 this.getSchedule(date);
-                clearInterval(i);
             }
             else {
                 this.school_avaliable = true;

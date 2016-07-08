@@ -1,6 +1,11 @@
 <div class="container">
 
-<div class="my-top-content"><div class="jumbotron"><h1 class="display-3">Please log in before you continue.</h1></div></div>
+<div class="my-top-content" *ngIf="!isLoggedIn">
+    <div class="jumbotron">
+        <h1 class="display-3">Please log in before you continue.</h1>
+        <my-login [displayText]="false"></my-login>
+    </div>
+</div>
 
 <div class="protected-settings my-top-content" *ngIf="isLoggedIn">
     <div class="alert alert-danger col-xs-12" *ngIf="errMsg">{{errMsg}}</div>

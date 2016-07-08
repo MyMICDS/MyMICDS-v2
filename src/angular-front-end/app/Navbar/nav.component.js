@@ -14,6 +14,7 @@ var mockdata_service_1 = require('../mockdata.service');
 var common_1 = require('@angular/common');
 var platform_browser_1 = require('@angular/platform-browser');
 var router_2 = require('@angular/router');
+var login_component_1 = require('../Login/login.component');
 var _navService = new mockdata_service_1.DomData();
 var styleUrl = _navService.getNav().selectedStyle.StyleUrl;
 var templateUrl = _navService.getNav().selectedStyle.TemplateUrl;
@@ -62,7 +63,7 @@ var NavComponent = (function () {
         if (this.previousSelectedPage != this.selectedPage) {
             var p = new Promise(function (resolve, reject) {
                 document.getElementById("my-fadeout").className += "fade-out";
-                setTimeout(function () { resolve(''); }, 400);
+                setTimeout(function () { resolve(''); }, 300);
             });
             p.then(function () {
                 _this.router.navigate(['/' + _this.pages[x]]);
@@ -87,7 +88,7 @@ var NavComponent = (function () {
         core_1.Component({
             selector: 'my-nav',
             templateUrl: templateUrl,
-            directives: [common_1.NgClass, router_1.ROUTER_DIRECTIVES, common_1.NgIf, common_1.NgFor],
+            directives: [common_1.NgClass, router_1.ROUTER_DIRECTIVES, common_1.NgIf, common_1.NgFor, login_component_1.LoginComponent],
             providers: [mockdata_service_1.DomData],
             styleUrls: [styleUrl]
         }), 

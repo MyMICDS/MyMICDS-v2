@@ -26,6 +26,7 @@
 nav {
     margin-bottom: 2em;
     animation: 1s ease 0s 1 normal backwards running fadeIn;
+    z-index: 1050;
 }
 
 @keyframes fadeIn {
@@ -54,6 +55,6 @@ nav {
     font-weight: 800;
 }
 
-#loginButton, #logoutButton {
+my-login {
     margin-left: 2em;
 }

@@ -29,10 +29,6 @@ var LoginComponent = (function () {
         };
         this.formActive = true;
     }
-    LoginComponent.prototype.ngOnInit = function () {
-        console.log('logging out');
-        this.onClickLogout();
-    };
     LoginComponent.prototype.onClickLogin = function () {
         var _this = this;
         this.authService.logIn(this.loginModel).subscribe(function (loginRes) {
@@ -44,7 +40,6 @@ var LoginComponent = (function () {
             else {
                 _this.isLoggedIn = true;
                 $('#loginModal').modal('hide');
-                _this.router.navigate([_this.router.url]);
                 _this.userService.getInfo().subscribe(function (userInfo) {
                     if (userInfo.error) {
                         _this.userErrMsg = userInfo.error;
@@ -55,6 +50,7 @@ var LoginComponent = (function () {
                 }, function (error) {
                     _this.userErrMsg = error;
                 });
+                _this.router.navigate([_this.router.url]);
             }
         }, function (error) {
             _this.errorMessage = error;
@@ -64,15 +60,34 @@ var LoginComponent = (function () {
     LoginComponent.prototype.onClickLogout = function () {
         var _this = this;
         this.authService.logOut().subscribe(function (logoutRes) {
-            console.log(logoutRes.error ? logoutRes.error : 'Logout Successful!');
-            if (!logoutRes.error) {
-                _this.isLoggedIn = false;
+            if (logoutRes.error) {
+                console.log(logoutRes.error);
             }
+            else {
+                _this.isLoggedIn = false;
+                _this.router.navigate([_this.router.url]);
+            }
+        }, function (error) {
+            console.error(error);
         });
     };
     LoginComponent.prototype.onClickAccount = function () {
         this.router.navigate(['/Account']);
     };
+    LoginComponent.prototype.ngOnInit = function () {
+        var _this = this;
+        this.userService.getInfo().subscribe(function (info) { if (info.error) {
+            _this.isLoggedIn = false;
+        }
+        else {
+            _this.isLoggedIn = true;
+            _this.userName = info.user.user;
+        } }, function (error) { return _this.isLoggedIn = false; });
+    };
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', Boolean)
+    ], LoginComponent.prototype, "displayText", void 0);
     LoginComponent = __decorate([
         core_1.Component({
             selector: 'my-login',

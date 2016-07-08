@@ -13,11 +13,9 @@ require('../rxjs-operators');
 var http_1 = require('@angular/http');
 var Observable_1 = require('rxjs/Observable');
 var http_2 = require('@angular/http');
-var user_service_1 = require('./user.service');
 var AuthService = (function () {
-    function AuthService(http, userService) {
+    function AuthService(http) {
         this.http = http;
-        this.userService = userService;
         this.authUrl = 'http://localhost:1420/auth';
     }
     AuthService.prototype.extractData = function (res) {
@@ -29,11 +27,6 @@ var AuthService = (function () {
             error.status ? error.status + " - " + error.statusText : error;
         console.error(errMsg); // log to console instead
         return Observable_1.Observable.throw(errMsg);
-    };
-    AuthService.prototype.testLogin = function () {
-        var state;
-        this.userService.getInfo().subscribe(function (Info) { return Info.error ? state = false : state = true; }, function (error) { state = false; console.error("error getting user info: ", error); });
-        return state;
     };
     AuthService.prototype.logIn = function (loginModel) {
         var body = JSON.stringify(loginModel);
@@ -61,9 +54,10 @@ var AuthService = (function () {
     };
     AuthService = __decorate([
         core_1.Injectable(), 
-        __metadata('design:paramtypes', [http_1.Http, user_service_1.UserService])
+        __metadata('design:paramtypes', [http_1.Http])
     ], AuthService);
     return AuthService;
 }());
 exports.AuthService = AuthService;
+exports.AUTH_PROVIDERS = null;
 //# sourceMappingURL=auth.service.js.map

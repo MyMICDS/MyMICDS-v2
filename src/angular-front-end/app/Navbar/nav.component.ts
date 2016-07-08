@@ -3,7 +3,8 @@ import {Component} from '@angular/core';
 import {DomData} from '../mockdata.service';
 import {NgClass, NgIf, NgFor} from '@angular/common';
 import { Title } from '@angular/platform-browser';
-import {Router, NavigationEnd} from '@angular/router'
+import {Router, NavigationEnd} from '@angular/router';
+import {LoginComponent} from '../Login/login.component';
 
 
 var _navService = new DomData();
@@ -13,7 +14,7 @@ var templateUrl = _navService.getNav().selectedStyle.TemplateUrl;
 @Component({
     selector: 'my-nav',
     templateUrl: templateUrl,
-    directives: [NgClass, ROUTER_DIRECTIVES, NgIf, NgFor],
+    directives: [NgClass, ROUTER_DIRECTIVES, NgIf, NgFor, LoginComponent],
     providers: [DomData],
     styleUrls: [styleUrl]
 })
@@ -67,7 +68,7 @@ export class NavComponent {
             const p: Promise<string> = new Promise (
             (resolve: (str: string)=>void, reject: (str: string)=>void) => {
                 document.getElementById("my-fadeout").className += "fade-out";
-                setTimeout(() => {resolve('')}, 400)
+                setTimeout(() => {resolve('')}, 300)
             }
             );
             p.then(() => {
@@ -80,6 +81,8 @@ export class NavComponent {
             });
         }
     }
+
+    public isLoggedIn: boolean;
 
     ngOnInit() {
         this.router.events.subscribe(event => {

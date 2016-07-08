@@ -24,8 +24,8 @@
 }
 
 .fade-out {
-    animation: 0.4s ease 0s 1 normal forwards running fadeOut;
-    -moz-animation: 0.4s ease 0s 1 normal forwards running fadeOut;
+    animation: 0.3s ease 0s 1 normal forwards running fadeOut;
+    -moz-animation: 0.3s ease 0s 1 normal forwards running fadeOut;
 }
 
 @keyframes fadeOut {

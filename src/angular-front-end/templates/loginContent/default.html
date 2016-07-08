@@ -1,6 +1,6 @@
 <button *ngIf="!isLoggedIn" id="loginButton" type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#loginModal">login</button>
 <button *ngIf="isLoggedIn" (click)="onClickLogout()" id="logoutButton" type="button" class="btn btn-primary btn-lg" >logout</button>
-<p class="text-muted" *ngIf="isLoggedIn">Logged in as {{userName}}.</p>
+<p class="text-muted login-text" *ngIf="isLoggedIn && displayText">Logged in as {{userName}}.</p>
 <div class="alert alert-danger" *ngIf="userErrMsg"><strong>Error getting user information!</strong>{{userErrMsg}}</div>
 
 <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

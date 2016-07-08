@@ -15,6 +15,8 @@ progress {
     height: 100vh;
     padding: 5%;
     padding-top: 100px;
+    animation: 0.3s ease 0s 1 normal backwards running fadeIn;
+    -moz-animation: 0.3s ease 0s 1 normal backwards running fadeIn;
 }
 
 .scroll-page {

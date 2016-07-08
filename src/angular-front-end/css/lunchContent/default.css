@@ -9,8 +9,8 @@ button {
 
 .row {
     margin: 0 auto 1em;
-    animation: 1s ease 0s 1 normal backwards running fadeIn;
-    -moz-animation: 1s ease 0s 1 normal backwards running fadeIn;
+    animation: 0.3s ease 0s 1 normal backwards running fadeIn;
+    -moz-animation: 0.3s ease 0s 1 normal backwards running fadeIn;
 }
 
 @keyframes fadeIn {
