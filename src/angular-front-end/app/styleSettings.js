@@ -57,7 +57,10 @@ exports.styleList = {
             TemplateUrl: '../templates/profileContent/default.html' },
         settings: {
             StyleUrl: '../css/settingsContent/default.css',
-            TemplateUrl: '../templates/settingsContent/default.html' }
+            TemplateUrl: '../templates/settingsContent/default.html' },
+        login: {
+            StyleUrl: '../css/loginContent/default.css',
+            TemplateUrl: '../templates/loginContent/default.html' },
     },
 };
 //# sourceMappingURL=styleSettings.js.map

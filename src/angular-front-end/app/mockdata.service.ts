@@ -29,20 +29,7 @@ export class DomData {
     public getProgress() {
         var styleName = this.getStyleName();
         var selectedStyle = styleList[styleName].progress;
-
-        var classData = {
-            day: 1,
-            schedule: {
-                A: "Math",
-                B: "English",
-                C: "Science",
-                D: "History",
-                E: "World Language",
-                F: "Choir",
-                G: "Free"
-            }
-        }
-        return {classData, selectedStyle}
+        return {selectedStyle}
     }    
     //Background services
     public getBg() {
@@ -96,6 +83,12 @@ export class DomData {
     public getSettings() {
         var styleName = this.getStyleName();
         var selectedStyle = styleList[styleName].settings;
+        return {selectedStyle}
+    }
+
+    public getLogin() {
+        var styleName = this.getStyleName();
+        var selectedStyle = styleList[styleName].login;
         return {selectedStyle}
     }
 }

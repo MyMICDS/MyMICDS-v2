@@ -41,9 +41,6 @@ var templateUrl = _navService.getProgress().selectedStyle.TemplateUrl;
         public current_class: string;
         public current_percentage: number;
         public constructor(private _DomService: DomData) {
-            this.percentage = _DomService.getProgress().classData.overall_percentage;
-            this.current_class = _DomService.getProgress().classData.current_class;
-            this.current_percentage = _DomService.getProgress().classData.current_percentage;
         };
         public polarToCartesian=polarToCartesian;
         public describeArc=describeArc;

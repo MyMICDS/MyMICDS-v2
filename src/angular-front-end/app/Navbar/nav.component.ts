@@ -1,12 +1,10 @@
 import {ROUTER_DIRECTIVES} from '@angular/router';
 import {Component} from '@angular/core';
 import {DomData} from '../mockdata.service';
-import {NgClass, NgIf, NgFor, NgForm} from '@angular/common';
+import {NgClass, NgIf, NgFor} from '@angular/common';
 import { Title } from '@angular/platform-browser';
-import {Router} from '@angular/router'
-import {AuthService} from '../services/auth.service'
-import {HTTP_PROVIDERS} from '@angular/http';
-import {UserService} from '../services/user.service'
+import {Router, NavigationEnd} from '@angular/router'
+
 
 var _navService = new DomData();
 var styleUrl = _navService.getNav().selectedStyle.StyleUrl;
@@ -15,8 +13,8 @@ var templateUrl = _navService.getNav().selectedStyle.TemplateUrl;
 @Component({
     selector: 'my-nav',
     templateUrl: templateUrl,
-    directives: [NgClass, ROUTER_DIRECTIVES, NgIf],
-    providers: [DomData, AuthService, HTTP_PROVIDERS, UserService],
+    directives: [NgClass, ROUTER_DIRECTIVES, NgIf, NgFor],
+    providers: [DomData],
     styleUrls: [styleUrl]
 })
 
@@ -55,7 +53,7 @@ export class NavComponent {
     private blur:boolean[] = [false,false,false,false,false]
     private isActive:boolean[] = [true,false,false,false,false]
     
-    public constructor(private _titleService: Title, private _DomService: DomData, private router:Router, private authService: AuthService, private userService: UserService) { }
+    public constructor(private _titleService: Title, private _DomService: DomData, private router:Router) { }
     public pages = this._DomService.getNav().navTitles
     
     public selectedPage: string;
@@ -83,83 +81,13 @@ export class NavComponent {
         }
     }
 
-    //form related variables and methods
-    //todo: separate this into another component
     ngOnInit() {
-        console.log('logging out');
-        this.onClickLogout();
-    }
-
-    ngAfterViewChecked() {
-        this.selectedPage = this.router.url.split('/').pop();
-        this.magnify(this.pages.indexOf(this.selectedPage))
-    }
-
-    public loginModel: {
-        user: string;
-        password: string;
-        remember: any;
-    } = {
-        user: '',
-        password: '',
-        remember: '',
-    }
-    private loginRes: {
-        error: string;
-        success: boolean;
-        cookie: {
-            selector:string,
-            token:string,
-            expires:string
+        this.router.events.subscribe(event => {
+            if(event instanceof NavigationEnd) {
+                this.selectedPage = event.urlAfterRedirects.split('/').pop();
+                this.magnify(this.pages.indexOf(this.selectedPage));
             }
-    } 
-    public isLoggedIn: boolean;
-    public errorMessage:string; 
-    public userErrMsg:string;
-    public userName:string;
-    public onClickLogin() {
-        this.authService.logIn(this.loginModel).subscribe(
-            loginRes => {
-                this.loginRes = loginRes;
-                if (loginRes.error) { 
-                    this.errorMessage = loginRes.error;
-                    console.log(this.errorMessage);
-                } else { 
-                    this.isLoggedIn = true;
-                    $('#loginModal').modal('hide');
-                    this.router.navigate(['/'+this.selectedPage]);
-                    this.userService.getInfo().subscribe(
-                        userInfo => {
-                            if (userInfo.error) {this.userErrMsg = userInfo.error}
-                            else {this.userName = userInfo.user.firstName+' '+userInfo.user.lastName}
-                        },
-                        error => {
-                            this.userErrMsg = error;
-                        }
-                    )
-                }
-            },
-            error => {
-                this.errorMessage = <any>error;
-                console.log('If this keeps happening, contact the support!')
-            }
-        )
+        })
     }
 
-    public onClickLogout() {
-        this.authService.logOut().subscribe(
-            logoutRes => {
-                console.log(logoutRes.error ? logoutRes.error : 'Logout Successful!')
-                if (!logoutRes.error) {
-                    this.isLoggedIn = false;
-                }
-            }
-        )
-    }
-
-    public onClickAccount() {
-        this.router.navigate(['/Account'])
-    }
-
-    public formActive:boolean = true;
 }

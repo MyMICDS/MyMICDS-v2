@@ -34,19 +34,7 @@ var DomData = (function () {
     DomData.prototype.getProgress = function () {
         var styleName = this.getStyleName();
         var selectedStyle = styleSettings_1.styleList[styleName].progress;
-        var classData = {
-            day: 1,
-            schedule: {
-                A: "Math",
-                B: "English",
-                C: "Science",
-                D: "History",
-                E: "World Language",
-                F: "Choir",
-                G: "Free"
-            }
-        };
-        return { classData: classData, selectedStyle: selectedStyle };
+        return { selectedStyle: selectedStyle };
     };
     //Background services
     DomData.prototype.getBg = function () {
@@ -92,6 +80,11 @@ var DomData = (function () {
     DomData.prototype.getSettings = function () {
         var styleName = this.getStyleName();
         var selectedStyle = styleSettings_1.styleList[styleName].settings;
+        return { selectedStyle: selectedStyle };
+    };
+    DomData.prototype.getLogin = function () {
+        var styleName = this.getStyleName();
+        var selectedStyle = styleSettings_1.styleList[styleName].login;
         return { selectedStyle: selectedStyle };
     };
     DomData = __decorate([

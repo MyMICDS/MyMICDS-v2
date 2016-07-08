@@ -14,28 +14,17 @@ var mockdata_service_1 = require('../mockdata.service');
 var common_1 = require('@angular/common');
 var platform_browser_1 = require('@angular/platform-browser');
 var router_2 = require('@angular/router');
-var auth_service_1 = require('../services/auth.service');
-var http_1 = require('@angular/http');
-var user_service_1 = require('../services/user.service');
 var _navService = new mockdata_service_1.DomData();
 var styleUrl = _navService.getNav().selectedStyle.StyleUrl;
 var templateUrl = _navService.getNav().selectedStyle.TemplateUrl;
 var NavComponent = (function () {
-    function NavComponent(_titleService, _DomService, router, authService, userService) {
+    function NavComponent(_titleService, _DomService, router) {
         this._titleService = _titleService;
         this._DomService = _DomService;
         this.router = router;
-        this.authService = authService;
-        this.userService = userService;
         this.blur = [false, false, false, false, false];
         this.isActive = [true, false, false, false, false];
         this.pages = this._DomService.getNav().navTitles;
-        this.loginModel = {
-            user: '',
-            password: '',
-            remember: '',
-        };
-        this.formActive = true;
     }
     NavComponent.prototype.restore = function (x) {
         for (var i = 0; i < this.isActive.length; i++) {
@@ -85,65 +74,24 @@ var NavComponent = (function () {
             });
         }
     };
-    //form related variables and methods
-    //todo: separate this into another component
     NavComponent.prototype.ngOnInit = function () {
-        console.log('logging out');
-        this.onClickLogout();
-    };
-    NavComponent.prototype.ngAfterViewChecked = function () {
-        this.selectedPage = this.router.url.split('/').pop();
-        this.magnify(this.pages.indexOf(this.selectedPage));
-    };
-    NavComponent.prototype.onClickLogin = function () {
         var _this = this;
-        this.authService.logIn(this.loginModel).subscribe(function (loginRes) {
-            _this.loginRes = loginRes;
-            if (loginRes.error) {
-                _this.errorMessage = loginRes.error;
-                console.log(_this.errorMessage);
-            }
-            else {
-                _this.isLoggedIn = true;
-                $('#loginModal').modal('hide');
-                _this.router.navigate(['/' + _this.selectedPage]);
-                _this.userService.getInfo().subscribe(function (userInfo) {
-                    if (userInfo.error) {
-                        _this.userErrMsg = userInfo.error;
-                    }
-                    else {
-                        _this.userName = userInfo.user.firstName + ' ' + userInfo.user.lastName;
-                    }
-                }, function (error) {
-                    _this.userErrMsg = error;
-                });
-            }
-        }, function (error) {
-            _this.errorMessage = error;
-            console.log('If this keeps happening, contact the support!');
-        });
-    };
-    NavComponent.prototype.onClickLogout = function () {
-        var _this = this;
-        this.authService.logOut().subscribe(function (logoutRes) {
-            console.log(logoutRes.error ? logoutRes.error : 'Logout Successful!');
-            if (!logoutRes.error) {
-                _this.isLoggedIn = false;
+        this.router.events.subscribe(function (event) {
+            if (event instanceof router_2.NavigationEnd) {
+                _this.selectedPage = event.urlAfterRedirects.split('/').pop();
+                _this.magnify(_this.pages.indexOf(_this.selectedPage));
             }
         });
-    };
-    NavComponent.prototype.onClickAccount = function () {
-        this.router.navigate(['/Account']);
     };
     NavComponent = __decorate([
         core_1.Component({
             selector: 'my-nav',
             templateUrl: templateUrl,
-            directives: [common_1.NgClass, router_1.ROUTER_DIRECTIVES, common_1.NgIf],
-            providers: [mockdata_service_1.DomData, auth_service_1.AuthService, http_1.HTTP_PROVIDERS, user_service_1.UserService],
+            directives: [common_1.NgClass, router_1.ROUTER_DIRECTIVES, common_1.NgIf, common_1.NgFor],
+            providers: [mockdata_service_1.DomData],
             styleUrls: [styleUrl]
         }), 
-        __metadata('design:paramtypes', [platform_browser_1.Title, mockdata_service_1.DomData, router_2.Router, auth_service_1.AuthService, user_service_1.UserService])
+        __metadata('design:paramtypes', [platform_browser_1.Title, mockdata_service_1.DomData, router_2.Router])
     ], NavComponent);
     return NavComponent;
 }());

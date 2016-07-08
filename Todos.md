@@ -1,6 +1,7 @@
 # Front-end Todo:
 
 ## Very Important (Do this first!)
+1. clean up mockdata.ts (make it into a styling service, very impotant to custom stylings)
 1. fix auth.guard
 1. make urls all lowercased.
 1. Clean up project internally
