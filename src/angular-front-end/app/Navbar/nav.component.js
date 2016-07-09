@@ -106,21 +106,16 @@ var NavComponent = (function () {
         console.log('login event heard');
         this.isLoggedIn = state;
         var num = this.pages.indexOf(this.selectedPage);
-        if (this.selectedPage) {
-            if (this.selectedPage === 'Settings') {
-                if (this.isLoggedIn) {
-                    this.navigateTo(num);
-                }
-                else {
-                    this.navigateToProtected();
-                }
+        if (this.selectedPage === 'Settings') {
+            if (this.isLoggedIn) {
+                this.navigateTo(num);
             }
             else {
-                this.navigateTo(num);
+                this.navigateToProtected();
             }
         }
         else {
-            this.navigateTo(0);
+            this.navigateTo(num);
         }
         //this.router.navigate(['/'+this.selectedPage])
         //this._titleService.setTitle('MyMCIDS-'+this.selectedPage);
@@ -133,6 +128,9 @@ var NavComponent = (function () {
                 var selectedPage = event.urlAfterRedirects.split('/').pop();
                 var num = _this.pages.indexOf(selectedPage);
                 _this.magnify(num);
+                if (selectedPage == 'protected') {
+                    _this.navigateTo(0);
+                }
             }
         });
         //mechanic to replace the broken authguard
