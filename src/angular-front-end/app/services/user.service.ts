@@ -26,8 +26,8 @@ export class UserService {
         user:{
             canvasURL:string
             firstName:string;
-            gradYear:string;
-            grade:string;
+            gradYear:number;
+            grade:number;
             lastName:string;
             password:string;
             portalURL:string;
@@ -56,7 +56,7 @@ export class UserService {
     public changeInfo(user: {
         'first-name': string;
         'last-name': string;
-        'grad-year': number;
+        'grad-year': string;
     }):Observable<{error:any}> {
         let body = JSON.stringify(user);
         let headers = new Headers({ 'Content-Type': 'application/json' });

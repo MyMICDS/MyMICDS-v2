@@ -54,7 +54,7 @@
         <div class="input-group">
             <!--<input #gradyear="ngModel" type="gradyear" class="form-control" id="InputGradyear" placeholder="9th grade: 2019" [(ngModel)]="form['grad-year']" name ="gradyear">-->
             <select class="c-select" #gradyear="ngModel" type="gradyear" id="InputGradyear" placeholder="9th grade: 2019" [(ngModel)]="form['grad-year']" name ="gradyear" required>
-                <!--<option selected [value]="null">Select your year of graduation.</option>-->
+                <option selected [value]="null">Select your year of graduation.</option>
                 <option *ngFor="let g of gradeRange" [value]="g">{{g}}</option>
             </select>
             <div [hidden]="gradyear.valid || gradyear.pristine" class="alert alert-danger">Year of graduation is required</div>

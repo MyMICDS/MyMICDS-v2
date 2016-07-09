@@ -16,7 +16,7 @@ var ProtectedComponent = (function () {
     ProtectedComponent = __decorate([
         core_1.Component({
             selector: 'app-content',
-            template: "\n    <div class=\"my-top-content\">\n        <div class=\"jumbotron\">\n            <h1 class=\"display-3\">Please log in before you continue.</h1>\n            <my-login [displayText]=\"false\" (onLogin)=\"console.log('logged In')\"></my-login>\n        </div>\n    </div>",
+            template: "\n    <div class=\"my-top-content \" is=\"my-fadeout\">\n        <div class=\"jumbotron\">\n            <h1 class=\"display-3\">Please log in before you continue.</h1>\n            <my-login [displayText]=\"false\" (onLogin)=\"console.log('logged In')\"></my-login>\n        </div>\n    </div>",
             styles: ['h1 {color: black} .my-top-content {margin-top: 100px}'],
             providers: [],
             directives: [login_component_1.LoginComponent]

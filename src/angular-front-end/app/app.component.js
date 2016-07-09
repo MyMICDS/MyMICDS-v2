@@ -20,6 +20,7 @@ var plannerContent_component_1 = require('./Planner/plannerContent.component');
 var profileContent_component_1 = require('./Profile/profileContent.component');
 var settingsContent_component_1 = require('./Settings/settingsContent.component');
 var accountContent_component_1 = require('./Account/accountContent.component');
+var protected_component_1 = require('./protected/protected.component');
 var AppComponent = (function () {
     function AppComponent() {
     }
@@ -30,7 +31,7 @@ var AppComponent = (function () {
             directives: [background_component_1.BgComponent, nav_component_1.NavComponent],
             providers: [mockdata_service_1.DomData, http_1.HTTP_PROVIDERS],
             styleUrls: ['./css/main.css'],
-            precompile: [mainContent_component_1.mainContent, lunchContent_component_1.lunchContent, plannerContent_component_1.plannerContent, profileContent_component_1.profileContent, settingsContent_component_1.settingsContent, accountContent_component_1.accountContent]
+            precompile: [mainContent_component_1.mainContent, lunchContent_component_1.lunchContent, plannerContent_component_1.plannerContent, profileContent_component_1.profileContent, settingsContent_component_1.settingsContent, accountContent_component_1.accountContent, protected_component_1.ProtectedComponent]
         }), 
         __metadata('design:paramtypes', [])
     ], AppComponent);

@@ -39,13 +39,15 @@ export class accountContent{
         password: '',
         firstName: '',
         lastName: '',
-        'grad-year':'',
+        'grad-year':null,
         teacher:''
     };
     submitted = false;
     submitSuccess = false;
     errMsg = '';
     onSubmit() {
+        let postForm = this.form;
+        postForm['grad-year'] = this.form['grad-year'].toString();
         this.submitted = true;
         this.authService.register(this.form).subscribe(
             res => {

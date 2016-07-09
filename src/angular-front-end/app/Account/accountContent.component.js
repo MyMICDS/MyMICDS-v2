@@ -27,7 +27,7 @@ var accountContent = (function () {
             password: '',
             firstName: '',
             lastName: '',
-            'grad-year': '',
+            'grad-year': null,
             teacher: ''
         };
         this.submitted = false;
@@ -46,6 +46,8 @@ var accountContent = (function () {
     };
     accountContent.prototype.onSubmit = function () {
         var _this = this;
+        var postForm = this.form;
+        postForm['grad-year'] = this.form['grad-year'].toString();
         this.submitted = true;
         this.authService.register(this.form).subscribe(function (res) {
             if (res.error) {

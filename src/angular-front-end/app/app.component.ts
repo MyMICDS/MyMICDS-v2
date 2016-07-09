@@ -11,6 +11,7 @@ import {plannerContent} from './Planner/plannerContent.component';
 import {profileContent} from './Profile/profileContent.component'
 import {settingsContent} from './Settings/settingsContent.component'
 import {accountContent} from './Account/accountContent.component';
+import {ProtectedComponent} from './protected/protected.component';
 
 
 @Component({
@@ -23,7 +24,7 @@ import {accountContent} from './Account/accountContent.component';
     directives: [BgComponent, NavComponent],
     providers: [DomData, HTTP_PROVIDERS],
     styleUrls: ['./css/main.css'],
-    precompile: [mainContent, lunchContent, plannerContent, profileContent, settingsContent, accountContent]
+    precompile: [mainContent, lunchContent, plannerContent, profileContent, settingsContent, accountContent, ProtectedComponent]
 })
 
 export class AppComponent {

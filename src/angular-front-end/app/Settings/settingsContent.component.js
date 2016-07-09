@@ -23,34 +23,47 @@ var settingsContent = (function () {
         this.userService = userService;
         this.username = '';
         this.user = {
-            firstName: '',
-            lastName: '',
-            gradYear: ''
+            'first-name': '',
+            'last-name': '',
+            'grad-year': null
         };
         this.gradeRange = [];
-        this.isLoggedIn = false;
     }
-    settingsContent.prototype.ngOnInit = function () {
+    settingsContent.prototype.getUserInfo = function () {
         var _this = this;
         this.userService.getInfo().subscribe(function (userInfo) {
             if (userInfo.error) {
                 _this.errMsg = userInfo.error + ' (this is not a connection problem)';
             }
             else {
-                _this.isLoggedIn = true;
                 _this.username = userInfo.user.user;
-                _this.user.firstName = userInfo.user.firstName;
-                _this.user.lastName = userInfo.user.lastName;
-                _this.user.gradYear = userInfo.user.gradYear;
+                _this.user['first-name'] = userInfo.user.firstName;
+                _this.user['last-name'] = userInfo.user.lastName;
+                _this.user['grad-year'] = userInfo.user.gradYear;
+                console.dir(userInfo);
             }
         }, function (error) {
             _this.errMsg = 'Connection Error: ' + error;
         });
+    };
+    settingsContent.prototype.ngOnInit = function () {
+        var _this = this;
+        this.getUserInfo();
         this.userService.getGradeRange().subscribe(function (gradeRange) {
             _this.gradeRange = gradeRange.gradYears;
         }, function (error) {
             console.log(error);
         });
+    };
+    settingsContent.prototype.onSubmitName = function () {
+        var _this = this;
+        var postUser = {
+            'first-name': this.user['first-name'],
+            'last-name': this.user['last-name'],
+            'grad-year': this.user['grad-year'].toString()
+        };
+        console.dir(postUser);
+        this.userService.changeInfo(postUser).subscribe(function (res) { res.error ? _this.errMsg = res.error : console.log('changed submitted'); }, function (error) { return _this.errMsg = error; }, function () { return _this.getUserInfo(); });
     };
     settingsContent = __decorate([
         core_1.Component({

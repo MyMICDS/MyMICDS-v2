@@ -4,7 +4,7 @@ import {LoginComponent} from '../Login/login.component'
 @Component({
     selector: 'app-content',
     template: `
-    <div class="my-top-content">
+    <div class="my-top-content " is="my-fadeout">
         <div class="jumbotron">
             <h1 class="display-3">Please log in before you continue.</h1>
             <my-login [displayText]="false" (onLogin)="console.log('logged In')"></my-login>

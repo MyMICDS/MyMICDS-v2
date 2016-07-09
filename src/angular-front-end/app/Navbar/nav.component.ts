@@ -57,7 +57,7 @@ export class NavComponent {
     public constructor(private _titleService: Title, private _DomService: DomData, private router:Router) { }
     public pages = this._DomService.getNav().navTitles
     
-    public selectedPage: string;
+    public selectedPage: string = this.router.url.split('/').pop();
     private previousSelectedPage: string;
 
     private navigateTo(x:number) {
@@ -113,6 +113,7 @@ export class NavComponent {
         console.log('login event heard')
         this.isLoggedIn = state;
         let num = this.pages.indexOf(this.selectedPage);
+        if (this.selectedPage) {
             if (this.selectedPage==='Settings') {
                 if (this.isLoggedIn) {
                     this.navigateTo(num)
@@ -122,6 +123,7 @@ export class NavComponent {
             } else {
                 this.navigateTo(num);
             }
+        }
         //this.router.navigate(['/'+this.selectedPage])
         //this._titleService.setTitle('MyMCIDS-'+this.selectedPage);
     }
@@ -133,7 +135,7 @@ export class NavComponent {
                 let selectedPage = event.urlAfterRedirects.split('/').pop();
                 let num = this.pages.indexOf(selectedPage);
                 this.magnify(num);
-                if (selectedPage=='protected') {
+                if (!this.selectedPage && selectedPage=='protected') {
                     this.navigateTo(0);
                 }
             }
@@ -146,6 +148,7 @@ export class NavComponent {
                 if (selectedPage==='Settings') {
                     if (!this.isLoggedIn) {
                         this.navigateToProtected();
+                    }
                 }
             }
         })

@@ -26,6 +26,7 @@ var NavComponent = (function () {
         this.blur = [false, false, false, false, false];
         this.isActive = [true, false, false, false, false];
         this.pages = this._DomService.getNav().navTitles;
+        this.selectedPage = this.router.url.split('/').pop();
         this.isLoggedIn = false;
     }
     NavComponent.prototype.restore = function (x) {
@@ -106,16 +107,18 @@ var NavComponent = (function () {
         console.log('login event heard');
         this.isLoggedIn = state;
         var num = this.pages.indexOf(this.selectedPage);
-        if (this.selectedPage === 'Settings') {
-            if (this.isLoggedIn) {
-                this.navigateTo(num);
+        if (this.selectedPage) {
+            if (this.selectedPage === 'Settings') {
+                if (this.isLoggedIn) {
+                    this.navigateTo(num);
+                }
+                else {
+                    this.navigateToProtected();
+                }
             }
             else {
-                this.navigateToProtected();
+                this.navigateTo(num);
             }
-        }
-        else {
-            this.navigateTo(num);
         }
         //this.router.navigate(['/'+this.selectedPage])
         //this._titleService.setTitle('MyMCIDS-'+this.selectedPage);
@@ -128,7 +131,7 @@ var NavComponent = (function () {
                 var selectedPage = event.urlAfterRedirects.split('/').pop();
                 var num = _this.pages.indexOf(selectedPage);
                 _this.magnify(num);
-                if (selectedPage == 'protected') {
+                if (!_this.selectedPage && selectedPage == 'protected') {
                     _this.navigateTo(0);
                 }
             }
