@@ -103,13 +103,31 @@ var NavComponent = (function () {
         }
     };
     NavComponent.prototype.onLogin = function (state) {
-        console.log('event heard');
+        console.log('login event heard');
         this.isLoggedIn = state;
-        console.log(this.selectedPage, this.isLoggedIn);
-        this.router.navigate(['/' + this.selectedPage]);
+        var num = this.pages.indexOf(this.selectedPage);
+        if (this.selectedPage) {
+            if (this.selectedPage === 'Settings') {
+                if (this.isLoggedIn) {
+                    this.navigateTo(num);
+                }
+                else {
+                    this.navigateToProtected();
+                }
+            }
+            else {
+                this.navigateTo(num);
+            }
+        }
+        else {
+            this.navigateTo(0);
+        }
+        //this.router.navigate(['/'+this.selectedPage])
+        //this._titleService.setTitle('MyMCIDS-'+this.selectedPage);
     };
     NavComponent.prototype.ngOnInit = function () {
         var _this = this;
+        //activate the correct navbar item
         this.router.events.subscribe(function (event) {
             if (event instanceof router_2.NavigationEnd) {
                 var selectedPage = event.urlAfterRedirects.split('/').pop();

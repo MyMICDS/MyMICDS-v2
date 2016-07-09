@@ -65,7 +65,9 @@ export class LoginComponent {
                             this.userErrMsg = error;
                         }
                     );
-                    //this.router.navigate([this.router.url]);//dont know if this works
+                    if(loginRes.cookie.token) {
+						document.cookie = 'rememberme=' + loginRes.cookie.selector + ':' + loginRes.cookie.token + '; expires=' + loginRes.cookie.expires;
+					}
                 }
             },
             error => {
@@ -83,7 +85,6 @@ export class LoginComponent {
                 } else {
                     this.isLoggedIn = false;
                     this.onLogin.emit(false);
-                    //this.router.navigate([this.router.url])//dont know if this works
                 }
             },
             error => {

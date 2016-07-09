@@ -33,6 +33,13 @@
                     Password is required
                     </div>
                 </fieldset>
+                <fieldset>
+                    <label class="c-input c-checkbox">
+                    <input type="checkbox" [(ngModel)]=loginModel.remember name="remember">
+                    <span class="c-indicator"></span>
+                    Remember me
+                    </label>
+                </fieldset>
                 <button type="submit" [disabled]="!loginForm.form.valid" class="btn btn-primary">Login</button>
             </form> <!--try to place the button outisde of the form and inside of the card footer-->
         </div>

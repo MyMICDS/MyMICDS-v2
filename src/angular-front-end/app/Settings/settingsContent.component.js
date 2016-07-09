@@ -22,9 +22,11 @@ var settingsContent = (function () {
         this.canvasService = canvasService;
         this.userService = userService;
         this.username = '';
-        this.firstName = '';
-        this.lastName = '';
-        this.gradYear = '';
+        this.user = {
+            firstName: '',
+            lastName: '',
+            gradYear: ''
+        };
         this.gradeRange = [];
         this.isLoggedIn = false;
     }
@@ -37,9 +39,9 @@ var settingsContent = (function () {
             else {
                 _this.isLoggedIn = true;
                 _this.username = userInfo.user.user;
-                _this.firstName = userInfo.user.firstName;
-                _this.lastName = userInfo.user.lastName;
-                _this.gradYear = userInfo.user.gradYear;
+                _this.user.firstName = userInfo.user.firstName;
+                _this.user.lastName = userInfo.user.lastName;
+                _this.user.gradYear = userInfo.user.gradYear;
             }
         }, function (error) {
             _this.errMsg = 'Connection Error: ' + error;

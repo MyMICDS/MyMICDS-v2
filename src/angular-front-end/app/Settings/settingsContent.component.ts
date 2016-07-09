@@ -20,9 +20,11 @@ export class settingsContent{
     constructor (private protalService: PortalService, private canvasService: CanvasService, private userService: UserService) {}
 
     username = '';
-    firstName = '';
-    lastName = '';
-    gradYear = '';
+    user= {
+        firstName: '',
+        lastName: '',
+        gradYear: ''
+    }
     gradeRange = []
 
     errMsg: string;
@@ -37,9 +39,9 @@ export class settingsContent{
                 else {
                     this.isLoggedIn = true;
                     this.username = userInfo.user.user;
-                    this.firstName = userInfo.user.firstName;
-                    this.lastName = userInfo.user.lastName;
-                    this.gradYear = userInfo.user.gradYear;
+                    this.user.firstName = userInfo.user.firstName;
+                    this.user.lastName = userInfo.user.lastName;
+                    this.user.gradYear = userInfo.user.gradYear;
                 }
             },
             error => {

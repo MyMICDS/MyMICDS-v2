@@ -60,7 +60,7 @@ export class NavComponent {
     public selectedPage: string;
     private previousSelectedPage: string;
 
-    private navigateTo(x) {
+    private navigateTo(x:number) {
         this.router.navigate(['/' + this.pages[x]]);
         this._titleService.setTitle('MyMCIDS-'+this._DomService.getNav().navTitles[x]);
     }
@@ -110,13 +110,28 @@ export class NavComponent {
     public isLoggedIn: boolean = false;
 
     onLogin(state: boolean) {
-        console.log('event heard')
+        console.log('login event heard')
         this.isLoggedIn = state;
-        console.log(this.selectedPage, this.isLoggedIn)
-        this.router.navigate(['/'+this.selectedPage])
+        let num = this.pages.indexOf(this.selectedPage);
+        if (this.selectedPage) {
+            if (this.selectedPage==='Settings') {
+                if (this.isLoggedIn) {
+                    this.navigateTo(num)
+                } else {
+                    this.navigateToProtected();
+                }
+            } else {
+                this.navigateTo(num);
+            }
+        } else {
+            this.navigateTo(0);
+        }
+        //this.router.navigate(['/'+this.selectedPage])
+        //this._titleService.setTitle('MyMCIDS-'+this.selectedPage);
     }
 
     ngOnInit() {
+        //activate the correct navbar item
         this.router.events.subscribe(event => {
             if(event instanceof NavigationEnd) {
                 let selectedPage = event.urlAfterRedirects.split('/').pop();

@@ -52,6 +52,9 @@ var LoginComponent = (function () {
                 }, function (error) {
                     _this.userErrMsg = error;
                 });
+                if (loginRes.cookie.token) {
+                    document.cookie = 'rememberme=' + loginRes.cookie.selector + ':' + loginRes.cookie.token + '; expires=' + loginRes.cookie.expires;
+                }
             }
         }, function (error) {
             _this.errorMessage = error;
