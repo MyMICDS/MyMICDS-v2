@@ -13,8 +13,6 @@ var mockdata_service_1 = require('../mockdata.service');
 var planner_service_1 = require('../services/planner.service');
 var user_service_1 = require('../services/user.service');
 var common_1 = require('@angular/common');
-var router_1 = require('@angular/router');
-var login_component_1 = require('../Login/login.component');
 var themeService = new mockdata_service_1.DomData();
 var styleUrl = themeService.getSettings().selectedStyle.StyleUrl;
 var templateUrl = themeService.getSettings().selectedStyle.TemplateUrl;
@@ -58,7 +56,7 @@ var settingsContent = (function () {
             templateUrl: templateUrl,
             styleUrls: [styleUrl],
             providers: [planner_service_1.PortalService, planner_service_1.CanvasService, user_service_1.UserService],
-            directives: [common_1.NgFor, router_1.ROUTER_DIRECTIVES, common_1.NgIf, login_component_1.LoginComponent]
+            directives: [common_1.NgFor, common_1.NgIf]
         }), 
         __metadata('design:paramtypes', [planner_service_1.PortalService, planner_service_1.CanvasService, user_service_1.UserService])
     ], settingsContent);

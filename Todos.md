@@ -1,8 +1,9 @@
 # Front-end Todo:
 
 ## Very Important (Do this first!)
+1. add candeactivate() to all the forms
 1. clean up mockdata.ts (make it into a styling service, very impotant to custom stylings)
-1. fix auth.guard
+1. fix auth.guard (alternative added)
 1. make urls all lowercased.
 1. Clean up project internally
   * Clean up navcomponent.ts, make ngOnViewChecked() call less

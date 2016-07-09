@@ -26,6 +26,7 @@ var NavComponent = (function () {
         this.blur = [false, false, false, false, false];
         this.isActive = [true, false, false, false, false];
         this.pages = this._DomService.getNav().navTitles;
+        this.isLoggedIn = false;
     }
     NavComponent.prototype.restore = function (x) {
         for (var i = 0; i < this.isActive.length; i++) {
@@ -54,6 +55,14 @@ var NavComponent = (function () {
     NavComponent.prototype.mouseLeave = function (x) {
         this.removeBlur(x);
     };
+    NavComponent.prototype.navigateTo = function (x) {
+        this.router.navigate(['/' + this.pages[x]]);
+        this._titleService.setTitle('MyMCIDS-' + this._DomService.getNav().navTitles[x]);
+    };
+    NavComponent.prototype.navigateToProtected = function () {
+        this.router.navigate(['/protected']);
+        this._titleService.setTitle('Restricted Area');
+    };
     NavComponent.prototype.onSelect = function (x) {
         var _this = this;
         this.restore(x);
@@ -66,21 +75,58 @@ var NavComponent = (function () {
                 setTimeout(function () { resolve(''); }, 300);
             });
             p.then(function () {
-                _this.router.navigate(['/' + _this.pages[x]]);
-                _this._titleService.setTitle("MockUp-" + _this._DomService.getNav().navTitles[x]);
+                if (_this.pages[x] === 'Settings') {
+                    if (_this.isLoggedIn) {
+                        _this.navigateTo(x);
+                    }
+                    else {
+                        _this.navigateToProtected();
+                    }
+                }
+                else {
+                    _this.navigateTo(x);
+                }
             }).catch(function (e) {
                 console.error(e);
-                _this.router.navigate(['/' + _this.pages[x]]);
-                _this._titleService.setTitle("MockUp-" + _this._DomService.getNav().navTitles[x]);
+                if (_this.pages[x] === 'Settings') {
+                    if (_this.isLoggedIn) {
+                        _this.navigateTo(x);
+                    }
+                    else {
+                        _this.navigateToProtected();
+                    }
+                }
+                else {
+                    _this.navigateTo(x);
+                }
             });
         }
+    };
+    NavComponent.prototype.onLogin = function (state) {
+        console.log('event heard');
+        this.isLoggedIn = state;
+        console.log(this.selectedPage, this.isLoggedIn);
+        this.router.navigate(['/' + this.selectedPage]);
     };
     NavComponent.prototype.ngOnInit = function () {
         var _this = this;
         this.router.events.subscribe(function (event) {
             if (event instanceof router_2.NavigationEnd) {
-                _this.selectedPage = event.urlAfterRedirects.split('/').pop();
-                _this.magnify(_this.pages.indexOf(_this.selectedPage));
+                var selectedPage = event.urlAfterRedirects.split('/').pop();
+                var num = _this.pages.indexOf(selectedPage);
+                _this.magnify(num);
+            }
+        });
+        //mechanic to replace the broken authguard
+        this.router.events.subscribe(function (event) {
+            if (event instanceof router_2.NavigationStart) {
+                var selectedPage = event.url.split('/').pop();
+                var num = _this.pages.indexOf(selectedPage);
+                if (selectedPage === 'Settings') {
+                    if (!_this.isLoggedIn) {
+                        _this.navigateToProtected();
+                    }
+                }
             }
         });
     };

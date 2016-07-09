@@ -3,7 +3,7 @@ import {Component} from '@angular/core';
 import {DomData} from '../mockdata.service';
 import {NgClass, NgIf, NgFor} from '@angular/common';
 import { Title } from '@angular/platform-browser';
-import {Router, NavigationEnd} from '@angular/router';
+import {Router, NavigationEnd, NavigationStart} from '@angular/router';
 import {LoginComponent} from '../Login/login.component';
 
 
@@ -59,6 +59,17 @@ export class NavComponent {
     
     public selectedPage: string;
     private previousSelectedPage: string;
+
+    private navigateTo(x) {
+        this.router.navigate(['/' + this.pages[x]]);
+        this._titleService.setTitle('MyMCIDS-'+this._DomService.getNav().navTitles[x]);
+    }
+
+    private navigateToProtected() {
+        this.router.navigate(['/protected']);
+        this._titleService.setTitle('Restricted Area')
+    }
+
     public onSelect(x: number):void {
         this.restore(x);
         this.magnify(x);
@@ -72,23 +83,56 @@ export class NavComponent {
             }
             );
             p.then(() => {
-                this.router.navigate(['/' + this.pages[x]]);
-                this._titleService.setTitle("MockUp-"+this._DomService.getNav().navTitles[x]);
+                if (this.pages[x]==='Settings') {
+                    if (this.isLoggedIn) {
+                        this.navigateTo(x)
+                    } else {
+                        this.navigateToProtected();
+                    }
+                } else {
+                    this.navigateTo(x);
+                }
             }).catch((e)=> {
                 console.error(e);
-                this.router.navigate(['/' + this.pages[x]]);
-                this._titleService.setTitle("MockUp-"+this._DomService.getNav().navTitles[x]);
+                if (this.pages[x]==='Settings') {
+                    if (this.isLoggedIn) {
+                        this.navigateTo(x)
+                    } else {
+                        this.navigateToProtected();
+                    }
+                } else {
+                    this.navigateTo(x);
+                }
             });
         }
     }
 
-    public isLoggedIn: boolean;
+    public isLoggedIn: boolean = false;
+
+    onLogin(state: boolean) {
+        console.log('event heard')
+        this.isLoggedIn = state;
+        console.log(this.selectedPage, this.isLoggedIn)
+        this.router.navigate(['/'+this.selectedPage])
+    }
 
     ngOnInit() {
         this.router.events.subscribe(event => {
             if(event instanceof NavigationEnd) {
-                this.selectedPage = event.urlAfterRedirects.split('/').pop();
-                this.magnify(this.pages.indexOf(this.selectedPage));
+                let selectedPage = event.urlAfterRedirects.split('/').pop();
+                let num = this.pages.indexOf(selectedPage);
+                this.magnify(num);
+            }
+        });
+        //mechanic to replace the broken authguard
+        this.router.events.subscribe(event => {
+            if(event instanceof NavigationStart) {
+                let selectedPage = event.url.split('/').pop();
+                let num = this.pages.indexOf(selectedPage);
+                if (selectedPage==='Settings') {
+                    if (!this.isLoggedIn) {
+                        this.navigateToProtected();
+                }
             }
         })
     }

@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, Output, EventEmitter} from '@angular/core';
 import {AuthService} from '../services/auth.service'
 import {UserService} from '../services/user.service'
 import {DomData} from '../mockdata.service';
@@ -21,6 +21,7 @@ export class LoginComponent {
     constructor(private router:Router, private authService: AuthService, private userService: UserService) {}
 
     @Input() displayText: boolean;
+    @Output() onLogin = new EventEmitter<boolean>()
 
     public loginModel: {
         user: string;
@@ -54,6 +55,7 @@ export class LoginComponent {
                 } else { 
                     this.isLoggedIn = true;
                     $('#loginModal').modal('hide');
+                    this.onLogin.emit(true);
                     this.userService.getInfo().subscribe(
                         userInfo => {
                             if (userInfo.error) {this.userErrMsg = userInfo.error}
@@ -63,7 +65,7 @@ export class LoginComponent {
                             this.userErrMsg = error;
                         }
                     );
-                    this.router.navigate([this.router.url]);
+                    //this.router.navigate([this.router.url]);//dont know if this works
                 }
             },
             error => {
@@ -80,7 +82,8 @@ export class LoginComponent {
                     console.log(logoutRes.error)
                 } else {
                     this.isLoggedIn = false;
-                    this.router.navigate([this.router.url])
+                    this.onLogin.emit(false);
+                    //this.router.navigate([this.router.url])//dont know if this works
                 }
             },
             error => {
@@ -97,8 +100,9 @@ export class LoginComponent {
 
     ngOnInit() {
         this.userService.getInfo().subscribe(
-            info => {if (info.error) {this.isLoggedIn = false} else {this.isLoggedIn = true;this.userName=info.user.user}},
-            error => this.isLoggedIn = false
+            info => {if (info.error) {this.isLoggedIn = false;this.onLogin.emit(false);
+                } else {this.onLogin.emit(true);this.isLoggedIn = true;this.userName=info.user.user}},
+            error => {this.isLoggedIn = false;this.onLogin.emit(true);}
         )
     }
 

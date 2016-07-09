@@ -22,6 +22,7 @@ var LoginComponent = (function () {
         this.router = router;
         this.authService = authService;
         this.userService = userService;
+        this.onLogin = new core_1.EventEmitter();
         this.loginModel = {
             user: '',
             password: '',
@@ -40,6 +41,7 @@ var LoginComponent = (function () {
             else {
                 _this.isLoggedIn = true;
                 $('#loginModal').modal('hide');
+                _this.onLogin.emit(true);
                 _this.userService.getInfo().subscribe(function (userInfo) {
                     if (userInfo.error) {
                         _this.userErrMsg = userInfo.error;
@@ -50,7 +52,6 @@ var LoginComponent = (function () {
                 }, function (error) {
                     _this.userErrMsg = error;
                 });
-                _this.router.navigate([_this.router.url]);
             }
         }, function (error) {
             _this.errorMessage = error;
@@ -65,7 +66,7 @@ var LoginComponent = (function () {
             }
             else {
                 _this.isLoggedIn = false;
-                _this.router.navigate([_this.router.url]);
+                _this.onLogin.emit(false);
             }
         }, function (error) {
             console.error(error);
@@ -76,18 +77,26 @@ var LoginComponent = (function () {
     };
     LoginComponent.prototype.ngOnInit = function () {
         var _this = this;
-        this.userService.getInfo().subscribe(function (info) { if (info.error) {
-            _this.isLoggedIn = false;
-        }
-        else {
-            _this.isLoggedIn = true;
-            _this.userName = info.user.user;
-        } }, function (error) { return _this.isLoggedIn = false; });
+        this.userService.getInfo().subscribe(function (info) {
+            if (info.error) {
+                _this.isLoggedIn = false;
+                _this.onLogin.emit(false);
+            }
+            else {
+                _this.onLogin.emit(true);
+                _this.isLoggedIn = true;
+                _this.userName = info.user.user;
+            }
+        }, function (error) { _this.isLoggedIn = false; _this.onLogin.emit(true); });
     };
     __decorate([
         core_1.Input(), 
         __metadata('design:type', Boolean)
     ], LoginComponent.prototype, "displayText", void 0);
+    __decorate([
+        core_1.Output(), 
+        __metadata('design:type', Object)
+    ], LoginComponent.prototype, "onLogin", void 0);
     LoginComponent = __decorate([
         core_1.Component({
             selector: 'my-login',

@@ -3,8 +3,6 @@ import {DomData} from '../mockdata.service'
 import {PortalService, CanvasService} from '../services/planner.service';
 import {UserService} from '../services/user.service';
 import {NgFor, NgIf} from '@angular/common';
-import {ROUTER_DIRECTIVES} from '@angular/router'
-import {LoginComponent} from '../Login/login.component'
 
 var themeService = new DomData();
 var styleUrl = themeService.getSettings().selectedStyle.StyleUrl;
@@ -15,7 +13,7 @@ var templateUrl = themeService.getSettings().selectedStyle.TemplateUrl;
     templateUrl: templateUrl,
     styleUrls: [styleUrl],
     providers: [PortalService, CanvasService, UserService],
-    directives: [NgFor, ROUTER_DIRECTIVES, NgIf, LoginComponent]
+    directives: [NgFor, NgIf]
 })
 
 export class settingsContent{
@@ -48,6 +46,7 @@ export class settingsContent{
                 this.errMsg = 'Connection Error: ' + error;
             }
         );
+
         this.userService.getGradeRange().subscribe(
             gradeRange => {
                 this.gradeRange = gradeRange.gradYears;
