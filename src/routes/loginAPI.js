@@ -65,7 +65,7 @@ module.exports = function(app, db) {
 			gradYear : parseInt(req.body['grad-year'])
 		};
 
-		if(typeof req.body.teacher !== 'undefined') {
+		if(typeof req.body.teacher !== 'undefined' && req.body.teacher !== false) {
 			user.gradYear = null;
 		}
 

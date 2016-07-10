@@ -141,7 +141,7 @@ Will create a new user and send an email to confirm the user's account.
 - `firstName` - First name
 - `lastName` - Last name
 - `grad-year` - Year user graudates from high school.
-- `teacher` - If teacher or faculty, give this any value. If set this will override any `grad-year` parameter. This matches the behavior of regular HTML checkboxes which will automatically set the value to 'on' if they are checked, and not submit any value if they are not checked. _(Optional, by default user will not be a teacher.)_
+- `teacher` - If teacher or faculty, give this any value. If set this will override any `grad-year` parameter. This matches the behavior of regular HTML checkboxes which will automatically set the value to 'on' if they are checked, and not submit any value if they are not checked. It will also ignore teacher if set to false. Overrides graduation year. _(Optional, by default user will not be a teacher.)_
 
 #### Response
 - `error` - Null if success, string containing error if failure.
@@ -302,6 +302,7 @@ Returns an array of school graduation years from Junior Kindergarten to 12th gra
 - `first-name` - What to change first name to. _(Optional, default will not change first name.)_
 - `last-name` - What to change last name to. _(Optional, default will not change last name.)_
 - `grad-year` - What to change graduation year to. _(Optional, default will not change graduation year.)_
+- `teacher` - Whether user is teacher. If set to any value besides false, user will be changed to teacher. This overrides graduation year. _(Optional, default will not change to teacher.)_
 
 ### Response
 - `error` - Null if success, string containing error if failure.

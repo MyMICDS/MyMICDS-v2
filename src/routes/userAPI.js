@@ -24,7 +24,7 @@ module.exports = function(app, db) {
 		var ends = users.schoolEnds();
 		res.json({ ends: ends });
 	});
-    
+
     app.post('/user/grade-range', function(req, res) {
         var gradYears = [];
         // Set min (inclusive) and max (inclusive)
@@ -62,7 +62,7 @@ module.exports = function(app, db) {
 			info.lastName = req.body['last-name'];
 		}
 
-		if(typeof req.body.teacher !== 'undefined') {
+		if(typeof req.body.teacher !== 'undefined' && req.body.teacher !== false) {
 			info.gradYear = null;
 		} else {
 			info.gradYear = parseInt(req.body['grad-year']);
