@@ -11,7 +11,7 @@ export class DomData {
         var styleName = this.getStyleName();
         var selectedStyle = styleList[styleName].navbar;
         return {
-            navTitles: ["Home", "Lunch", "Planner", "Settings", "Profile"], //this is supposed to get data from somewhere
+            navTitles: ["home", "lunch", "planner", "settings"], //this is supposed to get data from somewhere
             selectedStyle
         }
     }
@@ -20,7 +20,7 @@ export class DomData {
         var selectedStyle = styleList[styleName].planner;
 
         return {selectedStyle,
-            
+
 
         }
     }
@@ -30,7 +30,7 @@ export class DomData {
         var styleName = this.getStyleName();
         var selectedStyle = styleList[styleName].progress;
         return {selectedStyle}
-    }    
+    }
     //Background services
     public getBg() {
         var bgName = this.getStyleName();
@@ -57,7 +57,7 @@ export class DomData {
             stations: ['Main Dish', 'Action Station', 'Soup', 'Salad Bar', 'Dessert'],
             imgLinks: ['../assets/a29f20e0gw1f1js9envmbj218c1uo7wh.jpg','../assets/a29f20e0gw1f1js9j1dpej20ov0xcb26.jpg','../assets/a29f20e0jw1f1dxiv9p1oj20xc0qfx3t.jpg','../assets/a29f20e0jw1f1dxj7b2tjj20ow0xcngo.jpg','../assets/a29f20e0jw1f1dxjf2v4zj20m80ftqes.jpg']
         }
-            
+
     }
 
     public getMain() {

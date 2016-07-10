@@ -6,6 +6,7 @@
     font-size: 2em;
     transition: all 0.3s ease;
     cursor: pointer;
+    text-transform: capitalize;
 }
 
 .navbar-nav .nav-item+.nav-item {

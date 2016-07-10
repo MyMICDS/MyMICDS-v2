@@ -1,4 +1,4 @@
-import { RouterConfig } from '@angular/router';
+import {RouterConfig} from '@angular/router';
 import {provideRouter} from '@angular/router';
 import {mainContent} from './Home/mainContent.component';
 import {lunchContent} from './Lunch/lunchContent.component';
@@ -11,13 +11,11 @@ import {AuthGuard} from './auth.guard';
 import {AuthService} from './services/auth.service'
 
 export const routes: RouterConfig = [
-  { path: '', redirectTo: 'Home', pathMatch: 'full' },
-  { path: 'Home', component: mainContent },
-  { path: 'Lunch', component: lunchContent },
-  { path: 'Planner', component: plannerContent },
-  { path: 'Profile', component: profileContent },
-  { path: 'Settings', component: settingsContent, canActivate: [AuthGuard] },
-  { path: 'Account', component: accountContent},
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { path: 'home', component: mainContent },
+  { path: 'lunch', component: lunchContent },
+  { path: 'planner', component: plannerContent },
+  { path: 'settings', component: settingsContent, canActivate: [AuthGuard] },
   { path: 'protected', component: ProtectedComponent }
 ];
 

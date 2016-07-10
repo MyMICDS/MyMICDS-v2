@@ -76,7 +76,7 @@ var LoginComponent = (function () {
         });
     };
     LoginComponent.prototype.onClickAccount = function () {
-        this.router.navigate(['/Account']);
+        this.router.navigate(['/account']);
     };
     LoginComponent.prototype.ngOnInit = function () {
         var _this = this;

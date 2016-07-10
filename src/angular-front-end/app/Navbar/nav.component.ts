@@ -2,7 +2,7 @@ import {ROUTER_DIRECTIVES} from '@angular/router';
 import {Component} from '@angular/core';
 import {DomData} from '../mockdata.service';
 import {NgClass, NgIf, NgFor} from '@angular/common';
-import { Title } from '@angular/platform-browser';
+import {Title} from '@angular/platform-browser';
 import {Router, NavigationEnd, NavigationStart} from '@angular/router';
 import {LoginComponent} from '../Login/login.component';
 
@@ -25,12 +25,12 @@ export class NavComponent {
                 this.isActive[i] = false;
         }
     }
-    
+
     private magnify(x):void {
         this.restore(x);
         this.isActive[x]=true;
     }
-    
+
     private applyBlur(x):void {
         for (var i=0;i<this.blur.length;i++) {
             if (i!=x) {
@@ -43,26 +43,28 @@ export class NavComponent {
                 this.blur[i] = false;
         }
     }
-    
+
     private mouseEnter(x){
         this.applyBlur(x);
     }
-    
+
     private mouseLeave(x){
         this.removeBlur(x);
     }
     private blur:boolean[] = [false,false,false,false,false]
     private isActive:boolean[] = [true,false,false,false,false]
-    
+
     public constructor(private _titleService: Title, private _DomService: DomData, private router:Router) { }
     public pages = this._DomService.getNav().navTitles
-    
+
     public selectedPage: string = this.router.url.split('/').pop();
     private previousSelectedPage: string;
 
     private navigateTo(x:number) {
         this.router.navigate(['/' + this.pages[x]]);
-        this._titleService.setTitle('MyMCIDS-'+this._DomService.getNav().navTitles[x]);
+        let navTitle = this._DomService.getNav().navTitles[x];
+        let navTitleCaps = navTitle.charAt(0).toUpperCase() + navTitle.slice(1);
+        this._titleService.setTitle('MyMICDS - '+navTitleCaps);
     }
 
     private navigateToProtected() {

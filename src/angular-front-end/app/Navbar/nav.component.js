@@ -58,7 +58,9 @@ var NavComponent = (function () {
     };
     NavComponent.prototype.navigateTo = function (x) {
         this.router.navigate(['/' + this.pages[x]]);
-        this._titleService.setTitle('MyMCIDS-' + this._DomService.getNav().navTitles[x]);
+        var navTitle = this._DomService.getNav().navTitles[x];
+        var navTitleCaps = navTitle.charAt(0).toUpperCase() + navTitle.slice(1);
+        this._titleService.setTitle('MyMICDS - ' + navTitleCaps);
     };
     NavComponent.prototype.navigateToProtected = function () {
         this.router.navigate(['/protected']);
@@ -156,7 +158,7 @@ var NavComponent = (function () {
             directives: [common_1.NgClass, router_1.ROUTER_DIRECTIVES, common_1.NgIf, common_1.NgFor, login_component_1.LoginComponent],
             providers: [mockdata_service_1.DomData],
             styleUrls: [styleUrl]
-        }), 
+        }),
         __metadata('design:paramtypes', [platform_browser_1.Title, mockdata_service_1.DomData, router_2.Router])
     ], NavComponent);
     return NavComponent;

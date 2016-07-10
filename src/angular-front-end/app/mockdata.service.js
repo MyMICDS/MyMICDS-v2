@@ -20,7 +20,7 @@ var DomData = (function () {
         var styleName = this.getStyleName();
         var selectedStyle = styleSettings_1.styleList[styleName].navbar;
         return {
-            navTitles: ["Home", "Lunch", "Planner", "Settings", "Profile"],
+            navTitles: ["home", "lunch", "planner", "settings"],
             selectedStyle: selectedStyle
         };
     };

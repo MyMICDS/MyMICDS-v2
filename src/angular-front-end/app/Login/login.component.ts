@@ -40,19 +40,19 @@ export class LoginComponent {
             token:string,
             expires:string
             }
-    } 
+    }
     public isLoggedIn: boolean;
-    public errorMessage:string; 
+    public errorMessage:string;
     public userErrMsg:string;
     public userName:string;
     public onClickLogin() {
         this.authService.logIn(this.loginModel).subscribe(
             loginRes => {
                 this.loginRes = loginRes;
-                if (loginRes.error) { 
+                if (loginRes.error) {
                     this.errorMessage = loginRes.error;
                     console.log(this.errorMessage);
-                } else { 
+                } else {
                     this.isLoggedIn = true;
                     $('#loginModal').modal('hide');
                     this.onLogin.emit(true);
@@ -94,7 +94,7 @@ export class LoginComponent {
     }
 
     public onClickAccount() {
-        this.router.navigate(['/Account'])
+        this.router.navigate(['/account'])
     }
 
     public formActive:boolean = true;
