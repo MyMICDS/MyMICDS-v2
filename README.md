@@ -28,6 +28,8 @@ Documentation for the different JSON API endpoints [can be found here.](API Endp
 - Email notification if something goes _really_ bad in the back-end, or an error keeps on occurring.
 
 ## Other Repositories
+### [MyMICDS-v2-Angular](https://github.com/michaelgira23/MyMICDS-v2-Angular)
+Angular front-end for the MyMICDS website.
 ### [MyMICDS-Mobile](https://github.com/michaelgira23/MyMICDS-Mobile)
 MyMICDS-Mobile is for our hybrid mobile app. That means it runs on both iOS and Android.
 
