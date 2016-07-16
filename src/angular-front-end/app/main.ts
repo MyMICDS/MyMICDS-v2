@@ -15,4 +15,4 @@ bootstrap(AppComponent,
       console.warn( 'Angular was not able to bootstrap your application.' );
       console.error( error );
     }
-  );
+);
