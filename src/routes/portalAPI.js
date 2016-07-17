@@ -63,17 +63,23 @@ module.exports = function(app, db) {
 					return;
 				}
 
-				var end = new Date(date.year, date.month, date.day, 15, 15);
-				// If day is Wednesday, make start date 9 instead of 8
-				var start = new Date(date.year, date.month, date.day, end.getDay() === 3 ? 9:8);
+				var classes = [];
+				// Only add school class if valid day rotation
+				if(scheduleDay !== null) {
+					var end = new Date(date.year, date.month, date.day, 15, 15);
+					// If day is Wednesday, make start date 9 instead of 8
+					var start = new Date(date.year, date.month, date.day, end.getDay() === 3 ? 9:8);
 
-				var schedule = {
-					day: scheduleDay,
-					classes: [{
+					classes.push({
 						name : 'School',
 						start: start,
 						end  : end
-					}],
+					});
+				}
+				
+				var schedule = {
+					day: scheduleDay,
+					classes,
 					allDay: []
 				}
 
