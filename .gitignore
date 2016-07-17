@@ -4,7 +4,7 @@ npm-debug.log
 src/libs/config.js
 src/public/css/*.css
 src/public/daily-bulletin
-src/public/user-backgrounds/**
+src/public/user-backgrounds/*
 !src/public/user-backgrounds/default
 src/public/json
 src/public/scss/*.log
