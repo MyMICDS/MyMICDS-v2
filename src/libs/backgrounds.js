@@ -57,12 +57,10 @@ function uploadBackground(db) {
 				var userDir = userBackgroundsDir + '/' + req.session.user;
 				fs.ensureDir(userDir, function(err) {
 					if(err) {
-						console.log(err);
 						cb(new Error('There was a problem ensuring the image directory!'), null);
 						return;
 					}
 					cb(null, userDir);
-					console.log(userDir);
 				});
 			});
 		},
@@ -74,7 +72,6 @@ function uploadBackground(db) {
 			var filename = 'normal.' + extention;
 
 			cb(null, filename);
-			console.log(filename);
 		}
 	});
 
@@ -173,7 +170,7 @@ function deleteBackground(user, callback) {
 	}
 
 	// List all files in user backgrounds directory
-	fs.remove(userBackgroundsDir + '/' + user, function(err) {
+	fs.emptyDir(userBackgroundsDir + '/' + user, function(err) {
 		if(err) {
 			callback(new Error('There was a problem deleting the user\'s backgrounds!'));
 			return;
@@ -223,7 +220,7 @@ function getBackground(user, variation, callback) {
 			return;
 		}
 
-		callback(null, userBackgroundUrl + '/user/' + variation + extention);
+		callback(null, userBackgroundUrl + '/' + user + '/' + variation + extention);
 
 	});
 }
@@ -254,16 +251,21 @@ function addBlur(fromPath, toPath, blurRadius, callback) {
 		blurRadius = defaultBlurRadius;
 	}
 
-	Jimp.read(fromPath).then(function(image) {
-		image.blur(blurRadius).write(toPath).then(function() {
-			console.log('Finished!')
-		}).catch(function(err) {
-			console.log(err);
-		});
-		callback(null);
+	Jimp.read(fromPath, function(err, image) {
+		if(err) {
+			callback(new Error('There was a problem reading the image!'));
+			return;
+		}
 
-	}).catch(function(err) {
-		callback(new Error('There was a problem reading the image!'));
+		image.blur(blurRadius).write(toPath, function(err) {
+			if(err) {
+				callback(new Error('There was a problem saving the image!'));
+				return;
+			}
+
+			callback(null);
+
+		});
 	});
 }
 
@@ -312,7 +314,7 @@ function blurUser(user, callback) {
 				return;
 			}
 
-			callack(null);
+			callback(null);
 
 		});
 	});
