@@ -9,7 +9,7 @@
 		<form class="form-inline col-md-12" action="/user/get-info">
 			<button class="btn btn-info">Get Info about user</button>
 		</form>
-        
+
         <form class="form-inline col-md-12" action="/user/grade-range">
 			<button class="btn btn-info">Get Grade range</button>
 		</form>
@@ -30,18 +30,24 @@
 			<button class="btn btn-info">Save</button>
 		</form>
 
-        <form class="form-inline col-md-12" action="/user/get-background">
+        <form class="form-inline col-md-12" action="/background/get">
             <h3>Get Background</h3>
+			<input class="form-control" name="variation" placeholder="Variation">
             <button class="btn btn-info">Get Background</button>
         </form>
 
-		<form class="upload-background col-md-12" action="/user/change-background">
+		<form class="upload-background col-md-12" action="/background/change">
 			<h3>Change Background</h3>
 			<label>
 				<input type="file" name="background">
 			</label>
 			<button class="btn btn-info">Upload</button>
 		</form>
+
+		<form class="form-inline col-md-12" action="/background/delete">
+            <h3>Delete Background</h3>
+            <button class="btn btn-danger">Delete Background</button>
+        </form>
 
 		<form class="form-inline col-md-12" action="/user/change-password">
 			<h3>Change Password</h3>
@@ -141,6 +147,7 @@
 					processData: false,
 					success: function(data) {
 						console.log(data);
+						console.log(data.error);
 					},
 					error: function(data) {
 						console.log('There was a problem uploading your background!');

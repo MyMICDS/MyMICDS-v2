@@ -9,6 +9,38 @@ Endpoints or 'routes' and different URL's that you can send information to. This
 
 
 
+## Background API
+The part of the API that relates to users' backgrounds. Can be found under `src/routes/backgroundAPI.js`. The associated backgrounds module can be found under `src/libs/backgrounds.js`.
+
+### `/background/get`
+Retrieve the URL of the background to display to the user.
+
+#### Parameters
+- `variation` - Variation of background to get. (Ex. normal or blur) _(Optional, defaults to normal.)_
+
+#### Response
+- `error` - Null if successful, string containing error if failure.
+- `url` - URL of background to display
+
+
+### `/background/change`
+**Requires user to be logged in.** Upload a new background picture for the user.
+
+#### Parameters
+- `background` - Background image to upload. Note that jQuery's .serialize() method does not deal with images.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+
+
+### `/background/delete`
+**Requires user to be logged in.** Delete the custom background of a user.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+
+
+
 ## Canvas API
 The part of the API that relates to Canvas. Can be found under `src/routes/canvasAPI.js`. The associated canvas module can be found under `src/libs/canvas.js`.
 
@@ -305,27 +337,6 @@ Returns an array of school graduation years from Junior Kindergarten to 12th gra
 - `teacher` - Whether user is teacher. If set to any value besides false, user will be changed to teacher. This overrides graduation year. _(Optional, default will not change to teacher.)_
 
 ### Response
-- `error` - Null if success, string containing error if failure.
-
-
-### `/user/get-background`
-Get URL to display as a background for a user.
-
-#### Parameters
-- `user` - Username of background. _(Optional, will return default background image.)_
-
-#### Response
-- `error` - Null if success, string containing error if failure.
-- `url` - URL of background.
-
-
-### `/user/change-background`
-**Requires user to be logged in.** Upload a new background picture for the user.
-
-#### Parameters
-- `background` - Background image to upload. Note that jQuery's .serialize() method does not deal with images.
-
-#### Response
 - `error` - Null if success, string containing error if failure.
 
 

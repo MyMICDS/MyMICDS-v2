@@ -78,31 +78,6 @@ module.exports = function(app, db) {
 		});
 	});
 
-	app.post('/user/get-background', function(req, res) {
-		users.getBackground(req.session.user, function(err, backgroundURL) {
-			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
-			}
-			res.json({
-				error: errorMessage,
-				url  : backgroundURL
-			});
-		});
-	});
-
-	app.post('/user/change-background', function(req, res) {
-		users.uploadBackground(db)(req, res, function(err) {
-			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
-			}
-			res.json({ error: errorMessage });
-		});
-	});
-
 	app.post('/user/change-password', function(req, res) {
 		passwords.changePassword(db, req.session.user, req.body['old-password'], req.body['new-password'], function(err) {
 			if(err) {

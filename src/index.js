@@ -97,6 +97,7 @@ MongoClient.connect(config.mongodbURI, function(err, db) {
 	app.use(cookies.remember(db));
 
 	// API Routes
+	require(__dirname + '/routes/backgroundAPI.js')(app, db);
 	require(__dirname + '/routes/bulletinAPI.js')(app, db);
 	require(__dirname + '/routes/canvasAPI.js')(app, db);
 	require(__dirname + '/routes/classAPI.js')(app, db);

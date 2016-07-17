@@ -53,6 +53,7 @@
     "google-batch": "0.0.7",
     "googleapis": "^11.0.0",
     "ical": "^0.5.0",
+    "jimp": "^0.2.24",
     "jquery": "^3.1.0",
     "jsdoc": "^3.4.0",
     "moment": "^2.11.2",

@@ -39,20 +39,19 @@ function getLunch(callback) {
 			return;
 		}
 
-		if(stats.isFile()) {
-			// Great! JSONPath is valid!
-			fs.readJSON(JSONPath, function(err, lunch) {
-				if(err) {
-					callback(new Error('There was a problem retrieving the lunch JSON!'), null);
-					return;
-				}
-
-				callback(null, lunch);
-			});
-		} else {
-			// If the lunch JSON file does not exist, let's create one
+		// If the lunch JSON file does not exist, let's create one
+		if(!stats.isFile()) {
 			updateLunch(null, callback);
+			return;
 		}
+
+		fs.readJSON(JSONPath, function(err, lunch) {
+			if(err) {
+				callback(new Error('There was a problem retrieving the lunch JSON!'), null);
+				return;
+			}
+			callback(null, lunch);
+		});
 	});
 }
 
