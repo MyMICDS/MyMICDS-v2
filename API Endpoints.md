@@ -9,6 +9,49 @@ Endpoints or 'routes' and different URL's that you can send information to. This
 
 
 
+# Table of Contents
+* [Background API](#background-api)
+  * [`/background/get`](#backgroundget)
+  * [`/background/change`](#backgroundchange)
+  * [`/background/delete`](#backgroundelete)
+* [Canvas API](#canvas-api)
+  * [`/canvas/test-url`](#canvastest-url)
+  * [`/canvas/set-url`](#canvasset-url)
+  * [`/canvas/get-events`](#canvasget-events)
+* [Class API](#class-api)
+  * [`/classes/get`](#classesget)
+  * [`/classes/add`](#classesadd)
+  * [`/classes/delete`](#classesdelete)
+* [Daily Bulletin Api](#daily-bulletin-api)
+  * [`/daily-bulletin/list`](#daily-bulletinlist)
+* [Login API](#login-api)
+  * [`/auth/login`](#authlogin)
+  * [`/auth/logout`](#authlogout)
+  * [`/auth/register`](#authregister)
+  * [`/auth/confirm`](#authconfirm)
+* [Lunch API](#lunch-api)
+  * [`/lunch/get`](#lunchget)
+* [Planner API](#planner-api)
+  * [`/planner/get`](#plannerget)
+  * [`/planner/add`](#planneradd)
+  * [`/planner/delete`](#plannerdelete)
+* [Portal API](#portal-api)
+  * [`/portal/test-url`](#portaltest-url)
+  * [`/portal/set-url`](#portalset-url)
+  * [`/portal/get-schedule`](#portalget-schedule)
+* [User API](#user-api)
+  * [`/user/grad-year-to-grade`](#usergrad-year-to-grade)
+  * [`/user/grade-to-grad-year`](#usergrade-to-grad-year)
+  * [`/user/school-ends`](#userschool-ends)
+  * [`/user/grade-range`](#usergrade-range)
+  * [`/user/get-info`](#userget-info)
+  * [`/user/change-info`](#userchange-info)
+  * [`/user/change-password`](#userchange-password)
+  * [`/user/forgot-password`](#userforgot-password)
+  * [`/user/reset-password`](#userreset-password)
+
+
+
 ## Background API
 The part of the API that relates to users' backgrounds. Can be found under `src/routes/backgroundAPI.js`. The associated backgrounds module can be found under `src/libs/backgrounds.js`.
 
@@ -129,7 +172,7 @@ The part of the API relates to the classes. Can be found under `src/routes/class
 The part of the API that relates to the Daily Bulletin. Can be found in `src/routes/bulletinAPI.js`. This associated dailyBulletin module can be found under `src/libs/dailyBulletin.js`.
 
 
-### `/daily-bulletin/get-list`
+### `/daily-bulletin/list`
 Gets an array of bulletin filenames from newest to oldest.
 
 #### Response
@@ -179,14 +222,32 @@ Will create a new user and send an email to confirm the user's account.
 - `error` - Null if success, string containing error if failure.
 
 
-### `/confirm/:user/:hash`
-**This is one of the few routes in these files that isn't technically part of the API. This is a normal HTTP GET request instead of POST.** This is the link that is sent in the email to confirm a user's account.
+### `/auth/confirm`
+Confirm a newly registered account. Hash is sent via email.
 
 #### Parameters
-The email will automatically replace :user will the username and :hash as a randomly generated string to confirm user received the email.
-#### Response
+- `user` - Username of account to confirm.
+- `hash` - Hash that was sent in the confirmation email.
 
-Will direct the user accordingly and give any error.
+#### Response
+- `error` - Null if successful, string containing error if failure.
+
+
+
+## Lunch API
+This is the part of the API that relates to the lunch. Can be found in `src/routes/lunchAPI.js`. The associated lunch module can be found in `src/libs/lunch.js`.
+
+### `/lunch/get`
+Gets the lunch?
+
+#### Parameters
+- `year` - Year to get lunch from. _(Optional, defaults to current year.)_
+- `month` - Month to get lunch from. _(Optional, defaults to current month.)_
+- `day` - Day to get lunch from. _(Optional, defaults to current day.)_
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+- `lunch` - JSON object containing lunch for the week. **If there is no lunch for a specific day, then no object will be returned for that day. This means during breaks, this will be an empty object.**
 
 
 

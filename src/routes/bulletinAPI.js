@@ -8,7 +8,7 @@ var dailyBulletin = require(__dirname + '/../libs/dailyBulletin.js');
 
 module.exports = function(app, db) {
 
-	app.post('/daily-bulletin/get-list', function(req, res) {
+	app.post('/daily-bulletin/list', function(req, res) {
 		dailyBulletin.getList(function(err, bulletins) {
 			if(err) {
 				var errorMessage = err.message;

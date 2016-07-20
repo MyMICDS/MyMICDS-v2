@@ -79,18 +79,14 @@ module.exports = function(app, db) {
 		});
 	});
 
-	/**
-	 * @TODO: Display errors, redirect, etc.
-	 */
-
-	app.get('/confirm/:user/:hash', function(req, res) {
-		auth.confirm(db, req.params.user, req.params.hash, function(err) {
+	app.post('/auth/confirm', function(req, res) {
+		auth.confirm(db, req.body.user, req.body.hash, function(err) {
 			if(err) {
-				var response = err.message;
+				var errorMessage = err.message;
 			} else {
-				var response = 'Success!';
+				var errorMessage = null;
 			}
-			res.end(response);
+			res.end(errorMessage);
 		});
 	});
 
