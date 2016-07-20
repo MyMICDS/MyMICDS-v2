@@ -102,6 +102,7 @@ MongoClient.connect(config.mongodbURI, function(err, db) {
 	require(__dirname + '/routes/canvasAPI.js')(app, db);
 	require(__dirname + '/routes/classAPI.js')(app, db);
 	require(__dirname + '/routes/loginAPI.js')(app, db);
+	require(__dirname + '/routes/lunchAPI.js')(app, db);
 	require(__dirname + '/routes/plannerAPI.js')(app, db);
 	require(__dirname + '/routes/portalAPI.js')(app, db);
 	require(__dirname + '/routes/userAPI.js')(app, db);
@@ -124,10 +125,7 @@ app.get('/daily-bulletin', function(req, res) {
 });
 
 app.get('/lunch', function(req, res) {
-	res.setHeader('Content-Type', 'application/json');
-	lunch.getLunch(function(lunchJSON) {
-		res.send(JSON.stringify(lunchJSON, null, 3));
-	});
+	res.sendFile(__dirname + '/html/lunch.html');
 });
 
 app.get('/planner', function(req, res) {
@@ -140,7 +138,7 @@ app.get('/portal', function(req, res) {
 
 app.get('/users', function(req, res) {
 	res.sendFile(__dirname + '/html/users.html');
-})
+});
 
 app.get('/start', function(req, res) {
 	res.sendFile(__dirname + '/html/start.html');

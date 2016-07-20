@@ -64,9 +64,6 @@ function verifyURL(canvasURL, callback) {
 			callback(new Error('There was a problem fetching calendar data from the URL!'), null, null);
 			return;
 		}
-
-
-
 		if(response.statusCode !== 200) {
 			callback(null, 'Invalid URL!', null);
 			return;

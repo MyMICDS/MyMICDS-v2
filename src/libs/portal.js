@@ -211,7 +211,7 @@ function getSchedule(db, user, date, callback) {
 		date.year = current.getFullYear();
 	}
 	if(typeof date.month !== 'number' || date.month % 1 !== 0) {
-		date.month = current.getMonth();
+		date.month = current.getMonth() + 1;
 	}
 	if(typeof date.day !== 'number' || date.day % 1 !== 0) {
 		date.day = current.getDate();
@@ -262,7 +262,7 @@ function getSchedule(db, user, date, callback) {
 
 			// Loop through all of the events in the calendar feed
             var conflictIndexes = [];
-            
+
 			for(var eventUid in data) {
 				var calEvent = data[eventUid];
 				if(typeof calEvent.summary !== 'string') continue;

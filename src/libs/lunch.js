@@ -9,7 +9,7 @@ var fs      = require('fs-extra');
 var request = require('request');
 var cheerio = require('cheerio');
 
-var lunchURL = 'http://www.myschooldining.com/MICDS';
+var lunchURL = 'http://myschooldining.com/MICDS/calendarWeek';
 var schools  = ['Lower School', 'Middle School', 'Upper School'];
 var JSONPath = __dirname + '/../public/json/weather.json';
 
@@ -17,67 +17,72 @@ var JSONPath = __dirname + '/../public/json/weather.json';
  * Get's the lunch from /src/api/lunch.json. Will create one if it doesn't already exist.
  * @function getLunch
  *
+ * @param {Object} date - Object containing date to retrieve lunch. Leaving fields empty will default to today
+ * @param {Number} [date.year] - What year to get lunch (Optional. Defaults to current year.)
+ * @param {Number} [date.month] - Month number to get lunch. (1-12) (Optional. Defaults to current month.)
+ * @param {Number} [date.day] - Day of month to get lunch. (Optional. Defaults to current day.)
  * @param {getLunchCallback} callback - Callback
  */
 
 /**
- * Callback after lunch is retrieved from /src/api/lunch.json
+ * Returns JSON containing lunch for week
  * @callback getLunchCallback
  *
- * @param {Object} err - Null if success, error object if failure
+ * @param {Object} err - Null if success, error object if failure.
  * @param {Object} lunchJSON - JSON of lunch menu for the week. Null if error.
  */
 
-function getLunch(callback) {
+function getLunch(date, callback) {
 
 	if(typeof callback !== 'function') return;
 
-	// Test to see if JSON path is valid. If not, create one.
-	fs.stat(JSONPath, function(err, stats) {
+	var current = new Date();
+	// Default date to current values
+	if(typeof date.year !== 'number' || date.year % 1 !== 0) {
+		date.year = current.getFullYear();
+	}
+	if(typeof date.month !== 'number' || date.month % 1 !== 0) {
+		date.month = current.getMonth() + 1;
+	}
+	if(typeof date.day !== 'number' || date.day % 1 !== 0) {
+		date.day = current.getDate();
+	}
+
+	var currentDay = new Date(date.year, date.month - 1, date.day);
+
+	// Send POST request to lunch website
+	request.post(lunchURL, { form: { 'current_day': currentDay }}, function(err, res, body) {
 		if(err) {
-			callback(new Error('There was a problem reading the lunch JSON!'), null);
+			callback(new Error('There was a problem fetching the lunch data!'), null);
+			return;
+		}
+		if(res.statusCode !== 200) {
+			/**
+			 * @TODO -
+			 * This should never happen and could mean the URL changed.
+			 * It should send email to MyMICDS Devs.
+			 */
+			callback(new Error('There was a problem with the lunch URL!'), null);
 			return;
 		}
 
-		// If the lunch JSON file does not exist, let's create one
-		if(!stats.isFile()) {
-			updateLunch(null, callback);
-			return;
-		}
+		var lunchJSON = parseLunch(body);
+		callback(null, lunchJSON);
 
-		fs.readJSON(JSONPath, function(err, lunch) {
-			if(err) {
-				callback(new Error('There was a problem retrieving the lunch JSON!'), null);
-				return;
-			}
-			callback(null, lunch);
-		});
 	});
 }
 
 /**
- * Takes the body of the school's lunch page and returns JSON
+ * Takes the body of the school's lunch page and returns lunch JSON
  * @function parseLunch
  *
  * @param {string} body - Body of HTML
- * @param {parseLunchCallback} callback - Callback
+ * @returns {Object}
  */
 
-/**
- * Callback after the lunch data is parsed
- * @callback parseLunchCallback
- *
- * @param {Object} lunchJSON - JSON output of lunch
- */
-
- /**
-  * @TODO: Maybe return empty JSON if body is invalid? Send an email to devs of lunch page changes?
-  */
-
-function parseLunch(body, callback) {
+function parseLunch(body) {
 	var $        = cheerio.load(body);
 	var json     = {};
-	json['info'] = 'Visit https://mymicds.net/api for more information!';
 
 	var table       = $('table#table_calendar_week');
 	var weekColumns = table.find('td');
@@ -92,7 +97,6 @@ function parseLunch(body, callback) {
 			var schoolLunch = day.find('div[location="' + school + '"]');
 
 			// Make sure it's not the weekend
-
 			if(schoolLunch.length > 0) {
 
 				var lunchTitle = schoolLunch.find('span.period-value').text().trim();
@@ -110,7 +114,6 @@ function parseLunch(body, callback) {
 					});
 
 					// Add to JSON
-
 					json[date] = json[date] || {};
 					json[date][school] = json[date][school] || {};
 
@@ -118,9 +121,9 @@ function parseLunch(body, callback) {
 
 					json[date][school][categoryTitle] = json[date][school][categoryTitle] || [];
 
-					food.forEach(function(singularVersionOfFood) {
-						json[date][school][categoryTitle].push(singularVersionOfFood);
-					});
+					for(var i = 0; i < food.length; i++) {
+						json[date][school][categoryTitle].push(food[i]);
+					}
 
 				});
 
@@ -130,55 +133,8 @@ function parseLunch(body, callback) {
 
 	});
 
-	callback(json);
-}
-
-/**
- * Updates the lunch API and writes it into a JSON file
- * @function updateLunch
- *
- * @param {updateLunchCallback} callback - Callback
- */
-
-/**
- * Callback after the updateLunch function
- * @callback updateLunchCallback
- *
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Object} lunchJSON - JSON of lunch menu for the week. Null if error.
- */
-
-function updateLunch(callback) {
-
-	if(typeof callback !== 'function') return;
-
-	// Retrieve the HTML from the school lunch website
-	request(lunchURL, function(err, res, body) {
-
-		if(err) {
-			callback(new Error('There was a problem retrieving the lunch from the school website!'), null);
-			return;
-		}
-
-		// Parse the HTML into JSON
-		parseLunch(body, function(lunchJSON) {
-
-			// Write the JSON into a file
-			fs.outputJSON(JSONPath, lunchJSON, function(err) {
-
-				if(err) {
-					callback(new Error('There was a problem writing the JSON into file!'), null);
-					return;
-				}
-
-				callback(null, lunchJSON);
-
-			});
-		});
-	});
+	return json;
 }
 
 module.exports.getLunch    = getLunch;
 module.exports.parseLunch  = parseLunch;
-module.exports.updateLunch = updateLunch;
