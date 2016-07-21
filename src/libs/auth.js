@@ -10,6 +10,7 @@ var cookies     = require(__dirname + '/cookies.js');
 var crypto      = require('crypto');
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
 var bcrypt      = require('bcrypt');
+var jwt         = require(__dirname + '/jwt.js');
 var mail        = require(__dirname + '/mail.js');
 var users       = require(__dirname + '/users.js');
 
@@ -20,7 +21,7 @@ var users       = require(__dirname + '/users.js');
  * @param {Object} db - Database connection
  * @param {string} user - Username
  * @param {string} password - Plaintext password
- * @param {Boolean} generateCookie - Whether callback should return 'Remember Me' cookie as well
+ * @param {Boolean} rememberMe - Whether JWT token should expire in 30 days instead of 1 day
  * @param {loginCallback} callback - Callback
  */
 
@@ -30,26 +31,28 @@ var users       = require(__dirname + '/users.js');
  *
  * @param {Object} err - Null if successful, error object if failure
  * @param {Boolean} response - True if credentials match in database, false if not. Null if error.
- *
- * @param {Object} cookie - Object containing information about cookie. Returned if login is successful and create cookie is successful, null in all other cases.
- * @param {string} cookie.selector - Selector to be placed in cookie.
- * @param {string} cookie.token - Token to be placed in cookie.
- * @param {Object} cookie.expires - Javascript date object of when cookie expires.
+ * @param {string} jwt - JSON Web Token for user to make API calls with
  */
 
-function login(db, user, password, generateCookie, callback) {
+function login(db, user, password, rememberMe, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null, null);
 		return;
 	}
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid username!'), null, null);
+		return;
+	} else {
+		user = user.toLowerCase();
+	}
 	if(typeof password !== 'string') {
 		callback(new Error('Invalid password!'), null, null);
 		return;
 	}
-	if(typeof generateCookie !== 'boolean') {
-		generateCookie = true;
+	if(typeof rememberMe !== 'boolean') {
+		rememberMe = true;
 	}
 
 	passwordMatches(db, user, password, function(err, passwordMatches) {
@@ -67,20 +70,16 @@ function login(db, user, password, generateCookie, callback) {
 		userdata.update({ user: user }, { $currentDate: { lastLogin: true }});
 
 		// Login successful!
-		// Create cookie if generateCookie is true
-		if(generateCookie) {
-			cookies.createCookie(db, user, function(err, cookie) {
-				if(err) {
-					callback(null, true, null);
-					return;
-				}
+		// Now we need to create a JWT
+		jwt.generateJWT(db, user, rememberMe, function(err, jwt) {
+			if(err) {
+				callback(err, null, null);
+				return;
+			}
 
-				callback(null, true, cookie);
+			callback(null, true, jwt);
 
-			});
-		} else {
-			callback(null, true, null);
-		}
+		});
 	});
 }
 
