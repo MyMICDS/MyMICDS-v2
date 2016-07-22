@@ -12,7 +12,29 @@ var expressJWT = require('express-jwt');
 var jwt        = require('jsonwebtoken');
 var users      = require(__dirname + '/users.js');
 
-var authorize = expressJWT({ secret: config.jwt.secret });
+/**
+ * Express middleware to verify the JWT token (if any) and assigns it to req.user
+ */
+
+var authorize = expressJWT({
+	credentialsRequired: false, // We have our own way of handling if user is authorized or not
+	secret  : config.jwt.secret,
+	audience: config.hostedOn,
+	issuer  : config.hostedOn
+});
+
+/**
+ * Express middleware to catch any errors if the JWT token is invalid.
+ * @function catchUnauthorized
+ */
+
+function catchUnauthorized(err, req, res, next) {
+	if(err.name === 'UnauthorizedError') {
+		res.status(401).json({ error: 'Invalid JWT!' });
+		return;
+	}
+	next();
+}
 
 /**
  * Generates a JSON Web Token that should be stored on the client
@@ -68,19 +90,15 @@ function generateJWT(db, user, rememberMe, callback) {
 		}
 
 		jwt.sign({
-			user: user,
-			firstName: userDoc['firstName'],
-			lastName: userDoc['lastName'],
-			gradYear: userDoc['gradYear'],
-			grade: users.gradYearToGrade(userDoc['gradYear']),
+			user  : user,
 			scopes: scopes
 
 		}, config.jwt.secret, {
-			subject: 'MyMICDS API',
+			subject  : 'MyMICDS API',
 			algorithm: 'HS256',
 			expiresIn: expiration,
-			audience: config.hostedOn,
-			issuer: config.hostedOn
+			audience : config.hostedOn,
+			issuer   : config.hostedOn
 
 		}, function(err, token) {
 			if(err) {
@@ -94,4 +112,6 @@ function generateJWT(db, user, rememberMe, callback) {
 	});
 }
 
-module.exports.generateJWT = generateJWT;
+module.exports.authorize         = authorize;
+module.exports.catchUnauthorized = catchUnauthorized;
+module.exports.generateJWT       = generateJWT;

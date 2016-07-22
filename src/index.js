@@ -20,14 +20,12 @@ var bodyParser   = require('body-parser');
 var cookieParser = require('cookie-parser');
 var cookies      = require(__dirname + '/libs/cookies.js');
 var ejs          = require('ejs');
-var http         = require('http');
-var https        = require('https');
+var jwt          = require(__dirname + '/libs/jwt.js');
 var lunch        = require(__dirname + '/libs/lunch.js');
 var mail         = require(__dirname + '/libs/mail.js');
 var MongoClient  = require('mongodb').MongoClient;
 var request      = require('request');
 var weather      = require(__dirname + '/libs/weather.js');
-var sass         = require(__dirname + '/libs/sass.js');
 
 /*
  * Frameworks
@@ -35,8 +33,6 @@ var sass         = require(__dirname + '/libs/sass.js');
 
 var express = require('express');
 var app     = express();
-var server  = http.Server(app);
-var io      = require('socket.io')(server);
 
 /**
  * Express Middleware
@@ -52,36 +48,22 @@ app.use(function(req, res, next) {
 // Cookies
 app.use(cookieParser());
 
-// Sessions
-var session = require('express-session')({
-	secret           : config.expressSessionSecret,
-	resave           : false,
-	saveUninitialized: false,
-});
-
-app.use(session);
-
-io.use(function(socket, next) {
-	session(socket.request, socket.request.res, next);
-});
-
 // Body Parser for POST Variables
 app.use(bodyParser.json());     // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
 	extended: true
 }));
 
-// EJS as Default Render Engine
-app.set('views', __dirname + '/html');
-app.set('view engine', 'ejs');
+// Enable JWT authentication
+app.use(jwt.authorize);
+app.use(jwt.catchUnauthorized);
 
 /*
- * Sass Compilation
+ * EJS as Default Render Engine
  */
 
-console.log('Compiling Sass...');
-sass.renderDir(__dirname + '/public/css/scss', __dirname + '/public/css');
-sass.watchDir(__dirname + '/public/css/scss', __dirname + '/public/css');
+app.set('views', __dirname + '/html');
+app.set('view engine', 'ejs');
 
 /*
  * Routes
@@ -92,9 +74,6 @@ require(__dirname + '/routes/assets.js')(app, express);
 // Connect to database
 MongoClient.connect(config.mongodbURI, function(err, db) {
 	if(err) throw err;
-
-	// 'Remember Me' Functionality
-	app.use(cookies.remember(db));
 
 	// API Routes
 	require(__dirname + '/routes/backgroundAPI.js')(app, db);
@@ -145,20 +124,9 @@ app.get('/start', function(req, res) {
 });
 
 /*
- * Socket.io
+ * Initialize Server
  */
 
-io.on('connection', function(socket){
-
-	socket.on('username', function() {
-		socket.emit('username', socket.request.session.user);
-	});
-
-	socket.on('disconnect', function() {
-//		console.log('user disconnected');
-	});
-});
-
-server.listen(port, function() {
+app.listen(port, function() {
 	console.log('Server listening on *:' + port);
 });

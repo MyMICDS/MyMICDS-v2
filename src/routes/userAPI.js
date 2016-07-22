@@ -39,7 +39,8 @@ module.exports = function(app, db) {
     });
 
 	app.post('/user/get-info', function(req, res) {
-		users.getInfo(db, req.session.user, true, function(err, userInfo) {
+		console.log(req.user);
+		users.getInfo(db, req.user, true, function(err, userInfo) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

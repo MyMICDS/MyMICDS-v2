@@ -9,18 +9,19 @@ var auth = require(__dirname + '/../libs/auth.js');
 module.exports = function(app, db) {
 
 	app.post('/auth/login', function(req, res) {
-		if(req.session.user) {
+		console.log(req.user);
+		if(req.user) {
 			res.json({
 				error  : 'You\'re already logged in, silly!',
 				success: false,
-				cookie : null
+				jwt    : null
 			});
 			return;
 		}
 
-		var generateCookie = typeof req.body.remember !== 'undefined';
-
-		auth.login(db, req.body.user, req.body.password, generateCookie, function(err, response, jwt) {
+		var rememberMe = typeof req.body.remember !== 'undefined';
+		console.log(req.body);
+		auth.login(db, req.body.user, req.body.password, rememberMe, function(err, response, jwt) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

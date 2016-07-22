@@ -1,1 +1,0 @@
-This is where the SCSS sources are kept.
