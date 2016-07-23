@@ -10,9 +10,9 @@ var fs   = require('fs-extra');
 var path = require('path');
 
 var googleServiceAccount = require(__dirname + '/googleServiceAccount.js');
-var googleBatch = require('google-batch');
-var google = googleBatch.require('googleapis')
-var gmail = google.gmail('v1');
+var googleBatch          = require('google-batch');
+var google               = googleBatch.require('googleapis')
+var gmail                = google.gmail('v1');
 
 // Where to save Daily Bulletins
 var bulletinDir = __dirname + '/../public/daily-bulletin';
@@ -155,6 +155,7 @@ function queryAll(callback) {
 		callback = function() {};
 	}
 
+	console.log('Trying to query all the Daily Bulletins in existence. This may take a bit of time...');
 	googleServiceAccount.create(function(err, jwtClient) {
 		if(err) {
 			callback(err);
@@ -237,7 +238,7 @@ function queryAll(callback) {
 								var attachmentIdFilenames = [];
 
 								// Search through the emails for any PDF
-								for(var j = 0; j < getMessages.length; j++) {
+								for(var j = 0; j < responses.length; j++) {
 									var response = getMessages[j];
 									var parts = response.body.payload.parts;
 
@@ -381,27 +382,34 @@ function getList(callback) {
 	if(typeof callback !== 'function') return;
 
 	// Read directory
-	fs.readdir(bulletinDir, function(err, files) {
+	fs.ensureDir(bulletinDir, function(err) {
 		if(err) {
-			callback(new Error('There was a problem reading the bulletin directory!'), null);
+			callback(new Error('There was a problem ensuring the bulletin directory exists!'), null);
 			return;
 		}
 
-		// Only return files that are a PDF
-		var bulletins = [];
-		for(var i = 0; i < files.length; i++) {
-			var file = path.parse(files[i]);
-			if(file.ext === '.pdf') {
-				bulletins.push(files[i]);
+		fs.readdir(bulletinDir, function(err, files) {
+			if(err) {
+				callback(new Error('There was a problem reading the bulletin directory!'), null);
+				return;
 			}
-		}
 
-		// Sort bulletins to get most recent
-		bulletins.sort();
-		bulletins.reverse();
+			// Only return files that are a PDF
+			var bulletins = [];
+			for(var i = 0; i < files.length; i++) {
+				var file = path.parse(files[i]);
+				if(file.ext === '.pdf') {
+					bulletins.push(files[i]);
+				}
+			}
 
-		callback(null, bulletins);
+			// Sort bulletins to get most recent
+			bulletins.sort();
+			bulletins.reverse();
 
+			callback(null, bulletins);
+
+		});
 	});
 }
 
