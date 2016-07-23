@@ -17,7 +17,7 @@ var longitude = -90.3974471;
 
 // Options for configuring the Forecast object
 var options = {
-	APIKey: config.forecastAPIKey
+	APIKey: config.forecast.APIKey
 }
 
 /**

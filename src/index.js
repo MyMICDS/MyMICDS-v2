@@ -63,7 +63,7 @@ app.set('view engine', 'ejs');
 require(__dirname + '/routes/assets.js')(app, express);
 
 // Connect to database
-MongoClient.connect(config.mongodbURI, function(err, db) {
+MongoClient.connect(config.mongodb.uri, function(err, db) {
 	if(err) throw err;
 
 	// Enable JWT authentication middleware

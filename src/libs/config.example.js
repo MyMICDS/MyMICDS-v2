@@ -9,32 +9,41 @@
 module.exports =
 {
 	port: 1420,
-	hostedOn: '', // URL to access this server. Used for signing JWT's
+	hostedOn: 'http://localhost:1420', // URL to access this server. Used for signing JWT's
 
-	expressSessionSecret: '',
-	forecastAPIKey      : '',
-	mongodbURI          : '',
-
-	email:
-	{
+	email: {
 		URI      : '',
 		fromEmail: 'support@mymicds.net',
 		fromName : 'MyMICDS Support',
 	},
+
+	forecast: {
+		APIKey: ''
+	},
+
+	jwt: {
+		secret: 'flexvimsans'
+	},
+
+	mongodb: {
+		uri: ''
+	},
+
 	portal: {
 		dayRotation: ''
 	},
+
 	googleServiceAccount:
 	{
-		"type": "",
-		"project_id": "",
-		"private_key_id": "",
-		"private_key": "",
-		"client_email": "",
-		"client_id": "",
-		"auth_uri": "",
-		"token_uri": "",
-		"auth_provider_x509_cert_url": "",
-		"client_x509_cert_url": ""
+		'type': '',
+		'project_id': '',
+		'private_key_id': '',
+		'private_key': '',
+		'client_email': '',
+		'client_id': '',
+		'auth_uri': '',
+		'token_uri': '',
+		'auth_provider_x509_cert_url': '',
+		'client_x509_cert_url': ''
 	}
 }
