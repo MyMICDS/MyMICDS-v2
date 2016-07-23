@@ -30,12 +30,12 @@ module.exports =
 	},
 
 	portal: {
-		dayRotation: ''
+		dayRotation: '' // You can use anybody's Schedule Rotation calendar ID from the Portal
 	},
 
 	googleServiceAccount:
 	{
-		'type': '',
+		'type': 'service_account',
 		'project_id': '',
 		'private_key_id': '',
 		'private_key': '',
