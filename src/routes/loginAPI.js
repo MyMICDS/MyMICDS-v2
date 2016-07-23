@@ -55,7 +55,7 @@ module.exports = function(app, db) {
 			password : req.body.password,
 			firstName: req.body.firstName,
 			lastName : req.body.lastName,
-			gradYear : parseInt(req.body['grad-year'])
+			gradYear : parseInt(req.body.gradYear)
 		};
 
 		if(typeof req.body.teacher !== 'undefined' && req.body.teacher !== false) {

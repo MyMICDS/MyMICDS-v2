@@ -212,7 +212,7 @@ Will create a new user and send an email to confirm the user's account.
 - `password` - Plaintext password
 - `firstName` - First name
 - `lastName` - Last name
-- `grad-year` - Year user graudates from high school.
+- `gradYear` - Year user graudates from high school.
 - `teacher` - If teacher or faculty, give this any value. If set this will override any `grad-year` parameter. This matches the behavior of regular HTML checkboxes which will automatically set the value to 'on' if they are checked, and not submit any value if they are not checked. It will also ignore teacher if set to false. Overrides graduation year. _(Optional, by default user will not be a teacher.)_
 
 #### Response
