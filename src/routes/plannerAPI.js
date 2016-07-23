@@ -14,7 +14,7 @@ module.exports = function(app, db) {
 			month: parseInt(req.body.month)
 		};
 
-		planner.getMonthEvents(db, req.session.user, date, true, function(err, events) {
+		planner.getMonthEvents(db, req.user.user, date, true, function(err, events) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -41,7 +41,7 @@ module.exports = function(app, db) {
 			link   : req.body.link
 		};
 
-		planner.upsertEvent(db, req.session.user, insertEvent, function(err, id) {
+		planner.upsertEvent(db, req.user.user, insertEvent, function(err, id) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -55,7 +55,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/planner/delete', function(req, res) {
-		planner.deleteEvent(db, req.session.user, req.body.id, function(err) {
+		planner.deleteEvent(db, req.user.user, req.body.id, function(err) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

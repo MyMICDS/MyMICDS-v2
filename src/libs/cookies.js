@@ -249,7 +249,7 @@ function remember(db) {
 	return function(req, res, next) {
 		var cookie = req.cookies.rememberme;
 
-		if(req.session.user || typeof cookie === 'undefined') {
+		if(req.user.user || typeof cookie === 'undefined') {
 			next();
 			return;
 		}
@@ -265,7 +265,7 @@ function remember(db) {
 				return;
 			}
 
-			req.session.user = user;
+			req.user.user = user;
 			res.cookie('rememberme', selector + ':' + newToken, { expires: expires });
 			next();
 		   });

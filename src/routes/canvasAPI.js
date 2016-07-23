@@ -23,7 +23,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/canvas/set-url', function(req, res) {
-		canvas.setURL(db, req.session.user, req.body.url, function(err, isValid, validURL) {
+		canvas.setURL(db, req.user.user, req.body.url, function(err, isValid, validURL) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -43,7 +43,7 @@ module.exports = function(app, db) {
 			month: parseInt(req.body.month)
 		};
 
-		canvas.getEvents(db, req.session.user, date, function(err, hasURL, events) {
+		canvas.getEvents(db, req.user.user, date, function(err, hasURL, events) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

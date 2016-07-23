@@ -9,7 +9,7 @@ var classes = require(__dirname + '/../libs/classes.js');
 module.exports = function(app, db) {
 
 	app.post('/classes/get', function(req, res) {
-		classes.getClasses(db, req.session.user, function(err, classes) {
+		classes.getClasses(db, req.user.user, function(err, classes) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -23,7 +23,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/classes/add', function(req, res) {
-		var user = req.session.user;
+		var user = req.user.user;
 		var scheduleClass = {
 			id  : req.body.id,
 			name: req.body.name,
@@ -51,7 +51,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/classes/delete', function(req, res) {
-		classes.deleteClass(db, req.session.user, req.body.id, function(err) {
+		classes.deleteClass(db, req.user.user, req.body.id, function(err) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

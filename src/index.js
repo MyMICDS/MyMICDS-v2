@@ -17,8 +17,6 @@ var port = process.env.PORT || config.port;
  */
 
 var bodyParser   = require('body-parser');
-var cookieParser = require('cookie-parser');
-var cookies      = require(__dirname + '/libs/cookies.js');
 var ejs          = require('ejs');
 var jwt          = require(__dirname + '/libs/jwt.js');
 var lunch        = require(__dirname + '/libs/lunch.js');
@@ -45,18 +43,11 @@ app.use(function(req, res, next) {
     next();
 });
 
-// Cookies
-app.use(cookieParser());
-
 // Body Parser for POST Variables
 app.use(bodyParser.json());     // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
 	extended: true
 }));
-
-// Enable JWT authentication
-app.use(jwt.authorize);
-app.use(jwt.catchUnauthorized);
 
 /*
  * EJS as Default Render Engine
@@ -75,6 +66,11 @@ require(__dirname + '/routes/assets.js')(app, express);
 MongoClient.connect(config.mongodbURI, function(err, db) {
 	if(err) throw err;
 
+	// Enable JWT authentication middleware
+	app.use(jwt.authorize(db));
+	app.use(jwt.fallback);
+	app.use(jwt.catchUnauthorized);
+
 	// API Routes
 	require(__dirname + '/routes/backgroundAPI.js')(app, db);
 	require(__dirname + '/routes/bulletinAPI.js')(app, db);
@@ -88,7 +84,7 @@ MongoClient.connect(config.mongodbURI, function(err, db) {
 });
 
 app.get('/login', function(req, res) {
-	res.render('login', { user: req.session.user });
+	res.render('login', { user: req.user.user });
 });
 
 app.get('/canvas', function(req, res) {

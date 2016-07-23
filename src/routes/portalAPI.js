@@ -23,7 +23,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/portal/set-url', function(req, res) {
-		portal.setURL(db, req.session.user, req.body.url, function(err, isValid, validURL) {
+		portal.setURL(db, req.user.user, req.body.url, function(err, isValid, validURL) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

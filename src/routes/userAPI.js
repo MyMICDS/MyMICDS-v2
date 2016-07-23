@@ -11,7 +11,6 @@ module.exports = function(app, db) {
 
 	app.post('/user/grad-year-to-grade', function(req, res) {
 		var grade = users.gradYearToGrade(parseInt(req.body.year));
-		console.log(grade);
 		res.json({ grade: grade });
 	});
 
@@ -39,8 +38,7 @@ module.exports = function(app, db) {
     });
 
 	app.post('/user/get-info', function(req, res) {
-		console.log(req.user);
-		users.getInfo(db, req.user, true, function(err, userInfo) {
+		users.getInfo(db, req.user.user, true, function(err, userInfo) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -69,7 +67,7 @@ module.exports = function(app, db) {
 			info.gradYear = parseInt(req.body['grad-year']);
 		}
 
-		users.changeInfo(db, req.session.user, info, function(err) {
+		users.changeInfo(db, req.user.user, info, function(err) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -80,7 +78,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/user/change-password', function(req, res) {
-		passwords.changePassword(db, req.session.user, req.body['old-password'], req.body['new-password'], function(err) {
+		passwords.changePassword(db, req.user.user, req.body['old-password'], req.body['new-password'], function(err) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -91,7 +89,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/user/forgot-password', function(req, res) {
-		if(req.session.user) {
+		if(req.user.user) {
 			res.json({ error: 'You are already logged in, silly!' });
 			return;
 		}
@@ -106,7 +104,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/user/reset-password', function(req, res) {
-		if(req.session.user) {
+		if(req.user.user) {
 			res.json({ error: 'You are already logged in, silly!' });
 			return;
 		}

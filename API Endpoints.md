@@ -181,7 +181,7 @@ Gets an array of bulletin filenames from newest to oldest.
 
 
 ## Login API
-The part of the API that relates to the login system. Can be found in `src/routes/loginAPI.js`. The associated auth and cookie modules can be found under `src/libs/auth.js` and `src/libs/cookies.js`.
+The part of the API that relates to the login system. Can be found in `src/routes/loginAPI.js`. The associated auth and jwt modules can be found under `src/libs/auth.js` and `src/libs/jwt.js`.
 
 ### `/auth/login`
 If valid credentials are entered, it will log a user in by associating their session with a username.
@@ -189,19 +189,16 @@ If valid credentials are entered, it will log a user in by associating their ses
 #### Parameters
 - `user` - Username to log into.
 - `password` - Plaintext password to compare against the database.
-- `remember` - Set the value to anything if you would like to generate a 'Remember Me' cookie. This matches the behavior of regular HTML checkboxes which will automatically set the value to 'on' if they are checked, and not submit any value if they are not checked. _(Optional, by default it will be set to true.)_
+- `remember` - If set to true, JSON Web Token will expire in 30 days compared to only 12 hours. _(Optional, by default it will be set to true.)_
 
 #### Response
 - `error` - Null if success, string containing error if failure.
 - `success` - Whether or not the credentials were valid.
-- `cookie` - If `remember` was set to any value, `cookie` will be a JSON object containing information about the cookie. Otherwise, `cookie` will be null.
-- 'cookie.selector' - The selector should be placed inside the cookie. It has a similar to a username.
-- `cookie.token` - The token should also be plaecd inside the cookie. It has a similar behavior to a password because an encrypted version of the token is stored inside the database.
-- `cookie.expires` - Date when the cookie expires. This can be parsed by a Javascript date object, or inserted directly into a cookie's 'expires' parameter.
+- `jwt` - String containing JSON Web Token to store on the client, and send in the header for every API request. Normal JWT will time out in 12 hours, or 30 days if 'remember' was set to true.
 
 
 ### `/auth/logout`
-**Requires user to be logged in.** Will log out a user and clear any 'Remember Me' cookie they have stored on their browser.
+**Requires user to be logged in.** Will revoke JSON Web Token sent with the request.
 
 #### Response
 - `error` - Null if success, string containing error if failure.

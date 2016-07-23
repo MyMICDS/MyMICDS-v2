@@ -9,7 +9,7 @@ var backgrounds = require(__dirname + '/../libs/backgrounds.js');
 module.exports = function(app, db) {
 
 	app.post('/background/get', function(req, res) {
-		backgrounds.getBackground(req.session.user, req.body.variation, function(err, backgroundURL) {
+		backgrounds.getBackground(req.user.user, req.body.variation, function(err, backgroundURL) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -31,7 +31,7 @@ module.exports = function(app, db) {
 			}
 
 			// Add blurred version of image
-			backgrounds.blurUser(req.session.user, function(err) {
+			backgrounds.blurUser(req.user.user, function(err) {
 				if(err) {
 					var errorMessage = err.message;
 				} else {
@@ -43,7 +43,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/background/delete', function(req, res) {
-		backgrounds.deleteBackground(req.session.user, function(err) {
+		backgrounds.deleteBackground(req.user.user, function(err) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

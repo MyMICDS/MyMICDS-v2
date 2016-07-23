@@ -5,11 +5,11 @@
  */
 
 var auth = require(__dirname + '/../libs/auth.js');
+var jwt  = require(__dirname + '/../libs/jwt.js');
 
 module.exports = function(app, db) {
 
 	app.post('/auth/login', function(req, res) {
-		console.log(req.user);
 		if(req.user) {
 			res.json({
 				error  : 'You\'re already logged in, silly!',
@@ -20,7 +20,7 @@ module.exports = function(app, db) {
 		}
 
 		var rememberMe = typeof req.body.remember !== 'undefined';
-		console.log(req.body);
+
 		auth.login(db, req.body.user, req.body.password, rememberMe, function(err, response, jwt) {
 			if(err) {
 				var errorMessage = err.message;
@@ -37,17 +37,14 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/auth/logout', function(req, res) {
-		// Clear Remember Me cookie and destroy active login session
-		res.clearCookie('rememberme');
-		req.session.destroy(function(err) {
+		var revokeJWT = req.get('Authorization').slice(7);
+		jwt.revoke(db, req.user, revokeJWT, function(err) {
 			if(err) {
-				var errorMessage = 'There was a problem logging out!';
+				var errorMessage = err.message;
 			} else {
 				var errorMessage = null;
 			}
-
 			res.json({ error: errorMessage });
-
 		});
 	});
 

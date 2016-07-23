@@ -47,14 +47,14 @@ function uploadBackground(db) {
 	var storage = multer.diskStorage({
 		destination: function(req, file, cb) {
 			// Delete current background
-			deleteBackground(req.session.user, function(err) {
+			deleteBackground(req.user.user, function(err) {
 				if(err) {
 					cb(err, null);
 					return;
 				}
 
 				// Make sure directory is created for user backgrounds
-				var userDir = userBackgroundsDir + '/' + req.session.user;
+				var userDir = userBackgroundsDir + '/' + req.user.user;
 				fs.ensureDir(userDir, function(err) {
 					if(err) {
 						cb(new Error('There was a problem ensuring the image directory!'), null);
@@ -78,7 +78,7 @@ function uploadBackground(db) {
 	var upload = multer({
 		storage: storage,
 		fileFilter: function(req, file, cb) {
-			if(!req.session.user) {
+			if(!req.user.user) {
 				cb(new Error('You must be logged in!'), null);
 				return;
 			}

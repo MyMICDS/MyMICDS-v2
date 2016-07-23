@@ -77,7 +77,7 @@ function changePassword(db, user, oldPassword, newPassword, callback) {
 
 				// Update new password into database
 				var userdata = db.collection('users');
-				userdata.update({ user: user }, { $set: { password: hash }}, function(err, results) {
+				userdata.update({ user: user }, { $set: { password: hash }, $currentDate: { lastPasswordChange: true }}, function(err, results) {
 					if(err) {
 						callback(new Error('There was a problem updating the password in the database!'));
 						return;
@@ -226,7 +226,7 @@ function resetPassword(db, user, password, hash, callback) {
 
 			var userdata = db.collection('users');
 			// Update password in the database
-			userdata.update({ _id: userDoc['_id'], user: userDoc['user'] }, { $set: { password: hashedPassword, passwordChangeHash: null }}, function(err, results) {
+			userdata.update({ _id: userDoc['_id'], user: userDoc['user'] }, { $set: { password: hashedPassword, passwordChangeHash: null}, $currentDate: { lastPasswordChange: true }}, function(err, results) {
 				if(err) {
 					callback(new Error('There was a problem updating the password in the database!'));
 					return;

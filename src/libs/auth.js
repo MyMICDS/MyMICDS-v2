@@ -71,7 +71,7 @@ function login(db, user, password, rememberMe, callback) {
 
 		// Login successful!
 		// Now we need to create a JWT
-		jwt.generateJWT(db, user, rememberMe, function(err, jwt) {
+		jwt.generate(db, user, rememberMe, function(err, jwt) {
 			if(err) {
 				callback(err, null, null);
 				return;
