@@ -56,7 +56,6 @@ function authorize(db) {
 
 function isRevoked(db) {
 	return function(req, payload, done) {
-		console.log('check if revoked');
 		// Current date
 		var current = Date.now();
 		// Expiration date
@@ -82,7 +81,7 @@ function isRevoked(db) {
 			}
 
 			// Make sure token wasn't issued before last password change
-			if(userDoc['lastPasswordChange'] && payload.exp < userDoc['lastPasswordChange'].getTime()) {
+			if(typeof userDoc['lastPasswordChange'] === 'object' && (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
 				done(null, true);
 				return;
 			}
@@ -91,12 +90,11 @@ function isRevoked(db) {
 			var jwt = req.get('Authorization').slice(7);
 
 			isBlacklisted(db, jwt, function(err, blacklisted) {
-				console.log('boacklisted', blacklisted);
 				if(err) {
 					callback(err, true);
 					return;
 				}
-				console.log('succes!', blacklisted)
+
 				done(null, blacklisted);
 
 			});
