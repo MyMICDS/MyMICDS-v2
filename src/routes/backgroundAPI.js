@@ -9,7 +9,7 @@ var backgrounds = require(__dirname + '/../libs/backgrounds.js');
 module.exports = function(app, db) {
 
 	app.post('/background/get', function(req, res) {
-		backgrounds.getBackground(req.user.user, req.body.variation, function(err, backgroundURL) {
+		backgrounds.getBackground(req.user.user, function(err, backgroundURLs) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -17,7 +17,7 @@ module.exports = function(app, db) {
 			}
 			res.json({
 				error: errorMessage,
-				url  : backgroundURL
+				url  : backgroundURLs
 			});
 		});
 	});

@@ -184,7 +184,6 @@ function deleteBackground(user, callback) {
  * @function getBackground
  *
  * @param {string} user - Username
- * @param {string} variation - Variation of background. (Optional, default 'normal')
  * @param {getBackgroundCallback} callback - Callback
  */
 
@@ -193,16 +192,16 @@ function deleteBackground(user, callback) {
  * @callback getBackgroundCallback
  *
  * @param {Object} err - Null if success, error object if failure.
- * @param {string} backgroundURL - URL of background to display to user.
+ * @param {string} backgroundURLs - Object of background URL variations
  */
 
-function getBackground(user, variation, callback) {
+function getBackground(user, callback) {
 	if(typeof callback !== 'function') return;
 
-	if(typeof variation !== 'string' || !_.contains(validVariations, variation)) {
-		variation = 'normal';
-	}
-	var defaultBackground = userBackgroundUrl + '/' + defaultBackgroundUser + '/' + variation + defaultExtention;
+	var defaultBackground =  {
+		normal: userBackgroundUrl + '/' + defaultBackgroundUser + '/normal' + defaultExtention,
+		blur  : userBackgroundUrl + '/' + defaultBackgroundUser + '/blur' + defaultExtention
+	};
 
 	if(typeof user !== 'string' || !validUsername(user)) {
 		callback(null, defaultBackground);
@@ -220,7 +219,12 @@ function getBackground(user, variation, callback) {
 			return;
 		}
 
-		callback(null, userBackgroundUrl + '/' + user + '/' + variation + extention);
+		var backgrounds = {
+			normal: userBackgroundUrl + '/' + user + '/normal' + extention,
+			blur  : userBackgroundUrl + '/' + user + '/blur' + extention
+		};
+
+		callback(null, backgrounds);
 
 	});
 }
