@@ -17,7 +17,7 @@ module.exports = function(app, db) {
 			}
 			res.json({
 				error: errorMessage,
-				url  : backgroundURLs
+				urls : backgroundURLs
 			});
 		});
 	});

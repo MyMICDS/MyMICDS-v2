@@ -63,7 +63,7 @@ Retrieve the URL of the background to display to the user.
 
 #### Response
 - `error` - Null if successful, string containing error if failure.
-- `url` - URL of background to display
+- `urls` - Object of background variations and their URL (Ex. 'normal' or 'blur')
 
 
 ### `/background/change`
