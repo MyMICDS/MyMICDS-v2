@@ -9,7 +9,6 @@ var _           = require('underscore');
 var cookies     = require(__dirname + '/cookies.js');
 var crypto      = require('crypto');
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
-var bcrypt      = require('bcrypt');
 var jwt         = require(__dirname + '/jwt.js');
 var mail        = require(__dirname + '/mail.js');
 var passwords   = require(__dirname + '/passwords.js');
