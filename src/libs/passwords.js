@@ -5,29 +5,90 @@
  * @module users
  */
 
+var _           = require('underscore');
 var auth        = require(__dirname + '/auth.js');
 var crypto      = require('crypto');
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
 var mail        = require(__dirname + '/mail.js');
 var users       = require(__dirname + '/users.js');
 
- /**
-  * Changes the password if old password matches
-  * @function changePassword
-  *
-  * @param {Object} db - Database connection
-  * @param {string} user - Username
-  * @param {string} oldPassword - Old plaintext password
-  * @param {string} newPassword - New plaintext password to change
-  * @param {changePasswordCallback} callback - Callback
-  */
+// Passwords not allowed
+var passwordBlacklist = [
+	'', // Empty string
+	'Nick is not a nerd' // Because he is
+];
 
- /**
-  * Returns an error (if any) about changing the user's password
-  * @callback changePasswordCallback
-  *
-  * @param {Object} err - Null if success, error object if failure.
-  */
+/**
+ * Determines whether a password matches for a certain user
+ * @function passwordMatches
+ *
+ * @param {Object} db - Database connection
+ * @param {string} user - Username
+ * @param {string} password - Plaintext password
+ * @param {passwordMatchesCallback} callback - Callback
+ */
+
+/**
+ * Returns whether password matches or not
+ * @callback passwordMatchesCallback
+ *
+ * @param {Object} err - Null if successful, error object if failure.
+ * @param {Boolean} matches - True if password matches, false if not. Null if error.
+ */
+
+function passwordMatches(db, user, password, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+	if(typeof password !== 'string') {
+		callback(new Error('Invalid password!'), null);
+		return;
+	}
+
+	users.getUser(db, user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null);
+			return;
+		}
+
+		var hash = userDoc['password'];
+
+		bcrypt.compare(password, hash, function(err, res) {
+			if(err) {
+				callback(new Error('There was a problem comparing the passwords!'), null);
+				return;
+			}
+
+			callback(null, res);
+
+		});
+	});
+}
+
+/**
+ * Changes the password if old password matches
+ * @function changePassword
+ *
+ * @param {Object} db - Database connection
+ * @param {string} user - Username
+ * @param {string} oldPassword - Old plaintext password
+ * @param {string} newPassword - New plaintext password to change
+ * @param {changePasswordCallback} callback - Callback
+ */
+
+/**
+ * Returns an error (if any) about changing the user's password
+ * @callback changePasswordCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ */
 
 function changePassword(db, user, oldPassword, newPassword, callback) {
 	if(typeof callback !== 'function') {
@@ -38,7 +99,7 @@ function changePassword(db, user, oldPassword, newPassword, callback) {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
-	if(typeof oldPassword !== 'string') {
+	if(typeof oldPassword !== 'string' || _.contains(passwordBlacklist, newPassword)) {
 		callback(new Error('Invalid old password!'));
 		return;
 	}
@@ -58,7 +119,7 @@ function changePassword(db, user, oldPassword, newPassword, callback) {
 		}
 
 		// Compare oldPassword with password in database
-		auth.passwordMatches(db, user, oldPassword, function(err, matches) {
+		passwordMatches(db, user, oldPassword, function(err, matches) {
 			if(err) {
 				callback(err);
 				return;
@@ -189,7 +250,7 @@ function resetPassword(db, user, password, hash, callback) {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
-	if(typeof password !== 'string') {
+	if(typeof password !== 'string' || _.contains(passwordBlacklist, password)) {
 		callback(new Error('Invalid password!'));
 		return;
 	}
@@ -239,6 +300,8 @@ function resetPassword(db, user, password, hash, callback) {
 	});
 }
 
+module.exports.passwordMatches    = passwordMatches;
+module.exports.passwordBlacklist  = passwordBlacklist;
 module.exports.changePassword     = changePassword;
 module.exports.resetPasswordEmail = resetPasswordEmail;
 module.exports.resetPassword      = resetPassword;

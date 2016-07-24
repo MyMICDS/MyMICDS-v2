@@ -389,9 +389,9 @@ Returns an array of school graduation years from Junior Kindergarten to 12th gra
 **Requires user to be logged in.** Change basic information about the user including first name, last name, and graduation year.
 
 #### Parameters
-- `first-name` - What to change first name to. _(Optional, default will not change first name.)_
-- `last-name` - What to change last name to. _(Optional, default will not change last name.)_
-- `grad-year` - What to change graduation year to. _(Optional, default will not change graduation year.)_
+- `firstName` - What to change first name to. _(Optional, default will not change first name.)_
+- `lastName` - What to change last name to. _(Optional, default will not change last name.)_
+- `gradYear` - What to change graduation year to. _(Optional, default will not change graduation year.)_
 - `teacher` - Whether user is teacher. If set to any value besides false, user will be changed to teacher. This overrides graduation year. _(Optional, default will not change to teacher.)_
 
 ### Response
@@ -402,8 +402,8 @@ Returns an array of school graduation years from Junior Kindergarten to 12th gra
 **Requires user to be logged in.** Change user's password.
 
 #### Parameters
-- `old-password` - Old password to confirm it's actual user.
-- `new-password` - New password to change to.
+- `oldPassword` - Old password to confirm it's actual user.
+- `newPassword` - New password to change to.
 
 #### Response
 - `error` - Null if success, string containing error if failure.

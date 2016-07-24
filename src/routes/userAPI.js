@@ -54,17 +54,17 @@ module.exports = function(app, db) {
 	app.post('/user/change-info', function(req, res) {
 		var info = {};
 
-		if(typeof req.body['first-name'] === 'string' && req.body['first-name'] !== '') {
+		if(typeof req.body.firstName === 'string' && req.body.firstName !== '') {
 			info.firstName = req.body['first-name'];
 		}
-		if(typeof req.body['last-name'] === 'string' && req.body['last-name'] !== '') {
+		if(typeof req.body.lastName === 'string' && req.body.lastName !== '') {
 			info.lastName = req.body['last-name'];
 		}
 
 		if(typeof req.body.teacher !== 'undefined' && req.body.teacher !== false) {
 			info.gradYear = null;
 		} else {
-			info.gradYear = parseInt(req.body['grad-year']);
+			info.gradYear = parseInt(req.body.gradYear);
 		}
 
 		users.changeInfo(db, req.user.user, info, function(err) {
@@ -78,7 +78,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/user/change-password', function(req, res) {
-		passwords.changePassword(db, req.user.user, req.body['old-password'], req.body['new-password'], function(err) {
+		passwords.changePassword(db, req.user.user, req.body.oldPassword, req.body.newPassword, function(err) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

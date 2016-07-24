@@ -12,6 +12,7 @@ var cryptoUtils = require(__dirname + '/cryptoUtils.js');
 var bcrypt      = require('bcrypt');
 var jwt         = require(__dirname + '/jwt.js');
 var mail        = require(__dirname + '/mail.js');
+var passwords   = require(__dirname + '/passwords.js');
 var users       = require(__dirname + '/users.js');
 
 /**
@@ -55,7 +56,7 @@ function login(db, user, password, rememberMe, callback) {
 		rememberMe = true;
 	}
 
-	passwordMatches(db, user, password, function(err, passwordMatches) {
+	passwords.passwordMatches(db, user, password, function(err, passwordMatches) {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -78,60 +79,6 @@ function login(db, user, password, rememberMe, callback) {
 			}
 
 			callback(null, true, jwt);
-
-		});
-	});
-}
-
-/**
- * Determines whether a password matches for a certain user
- * @function passwordMatches
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {string} password - Plaintext password
- * @param {passwordMatchesCallback} callback - Callback
- */
-
-/**
- * Returns whether password matches or not
- * @callback passwordMatchesCallback
- *
- * @param {Object} err - Null if successful, error object if failure.
- * @param {Boolean} matches - True if password matches, false if not. Null if error.
- */
-
-function passwordMatches(db, user, password, callback) {
-	if(typeof callback !== 'function') return;
-
-	if(typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
-	}
-	if(typeof password !== 'string') {
-		callback(new Error('Invalid password!'), null);
-		return;
-	}
-
-	users.getUser(db, user, function(err, isUser, userDoc) {
-		if(err) {
-			callback(err, null);
-			return;
-		}
-		if(!isUser) {
-			callback(new Error('User doesn\'t exist!'), null);
-			return;
-		}
-
-		var hash = userDoc['password'];
-
-		bcrypt.compare(password, hash, function(err, res) {
-			if(err) {
-				callback(new Error('There was a problem comparing the passwords!'), null);
-				return;
-			}
-
-			callback(null, res);
 
 		});
 	});
@@ -174,7 +121,11 @@ function register(db, user, callback) {
 		user.user = user.user.toLowerCase();
 	}
 
-	if(typeof user.password  !== 'string') { callback(new Error('Invalid password!'));   return; }
+	if(typeof user.password  !== 'string' || _.contains(passwords.passwordBlacklist, user.password)) {
+		callback(new Error('Invalid password!'));
+		return;
+	}
+
 	if(typeof user.firstName !== 'string') { callback(new Error('Invalid first name!')); return; }
 	if(typeof user.lastName  !== 'string') { callback(new Error('Invalid last name!'));  return; }
 
@@ -304,7 +255,6 @@ function confirm(db, user, hash, callback) {
 	});
 }
 
-module.exports.login           = login;
-module.exports.passwordMatches = passwordMatches;
-module.exports.register        = register;
-module.exports.confirm         = confirm;
+module.exports.login    = login;
+module.exports.register = register;
+module.exports.confirm  = confirm;
