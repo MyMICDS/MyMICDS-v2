@@ -22,7 +22,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/classes/get`](#classesget)
   * [`/classes/add`](#classesadd)
   * [`/classes/delete`](#classesdelete)
-* [Daily Bulletin Api](#daily-bulletin-api)
+* [Daily Bulletin API](#daily-bulletin-api)
   * [`/daily-bulletin/list`](#daily-bulletinlist)
 * [Login API](#login-api)
   * [`/auth/login`](#authlogin)
