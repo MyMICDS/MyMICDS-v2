@@ -37,8 +37,13 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/auth/logout', function(req, res) {
-		var revokeJWT = req.get('Authorization').slice(7);
-		jwt.revoke(db, req.user, revokeJWT, function(err) {
+		var token = req.get('Authorization');
+		// If there's a token, we need to get rid of the 'Bearer ' at the beginning
+		if(token) {
+			token = token.slice(7);
+		}
+
+		jwt.revoke(db, req.user, token, function(err) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
