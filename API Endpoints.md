@@ -146,15 +146,15 @@ The part of the API relates to the classes. Can be found under `src/routes/class
 - `name` - Name of class
 - `color` - Associate a hex color while displaying the class. Please include a hash (#) at the beginning. The color can be three digits long (#XXX) or six digits long (#XXXXXX) _(Optional, if invalid or omitted, will default to a random hex color.)_
 - `block` - What block the class takes place in. Please refer to `src/libs/classes.js` for a list of the valid blocks. _(Optional, defaults to block 'other'.)_
-- 'type' - What type of class. Please refer to `src/libs/classes.js` for a list of valid class types. _(Optional, defaults to type 'other'.)_
-- 'teacher' - A JSON object containing information about the teacher.
+- `type` - What type of class. Please refer to `src/libs/classes.js` for a list of valid class types. _(Optional, defaults to type 'other'.)_
+- `teacher` - A JSON object containing information about the teacher.
 - `teacher.prefix` - Prefix the teacher goes by ('Mr.', 'Ms.', or 'Dr.')
 - `teacher.firstName` - First name of teacher
 - `teacher.lastName` - Last name of teacher
 
 #### Response
 - `error` - Null if success, string containing error if failure.
-- 'id' - Id of class inserted.
+- `id` - Id of class inserted.
 
 
 ### `/classes/delete`
@@ -281,7 +281,7 @@ This is the part of the API that relates to the planner. Can be found in `src/ro
 
 #### Response
 - `error` - Null if success, string containing error if failure.
-- 'id' - Id of event inserted.
+- `id` - Id of event inserted.
 
 
 ### `/planner/delete`
