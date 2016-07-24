@@ -28,14 +28,14 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/planner/add', function(req, res) {
-		var start = new Date(req.body['start-year'], req.body['start-month'] - 1, req.body['start-day']);
-		var end   = new Date(req.body['end-year'], req.body['end-month'] - 1, req.body['end-day']);
+		var start = new Date(parseInt(req.body.startYear), parseInt(req.body.startMonth) - 1, parseInt(req.body.startDay));
+		var end = new Date(parseInt(req.body.endYear), parseInt(req.body.endMonth) - 1, parseInt(req.body.endDay));
 
 		var insertEvent = {
 			id     : req.body.id,
 			title  : req.body.title,
 			desc   : req.body.desc,
-			classId: req.body['class-id'],
+			classId: req.body.classId,
 			start  : start,
 			end    : end,
 			link   : req.body.link

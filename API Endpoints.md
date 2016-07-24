@@ -271,13 +271,13 @@ This is the part of the API that relates to the planner. Can be found in `src/ro
 - `id` - Valid ID of event to edit. _(Optional, only send this if you want to edit an event.)_
 - `title` - Name of event
 - `desc` - Description of event. _(Optional, defaults to empty string.)_
-- `class-id` - Class ID to associate event with. _(Optional, defaults to null)_
-- `start-year` - Year to start event. _(Optional, defaults to current year.)_
-- `start-month` - Month to start event. _(Optional, defaults to current month.)_
-- `start-day` - Day to start event. _(Optional, defaults to current day.)_
-- `end-year` - Year to end event. _(Optional, defaults to current year.)_
-- `end-month` - Month to end event. _(Optional, defaults to current month.)_
-- `end-day` - Day to end event. _(Optional, defaults to current day.)_
+- `classId` - Class ID to associate event with. _(Optional, defaults to null)_
+- `startYear` - Year to start event. _(Optional, defaults to current year.)_
+- `startMonth` - Month to start event. _(Optional, defaults to current month.)_
+- `startDay` - Day to start event. _(Optional, defaults to current day.)_
+- `endYear` - Year to end event. _(Optional, defaults to current year.)_
+- `endMonth` - Month to end event. _(Optional, defaults to current month.)_
+- `endDay` - Day to end event. _(Optional, defaults to current day.)_
 
 #### Response
 - `error` - Null if success, string containing error if failure.
