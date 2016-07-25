@@ -49,6 +49,7 @@ function getLunch(date, callback) {
 	}
 
 	var currentDay = new Date(date.year, date.month - 1, date.day);
+	console.log(currentDay);
 
 	// Send POST request to lunch website
 	request.post(lunchURL, { form: { 'current_day': currentDay }}, function(err, res, body) {
@@ -65,8 +66,9 @@ function getLunch(date, callback) {
 			callback(new Error('There was a problem with the lunch URL!'), null);
 			return;
 		}
-
+		console.log(body.length);
 		var lunchJSON = parseLunch(body);
+		console.log(lunchJSON);
 		callback(null, lunchJSON);
 
 	});
@@ -81,10 +83,15 @@ function getLunch(date, callback) {
  */
 
 function parseLunch(body) {
-	var $        = cheerio.load(body);
-	var json     = {};
 
-	var table       = $('table#table_calendar_week');
+	// Clean up HTML to prevent cheerio from becoming confused
+	body.replace('<<', '&lt;&lt;');
+	body.replace('>>', '&gt;&gt;');
+
+	var $ = cheerio.load(body);
+	var json = {};
+
+	var table = $('table#table_calendar_week');
 	var weekColumns = table.find('td');
 
 	weekColumns.each(function(index) {
@@ -92,7 +99,8 @@ function parseLunch(body) {
 		var day  = $(this);
 		var date = day.attr('day_no');
 
-		schools.forEach(function(school) {
+		for(var i = 0; i < schools.length; i++) {
+			var school = schools[i];
 
 			var schoolLunch = day.find('div[location="' + school + '"]');
 
@@ -121,15 +129,15 @@ function parseLunch(body) {
 
 					json[date][school][categoryTitle] = json[date][school][categoryTitle] || [];
 
-					for(var i = 0; i < food.length; i++) {
-						json[date][school][categoryTitle].push(food[i]);
+					for(var j = 0; j < food.length; j++) {
+						json[date][school][categoryTitle].push(food[j]);
 					}
 
 				});
 
 			}
 
-		});
+		}
 
 	});
 
