@@ -16,32 +16,29 @@ var port = process.env.PORT || config.port;
  * General Libraries
  */
 
-var bodyParser   = require('body-parser');
-var ejs          = require('ejs');
-var jwt          = require(__dirname + '/libs/jwt.js');
-var lunch        = require(__dirname + '/libs/lunch.js');
-var mail         = require(__dirname + '/libs/mail.js');
-var MongoClient  = require('mongodb').MongoClient;
-var request      = require('request');
-var weather      = require(__dirname + '/libs/weather.js');
+var bodyParser  = require('body-parser');
+var cors        = require('cors');
+var ejs         = require('ejs');
+var jwt         = require(__dirname + '/libs/jwt.js');
+var lunch       = require(__dirname + '/libs/lunch.js');
+var mail        = require(__dirname + '/libs/mail.js');
+var MongoClient = require('mongodb').MongoClient;
+var request     = require('request');
+var weather     = require(__dirname + '/libs/weather.js');
 
 /*
  * Frameworks
  */
 
 var express = require('express');
-var app     = express();
+var app = express();
 
 /**
  * Express Middleware
  */
 
 // Enable Cross-origin Resource Sharing
-app.use(function(req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next();
-});
+app.use(cors());
 
 // Body Parser for POST Variables
 app.use(bodyParser.json());     // to support JSON-encoded bodies
