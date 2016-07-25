@@ -44,7 +44,7 @@ module.exports = function(app, db) {
 			day  : parseInt(req.body.day)
 		};
 
-		portal.getSchedule(db, 'mgira', date, function(err, hasURL, schedule) {
+		portal.getSchedule(db, req.user.user, date, function(err, hasURL, schedule) {
 			if(!err && hasURL) {
 				res.json({
 					error: null,
