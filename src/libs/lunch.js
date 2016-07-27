@@ -65,9 +65,8 @@ function getLunch(date, callback) {
 			callback(new Error('There was a problem with the lunch URL!'), null);
 			return;
 		}
-		console.log(body.length);
+
 		var lunchJSON = parseLunch(body);
-		console.log(lunchJSON);
 		callback(null, lunchJSON);
 
 	});
