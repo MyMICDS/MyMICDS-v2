@@ -24,6 +24,7 @@ Documentation for the different JSON API endpoints [can be found here.](API Endp
 - Angular front-end
 - Mobile App
 - Holiday Backgrounds
+- Organize Daily Bulletin Archives by year
 - Fetch other important emails to display besides Daily Bulletin?
 - Email notification if something goes _really_ bad in the back-end, or an error keeps on occurring.
 - Snow day calculator?
