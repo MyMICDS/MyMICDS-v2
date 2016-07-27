@@ -49,7 +49,6 @@ function getLunch(date, callback) {
 	}
 
 	var currentDay = new Date(date.year, date.month - 1, date.day);
-	console.log(currentDay);
 
 	// Send POST request to lunch website
 	request.post(lunchURL, { form: { 'current_day': currentDay }}, function(err, res, body) {

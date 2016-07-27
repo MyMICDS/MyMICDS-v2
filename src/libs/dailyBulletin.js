@@ -7,9 +7,10 @@
 
 var config = require(__dirname + '/config.js');
 
-var _    = require('underscore');
-var fs   = require('fs-extra');
-var path = require('path');
+var _         = require('underscore');
+var fs        = require('fs-extra');
+var path      = require('path');
+var utils     = require(__dirname + '/utils.js');
 
 var googleServiceAccount = require(__dirname + '/googleServiceAccount.js');
 var googleBatch          = require('google-batch');
@@ -18,12 +19,10 @@ var gmail                = google.gmail('v1');
 
 // Where public accesses backgrounds
 var dailyBulletinUrl = config.hostedOn + '/daily-bulletin';
-// Where to save Daily Bulletins
-var bulletinDir = __dirname + '/../public/daily-bulletin';
-// What label Daily Bulletins is categorized under
-var label = 'us-daily-bulletin';
-// Query to retrieve emails from
-var query = 'label:' + label;
+// Where to save Daily Bulletin PDFs
+var bulletinPDFDir = __dirname + '/../public/daily-bulletin';
+// Query to retrieve emails from Gmail
+var query = 'label:us-daily-bulletin';
 
 /**
  * Gets the most recent Daily Bulletin from Gmail and writes it to the bulletin directory
@@ -114,19 +113,18 @@ function queryLatest(callback) {
 
 					// Get PDF name
 					var bulletinName = bulletinDate.getFullYear()
-						+ '-' + leadingZeros(bulletinDate.getMonth() + 1)
-						+ '-' + leadingZeros(bulletinDate.getDate())
-						+ '.pdf';
+						+ '-' + utils.leadingZeros(bulletinDate.getMonth() + 1)
+						+ '-' + utils.leadingZeros(bulletinDate.getDate());
 
 					// Make sure directory for Daily Bulletin exists
-					fs.ensureDir(bulletinDir, function(err) {
+					fs.ensureDir(bulletinPDFDir, function(err) {
 						if(err) {
 							callback(new Error('There was a problem ensuring directory for Daily Bulletins!'));
 							return;
 						}
 
 						// Write PDF to file
-						fs.writeFile(bulletinDir + '/' + bulletinName, pdf, function(err) {
+						fs.writeFile(bulletinPDFDir + '/' + bulletinName + '.pdf', pdf, function(err) {
 							if(err) {
 								callback(new Error('There was a problem writing the PDF!'));
 								return;
@@ -242,7 +240,7 @@ function queryAll(callback) {
 								var attachmentIdFilenames = [];
 
 								// Search through the emails for any PDF
-								for(var j = 0; j < responses.length; j++) {
+								for(var j = 0; j < getMessages.length; j++) {
 									var response = getMessages[j];
 									var parts = response.body.payload.parts;
 
@@ -301,7 +299,7 @@ function queryAll(callback) {
 											console.log('Writing Daily Bulletins to file...');
 
 											// Make sure directory for Daily Bulletin exists
-											fs.ensureDir(bulletinDir, function(err) {
+											fs.ensureDir(bulletinPDFDir, function(err) {
 												if(err) {
 													callback(new Error('There was a problem ensuring directory for Daily Bulletins!'));
 													return;
@@ -326,12 +324,12 @@ function queryAll(callback) {
 
 														// Get PDF name
 														var bulletinName = bulletinDate.getFullYear()
-															+ '-' + leadingZeros(bulletinDate.getMonth() + 1)
-															+ '-' + leadingZeros(bulletinDate.getDate())
+															+ '-' + utils.leadingZeros(bulletinDate.getMonth() + 1)
+															+ '-' + utils.leadingZeros(bulletinDate.getDate())
 															+ '.pdf';
 
 														// Write PDF to file
-														fs.writeFile(bulletinDir + '/' + bulletinName, pdf, function(err) {
+														fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf, function(err) {
 															if(err) {
 																callback(new Error('There was a problem writing the PDF!'));
 																return;
@@ -375,7 +373,7 @@ function queryAll(callback) {
  */
 
 /**
- * Returns an array of bulletin names from newest to oldest
+ * Returns an array of bulletin names (without extention) from newest to oldest
  * @callback getListCallback
  *
  * @param {Object} err - Null if success, error object if failure.
@@ -386,13 +384,13 @@ function getList(callback) {
 	if(typeof callback !== 'function') return;
 
 	// Read directory
-	fs.ensureDir(bulletinDir, function(err) {
+	fs.ensureDir(bulletinPDFDir, function(err) {
 		if(err) {
 			callback(new Error('There was a problem ensuring the bulletin directory exists!'), null);
 			return;
 		}
 
-		fs.readdir(bulletinDir, function(err, files) {
+		fs.readdir(bulletinPDFDir, function(err, files) {
 			if(err) {
 				callback(new Error('There was a problem reading the bulletin directory!'), null);
 				return;
@@ -403,7 +401,7 @@ function getList(callback) {
 			for(var i = 0; i < files.length; i++) {
 				var file = path.parse(files[i]);
 				if(file.ext === '.pdf') {
-					bulletins.push(files[i]);
+					bulletins.push(file.name);
 				}
 			}
 
@@ -415,21 +413,6 @@ function getList(callback) {
 
 		});
 	});
-}
-
-/**
- * Returns a number with possible leading zero if under 10
- * @function leadingZeros
- * @param {Number} n - number
- * @returns {Number|String}
- */
-
-function leadingZeros(n) {
-	if(n < 10) {
-		return '0' + n;
-	} else {
-		return n;
-	}
 }
 
 module.exports.baseURL     = dailyBulletinUrl;

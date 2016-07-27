@@ -12,6 +12,7 @@ var fs     = require('fs-extra');
 var Jimp   = require('jimp');
 var multer = require('multer');
 var path   = require('path');
+var utils  = require(__dirname + '/utils.js');
 
 
 // Where public accesses backgrounds
@@ -116,7 +117,7 @@ function uploadBackground(db) {
 function getExtention(user, callback) {
 	if(typeof callback !== 'function') return;
 
-	if(typeof user !== 'string' || !validUsername(user)) {
+	if(typeof user !== 'string' || !utils.validFilename(user)) {
 		callback(new Error('Invalid username!'), null);
 		return;
 	}
@@ -166,7 +167,7 @@ function deleteBackground(user, callback) {
 		callback = function() {};
 	}
 
-	if(typeof user !== 'string' || !validUsername(user)) {
+	if(typeof user !== 'string' || !utils.validFilename(user)) {
 		callback(new Error('Invalid user!'));
 		return;
 	}
@@ -205,7 +206,7 @@ function getBackground(user, callback) {
 		blur  : userBackgroundUrl + '/' + defaultBackgroundUser + '/blur' + defaultExtention
 	};
 
-	if(typeof user !== 'string' || !validUsername(user)) {
+	if(typeof user !== 'string' || !utils.validFilename(user)) {
 		callback(null, defaultBackground);
 		return;
 	}
@@ -295,7 +296,7 @@ function blurUser(user, callback) {
 		callback = function() {};
 	}
 
-	if(typeof user !== 'string' || !validUsername(user)) {
+	if(typeof user !== 'string' || !utils.validFilename(user)) {
 		callback(new Error('Invalid username!'));
 		return;
 	}
@@ -324,21 +325,6 @@ function blurUser(user, callback) {
 
 		});
 	});
-}
-
-/**
- * Tests whether username is valid username to prevent users from deleting files outside their background (Ex. '../../some/other/directory')
- * @function validUsername
- * @returns {Boolean}
- */
-
-function validUsername(username) {
-	var nonoChars = [
-		'..',
-		'/',
-		'\\'
-	];
-	return !_.contains(nonoChars, username);
 }
 
 module.exports.getBackground    = getBackground;
