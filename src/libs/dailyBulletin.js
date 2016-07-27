@@ -5,6 +5,8 @@
  * @module dailyBulletin
  */
 
+var config = require(__dirname + '/config.js');
+
 var _    = require('underscore');
 var fs   = require('fs-extra');
 var path = require('path');
@@ -14,6 +16,8 @@ var googleBatch          = require('google-batch');
 var google               = googleBatch.require('googleapis')
 var gmail                = google.gmail('v1');
 
+// Where public accesses backgrounds
+var dailyBulletinUrl = config.hostedOn + '/daily-bulletin';
 // Where to save Daily Bulletins
 var bulletinDir = __dirname + '/../public/daily-bulletin';
 // What label Daily Bulletins is categorized under
@@ -428,6 +432,7 @@ function leadingZeros(n) {
 	}
 }
 
+module.exports.baseURL     = dailyBulletinUrl;
 module.exports.queryLatest = queryLatest;
 module.exports.queryAll    = queryAll;
 module.exports.getList     = getList;

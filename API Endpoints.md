@@ -177,7 +177,8 @@ Gets an array of bulletin filenames from newest to oldest.
 
 #### Response
 - `error` - Null if success, string containing error if failure.
-- `bulletins` - Array of bulletins from newest to oldest. Null if error.
+- `baseURL` - Base URL all Daily Bulletins are stored in.
+- `bulletins` - Array of bulletins names from newest to oldest. Null if error.
 
 
 ## Login API

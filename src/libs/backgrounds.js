@@ -5,6 +5,8 @@
  * @module backgrounds
  */
 
+var config = require(__dirname + '/config.js');
+
 var _      = require('underscore');
 var fs     = require('fs-extra');
 var Jimp   = require('jimp');
@@ -13,9 +15,9 @@ var path   = require('path');
 
 
 // Where public accesses backgrounds
-var userBackgroundUrl = '/user-backgrounds';
+var userBackgroundUrl = config.hostedOn + '/user-backgrounds';
 // Where to store user backgrounds
-var userBackgroundsDir = __dirname + '/../public' + userBackgroundUrl;
+var userBackgroundsDir = __dirname + '/../public/user-backgrounds';
 // Default user background
 var defaultBackgroundUser = 'default';
 var defaultExtention = '.jpg';

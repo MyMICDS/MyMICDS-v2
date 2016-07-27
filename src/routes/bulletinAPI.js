@@ -17,6 +17,7 @@ module.exports = function(app, db) {
 			}
 			res.json({
 				error: errorMessage,
+				baseURL: dailyBulletin.baseURL,
 				bulletins: bulletins
 			});
 		});
