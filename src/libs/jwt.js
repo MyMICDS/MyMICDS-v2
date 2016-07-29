@@ -56,6 +56,11 @@ function authorize(db) {
 
 function isRevoked(db) {
 	return function(req, payload, done) {
+		if(typeof payload !== 'object') {
+			done(null, true);
+			return;
+		}
+
 		// Current date
 		var current = Date.now();
 		// Expiration date
@@ -126,7 +131,7 @@ function fallback(req, res, next) {
 
 function catchUnauthorized(err, req, res, next) {
 	if(err.name === 'UnauthorizedError') {
-		res.status(401).json({ error: 'Invalid JWT!' });
+		res.status(401).json({ error: err.message });
 		return;
 	}
 	next();
