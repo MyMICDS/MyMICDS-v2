@@ -84,7 +84,7 @@ module.exports = function(app, db) {
 			} else {
 				var errorMessage = null;
 			}
-			res.end(errorMessage);
+			res.json({ error: errorMessage });
 		});
 	});
 
