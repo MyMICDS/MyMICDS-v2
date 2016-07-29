@@ -29,6 +29,9 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/auth/logout`](#authlogout)
   * [`/auth/register`](#authregister)
   * [`/auth/confirm`](#authconfirm)
+  * [`/auth/change-password`](#userchange-password)
+  * [`/auth/forgot-password`](#userforgot-password)
+  * [`/auth/reset-password`](#userreset-password)
 * [Lunch API](#lunch-api)
   * [`/lunch/get`](#lunchget)
 * [Planner API](#planner-api)
@@ -46,9 +49,6 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/user/grade-range`](#usergrade-range)
   * [`/user/get-info`](#userget-info)
   * [`/user/change-info`](#userchange-info)
-  * [`/user/change-password`](#userchange-password)
-  * [`/user/forgot-password`](#userforgot-password)
-  * [`/user/reset-password`](#userreset-password)
 
 
 

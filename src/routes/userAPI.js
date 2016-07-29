@@ -4,8 +4,7 @@
  * @file Manages user API endpoints
  */
 
-var passwords = require(__dirname + '/../libs/passwords.js');
-var users     = require(__dirname + '/../libs/users.js');
+var users = require(__dirname + '/../libs/users.js');
 
 module.exports = function(app, db) {
 
@@ -68,47 +67,6 @@ module.exports = function(app, db) {
 		}
 
 		users.changeInfo(db, req.user.user, info, function(err) {
-			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
-			}
-			res.json({ error: errorMessage });
-		});
-	});
-
-	app.post('/user/change-password', function(req, res) {
-		passwords.changePassword(db, req.user.user, req.body.oldPassword, req.body.newPassword, function(err) {
-			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
-			}
-			res.json({ error: errorMessage });
-		});
-	});
-
-	app.post('/user/forgot-password', function(req, res) {
-		if(req.user.user) {
-			res.json({ error: 'You are already logged in, silly!' });
-			return;
-		}
-		passwords.resetPasswordEmail(db, req.body.user, function(err) {
-			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
-			}
-			res.json({ error: errorMessage });
-		});
-	});
-
-	app.post('/user/reset-password', function(req, res) {
-		if(req.user.user) {
-			res.json({ error: 'You are already logged in, silly!' });
-			return;
-		}
-		passwords.resetPassword(db, req.body.user, req.body.password, req.body.hash, function(err) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
