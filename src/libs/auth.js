@@ -240,6 +240,7 @@ function confirm(db, user, hash, callback) {
 
 		if(cryptoUtils.safeCompare(hash, dbHash)) {
 			// Hash matches, confirm account!
+			var userdata = db.collection('users');
 			userdata.update({ user: user }, {$set: { confirmed: true }}, function(err, results) {
 				if(err) {
 					callback(new Error('There was a problem updating the database!'));
