@@ -213,7 +213,7 @@ function resetPasswordEmail(db, user, callback) {
 				var emailReplace = {
 					firstName: userDoc['firstName'],
 					lastName : userDoc['lastName'],
-					passwordLink: 'https://mymicds.net/change-password/' + userDoc['user'] + '/' + hash
+					passwordLink: 'https://mymicds.net/reset-password/' + userDoc['user'] + '/' + hash
 				};
 
 				// Send email confirmation
