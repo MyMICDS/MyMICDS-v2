@@ -86,10 +86,14 @@ function isRevoked(db) {
 			}
 
 			// Make sure token wasn't issued before last password change
-			if(typeof userDoc['lastPasswordChange'] === 'object' && (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
+			/*
+			 * @TODO Automatically log user out in front-end on password change
+			 * or prevent session that changed password from expiring.
+			 */
+			/*if(typeof userDoc['lastPasswordChange'] === 'object' && (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
 				done(null, true);
 				return;
-			}
+			}*/
 
 			// Make sure token isn't blacklisted (usually if logged out)
 			var jwt = req.get('Authorization').slice(7);
