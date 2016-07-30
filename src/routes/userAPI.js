@@ -54,10 +54,10 @@ module.exports = function(app, db) {
 		var info = {};
 
 		if(typeof req.body.firstName === 'string' && req.body.firstName !== '') {
-			info.firstName = req.body['first-name'];
+			info.firstName = req.body.firstName;
 		}
 		if(typeof req.body.lastName === 'string' && req.body.lastName !== '') {
-			info.lastName = req.body['last-name'];
+			info.lastName = req.body.lastName;
 		}
 
 		if(typeof req.body.teacher !== 'undefined' && req.body.teacher !== false) {
