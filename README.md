@@ -27,7 +27,15 @@ Documentation for the different JSON API endpoints [can be found here.](API Endp
 - Organize Daily Bulletin Archives by year
 - Fetch other important emails to display besides Daily Bulletin?
 - Email notification if something goes _really_ bad in the back-end, or an error keeps on occurring.
-- Snow day calculator?
+
+## Module Ideas
+- Snow day calculator
+- Countdown with three modes
+  - Until weekend
+  - Until break
+  - Until school ends
+- TODO Bulletin point list
+- Quick access add events to planner
 
 ## Other Repositories
 ### [MyMICDS-v2-Angular](https://github.com/michaelgira23/MyMICDS-v2-Angular)
