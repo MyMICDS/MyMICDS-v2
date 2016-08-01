@@ -49,6 +49,8 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/user/grade-range`](#usergrade-range)
   * [`/user/get-info`](#userget-info)
   * [`/user/change-info`](#userchange-info)
+* [Notifications API](#notification-api)
+  * [`/notification/get`](#notificationget)
 
 
 
@@ -430,3 +432,14 @@ Resets a user's password after clicking on the link from email sent by `/user/fo
 
 #### Response
 - `error` - Null if success, string containing error if failure.
+
+## Notifications API
+This is the part of the API that relates to the sidebar notifications. Can be found under `src/routes/notificationAPI.js`. The associated user module can be found under `src/libs/notification.js`.
+
+### `/notification/get`
+Get the list of notifications. 
+
+#### Parameters
+
+#### Response
+- `events` - List of notifications
