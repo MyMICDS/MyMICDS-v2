@@ -369,6 +369,8 @@ function getMonthEvents(db, user, date, includeCanvas, callback) {
 }
 
 function getWithinWeek(db, user, includeCanvas, callback) {
+	if(typeof callback !=='function') return;
+
 	var currentDate = new Date();
 	var date = {year: currentDate.getFullYear(), month: currentDate.getMonth()};
 	var monthEvents = [], nextMonthEvents = [], combinedEvents = [];
@@ -376,43 +378,59 @@ function getWithinWeek(db, user, includeCanvas, callback) {
 		upcoming: [],
 		ending: []
 	}
-	//get Events of current month
-	this.getMonthEvents(db, user, date, includeCanvas, function(err, events){
-		if (err) {
-			callback(err, null);
-			return;
-		}
-		monthEvents = events;
-	});
 	//get the days of current month
-	Date.prototype.monthDays= function(){
+	Date.prototype.monthDays = function(){
 		var d= new Date(this.getFullYear(), this.getMonth()+1, 0);
 		return d.getDate();
 	}
-	if (currentDate.getDate() > currentDate.getMonthDays() - 7) {
-		var nextMonthDate = {year: date.year, month: date.month + 1}
-		this.getMonthEvents(db, user, date, includeCanvas, function(err, events){
+	var getMonthEvents = this.getMonthEvents
+	asyncLib.series([
+		function(callback) {
+			//get Events of current month
+			getMonthEvents(db, user, date, includeCanvas, function(err, events){
+				if (err) {
+					callback(err, null);
+					return;
+				}
+				monthEvents = events;
+			});
+			//get events of next month
+			if (currentDate.getDate() > currentDate.monthDays() - 7) {
+				var nextMonthDate = {year: date.year, month: date.month + 1}
+				getMonthEvents(db, user, date, includeCanvas, function(err, events){
+					if (err) {
+						callback(err, null);
+						return;
+					}
+					nextMonthEvents = events;
+				});
+			}
+			combinedEvents = monthEvents.concat(nextMonthDate);
+		},
+		function(callback) {
+			//select and push events within the range of 7 days
+			for (var i=0;i<combinedEvents.length;i++) {
+				var startTime = new Date(combinedEvents[i].start).getTime();
+				var endTime = new Date(combinedEvents[i].end).getTime();
+				var currentTime = currentDate.getTime();
+				var sevenDaysTime = new Date(currentDate.getFullYear(), this.getMonth(), this.getDate+7).getTime()
+				if (startTime <= sevenDaysTime && startTime > currentTime) {
+					finalEvents.upcoming.push(combinedEvents[i]);
+				} else if (endTime <= sevenDaysTime && endTime > currentTime) {
+					finalEvents.ending.push(combinedEvents[i]);
+				}
+			}
+		},
+		function (err, results) {
 			if (err) {
 				callback(err, null);
 				return;
 			}
-			nextMonthEvents = events;
-		});
-	}
-	combinedEvents = monthEvents.concat(nextMonthDate);
-	//select and push events within the range of 7 days
-	for (var i=0;i<combinedEvents.length;i++) {
-		var startTime = new Date(combinedEvents[i].start).getTime();
-		var endTime = new Date(combinedEvents[i].end).getTime();
-		var currentTime = currentDate.getTime();
-		var sevenDaysTime = new Date(currentDate.getFullYear(), this.getMonth(), this.getDate+7).getTime()
-		if (startTime <= sevenDaysTime && startTime > currentTime) {
-			finalEvents.upcoming.push(combinedEvents[i]);
-		} else if (endTime <= sevenDaysTime && endTime > currentTime) {
-			finalEvents.ending.push(combinedEvents[i]);
+			callback(null, finalEvents)
 		}
-	}
-	callback(null, finalEvents)
+	])
+
+	
 }
 module.exports.upsertEvent    = upsertEvent;
 module.exports.deleteEvent    = deleteEvent;
