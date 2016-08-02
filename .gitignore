@@ -1,6 +1,7 @@
 docs
 node_modules
 npm-debug.log
+src/api
 src/libs/config.js
 src/public/daily-bulletin
 src/public/user-backgrounds/*

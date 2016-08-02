@@ -9,7 +9,7 @@ var config   = require(__dirname + '/config.js');
 var Forecast = require('forecast.io');
 var fs       = require('fs-extra');
 
-var JSONPath = __dirname + '/../public/json/weather.json';
+var JSONPath = __dirname + '/../api/weather.json';
 
 // Coordinates for MICDS
 var latitude  = 38.658241;
@@ -36,30 +36,16 @@ var options = {
  */
 
  function getWeather(callback) {
-
 	 if(typeof callback !== 'function') return;
 
-	 // Test to see if JSON path is valid. If not, create one.
-	 fs.stat(JSONPath, function(err, stats) {
+	 fs.readJSON(JSONPath, function(err, weatherJSON) {
+		 // If there's an error, most likely there's no existing JSON
 		 if(err) {
-			 callback(new Error('There was a problem retrieving the weather data!'), null);
+			 updateWeather(callback);
 			 return;
 		 }
 
-		 if(stats.isFile()) {
-			 // Great! JSONPath is valid!
-			 fs.readJSON(JSONPath, function(err, weatherJSON) {
-				 if(err) {
-					 callback(new Error('There was a problem reading the weather data!'), null);
-					 return;
-				 }
-
-				 callback(null, weatherJSON);
-			 });
-		 } else {
-			 // If the lunch JSON file does not exist, let's create one
-			 updateWeather(null, callback);
-		 }
+		 callback(null, weatherJSON);
 	 });
  }
 
@@ -97,7 +83,7 @@ function updateWeather(callback, io) {
 
 		fs.outputJSON(JSONPath, data, function(err) {
 			if(err) {
-				callback(new Error('There was a problem writing the weather data!'), null);
+				callback(new Error('There was a problem saving the weather data!'), null);
 				return;
 			}
 
@@ -111,5 +97,5 @@ function updateWeather(callback, io) {
 
 }
 
-module.exports.getWeather    = getWeather;
-module.exports.updateWeather = updateWeather;
+module.exports.get    = getWeather;
+module.exports.update = updateWeather;

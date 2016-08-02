@@ -9,7 +9,7 @@ var weather = require(__dirname + '/../libs/weather.js');
 module.exports = function(app, db) {
 
 	app.post('/weather/get', function(req, res) {
-		weather.getWeather(function(err, weatherJSON) {
+		weather.get(function(err, weatherJSON) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
