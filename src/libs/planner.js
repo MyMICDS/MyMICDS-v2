@@ -424,7 +424,6 @@ function getWithinWeek(db, user, includeCanvas, callback) {
 				finalEvents.ending.push(combinedEvents[i]);
 			}
 		}
-		console.log(finalEvents)
 		callback(null, finalEvents)
 	})
 
