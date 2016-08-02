@@ -22,7 +22,7 @@ module.exports = function(app, db) {
 		});
 	});
 
-	app.post('/background/change', function(req, res) {
+	app.post('/background/upload', function(req, res) {
 		// Write image to user-backgrounds
 		backgrounds.uploadBackground(db)(req, res, function(err) {
 			if(err) {

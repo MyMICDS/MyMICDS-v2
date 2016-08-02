@@ -12,7 +12,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
 # Table of Contents
 * [Background API](#background-api)
   * [`/background/get`](#backgroundget)
-  * [`/background/change`](#backgroundchange)
+  * [`/background/upload`](#backgroundupload)
   * [`/background/delete`](#backgroundelete)
 * [Canvas API](#canvas-api)
   * [`/canvas/test-url`](#canvastest-url)
@@ -68,7 +68,7 @@ Retrieve the URL of the background to display to the user.
 - `urls` - Object of background variations and their URL (Ex. 'normal' or 'blur')
 
 
-### `/background/change`
+### `/background/upload`
 **Requires user to be logged in.** Upload a new background picture for the user.
 
 #### Parameters
@@ -437,7 +437,7 @@ Resets a user's password after clicking on the link from email sent by `/user/fo
 This is the part of the API that relates to the sidebar notifications. Can be found under `src/routes/notificationAPI.js`. The associated user module can be found under `src/libs/notification.js`.
 
 ### `/notification/get`
-Get the list of notifications. 
+Get the list of notifications.
 
 #### Parameters
 
