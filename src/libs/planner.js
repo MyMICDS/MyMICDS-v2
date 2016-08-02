@@ -339,12 +339,12 @@ function getMonthEvents(db, user, date, includeCanvas, callback) {
 				}
 
 				canvas.getEvents(db, userDoc['user'], date, function(err, hasURL, events) {
-					if(err) {
-						callback(err, null);
-						return;
-					}
 					if(!hasURL) {
 						callback(null, []);
+						return;
+					}
+					if(err) {
+						callback(null, err);
 						return;
 					}
 
@@ -427,7 +427,7 @@ function getWithinWeek(db, user, includeCanvas, callback) {
 		console.log(finalEvents)
 		callback(null, finalEvents)
 	})
-	
+
 }
 module.exports.upsertEvent    = upsertEvent;
 module.exports.deleteEvent    = deleteEvent;
