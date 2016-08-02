@@ -11,9 +11,9 @@ module.exports = function(app, db) {
 	app.post('/weather/get', function(req, res) {
 		weather.getWeather(function(err, weatherJSON) {
 			if(err) {
-				res.json({error: err.message});
+				res.json({error: err.message, weather: null});
 			} else {
-				res.json(weatherJSON);
+				res.json({error: null, weather: weatherJSON});
 			}
 		});
 	});

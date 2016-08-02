@@ -51,6 +51,8 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/user/change-info`](#userchange-info)
 * [Notifications API](#notification-api)
   * [`/notification/get`](#notificationget)
+* [Weather API](#weather-api)
+  * [`/weather/get`](#weatherget)
 
 
 
@@ -434,7 +436,7 @@ Resets a user's password after clicking on the link from email sent by `/user/fo
 - `error` - Null if success, string containing error if failure.
 
 ## Notifications API
-This is the part of the API that relates to the sidebar notifications. Can be found under `src/routes/notificationAPI.js`. The associated user module can be found under `src/libs/notification.js`.
+This is the part of the API that relates to the sidebar notifications. Can be found under `src/routes/notificationAPI.js`. The associated notification module can be found under `src/libs/notification.js`.
 
 ### `/notification/get`
 Get the list of notifications.
@@ -443,3 +445,15 @@ Get the list of notifications.
 
 #### Response
 - `events` - List of notifications
+
+## Weather API
+This is the part of the API that relates to the weather at MICDS. Can be found under `src/routes/weatherAPI.js`. The associated weather module can be found under `src/libs/weather.js`.
+
+### `/weather/get`
+Get the available weather data for MICDS.
+
+#### Parameters
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+- `weather` - JSON object with the weather if success, null if failure.
