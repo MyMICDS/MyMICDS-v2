@@ -10,16 +10,16 @@ var moment = require('moment');
 
 /**
  * Get data about user
- * @function get
+ * @function getUser
  *
  * @param {Object} db - Database connection
  * @param {string} user - Username
- * @param {getCallback} callback - Callback
+ * @param {getUserCallback} callback - Callback
  */
 
 /**
  * Callback after user id is retrieved
- * @callback getCallback
+ * @callback getUserCallback
  *
  * @param {Object} err - Null if success, error object if failure
  * @param {Boolean} isUser - True if there is a valid user, false if not. Null if error.

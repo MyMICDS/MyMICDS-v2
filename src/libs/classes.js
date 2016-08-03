@@ -184,7 +184,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 					}
 
 					callback(null, id);
-					teachers.deletelessTeachers(db);
+					teachers.deleteClasslessTeachers(db);
 
 				});
 			});
@@ -341,7 +341,7 @@ function deleteClass(db, user, classId, callback) {
 			}
 
 			callback(null);
-			teachers.delete(db);
+			teachers.deleteClassless(db);
 
 		});
 	});
