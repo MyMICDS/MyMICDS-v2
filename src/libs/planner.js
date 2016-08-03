@@ -70,7 +70,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 			return;
 		}
 
-		classes.getClasses(db, user, function(err, classes) {
+		classes.get(db, user, function(err, classes) {
 			if(err) {
 				callback(err);
 				return;
@@ -301,7 +301,7 @@ function getMonthEvents(db, user, date, includeCanvas, callback) {
 					}
 
 					// Insert classes in place of class id's
-					classes.getClasses(db, user, function(err, classes) {
+					classes.get(db, user, function(err, classes) {
 						if(err) {
 							callback(err, null);
 							return;
