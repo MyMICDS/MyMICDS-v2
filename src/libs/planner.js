@@ -60,7 +60,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 		return;
 	}
 
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err);
 			return;
@@ -186,7 +186,7 @@ function deleteEvent(db, user, eventId, callback) {
 	}
 
 	// Make sure valid user and get user id
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err);
 			return;
@@ -256,7 +256,7 @@ function getMonthEvents(db, user, date, includeCanvas, callback) {
 		date.year = current.getFullYear();
 	}
 
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null);
 			return;

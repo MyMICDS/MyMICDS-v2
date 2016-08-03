@@ -6,7 +6,6 @@
  */
 
 var _           = require('underscore');
-var cookies     = require(__dirname + '/cookies.js');
 var crypto      = require('crypto');
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
 var jwt         = require(__dirname + '/jwt.js');
@@ -134,7 +133,7 @@ function register(db, user, callback) {
 	}
 
 	// Check if it's an already existing user
-	users.getUser(db, user.user, function(err, isUser, data) {
+	users.get(db, user.user, function(err, isUser, data) {
 		if(isUser && data.confirmed) {
 			callback(new Error('An account is already registered under the email ' + user.user + '@micds.org!'));
 			return;
@@ -226,7 +225,7 @@ function confirm(db, user, hash, callback) {
 		return;
 	}
 
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err);
 			return;

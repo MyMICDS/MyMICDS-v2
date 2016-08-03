@@ -103,7 +103,7 @@ function setURL(db, user, url, callback) {
 		return;
 	}
 
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -172,7 +172,7 @@ function getEvents(db, user, date, callback) {
 		date.year = current.getFullYear();
 	}
 
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null, null);
 			return;

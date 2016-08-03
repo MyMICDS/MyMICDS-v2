@@ -49,7 +49,7 @@ function passwordMatches(db, user, password, callback) {
 		return;
 	}
 
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null);
 			return;
@@ -109,7 +109,7 @@ function changePassword(db, user, oldPassword, newPassword, callback) {
 		return;
 	}
 
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err);
 			return;
@@ -180,7 +180,7 @@ function resetPasswordEmail(db, user, callback) {
 		return;
 	}
 
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err);
 			return;
@@ -259,7 +259,7 @@ function resetPassword(db, user, password, hash, callback) {
 		callback(new Error('Invalid hash!'));
 	}
 
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err);
 			return;

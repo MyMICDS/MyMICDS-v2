@@ -21,7 +21,7 @@ var userBackgroundUrl = config.hostedOn + '/user-backgrounds';
 var userBackgroundsDir = __dirname + '/../public/user-backgrounds';
 // Default user background
 var defaultBackgroundUser = 'default';
-var defaultExtention = '.jpg';
+var defaultExtension = '.jpg';
 // Valid background variations
 var validVariations = [
 	'normal',
@@ -69,10 +69,10 @@ function uploadBackground(db) {
 		},
 
 		filename: function(req, file, cb) {
-			// Get valid extention
-			var extention = validMimeTypes[file.mimetype];
+			// Get valid extension
+			var extension = validMimeTypes[file.mimetype];
 			// Set base file name to username
-			var filename = 'normal.' + extention;
+			var filename = 'normal.' + extension;
 
 			cb(null, filename);
 		}
@@ -85,8 +85,8 @@ function uploadBackground(db) {
 				cb(new Error('You must be logged in!'), null);
 				return;
 			}
-			var extention = validMimeTypes[file.mimetype];
-			if(typeof extention !== 'string') {
+			var extension = validMimeTypes[file.mimetype];
+			if(typeof extension !== 'string') {
 				cb(new Error('Invalid file type!'), null);
 				return;
 			}
@@ -99,22 +99,22 @@ function uploadBackground(db) {
 }
 
 /**
- * Gets the extention of the user's background
- * @function getExtention
+ * Gets the extension of the user's background
+ * @function getExtension
  *
  * @param {string} user - Username
- * @param {getExtentionCallback} callback - Callback
+ * @param {getExtensionCallback} callback - Callback
  */
 
 /**
- * Returns a string containing extention
- * @callback getExtentionCallback
+ * Returns a string containing extension
+ * @callback getExtensionCallback
  *
  * @param {Object} err - Null if success, error object if failure.
- * @param {string} extention - String containing extention of user background. Contains the dot (.) at the beginning of the extention. Null if error or user doesn't have background.
+ * @param {string} extension - String containing extension of user background. Contains the dot (.) at the beginning of the extension. Null if error or user doesn't have background.
  */
 
-function getExtention(user, callback) {
+function getExtension(user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof user !== 'string' || !utils.validFilename(user)) {
@@ -137,11 +137,11 @@ function getExtention(user, callback) {
 				return;
 			}
 
-			// Just get any image, they're all going to be the same extention
+			// Just get any image, they're all going to be the same extension
 			var file = path.parse(userImages[0]);
-			var extention = file.ext;
+			var extension = file.ext;
 
-			callback(null, extention);
+			callback(null, extension);
 
 		});
 	});
@@ -202,8 +202,8 @@ function getBackground(user, callback) {
 	if(typeof callback !== 'function') return;
 
 	var defaultBackground =  {
-		normal: userBackgroundUrl + '/' + defaultBackgroundUser + '/normal' + defaultExtention,
-		blur  : userBackgroundUrl + '/' + defaultBackgroundUser + '/blur' + defaultExtention
+		normal: userBackgroundUrl + '/' + defaultBackgroundUser + '/normal' + defaultExtension,
+		blur  : userBackgroundUrl + '/' + defaultBackgroundUser + '/blur' + defaultExtension
 	};
 
 	if(typeof user !== 'string' || !utils.validFilename(user)) {
@@ -211,20 +211,20 @@ function getBackground(user, callback) {
 		return;
 	}
 
-	// Get user's extention
-	getExtention(user, function(err, extention) {
+	// Get user's extension
+	getExtension(user, function(err, extension) {
 		if(err) {
 			callback(err, defaultBackground);
 			return;
 		}
-		if(extention === null) {
+		if(extension === null) {
 			callback(null, defaultBackground);
 			return;
 		}
 
 		var backgrounds = {
-			normal: userBackgroundUrl + '/' + user + '/normal' + extention,
-			blur  : userBackgroundUrl + '/' + user + '/blur' + extention
+			normal: userBackgroundUrl + '/' + user + '/normal' + extension,
+			blur  : userBackgroundUrl + '/' + user + '/blur' + extension
 		};
 
 		callback(null, backgrounds);
@@ -301,19 +301,19 @@ function blurUser(user, callback) {
 		return;
 	}
 
-	getExtention(user, function(err, extention) {
+	getExtension(user, function(err, extension) {
 		if(err) {
 			callback(err);
 			return;
 		}
-		if(extention === null) {
+		if(extension === null) {
 			callback(null);
 			return;
 		}
 
 		var userDir = userBackgroundsDir + '/' + user;
-		var fromPath = userDir + '/normal' + extention;
-		var toPath = userDir + '/blur' + extention;
+		var fromPath = userDir + '/normal' + extension;
+		var toPath = userDir + '/blur' + extension;
 
 		addBlur(fromPath, toPath, defaultBlurRadius, function(err) {
 			if(err) {
@@ -327,7 +327,7 @@ function blurUser(user, callback) {
 	});
 }
 
-module.exports.getBackground    = getBackground;
-module.exports.uploadBackground = uploadBackground;
-module.exports.deleteBackground = deleteBackground;
-module.exports.blurUser         = blurUser;
+module.exports.get    	= getBackground;
+module.exports.upload	= uploadBackground;
+module.exports.delete 	= deleteBackground;
+module.exports.blurUser = blurUser;

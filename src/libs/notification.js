@@ -54,4 +54,4 @@ function getNotifications(db, user, includeCanvas, callback) {
      });
 }
 
-module.exports.getNotifications = getNotifications
+module.exports.get = getNotifications;

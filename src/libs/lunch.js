@@ -14,7 +14,7 @@ var schools  = ['Lower School', 'Middle School', 'Upper School'];
 var JSONPath = __dirname + '/../public/json/weather.json';
 
 /**
- * Get's the lunch from /src/api/lunch.json. Will create one if it doesn't already exist.
+ * Gets the lunch from /src/api/lunch.json. Will create one if it doesn't already exist.
  * @function getLunch
  *
  * @param {Object} date - Object containing date to retrieve lunch. Leaving fields empty will default to today
@@ -142,5 +142,5 @@ function parseLunch(body) {
 	return json;
 }
 
-module.exports.getLunch    = getLunch;
-module.exports.parseLunch  = parseLunch;
+module.exports.get   = getLunch;
+module.exports.parse = parseLunch;

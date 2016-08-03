@@ -95,7 +95,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 	}
 
 	// Make sure username is valid first
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(new Error('There was a problem connecting to the database!'), null);
 			return;
@@ -106,7 +106,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 		}
 
 		// Add teacher to database
-		teachers.addTeacher(db, scheduleClass.teacher, function(err, teacherDoc) {
+		teachers.add(db, scheduleClass.teacher, function(err, teacherDoc) {
 			if(err) {
 				callback(err, null);
 				return;
@@ -184,7 +184,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 					}
 
 					callback(null, id);
-					teachers.deleteClasslessTeachers(db);
+					teachers.deletelessTeachers(db);
 
 				});
 			});
@@ -210,7 +210,7 @@ function upsertClass(db, user, scheduleClass, callback) {
  */
 
 function getClasses(db, user, callback) {
-	// I'll validate _you're_ input ;)
+	// I'll validate _your_ input baby ;)
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
@@ -223,7 +223,7 @@ function getClasses(db, user, callback) {
 	}
 
 	// Make sure valid user and get user id
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null);
 			return;
@@ -256,7 +256,7 @@ function getClasses(db, user, callback) {
 					var teacherId = classes[i]['teacher'];
 
 					if(typeof teachersList[teacherId] === 'undefined') {
-						teachers.getTeacher(db, teacherId, function(err, isTeacher, teacherDoc) {
+						teachers.get(db, teacherId, function(err, isTeacher, teacherDoc) {
 							if(err) {
 								callback(err, null);
 								return;
@@ -323,7 +323,7 @@ function deleteClass(db, user, classId, callback) {
 	}
 
 	// Make sure valid user
-	users.getUser(db, user, function(err, isUser, userDocs) {
+	users.get(db, user, function(err, isUser, userDocs) {
 		if(err) {
 			callback(err);
 			return;
@@ -341,7 +341,7 @@ function deleteClass(db, user, classId, callback) {
 			}
 
 			callback(null);
-			teachers.deleteClasslessTeachers(db);
+			teachers.delete(db);
 
 		});
 	});
@@ -350,6 +350,6 @@ function deleteClass(db, user, classId, callback) {
 module.exports.validBlocks = validBlocks;
 module.exports.validTypes  = validTypes;
 
-module.exports.upsertClass = upsertClass;
-module.exports.getClasses  = getClasses;
-module.exports.deleteClass = deleteClass;
+module.exports.upsert = upsertClass;
+module.exports.get    = getClasses;
+module.exports.delete = deleteClass;

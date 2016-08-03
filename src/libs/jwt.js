@@ -75,7 +75,7 @@ function isRevoked(db) {
 			return;
 		}
 
-		users.getUser(db, payload.user, function(err, isUser, userDoc) {
+		users.get(db, payload.user, function(err, isUser, userDoc) {
 			if(err) {
 				done(err, true);
 				return;
@@ -172,7 +172,7 @@ function generate(db, user, rememberMe, callback) {
 		var expiration = '12 hours';
 	}
 
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null);
 			return;

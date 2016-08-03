@@ -9,7 +9,7 @@ var backgrounds = require(__dirname + '/../libs/backgrounds.js');
 module.exports = function(app, db) {
 
 	app.post('/background/get', function(req, res) {
-		backgrounds.getBackground(req.user.user, function(err, backgroundURLs) {
+		backgrounds.get(req.user.user, function(err, backgroundURLs) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -24,7 +24,7 @@ module.exports = function(app, db) {
 
 	app.post('/background/upload', function(req, res) {
 		// Write image to user-backgrounds
-		backgrounds.uploadBackground(db)(req, res, function(err) {
+		backgrounds.upload(db)(req, res, function(err) {
 			if(err) {
 				res.json({ error: err.message });
 				return;
@@ -43,7 +43,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/background/delete', function(req, res) {
-		backgrounds.deleteBackground(req.user.user, function(err) {
+		backgrounds.delete(req.user.user, function(err) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

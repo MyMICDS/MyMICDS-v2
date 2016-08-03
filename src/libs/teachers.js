@@ -15,25 +15,25 @@ var validTeacherPrefixes = [
 
 /**
  * Adds a teacher into the database, as long as it isn't a duplicate
- * @function addTeacher
+ * @function add
  *
  * @param {Object} db - Database connection
  * @param {Object} teacher - Object containing information about the teacher
  * @param {string} teacher.prefix - Either 'Mr.', 'Ms.', or 'Dr.'
  * @param {string} teacher.firstName - Teacher's first name
  * @param {string} teacher.lastName - Teacher's last name
- * @param {addTeacherCallback} callback - Callback
+ * @param {addCallback} callback - Callback
  */
 
 /**
  * Callback after a teacher is added to the database
- * @callback addTeacherCallback
+ * @callback addCallback
  *
  * @param {Object} err - Null if success, error object if failure
  * @param {Object} teacher - Returns the document of the teacher we just added. Null if error
  */
 
-function addTeacher(db, teacher, callback) {
+function add(db, teacher, callback) {
 
 	if(typeof callback !== 'function') {
 		callback = function() {};
@@ -83,23 +83,23 @@ function addTeacher(db, teacher, callback) {
 
 /**
  * Retrieves the document with the specified teacher id
- * @function getTeacher
+ * @function get
  *
  * @param {Object} db - Database connection
  * @param {Object} teacherId - Object id of teacher
- * @param {getTeacherCallback} callback - Callback
+ * @param {getCallback} callback - Callback
  */
 
  /**
   * Returns the document of teacher
-  * @callback getTeacherCallback
+  * @callback getCallback
   *
   * @param {Object} err - Null if success, error object if failure
   * @param {Boolean} isTeacher - True if there is a valid teacher, false if not. Null if error.
   * @param {Object} teacher - Teacher document. Null if error or no valid teacher.
   */
 
-  function getTeacher(db, teacherId, callback) {
+  function get(db, teacherId, callback) {
 	  if(typeof callback !== 'function') return;
 
 	  if(typeof db !== 'object') {
@@ -229,20 +229,20 @@ function teacherTeaches(db, teacherId, callback) {
 
 /**
  * Deletes all teachers that are not linked to any class
- * @function deleteClasslessTeachers
+ * @function delete
  *
  * @param {Object} db - Databse connection
- * @param {deleteClasslessTeachersCallback} callback - Callback
+ * @param {deleteCallback} callback - Callback
  */
 
  /**
   * Returns an error if any. Also has extremely long name.
-  * @callback deleteClasslessTeachersCallback
+  * @callback deleteCallback
   *
   * @param {Object} err - Null if success, error object if failure
   */
 
-function deleteClasslessTeachers(db, callback) {
+function delete(db, callback) {
 	if(typeof callback !== 'function') {
 		callback = function() {};
 	}
@@ -280,6 +280,6 @@ function deleteClasslessTeachers(db, callback) {
 	});
 }
 
-module.exports.addTeacher = addTeacher;
-module.exports.getTeacher = getTeacher;
-module.exports.deleteClasslessTeachers = deleteClasslessTeachers;
+module.exports.add = add;
+module.exports.get = get;
+module.exports.deleteClassless = deleteClassless;

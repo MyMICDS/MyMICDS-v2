@@ -10,16 +10,16 @@ var moment = require('moment');
 
 /**
  * Get data about user
- * @function getUser
+ * @function get
  *
  * @param {Object} db - Database connection
  * @param {string} user - Username
- * @param {getUserCallback} callback - Callback
+ * @param {getCallback} callback - Callback
  */
 
 /**
  * Callback after user id is retrieved
- * @callback getUserCallback
+ * @callback getCallback
  *
  * @param {Object} err - Null if success, error object if failure
  * @param {Boolean} isUser - True if there is a valid user, false if not. Null if error.
@@ -306,7 +306,7 @@ function gradeToGradYear(grade) {
 	return gradYear;
 }
 
-module.exports.getUser         = getUser;
+module.exports.get        	   = getUser;
 module.exports.getInfo         = getInfo;
 module.exports.changeInfo      = changeInfo;
 module.exports.schoolEnds      = schoolEnds;

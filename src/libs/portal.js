@@ -142,7 +142,7 @@ function setURL(db, user, url, callback) {
 		return;
 	}
 
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -220,7 +220,7 @@ function getSchedule(db, user, date, callback) {
 	var scheduleDate = new Date(date.year, date.month - 1, date.day);
 	var scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
 
-	users.getUser(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null, null);
 			return;
