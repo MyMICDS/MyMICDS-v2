@@ -65,6 +65,7 @@ Retrieve the URL of the background to display to the user.
 #### Response
 - `error` - Null if successful, string containing error if failure.
 - `variants` - Object of background variations and their URL (Ex. 'normal' or 'blur')
+- `hasDefault` - True if using default background, false if using upload background image.
 
 
 ### `/background/upload`

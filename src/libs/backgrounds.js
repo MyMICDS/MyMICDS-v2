@@ -14,6 +14,17 @@ var multer = require('multer');
 var path   = require('path');
 var utils  = require(__dirname + '/utils.js');
 
+// Valid MIME Types for image backgrounds
+var validMimeTypes = {
+	'image/png' : 'png',
+	'image/jpeg': 'jpg'
+};
+// These are only for finding what kind of image the user has saved.
+// This DOES NOT check whether an uploaded image is valid! Configure that via MIME Types!
+var validExtensions = [
+	'.png',
+	'.jpg'
+];
 
 // Where public accesses backgrounds
 var userBackgroundUrl = config.hostedOn + '/user-backgrounds';
@@ -41,11 +52,6 @@ var defaultBlurRadius = 10;
  */
 
 function uploadBackground(db) {
-
-	var validMimeTypes = {
-		'image/png' : 'png',
-		'image/jpeg': 'jpg'
-	};
 
 	var storage = multer.diskStorage({
 		destination: function(req, file, cb) {
@@ -122,28 +128,30 @@ function getExtension(user, callback) {
 		return;
 	}
 
-	// Check if user's backgrounds directory is valid
-	fs.stat(userBackgroundsDir + '/' + user, function(err, stats) {
-		// Test if valid directory
-		if(err || !stats.isDirectory()) {
+	// Read user's background file
+	fs.readdir(userBackgroundsDir + '/' + user, function(err, userImages) {
+		// Most likely the error is because the background directory is invalid, and therefore there's no user background.
+		if(err) {
 			callback(null, null);
 			return;
 		}
 
-		// Get user's background file
-		fs.readdir(userBackgroundsDir + '/' + user, function(err, userImages) {
-			if(err) {
-				callback(new Error('There was a problem fetching all of user\'s backgrounds!'), null);
-				return;
-			}
+		// Loop through all valid files until there's either a .png or .jpg extention
+		var userExtension = null;
+		for(var i = 0; i < userImages.length; i++) {
 
-			// Just get any image, they're all going to be the same extension
-			var file = path.parse(userImages[0]);
+			var file = path.parse(userImages[i]);
 			var extension = file.ext;
 
-			callback(null, extension);
+			// If valid extension, just break out of loop and return that
+			if(_.contains(validExtensions, extension)) {
+				userExtension = extension;
+				break;
+			}
+		}
 
-		});
+		callback(null, userExtension);
+
 	});
 }
 
@@ -196,6 +204,7 @@ function deleteBackground(user, callback) {
  *
  * @param {Object} err - Null if success, error object if failure.
  * @param {string} variants - Object of background URL variations
+ * @param {Boolean} hasDefault - Whether or not user has default background.
  */
 
 function getBackground(user, callback) {
@@ -207,18 +216,19 @@ function getBackground(user, callback) {
 	};
 
 	if(typeof user !== 'string' || !utils.validFilename(user)) {
-		callback(null, defaultBackground);
+		callback(null, defaultBackground, true);
 		return;
 	}
 
 	// Get user's extension
 	getExtension(user, function(err, extension) {
 		if(err) {
-			callback(err, defaultBackground);
+			callback(err, defaultBackground, true);
 			return;
 		}
+		// Fallback to default background if no custom extension
 		if(extension === null) {
-			callback(null, defaultBackground);
+			callback(null, defaultBackground, true);
 			return;
 		}
 
@@ -227,7 +237,7 @@ function getBackground(user, callback) {
 			blur  : userBackgroundUrl + '/' + user + '/blur' + extension
 		};
 
-		callback(null, backgroundURLs);
+		callback(null, backgroundURLs, false);
 
 	});
 }
