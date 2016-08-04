@@ -63,7 +63,7 @@ function uploadBackground(db) {
 				}
 
 				// Make sure directory is created for user backgrounds
-				var userDir = userBackgroundsDir + '/' + req.user.user;
+				var userDir = userBackgroundsDir + '/' + req.user.user + '-' + Date.now();
 				fs.ensureDir(userDir, function(err) {
 					if(err) {
 						cb(new Error('There was a problem ensuring the image directory!'), null);
@@ -106,21 +106,22 @@ function uploadBackground(db) {
 
 /**
  * Gets the extension of the user's background
- * @function getExtension
+ * @function getCurrentFiles
  *
  * @param {string} user - Username
- * @param {getExtensionCallback} callback - Callback
+ * @param {getCurrentFilesCallback} callback - Callback
  */
 
 /**
  * Returns a string containing extension
- * @callback getExtensionCallback
+ * @callback getCurrentFilesCallback
  *
  * @param {Object} err - Null if success, error object if failure.
+ * @param {string} dirname - Name of directory containing background. Null if error or user doesn't have background.
  * @param {string} extension - String containing extension of user background. Contains the dot (.) at the beginning of the extension. Null if error or user doesn't have background.
  */
 
-function getExtension(user, callback) {
+function getCurrentFiles(user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof user !== 'string' || !utils.validFilename(user)) {
@@ -128,30 +129,59 @@ function getExtension(user, callback) {
 		return;
 	}
 
-	// Read user's background file
-	fs.readdir(userBackgroundsDir + '/' + user, function(err, userImages) {
-		// Most likely the error is because the background directory is invalid, and therefore there's no user background.
+	fs.readdir(userBackgroundsDir, function(err, userDirs) {
 		if(err) {
-			callback(null, null);
+			callback(new Error('There was a problem reading the user backgrounds directory!'), null, null);
 			return;
 		}
 
-		// Loop through all valid files until there's either a .png or .jpg extention
-		var userExtension = null;
-		for(var i = 0; i < userImages.length; i++) {
+		// Look for any user directories that aren't deleted
+		var userDir = null;
+		for(var i = 0; i < userDirs.length; i++) {
+			var dir = path.parse(userDirs[i]);
+			var dirname = dir.name;
+			var dirnameSplit = dirname.split('-');
 
-			var file = path.parse(userImages[i]);
-			var extension = file.ext;
+			console.log(dirnameSplit);
 
-			// If valid extension, just break out of loop and return that
-			if(_.contains(validExtensions, extension)) {
-				userExtension = extension;
+			// Check if background belongs to user
+			if(dirnameSplit.length === 2 && dirnameSplit[0] === user) {
+				userDir = dirname;
+				console.log('valid durname', dirname)
 				break;
 			}
 		}
 
-		callback(null, userExtension);
+		// User doesn't have any background
+		if(userDir === null) {
+			callback(null, null, null);
+			return;
+		}
 
+		// Read user's background file
+		fs.readdir(userBackgroundsDir + '/' + userDir, function(err, userImages) {
+			if(err) {
+				callback(new Error('There was a problem reading the user\'s background directory!'), null, null);
+				return;
+			}
+
+			// Loop through all valid files until there's either a .png or .jpg extention
+			var userExtension = null;
+			for(var i = 0; i < userImages.length; i++) {
+
+				var file = path.parse(userImages[i]);
+				var extension = file.ext;
+
+				// If valid extension, just break out of loop and return that
+				if(_.contains(validExtensions, extension)) {
+					userExtension = extension;
+					break;
+				}
+			}
+
+			callback(null, userDir, userExtension);
+
+		});
 	});
 }
 
@@ -180,13 +210,31 @@ function deleteBackground(user, callback) {
 		return;
 	}
 
-	// List all files in user backgrounds directory
-	fs.emptyDir(userBackgroundsDir + '/' + user, function(err) {
+	// Find out user's current directory
+	getCurrentFiles(user, function(err, dirname, extension) {
 		if(err) {
-			callback(new Error('There was a problem deleting the user\'s backgrounds!'));
+			callback(err);
 			return;
 		}
-		callback(null);
+		// Check if no existing background
+		if(dirname === null || extension === null) {
+			callback(null);
+			return;
+		}
+
+		var currentPath = userBackgroundsDir + '/' + dirname;
+		var deletedPath = userBackgroundsDir + '/deleted-' + dirname;
+
+		fs.rename(currentPath, deletedPath, function(err) {
+			if(err) {
+				console.log(err);
+				callback(new Error('There was a problem deleting the directory!'));
+				return;
+			}
+
+			callback(null);
+
+		});
 	});
 }
 
@@ -221,20 +269,20 @@ function getBackground(user, callback) {
 	}
 
 	// Get user's extension
-	getExtension(user, function(err, extension) {
+	getCurrentFiles(user, function(err, dirname, extension) {
 		if(err) {
 			callback(err, defaultBackground, true);
 			return;
 		}
 		// Fallback to default background if no custom extension
-		if(extension === null) {
+		if(dirname === null || extension === null) {
 			callback(null, defaultBackground, true);
 			return;
 		}
 
 		var backgroundURLs = {
-			normal: userBackgroundUrl + '/' + user + '/normal' + extension,
-			blur  : userBackgroundUrl + '/' + user + '/blur' + extension
+			normal: userBackgroundUrl + '/' + dirname + '/normal' + extension,
+			blur  : userBackgroundUrl + '/' + dirname + '/blur' + extension
 		};
 
 		callback(null, backgroundURLs, false);
@@ -264,6 +312,14 @@ function addBlur(fromPath, toPath, blurRadius, callback) {
 		callback = function() {};
 	}
 
+	if(typeof fromPath !== 'string') {
+		callback(new Error('Invalid path to original image!'));
+		return;
+	}
+	if(typeof toPath !== 'string') {
+		callback(new Error('Invalid path to blurred image!'));
+		return;
+	}
 	if(typeof blurRadius !== 'number') {
 		blurRadius = defaultBlurRadius;
 	}
@@ -311,17 +367,17 @@ function blurUser(user, callback) {
 		return;
 	}
 
-	getExtension(user, function(err, extension) {
+	getCurrentFiles(user, function(err, dirname, extension) {
 		if(err) {
 			callback(err);
 			return;
 		}
-		if(extension === null) {
+		if(dirname === null || extension === null) {
 			callback(null);
 			return;
 		}
 
-		var userDir = userBackgroundsDir + '/' + user;
+		var userDir = userBackgroundsDir + '/' + dirname;
 		var fromPath = userDir + '/normal' + extension;
 		var toPath = userDir + '/blur' + extension;
 
