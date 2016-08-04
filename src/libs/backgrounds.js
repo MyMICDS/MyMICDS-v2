@@ -195,7 +195,7 @@ function deleteBackground(user, callback) {
  * @callback getBackgroundCallback
  *
  * @param {Object} err - Null if success, error object if failure.
- * @param {string} backgroundURLs - Object of background URL variations
+ * @param {string} variants - Object of background URL variations
  */
 
 function getBackground(user, callback) {
@@ -222,12 +222,12 @@ function getBackground(user, callback) {
 			return;
 		}
 
-		var backgrounds = {
+		var backgroundURLs = {
 			normal: userBackgroundUrl + '/' + user + '/normal' + extension,
 			blur  : userBackgroundUrl + '/' + user + '/blur' + extension
 		};
 
-		callback(null, backgrounds);
+		callback(null, backgroundURLs);
 
 	});
 }

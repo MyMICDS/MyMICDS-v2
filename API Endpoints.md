@@ -62,12 +62,9 @@ The part of the API that relates to users' backgrounds. Can be found under `src/
 ### `/background/get`
 Retrieve the URL of the background to display to the user.
 
-#### Parameters
-- `variation` - Variation of background to get. (Ex. normal or blur) _(Optional, defaults to normal.)_
-
 #### Response
 - `error` - Null if successful, string containing error if failure.
-- `urls` - Object of background variations and their URL (Ex. 'normal' or 'blur')
+- `variants` - Object of background variations and their URL (Ex. 'normal' or 'blur')
 
 
 ### `/background/upload`
