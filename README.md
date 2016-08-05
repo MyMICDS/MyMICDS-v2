@@ -16,6 +16,8 @@ In order for your back-end code to take affect in a node.js application, you mus
 $ npm install -g nodemon
 $ nodemon
 ```
+However, this is not completely necessary. Running `npm start` will launch a program called pm2, which does the same thing as Nodemon. However, pm2 makes the process run in the background. In order to view the console, use the command `npm run console`.
+
 
 ### MyMICDS API for Front-end and Mobile App
 Documentation for the different JSON API endpoints [can be found here.](API Endpoints.md)
