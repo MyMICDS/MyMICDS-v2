@@ -8,6 +8,7 @@
 var fs      = require('fs-extra');
 var request = require('request');
 var cheerio = require('cheerio');
+var utils   = require(__dirname + '/utils.js');
 
 var lunchURL = 'http://myschooldining.com/MICDS/calendarWeek';
 var schools  = ['Lower School', 'Middle School', 'Upper School'];
@@ -96,6 +97,10 @@ function parseLunch(body) {
 
 		var day  = $(this);
 		var date = day.attr('day_no');
+		var dateObject = new Date(date);
+		var dateString = dateObject.getFullYear()
+			+ '-' + utils.leadingZeros(dateObject.getMonth() + 1)
+			+ '-' + utils.leadingZeros(dateObject.getDate());
 
 		for(var i = 0; i < schools.length; i++) {
 			var school = schools[i];
@@ -120,15 +125,15 @@ function parseLunch(body) {
 					});
 
 					// Add to JSON
-					json[date] = json[date] || {};
-					json[date][school] = json[date][school] || {};
+					json[dateString] = json[dateString] || {};
+					json[dateString][school] = json[dateString][school] || {};
 
-					json[date][school]['title'] = lunchTitle;
+					json[dateString][school]['title'] = lunchTitle;
 
-					json[date][school][categoryTitle] = json[date][school][categoryTitle] || [];
+					json[dateString][school][categoryTitle] = json[dateString][school][categoryTitle] || [];
 
 					for(var j = 0; j < food.length; j++) {
-						json[date][school][categoryTitle].push(food[j]);
+						json[dateString][school][categoryTitle].push(food[j]);
 					}
 
 				});
