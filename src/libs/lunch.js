@@ -126,14 +126,14 @@ function parseLunch(body) {
 
 					// Add to JSON
 					json[dateString] = json[dateString] || {};
-					json[dateString][school] = json[dateString][school] || {};
+					json[dateString][schoolFilter(school)] = json[dateString][schoolFilter(school)] || {};
 
-					json[dateString][school]['title'] = lunchTitle;
+					json[dateString][schoolFilter(school)]['title'] = lunchTitle;
 
-					json[dateString][school][categoryTitle] = json[dateString][school][categoryTitle] || [];
+					json[dateString][schoolFilter(school)][categoryTitle] = json[dateString][schoolFilter(school)][categoryTitle] || [];
 
 					for(var j = 0; j < food.length; j++) {
-						json[dateString][school][categoryTitle].push(food[j]);
+						json[dateString][schoolFilter(school)][categoryTitle].push(food[j]);
 					}
 
 				});
@@ -145,6 +145,17 @@ function parseLunch(body) {
 	});
 
 	return json;
+}
+
+/**
+ * Removes spaces and makes whole string lowercase for JSON
+ * @function schoolFilter
+ * @param {string} school - String with school name
+ * @returns {string}
+ */
+
+function schoolFilter(school) {
+	return school.replace(/\s+/g, '').toLowerCase();
 }
 
 module.exports.get   = getLunch;
