@@ -82,7 +82,6 @@ function getLunch(date, callback) {
  */
 
 function parseLunch(body) {
-
 	// Clean up HTML to prevent cheerio from becoming confused
 	body.replace('<<', '&lt;&lt;');
 	body.replace('>>', '&gt;&gt;');
@@ -96,7 +95,7 @@ function parseLunch(body) {
 	weekColumns.each(function(index) {
 
 		var day  = $(this);
-		var date = day.attr('day_no');
+		var date = day.attr('this_date');
 		var dateObject = new Date(date);
 		var dateString = dateObject.getFullYear()
 			+ '-' + utils.leadingZeros(dateObject.getMonth() + 1)
