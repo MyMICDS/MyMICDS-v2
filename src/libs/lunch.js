@@ -129,11 +129,11 @@ function parseLunch(body) {
 					json[dateString][schoolFilter(school)] = json[dateString][schoolFilter(school)] || {};
 
 					json[dateString][schoolFilter(school)]['title'] = lunchTitle;
-
-					json[dateString][schoolFilter(school)][categoryTitle] = json[dateString][schoolFilter(school)][categoryTitle] || [];
+					json[dateString][schoolFilter(school)]['categories'] = json[dateString][schoolFilter(school)]['categories'] || {};
+					json[dateString][schoolFilter(school)]['categories'][categoryTitle] = json[dateString][schoolFilter(school)]['categories'][categoryTitle] || [];
 
 					for(var j = 0; j < food.length; j++) {
-						json[dateString][schoolFilter(school)][categoryTitle].push(food[j]);
+						json[dateString][schoolFilter(school)]['categories'][categoryTitle].push(food[j]);
 					}
 
 				});
