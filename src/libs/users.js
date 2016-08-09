@@ -101,7 +101,8 @@ function getInfo(db, user, privateInfo, callback) {
 		userInfo.firstName = userDoc['firstName'];
 		userInfo.lastName  = userDoc['lastName'];
 		userInfo.gradYear  = userDoc['gradYear'];
-		userInfo.grade     = gradYearToGrade(userDoc['gradYear']);
+		userInfo.grade     = gradYearToGrade(userInfo['gradYear']);
+		userInfo.school    = gradeToSchool(userInfo['grade']);
 
 		if(privateInfo) {
 			if(typeof userDoc['canvasURL'] === 'string') {
@@ -259,7 +260,6 @@ function schoolEnds() {
  * Converts a graduation year to a grade.
  * If the grade is Junior-Kindergarten (JK) or Senior-Kindergarten (SK) then the respective -1 and 0 integers are returned.
  * @function gradYearToGrade
- *
  * @param {Number} gradYear - Graduation year
  * @returns {Number}
  */
@@ -284,7 +284,6 @@ function gradYearToGrade(gradYear) {
  * Converts a grade to a graduation year.
  * If you want to enter the grade Junior-Kindergarten (JK) or Senior-Kindergarten (SK) then insert the respective integers -1 and 0.
  * @function gradeToGradYear
- *
  * @param {Number} grade - Grade
  * @returns {Number}
  */
@@ -306,9 +305,24 @@ function gradeToGradYear(grade) {
 	return gradYear;
 }
 
+/**
+ * Determines which school a grade belongs to. If grade is above 12, returns 'upperschool'. If grade is below -1, returns 'lowerschool'.
+ * Also if grade isn't a number, it will also default to 'upperschool'.
+ * @function gradeToSchool
+ * @param {Number} grade - Grade
+ * @returns {string}
+ */
+
+function gradeToSchool(grade) {
+	if(typeof grade !== 'number' || grade >= 9) return 'upperschool';
+	if(grade < 5) return 'lowerschool';
+	return 'middleschool';
+}
+
 module.exports.get        	   = getUser;
 module.exports.getInfo         = getInfo;
 module.exports.changeInfo      = changeInfo;
 module.exports.schoolEnds      = schoolEnds;
 module.exports.gradYearToGrade = gradYearToGrade;
 module.exports.gradeToGradYear = gradeToGradYear;
+module.exports.gradeToSchool   = gradeToSchool;
