@@ -275,12 +275,8 @@ This is the part of the API that relates to the planner. Can be found in `src/ro
 - `title` - Name of event
 - `desc` - Description of event. _(Optional, defaults to empty string.)_
 - `classId` - Class ID to associate event with. _(Optional, defaults to null)_
-- `startYear` - Year to start event. _(Optional, defaults to current year.)_
-- `startMonth` - Month to start event. _(Optional, defaults to current month.)_
-- `startDay` - Day to start event. _(Optional, defaults to current day.)_
-- `endYear` - Year to end event. _(Optional, defaults to current year.)_
-- `endMonth` - Month to end event. _(Optional, defaults to current month.)_
-- `endDay` - Day to end event. _(Optional, defaults to current day.)_
+- `start` - JavaScript date object containing starting date. _(Optional, defaults to current date.)_
+- `end` - JavaScript date object containing starting date. _(Optional, defaults to current date.)_
 
 #### Response
 - `error` - Null if success, string containing error if failure.

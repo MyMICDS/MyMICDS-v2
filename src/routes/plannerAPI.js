@@ -29,32 +29,15 @@ module.exports = function(app, db) {
 
 	app.post('/planner/add', function(req, res) {
 
-		var current = new Date();
-
-		// Default start date to current
-		if(typeof req.body.startYear !== 'number') {
-			req.body.startYear = current.getFullYear();
-		}
-		if(typeof req.body.startMonth !== 'number') {
-			req.body.startMonth = current.getMonth() + 1;
-		}
-		if(typeof req.body.startDay !== 'number') {
-			req.body.startDay = current.getDate();
+		var start = new Date();
+		if(req.body.start) {
+			start = new Date(req.body.start);
 		}
 
-		// Default end date to current
-		if(typeof req.body.endYear !== 'number') {
-			req.body.endYear = current.getFullYear();
+		var end = new Date();
+		if(req.body.end) {
+			end = new Date(req.body.end);
 		}
-		if(typeof req.body.endMonth !== 'number') {
-			req.body.endMonth = current.getMonth() + 1;
-		}
-		if(typeof req.body.endDay !== 'number') {
-			req.body.endDay = current.getDate();
-		}
-
-		var start = new Date(parseInt(req.body.startYear), parseInt(req.body.startMonth) - 1, parseInt(req.body.startDay));
-		var end = new Date(parseInt(req.body.endYear), parseInt(req.body.endMonth) - 1, parseInt(req.body.endDay));
 
 		var insertEvent = {
 			id     : req.body.id,
@@ -62,8 +45,7 @@ module.exports = function(app, db) {
 			desc   : req.body.desc,
 			classId: req.body.classId,
 			start  : start,
-			end    : end,
-			link   : req.body.link
+			end    : end
 		};
 
 		planner.upsertEvent(db, req.user.user, insertEvent, function(err, id) {
