@@ -53,6 +53,7 @@
     "fs-extra": "^0.30.0",
     "google-batch": "0.0.7",
     "googleapis": "^11.0.0",
+    "htmlparser2": "^3.9.1",
     "ical": "^0.5.0",
     "jimp": "^0.2.24",
     "jquery": "^3.1.0",

@@ -6,6 +6,7 @@
  */
 
 var _           = require('underscore');
+var htmlParser  = require(__dirname + '/htmlParser.js');
 var ical        = require('ical');
 var request     = require('request');
 var url         = require('url');
@@ -182,12 +183,12 @@ function getEvents(db, user, date, callback) {
 			return;
 		}
 
-		if(typeof userDoc['canvasURL'] !== 'string') {
+		if(typeof userDoc.canvasURL !== 'string') {
 			callback(null, false, null);
 			return;
 		}
 
-		request(userDoc['canvasURL'], function(err, response, body) {
+		request(userDoc.canvasURL, function(err, response, body) {
 			if(err) {
 				callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
 				return;
@@ -211,8 +212,8 @@ function getEvents(db, user, date, callback) {
 			for(var eventUid in data) {
 				var canvasEvent = data[eventUid];
 
-				var start = new Date(canvasEvent['start']);
-				var end   = new Date(canvasEvent['end']);
+				var start = new Date(canvasEvent.start);
+				var end   = new Date(canvasEvent.end);
 
 				var startMonth = start.getMonth() + 1;
 				var startYear  = start.getFullYear();
@@ -222,7 +223,7 @@ function getEvents(db, user, date, callback) {
 
 				var insertEvent = {
 					_id  : canvasEvent.uid,
-					user : userDoc['user'],
+					user : userDoc.user,
 					class: canvasEvent.class,
 					title: canvasEvent.summary,
 					start: start,
@@ -231,9 +232,11 @@ function getEvents(db, user, date, callback) {
 				};
 
 				if(typeof canvasEvent['ALT-DESC'] === 'object') {
-					insertEvent['desc'] = canvasEvent['ALT-DESC']['val'];
+					insertEvent.desc = canvasEvent['ALT-DESC'].val;
+					insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
 				} else {
-					insertEvent['desc'] = '';
+					insertEvent.desc = '';
+					insertEvent.descPlaintext = '';
 				}
 
 				if((startMonth === date.month && startYear === date.year) || (endMonth === date.month && endYear === date.year)) {

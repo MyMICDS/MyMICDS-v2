@@ -5,11 +5,12 @@
  * @module planner
  */
 
-var asyncLib = require('async');
-var canvas   = require(__dirname + '/canvas.js');
-var classes  = require(__dirname + '/classes.js');
-var ObjectID = require('mongodb').ObjectID;
-var users 	 = require(__dirname + '/users.js');
+var asyncLib   = require('async');
+var canvas     = require(__dirname + '/canvas.js');
+var classes    = require(__dirname + '/classes.js');
+var htmlParser = require(__dirname + '/htmlParser.js');
+var ObjectID   = require('mongodb').ObjectID;
+var users 	   = require(__dirname + '/users.js');
 
 /**
  * Add/edit event to planner
@@ -293,9 +294,11 @@ function getMonthEvents(db, user, date, includeCanvas, callback) {
 
 						if((startMonth === date.month && startYear === date.year) || (endMonth === date.month && endYear === date.year)) {
 							// If event start or end is in month
+							possibleEvent.descPlaintext = htmlParser.htmlToText(possibleEvent.desc);
 							validEvents.push(possibleEvent);
 						} else if ((startMonth < date.month && startYear <= date.year) && (endMonth > date.month && endYear >= date.year)) {
 							// If event spans before and after month
+							possibleEvent.descPlaintext = htmlParser.htmlToText(possibleEvent.desc);
 							validEvents.push(possibleEvent);
 						}
 					}
@@ -368,6 +371,10 @@ function getMonthEvents(db, user, date, includeCanvas, callback) {
 	});
 }
 
+/**
+ * @TODO Teach Jack how to use JSDoc
+ */
+
 function getWithinWeek(db, user, includeCanvas, callback) {
 	if(typeof callback !=='function') return;
 
@@ -408,19 +415,25 @@ function getWithinWeek(db, user, includeCanvas, callback) {
 			});
 		}
 	} (function(err, combinedEvents) {
-		if (err) {
+		if(err) {
 			callback(err, null);
 			return;
 		}
 		//select and push events within the range of 7 days
-		for (var i=0;i<combinedEvents.length;i++) {
+		for (var i = 0;i < combinedEvents.length; i++) {
+
 			var startTime = new Date(combinedEvents[i].start).getTime();
-			var endTime = new Date(combinedEvents[i].end).getTime();
-			var currentTime = currentDate.getTime();
+			var endTime   = new Date(combinedEvents[i].end).getTime();
+
+			var currentTime   = currentDate.getTime();
 			var sevenDaysTime = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()+7).getTime()
-			if (startTime <= sevenDaysTime && startTime >= currentTime) {//when the start date of the event if whithin seven days
+
+			if (startTime <= sevenDaysTime && startTime >= currentTime) {
+				// When the start date of the event if whithin seven days
 				finalEvents.upcoming.push(combinedEvents[i]);
-			} else if (endTime <= sevenDaysTime && endTime >= currentTime) {//When the end date of the event is within seven days
+
+			} else if (endTime <= sevenDaysTime && endTime >= currentTime) {
+				// When the end date of the event is within seven days
 				finalEvents.ending.push(combinedEvents[i]);
 			}
 		}
