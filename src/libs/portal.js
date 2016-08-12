@@ -494,8 +494,41 @@ function getDayRotation(date, callback) {
 function cleanUp(str) {
 	if(typeof str !== 'string') return str;
 
+	// Split string between hyphens and trim each part
 	var parts = str.split('-').map(function(value) { return value.trim() });
-	parts.sort(function(a, b) { return b.length - a.length; })
+
+	// Sort array using very special algorithm I thought of in the shower.
+	parts.sort(function(a, b) {
+		// Get length of strings
+		var aLength = a.length;
+		var bLength = b.length;
+
+		// Get count of alphabetic characters in strings
+		var alphabetic = /[A-Z]/ig;
+		var aAlphabeticMatches = a.match(alphabetic);
+		var bAlphabeticMatches = b.match(alphabetic);
+
+		// .match actually returns an array. If it isn't null, assign length.
+		var aAlphabeticCount = 0;
+		if(aAlphabeticMatches) {
+			aAlphabeticCount = aAlphabeticMatches.length;
+		}
+
+		var bAlphabeticCount = 0;
+		if(bAlphabeticMatches) {
+			bAlphabeticCount = bAlphabeticMatches.length;
+		}
+
+		// Get ratio of alphabetic / total characters
+		var aRatio = aAlphabeticCount / aLength;
+		var bRatio = bAlphabeticCount / bLength;
+
+		// Final score is length multiplied by ratio
+		var aGoodBoyPoints = aLength * aRatio;
+		var bGoodBoyPoints = bLength * bRatio;
+
+		return bGoodBoyPoints - aGoodBoyPoints;
+	});
 
 	return parts[0];
 }
