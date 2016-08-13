@@ -150,7 +150,7 @@ The part of the API relates to the classes. Can be found under `src/routes/class
 - `block` - What block the class takes place in. Please refer to `src/libs/classes.js` for a list of the valid blocks. _(Optional, defaults to block 'other'.)_
 - `type` - What type of class. Please refer to `src/libs/classes.js` for a list of valid class types. _(Optional, defaults to type 'other'.)_
 - `teacher` - A JSON object containing information about the teacher.
-- `teacher.prefix` - Prefix the teacher goes by ('Mr.', 'Ms.', or 'Dr.')
+- `teacher.prefix` - Prefix the teacher goes by ('Mr.' or 'Ms.')
 - `teacher.firstName` - First name of teacher
 - `teacher.lastName` - Last name of teacher
 
@@ -256,7 +256,7 @@ This is the part of the API that relates to the planner. Can be found in `src/ro
 
 
 ### `/planner/get`
-**Requires user to be logged in.** Returns a list of events user has for a given month. **If a Canvas URL is set for the user, it will also include any Canvas events for the month.** Refer to /canvas/get for retrieving only Canvas-related events.
+**Requires user to be logged in.** Returns a list of events user has for a given month. **This also returns events from the previous and next month!** If a Canvas URL is set for the user, it will also include any Canvas events for the month. Refer to /canvas/get for retrieving only Canvas-related events.
 
 #### Parameters
 - `year` - Year to get events from. _(Optional, defaults to current year.)_

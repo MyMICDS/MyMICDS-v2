@@ -9,8 +9,7 @@ var _ = require('underscore');
 
 var validTeacherPrefixes = [
 	'Mr.',
-	'Ms.',
-	'Dr.'
+	'Ms.'
 ];
 
 /**
@@ -19,7 +18,7 @@ var validTeacherPrefixes = [
  *
  * @param {Object} db - Database connection
  * @param {Object} teacher - Object containing information about the teacher
- * @param {string} teacher.prefix - Either 'Mr.', 'Ms.', or 'Dr.'
+ * @param {string} teacher.prefix - Either 'Mr.' or 'Ms.'
  * @param {string} teacher.firstName - Teacher's first name
  * @param {string} teacher.lastName - Teacher's last name
  * @param {addTeacherCallback} callback - Callback

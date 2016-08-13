@@ -5,6 +5,7 @@
  * @module planner
  */
 
+var _          = require('underscore');
 var asyncLib   = require('async');
 var canvas     = require(__dirname + '/canvas.js');
 var classes    = require(__dirname + '/classes.js');
@@ -213,14 +214,14 @@ function deleteEvent(db, user, eventId, callback) {
 }
 
 /**
- * Gets a list of all the events for the month
+ * Gets a list of all the events for the month (also gets events for previous month and next month)
  * @function getMonthEvents
  *
  * @param {Object} db - Database connection
  * @param {string} user - Username of events to get
  * @param {Object} date - Object containing month/year to get date. (Inputting an empty object will default to current date)
- * @param {Number} [month] - What month to get events. Starts at one. (1 - 12) (Optional, defaults to current month)
- * @param {Number} [year] - What year to get events in (Optional, defaults to current year)
+ * @param {Number} [date.year] - What year to get events in (Optional, defaults to current year)
+ * @param {Number} [date.month] - What month to get events. Starts at one. (1 - 12) (Optional, defaults to current month)
  * @param {Boolean} includeCanvas - Whether or not we should also query canvas add include Canvas events
  * @param {getMonthEventsCallback} callback - Callback
  */
@@ -280,26 +281,40 @@ function getMonthEvents(db, user, date, includeCanvas, callback) {
 
 					// Go through all events and add all events that are within the month
 					var validEvents = [];
+					var addedEventIds = [];
 					for(var i = 0; i < events.length; i++) {
 						var possibleEvent = events[i];
 
 						var start = possibleEvent.start;
 						var end   = possibleEvent.end;
 
-						var startMonth = start.getMonth() + 1;
 						var startYear  = start.getFullYear();
-
-						var endMonth = end.getMonth() + 1;
 						var endYear  = end.getFullYear();
 
-						if((startMonth === date.month && startYear === date.year) || (endMonth === date.month && endYear === date.year)) {
-							// If event start or end is in month
-							possibleEvent.descPlaintext = htmlParser.htmlToText(possibleEvent.desc);
-							validEvents.push(possibleEvent);
-						} else if ((startMonth < date.month && startYear <= date.year) && (endMonth > date.month && endYear >= date.year)) {
-							// If event spans before and after month
-							possibleEvent.descPlaintext = htmlParser.htmlToText(possibleEvent.desc);
-							validEvents.push(possibleEvent);
+						// How many months forward and backward to also include events
+						var monthPadding = 1;
+
+						// Check previous and next months too
+						for(var j = monthPadding * -1; j <= monthPadding; j++) {
+							// Check if event was already added
+							if(_.contains(addedEventIds, possibleEvent._id)) break;
+
+							var startMonth = start.getMonth() + 1 + j;
+							var endMonth = end.getMonth() + 1 + j;
+
+							if((startMonth === date.month && startYear === date.year) || (endMonth === date.month && endYear === date.year)) {
+								// If event start or end is in month
+								possibleEvent.descPlaintext = htmlParser.htmlToText(possibleEvent.desc);
+								validEvents.push(possibleEvent);
+								addedEventIds.push(possibleEvent._id);
+
+							} else if ((startMonth < date.month && startYear <= date.year) && (endMonth > date.month && endYear >= date.year)) {
+								// If event spans before and after month
+								possibleEvent.descPlaintext = htmlParser.htmlToText(possibleEvent.desc);
+								validEvents.push(possibleEvent);
+								addedEventIds.push(possibleEvent._id);
+
+							}
 						}
 					}
 
@@ -371,77 +386,6 @@ function getMonthEvents(db, user, date, includeCanvas, callback) {
 	});
 }
 
-/**
- * @TODO Teach Jack how to use JSDoc
- */
-
-function getWithinWeek(db, user, includeCanvas, callback) {
-	if(typeof callback !=='function') return;
-
-	var currentDate = new Date();
-	var date = {year: currentDate.getFullYear(), month: currentDate.getMonth()+1};
-	var monthEvents = [], nextMonthEvents = [], combinedEvents = [];
-	var finalEvents = {
-		upcoming: [],
-		ending: []
-	}
-	//get the days of current month
-	Date.prototype.monthDays = function(){
-		var d= new Date(this.getFullYear(), this.getMonth()+1, 0);
-		return d.getDate();
-	}
-	var getMonthEvents = this.getMonthEvents
-
-	var stepOne = function(callback) {
-		//get Events of current month
-		getMonthEvents(db, user, date, includeCanvas, function(err, events){
-			if (err) {
-				callback(err, null);
-				return;
-			}
-			monthEvents = events;
-			callback(null, monthEvents);
-		});
-		//get events of next month
-		if (currentDate.getDate() > currentDate.monthDays() - 7) {
-			var nextMonthDate = {year: date.year, month: date.month + 1}
-			getMonthEvents(db, user, nextMonthDate, includeCanvas, function(err, events){
-				if (err) {
-					callback(err, null);
-					return;
-				}
-				nextMonthEvents = events;
-				callback(null, monthEvents.concat(events));
-			});
-		}
-	} (function(err, combinedEvents) {
-		if(err) {
-			callback(err, null);
-			return;
-		}
-		//select and push events within the range of 7 days
-		for (var i = 0;i < combinedEvents.length; i++) {
-
-			var startTime = new Date(combinedEvents[i].start).getTime();
-			var endTime   = new Date(combinedEvents[i].end).getTime();
-
-			var currentTime   = currentDate.getTime();
-			var sevenDaysTime = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()+7).getTime()
-
-			if (startTime <= sevenDaysTime && startTime >= currentTime) {
-				// When the start date of the event if whithin seven days
-				finalEvents.upcoming.push(combinedEvents[i]);
-
-			} else if (endTime <= sevenDaysTime && endTime >= currentTime) {
-				// When the end date of the event is within seven days
-				finalEvents.ending.push(combinedEvents[i]);
-			}
-		}
-		callback(null, finalEvents)
-	})
-
-}
 module.exports.upsertEvent    = upsertEvent;
 module.exports.deleteEvent    = deleteEvent;
 module.exports.getMonthEvents = getMonthEvents;
-module.exports.getWithinWeek  = getWithinWeek;
