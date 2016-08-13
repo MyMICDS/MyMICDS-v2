@@ -254,6 +254,75 @@ function getEvents(db, user, date, callback) {
 	});
 }
 
-module.exports.verifyURL = verifyURL;
-module.exports.setURL    = setURL;
-module.exports.getEvents = getEvents;
+/**
+ * Gets a user's classes from CANVAS, not the PORTAL.
+ * @function getClasses
+ *
+ * @param {Object} db - Database object
+ * @param {string} user - User to get classes from
+ * @param {getCanvasClassesCallback} callback - Callback
+ */
+/**
+ * Returns array of classes from canvas
+ * @callback getCanvasClassesCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Array} classes - Array of classes from canvas if success, null if failure
+ */
+function getClasses(db, user, callback) {
+	users.get(db, user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null);
+			return;
+		}
+
+		if(typeof userDoc['canvasURL'] !== 'string') {
+			callback(new Error('Invalid URL!'), null);
+			return;
+		}
+
+		request(userDoc['canvasURL'], function(err, response, body) {
+			if(err) {
+				callback(new Error('There was a problem fetching portal data from the URL!'), null);
+				return;
+			}
+			if(response.statusCode !== 200) {
+				callback(new Error('Invalid URL!'), null);
+				return;
+			}
+
+			var data = ical.parseICS(body);
+
+			// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+			// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+			if(_.isEmpty(data)) {
+				callback(new Error('Invalid URL!'), null);
+				return;
+			}
+
+			var classes = [];
+
+			for(var eventUid in data) {
+				var calEvent = data[eventUid];
+
+				// get the last bit of bracketed text, which happens to be the class name inserted by canvas
+				// then get rid of the brackets
+				var className = _.last(calEvent.summary.match(/\[(.*?)\]/g)).replace(/(\[|\])/g, "");
+				if(_.contains(classes, className)) continue;
+
+				classes.push(className);
+			}
+
+			callback(null, classes);
+		});
+	});
+}
+
+module.exports.verifyURL  = verifyURL;
+module.exports.setURL     = setURL;
+module.exports.getEvents  = getEvents;
+module.exports.getClasses = getClasses;

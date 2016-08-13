@@ -548,7 +548,7 @@ function cleanUp(str) {
  * @callback getPortalClassesCallback
  *
  * @param {Object} err - Null if success, error object if failure
- * @param {Array} classes - Array of classes from portal, null if failure
+ * @param {Array} classes - Array of classes from portal if success, null if failure
  */
 function getClasses(db, user, callback) {
 	users.get(db, user, function(err, isUser, userDoc) {
