@@ -551,7 +551,6 @@ function cleanUp(str) {
  * @param {Array} classes - Array of classes from portal, null if failure
  */
 function getClasses(db, user, callback) {
-	// copypasterino from getSchedule() lel
 	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null);
@@ -591,19 +590,24 @@ function getClasses(db, user, callback) {
 			for(var eventUid in data) {
 				var calEvent = data[eventUid];
 
+				// if there's no class name or it's just a day 1-6 announcement, ignore it
 				if(typeof calEvent.summary !== 'string' || !_.isEmpty(calEvent.summary.match(validDayRotation))) continue;
 
 				if(_.contains(Object.keys(classes), calEvent.summary)) {
+					// if the class name is already in the object, just increment it
 					classes[calEvent.summary] += 1;
 				} else {
+					// otherwise, add the class name
 					classes[calEvent.summary] = 1;
 				}
 			}
 
 			for(var entry in classes) {
+				// remove all class names containing "No Classes", "US", or that are seen in the portal less than 10 times
 				if(entry.includes("No Classes") || entry.includes("US") || classes[entry] < 10) delete classes[entry];
 			}
 
+			// just get the class list
 			var classesList = Object.keys(classes);
 
 			callback(null, classesList);
