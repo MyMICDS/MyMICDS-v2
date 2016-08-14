@@ -53,6 +53,9 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/notification/get`](#notificationget)
 * [Weather API](#weather-api)
   * [`/weather/get`](#weatherget)
+* [Alias API](#alias-api)
+  * [`/alias/create`](#aliascreate)
+  * [`/alias/get`](#aliasget)
 
 
 
@@ -170,7 +173,7 @@ The part of the API relates to the classes. Can be found under `src/routes/class
 
 
 
-### Daily Bulletin API
+## Daily Bulletin API
 The part of the API that relates to the Daily Bulletin. Can be found in `src/routes/bulletinAPI.js`. This associated dailyBulletin module can be found under `src/libs/dailyBulletin.js`.
 
 
@@ -451,3 +454,28 @@ Get the available weather data for MICDS.
 #### Response
 - `error` - Null if success, string containing error if failure.
 - `weather` - JSON object with the weather if success, null if failure.
+
+## Alias API
+This is the part of the API that relates to connecting the MICDS portal and Canvas to the native planner system. Can be found under `src/routes/aliasAPI.js`. The associated weather module can be found under `src/libs/alias.js`.
+
+### `/alias/create`
+Create a new alias between remote classes and a MyMICDS class
+
+#### Parameters
+- `type` - Either `portal` or `canvas`.
+- `classNative` - Object ID for the native class to alias.
+- `classRemote` - String containing the class name from the portal or Canvas to alias.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+
+### `/alias/get`
+Search for an alias with the given class.
+
+#### Parameters
+- `type` - Either `portal` or `canvas`.
+- `classInput` - String containing the class name from the portal or Canvas to search for an alias.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+- `classOutput` - Object ID of the matching native class if found, `classInput` parameter if not found.

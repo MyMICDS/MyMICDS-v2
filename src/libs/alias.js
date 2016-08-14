@@ -137,3 +137,8 @@ function getCanvasAlias(db, classInput, callback) {
 		}
 	});
 }
+
+module.exports.addPortal = addPortalAlias;
+module.exports.addCanvas = addCanvasAlias;
+module.exports.getPortal = getPortalAlias;
+module.exports.getCanvas = getCanvasAlias;
