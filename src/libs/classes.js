@@ -341,7 +341,7 @@ function deleteClass(db, user, classId, callback) {
 			}
 
 			callback(null);
-			teachers.deleteClassless(db);
+			teachers.deleteClasslessTeachers(db);
 
 		});
 	});

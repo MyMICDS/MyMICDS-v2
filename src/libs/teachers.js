@@ -281,4 +281,4 @@ function deleteClasslessTeachers(db, callback) {
 
 module.exports.add = addTeacher;
 module.exports.get = getTeacher;
-module.exports.deleteClassless = deleteClasslessTeachers;
+module.exports.deleteClasslessTeachers = deleteClasslessTeachers;
