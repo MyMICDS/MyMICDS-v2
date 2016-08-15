@@ -255,6 +255,27 @@ function getEvents(db, user, date, callback) {
 }
 
 /**
+ * Just gets the class name from the given calendar event.
+ * @param {Object} calEvent - Calendar event to extract class name from
+ * @param {getClassNameCallback} callback - Callback
+ */
+/**
+ * Callback after class name is extracted
+ * @callback getClassNameCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {string} className - Class name if success, null if failure
+ */
+function getClassName(calEvent, callback) {
+	try {
+		var className = _.last(calEvent.summary.match(/\[(.*?)\]/g)).replace(/(\[|\])/g, "");
+		callback(null, className);
+	} catch(err) {
+		callback(new Error("There was an error getting a class name!"), null);
+	}
+}
+
+/**
  * Gets a user's classes from CANVAS, not the PORTAL.
  * @function getClasses
  *
@@ -306,23 +327,36 @@ function getClasses(db, user, callback) {
 
 			var classes = [];
 
+			var errFromClass;
+
 			for(var eventUid in data) {
 				var calEvent = data[eventUid];
 
 				// get the last bit of bracketed text, which happens to be the class name inserted by canvas
 				// then get rid of the brackets
-				var className = _.last(calEvent.summary.match(/\[(.*?)\]/g)).replace(/(\[|\])/g, "");
+				getClassName(calEvent, function(err, name) {
+					if(err) {
+						errFromClass = err;
+					} else {
+						var className = name;
+					}
+				});
+
 				if(_.contains(classes, className)) continue;
 
 				classes.push(className);
 			}
-
-			callback(null, classes);
+			if(errFromClass) {
+				callback(errFromClass, null);
+			} else {
+				callback(null, classes);
+			}
 		});
 	});
 }
 
-module.exports.verifyURL  = verifyURL;
-module.exports.setURL     = setURL;
-module.exports.getEvents  = getEvents;
-module.exports.getClasses = getClasses;
+module.exports.verifyURL  	= verifyURL;
+module.exports.setURL     	= setURL;
+module.exports.getEvents  	= getEvents;
+module.exports.getClassName = getClassName;
+module.exports.getClasses 	= getClasses;

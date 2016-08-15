@@ -18,6 +18,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/canvas/test-url`](#canvastest-url)
   * [`/canvas/set-url`](#canvasset-url)
   * [`/canvas/get-events`](#canvasget-events)
+  * [`/canvas/get-class-name`](#canvasget-class-name)
 * [Class API](#class-api)
   * [`/classes/get`](#classesget)
   * [`/classes/add`](#classesadd)
@@ -129,6 +130,15 @@ This will test any given URL to see if it is a valid Canvas calendar feed.
 - `hasURL` - Whether or not the user has set a Canvas URL in the database.
 - `events` - Array of events from the given month. Null if usr does not have URL set in database.
 
+### `/canvas/get-class-name`
+Gets class name from given calendar event.
+
+#### Parameters
+- `calEvent` - Calendar event to extract class from.
+
+#### Response
+- `error` - Null if successful, string containing error if failure.
+- `className` - Class name if successful, null if failure.
 
 
 ## Class API
