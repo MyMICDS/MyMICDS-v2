@@ -22,7 +22,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/canvas/test-url`](#canvastest-url)
   * [`/canvas/set-url`](#canvasset-url)
   * [`/canvas/get-events`](#canvasget-events)
-  * [`/canvas/get-class-name`](#canvasget-class-name)
+  * [`/canvas/get-classes`](#canvasget-classes)
 * [Class API](#class-api)
   * [`/classes/get`](#classesget)
   * [`/classes/add`](#classesadd)
@@ -170,6 +170,15 @@ This will test any given URL to see if it is a valid Canvas calendar feed.
 - `events` - Array of events from the given month. Null if usr does not have URL set in database.
 
 
+### `/canvas/get-classes`
+**Requires user to be logged in.** Returns a list of Canvas classes the user has according to any events assigned on Canvas.
+
+#### Response
+- `error` - Null if successful, string containing error if failure.
+- `classes` - Array of classes the user has.
+
+
+
 ## Class API
 The part of the API relates to the classes. Can be found under `src/routes/classAPI.js`. The associated class and teacher module can be found under `src/libs/classes.js` and `src/libs/teachers.js`.
 
@@ -179,7 +188,7 @@ The part of the API relates to the classes. Can be found under `src/routes/class
 
 #### Response
 - `error` - Null if successful, string containing error if failure.
-- `classes` - Array of classes the user has
+- `classes` - Array of classes the user has.
 
 
 ### `/classes/add`
