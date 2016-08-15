@@ -212,6 +212,8 @@ function getEvents(db, user, date, callback) {
 			for(var eventUid in data) {
 				var canvasEvent = data[eventUid];
 
+				var className;
+
 				getClassName(canvasEvent, function(err, name) {
 					if(err) {
 						className = null;
