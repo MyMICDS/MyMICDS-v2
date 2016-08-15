@@ -212,6 +212,9 @@ function getEvents(db, user, date, callback) {
 			for(var eventUid in data) {
 				var canvasEvent = data[eventUid];
 
+				/*
+				 * @TODO fix Nick's shit
+				 */
 				var className;
 
 				getClassName(canvasEvent, function(err, name) {
@@ -266,46 +269,75 @@ function getEvents(db, user, date, callback) {
 }
 
 /**
- * Just gets the class name from the given calendar event.
- * @param {Object} calEvent - Calendar event to extract class name from
- * @param {getClassNameCallback} callback - Callback
+ * Parses a Canvas assignment title into class name and teacher's name.
+ * @param {string} title - Canvas assignment title
+ * @returns {Object}
  */
 
-/**
- * Callback after class name is extracted
- * @callback getClassNameCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {string} className - Class name if success, null if failure
- */
+// Submit signed course overview [T1-Eng 10: Lit. Analysis/Insight:CPRIN]
 
-function getClassName(calEvent, callback) {
-	try {
-		var className = _.last(calEvent.summary.match(/\[(.*?)\]/g)).replace(/(\[|\])/g, '');
-		callback(null, className);
-	} catch(err) {
-		callback(new Error('There was an error getting a class name!'), null);
-	}
+function parseCanvasTitle(title) {
+	var classTeacherRegex = /\[.+\]/g;
+	var teacherRegex = /:[A-Z]{5}$/g
+	var firstLastBrackets = /(^\[)|(\]$)/g;
+
+	// Get what's in the square brackets, including square brackets
+	var classTeacher = _.last(title.match(classTeacherRegex));
+	var classTeacherNoBrackets = classTeacher.replace(firstLastBrackets, '');
+	// Subtract the class/teacher from the Canvas title
+	var assignmentName = title.replace(classTeacherRegex, '').trim();
+
+	// Also check if there's a teacher, typically seperated by a colon
+	var teacher = (_.last(classTeacherNoBrackets.match(teacherRegex)) || '').replace(/^:/g, '');
+	var teacherFirstName = teacher[0] || '';
+	var teacherLastName = teacher.substring(1);
+
+	// Subtract teacher from classTeacher to get the class
+	var className = classTeacher.replace(teacher, '').replace(/\[|\]/g, '').replace(/:$/g, '');
+
+	return {
+		assignment: assignmentName,
+		class: {
+			raw: classTeacherNoBrackets,
+			name: className,
+			teacher: {
+				raw: teacher,
+				firstName: teacherFirstName,
+				lastName: teacherLastName
+			}
+		}
+	};
 }
 
 /**
- * Gets a user's classes from CANVAS, not the PORTAL.
+ * Iterates through all of the user's events and get their classes from Canvas
  * @function getClasses
  *
  * @param {Object} db - Database object
- * @param {string} user - User to get classes from
- * @param {getCanvasClassesCallback} callback - Callback
+ * @param {string} user - Username
+ * @param {getClassesCallback} callback - Callback
  */
 
 /**
  * Returns array of classes from canvas
- * @callback getCanvasClassesCallback
+ * @callback getClassesCallback
  *
  * @param {Object} err - Null if success, error object if failure
- * @param {Array} classes - Array of classes from canvas if success, null if failure
+ * @param {Array} classes - Array of classes from canvas. Null if failure
  */
 
 function getClasses(db, user, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid username!'), null);
+		return;
+	}
+
 	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null);
@@ -323,7 +355,7 @@ function getClasses(db, user, callback) {
 
 		request(userDoc['canvasURL'], function(err, response, body) {
 			if(err) {
-				callback(new Error('There was a problem fetching portal data from the URL!'), null);
+				callback(new Error('There was a problem fetching canvas data from the URL!'), null);
 				return;
 			}
 			if(response.statusCode !== 200) {
@@ -342,30 +374,19 @@ function getClasses(db, user, callback) {
 
 			var classes = [];
 
-			var errFromClass;
-
 			for(var eventUid in data) {
 				var calEvent = data[eventUid];
 
-				// get the last bit of bracketed text, which happens to be the class name inserted by canvas
-				// then get rid of the brackets
-				getClassName(calEvent, function(err, name) {
-					if(err) {
-						errFromClass = err;
-					} else {
-						var className = name;
-					}
-				});
+				var parsedEvent = parseCanvasTitle(calEvent.summary);
 
-				if(_.contains(classes, className)) continue;
+				// If not already in classes array, push to array
+				if(!_.contains(classes, parsedEvent.class.raw)) {
+					classes.push(parsedEvent.class.raw);
+				}
+			}
 
-				classes.push(className);
-			}
-			if(errFromClass) {
-				callback(errFromClass, null);
-			} else {
-				callback(null, classes);
-			}
+			callback(null, classes);
+
 		});
 	});
 }
