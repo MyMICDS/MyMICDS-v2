@@ -6,50 +6,25 @@
  */
 
 var _ 		 = require('underscore');
+var classes  = require(__dirname + '/classes.js');
 var ObjectID = require('mongodb').ObjectID;
+var users    = require(__dirname + '/users.js');
+
+// Types of aliases
+var aliasTypes = [
+	'canvas',
+	'portal'
+];
 
 /**
- * Aliases a portal class with a native class
- * @function addPortalAlias
- *
- * @param {Object} db - Database object
- * @param {string} classString - Portal class string
- * @param {string} classID - Native class ID
- * @param {addPortalAliasCallback} callback - Callback
- */
-
-/**
- * Callback after alias is created
- * @callback addPortalAliasCallback
- *
- * @param {Object} err - Null if success, error object if failure
- */
-function addPortalAlias(db, classString, classID, callback) {
-	var aliases = db.collection("aliases");
-
-	var insertData = {
-		type: "portal",
-		classNative: ObjectID(classID),
-		classRemote: classString
-	};
-
-	aliases.insert(insertData, function(err, results) {
-		if(err) {
-			callback(new Error("There was an error inserting the alias record into the database!"));
-			return;
-		}
-
-		callback(null);
-	});
-}
-
-/**
- * Aliases a canvas class with a native class
+ * Add an alias that points to a class object
  * @function addCanvasAlias
  *
  * @param {Object} db - Database object
+ * @param {string} user - Username
+ * @param {string} type - Valid alias type
  * @param {string} classString - Canvas class string
- * @param {string} classID - Native class ID
+ * @param {string} classId - Native class ID
  * @param {addCanvasAliasCallback} callback - Callback
  */
 
@@ -57,88 +32,320 @@ function addPortalAlias(db, classString, classID, callback) {
  * Callback after alias is created
  * @callback addCanvasAliasCallback
  *
- * @param {Object} err - Null if success, error object if failure
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Object} aliasId - ID Object of alias inserted. Null if error.
  */
-function addCanvasAlias(db, classString, classID, callback) {
-	var aliases = db.collection("aliases");
 
-	var insertData = {
-		type: "canvas",
-		classNative: ObjectID(classID),
-		classRemote: classString
-	};
+function addAlias(db, user, type, classString, classId, callback) {
+	if(typeof callback !== 'function') {
+		callback = function() {};
+	}
 
-	aliases.insert(insertData, function(err, results) {
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+	if(!_.contains(aliasTypes, type)) {
+		callback(new Error('Invalid alias type!'), null);
+		return;
+	}
+	if(typeof classId !== 'string') {
+		callback(new Error('Invalid class id!'), null);
+		return;
+	}
+
+	// Make sure valid user
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
-			callback(new Error("There was an error inserting the alias record into the database!"));
+			callback(err, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null);
 			return;
 		}
 
-		callback(null);
+		// Check if alias already exists
+		getAliasClass(db, user, type, classString, function(err, hasAlias, classObject) {
+			if(err) {
+				callback(err, null);
+				return;
+			}
+			if(hasAlias) {
+				callback(new Error('Alias already exists for a class!'), null);
+				return;
+			}
+
+			// Make sure class id is valid
+			classes.get(db, user, function(err, classes) {
+				if(err) {
+					callback(err, null);
+					return;
+				}
+
+				// Loop through classes and search for class with id specified
+				var validClassObject = null;
+				for(var i = 0; i < classes.length; i++) {
+					var classObject = classes[i];
+
+					if(classObject._id.toHexString() === classId) {
+						validClassObject = classObject;
+						break;
+					}
+				}
+
+				if(!validClassObject) {
+					callback(new Error('Native class doesn\'t exist!'), null);
+					return;
+				}
+
+				// Class is valid! Insert into database
+				var insertAlias = {
+					user: userDoc['_id'],
+					type: type,
+					classNative: validClassObject._id,
+					classRemote: classString
+				};
+
+				// Insert into database
+				var aliasdata = db.collection('aliases');
+
+				aliasdata.insert(insertAlias, function(err, results) {
+					if(err) {
+						callback(new Error('There was a problem inserting the alias into the databse!'), null);
+						return;
+					}
+
+					var insertedId = results.ops[0]._id;
+					callback(null, insertedId);
+
+				});
+			});
+		});
+	});
+}
+
+/**
+ * Returns an array of aliases registered under a specific user
+ * @function listAliases
+ *
+ * @param {Object} db - Database connection
+ * @param {string} user - Username
+ * @param {listAliasesCallback} callback - Callback
+ */
+
+/**
+ * Returns an array of aliases
+ * @callback listAliasesCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Object} aliases - An object containing a key for each alias type, and the value an array of the aliases. Null if error.
+ */
+
+function listAliases(db, user, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid username!'), null);
+		return;
+	}
+
+	// Make sure valid user
+	users.get(db, user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null);
+			return;
+		}
+
+		// Query database for all aliases under specific user
+		var aliasdata = db.collection('aliases');
+		aliasdata.find({ user: userDoc['_id'] }).toArray(function(err, aliases) {
+			if(err) {
+				callback(new Error('There was a problem querying the database!'), null);
+				return;
+			}
+
+			var aliasList = {};
+
+			// Add array for all alias types
+			for(var i = 0; i < aliasTypes.length; i++) {
+				var aliasType = aliasTypes[i]
+				aliasList[aliasType] = [];
+			}
+
+			// Loop through aliases and organize them by type
+			for(var i = 0; i < aliases.length; i++) {
+				var alias = aliases[i];
+				// Make sure alias type exists
+				if(aliasList[alias.type]) {
+					aliasList[alias.type] = alias;
+				}
+			}
+
+			callback(null, aliasList);
+
+		});
+	});
+}
+
+/**
+ * Deletes an alias
+ * @function deleteAlias
+ *
+ * @param {Object} db - Database connection
+ * @param {string} user - Username
+ * @param {string} aliasId - ID of alias
+ * @param {deleteAliasCallback} callback - Callback
+ */
+
+/**
+ * Returns whether or not there was an error deleting the alias
+ * @callback deleteAliasCallback
+ * @param {Object} err - Null if success, error object if failure.
+ */
+
+function deleteAlias(db, user, aliasId, callback) {
+	if(typeof callback !== 'function') {
+		callback = function() {};
+	}
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'));
+		return;
+	}
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid username!'));
+		return;
+	}
+	// Try to create object id
+	try {
+		var id = new ObjectID(aliasId);
+	} catch(e) {
+		callback(new Error('Invalid alias id!'));
+		return;
+	}
+
+	// Make sure valid user
+	users.get(db, user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'));
+			return;
+		}
+
+		var aliasdata = db.collection('aliases');
+
+		aliasdata.deleteMany({ _id: id, user: userDoc['_id'] }, function(err, results) {
+			if(err) {
+				callback(new Error('There was a problem deleting the alias from the database!'));
+				return;
+			}
+
+			callback(null);
+
+		});
 	});
 }
 
 /**
  * Check if given class has a portal alias
- * @function getPortalAlias
- * 
+ * @function getAliasClass
+ *
  * @param {Object} db - Database object
+ * @param {string} user - Username
+ * @param {string} type - Alias type
  * @param {string} classInput - Class to check for an alias
- * @param {getPortalAliasCallback} callback - Callback
+ * @param {getAliasClassCallback} callback - Callback
  */
 
 /**
- * Callback after alias is checked
- * @callback getPortalAliasCallback
+ * Returns the corresponding class object, or whatever was inputted if there was no alias.
+ * @callback getAliasClassCallback
  *
  * @param {Object} err - Null if success, error object if failure
- * @param {string} classOutput - Class ID if alias found, inputted class if not found, null if failure
+ * @param {Boolean} hasAlias - Whether or not there is an alias for the specific string. Null if error.
+ * @param {string} classObject - Class object if alias found, otherwise inputted class if none found. Null if error.
  */
-function getPortalAlias(db, classInput, callback) {
-	var aliases = db.collection("aliases");
 
-	aliases.find({type: "portal", classRemote: classInput}).toArray(function(err, aliases) {
+function getAliasClass(db, user, type, classInput, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'));
+		return;
+	}
+	if(!_.contains(aliasTypes, type)) {
+		callback(new Error('Invalid alias type!'));
+		return;
+	}
+	// If class input is invalid, just return current value in case it is already a class object
+	if(typeof classInput !== 'string') {
+		callback(null, false, classInput);
+		return;
+	}
+
+	// Make sure valid user
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
-			callback(new Error("There was an error searching for aliases!"), null);
-		} else if(_.isEmpty(aliases)) {
-			callback(null, classInput);
-		} else {
-			callback(null, aliases[0].classNative);
+			callback(err);
+			return;
 		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'));
+			return;
+		}
+
+		var aliasdata = db.collection('aliases');
+
+		aliasdata.find({ user: userDoc['_id'], type: type, classRemote: classInput }).toArray(function(err, aliases) {
+			if(err) {
+				callback(new Error('There was a problem querying the database!'), null, null);
+				return;
+			}
+			if(aliases.length === 0) {
+				callback(null, false, classInput);
+				return;
+			}
+
+			var classId = aliases[0].classNative;
+
+			// Now get class object
+			classes.get(db, user, function(err, classes) {
+				if(err) {
+					callback(err, null, null);
+					return;
+				}
+
+				// Search user's classes for valid class id
+				for(var i = 0; i < classes.length; i++) {
+					var classObject = classes[i];
+
+					if(classId.toHexString() === classObject._id.toHexString()) {
+						callback(null, true, classObject);
+						return;
+					}
+				}
+
+				// There was no valid class
+				callback(null, false, classInput);
+
+			});
+		});
 	});
 }
 
-/**
- * Check if given class has a canvas alias
- * @function getCanvasAlias
- * 
- * @param {Object} db - Database object
- * @param {string} classInput - Class to check for an alias
- * @param {getCanvasAliasCallback} callback - Callback
- */
-
-/**
- * Callback after alias is checked
- * @callback getCanvasAliasCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {string} classOutput - Class ID if alias found, inputted class if not found, null if failure
- */
-function getCanvasAlias(db, classInput, callback) {
-	var aliases = db.collection("aliases");
-
-	aliases.find({type: "canvas", classRemote: classInput}).toArray(function(err, aliases) {
-		if(err) {
-			callback(new Error("There was an error searching for aliases!"), null);
-		} else if(_.isEmpty(aliases)) {
-			callback(null, classInput);
-		} else {
-			callback(null, aliases[0].classNative);
-		}
-	});
-}
-
-module.exports.addPortal = addPortalAlias;
-module.exports.addCanvas = addCanvasAlias;
-module.exports.getPortal = getPortalAlias;
-module.exports.getCanvas = getCanvasAlias;
+module.exports.add = addAlias;
+module.exports.list = listAliases;
+module.exports.delete = deleteAlias;
+module.exports.getClass = getAliasClass;

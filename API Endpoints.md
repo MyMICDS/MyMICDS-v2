@@ -10,6 +10,10 @@ Endpoints or 'routes' and different URL's that you can send information to. This
 
 
 # Table of Contents
+* [Alias API](#alias-api)
+  * [`/alias/add`](#aliasadd)
+  * [`/alias/list`](#aliaslist)
+  * [`/alias/delete`](#aliasdelete)
 * [Background API](#background-api)
   * [`/background/get`](#backgroundget)
   * [`/background/upload`](#backgroundupload)
@@ -57,6 +61,41 @@ Endpoints or 'routes' and different URL's that you can send information to. This
 * [Alias API](#alias-api)
   * [`/alias/create`](#aliascreate)
   * [`/alias/get`](#aliasget)
+
+
+
+## Alias API
+The part of the API that relates to class aliases. Can be found under `src/routes/aliasAPI.js`. The associated alias module can be found under `src/libs/alias.js`.
+
+### `/alias/add`
+Add a class alias.
+
+#### Parameters
+- `type` - What type of alias. ('canvas'|'portal')
+- `classString` - Alias string from Canvas or Portal
+- `classId` - Class ID to point alias to
+
+#### Response
+- `error` - Null if successful, string containing error if failure.
+- `id` - Id of alias just inserted.
+
+
+## `/alias/list`
+List the aliases available to the user
+
+#### Response
+- `error` - Null if successful, string containing error if failure.
+- `aliases` - Object with alias types as key, value is array of alias objects.
+
+
+## `/alias/delete`
+Deletes an existing alias
+
+#### Parameters
+- `id` - Id of alias to delete.
+
+#### Response
+- `error` - Null if successful, string containing error if failure.
 
 
 

@@ -69,6 +69,7 @@ MongoClient.connect(config.mongodb.uri, function(err, db) {
 	app.use(jwt.catchUnauthorized);
 
 	// API Routes
+	require(__dirname + '/routes/aliasAPI.js')(app, db);
 	require(__dirname + '/routes/backgroundAPI.js')(app, db);
 	require(__dirname + '/routes/bulletinAPI.js')(app, db);
 	require(__dirname + '/routes/canvasAPI.js')(app, db);

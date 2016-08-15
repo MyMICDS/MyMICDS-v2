@@ -6,6 +6,7 @@
  */
 
 var _           = require('underscore');
+var asyncLib    = require('async');
 var ObjectID    = require('mongodb').ObjectID;
 var teachers    = require(__dirname + '/teachers.js');
 var users       = require(__dirname + '/users.js');
@@ -323,7 +324,7 @@ function deleteClass(db, user, classId, callback) {
 	}
 
 	// Make sure valid user
-	users.get(db, user, function(err, isUser, userDocs) {
+	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err);
 			return;
@@ -334,7 +335,7 @@ function deleteClass(db, user, classId, callback) {
 		}
 
 		var classdata = db.collection('classes');
-		classdata.deleteMany({ _id: id, user: userDocs['_id'] }, function(err, results) {
+		classdata.deleteMany({ _id: id, user: userDoc['_id'] }, function(err, results) {
 			if(err) {
 				callback(new Error('There was a problem deleting the class from the database!'));
 				return;
