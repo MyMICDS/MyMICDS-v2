@@ -85,14 +85,14 @@ function verifyURL(canvasURL, callback) {
  * @param {setUrlCallback} callback - Callback
  */
 
- /**
-  * Returns the valid url that was inserted into database
-  * @callback setUrlCallback
-  *
-  * @param {Object} err - Null if success, error object if failure
-  * @param {Boolean|string} isValid - True if valid URL, string describing problem if not valid. Null if error.
-  * @param {string} validURL - Valid url that was inserted into database. Null if error or url invalid.
-  */
+/**
+ * Returns the valid url that was inserted into database
+ * @callback setUrlCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Boolean|string} isValid - True if valid URL, string describing problem if not valid. Null if error.
+ * @param {string} validURL - Valid url that was inserted into database. Null if error or url invalid.
+ */
 
 function setURL(db, user, url, callback) {
 	if(typeof callback !== 'function') {
@@ -150,14 +150,14 @@ function setURL(db, user, url, callback) {
  * @param {getEventsCallback} callback - Callback
  */
 
- /**
-  * Returns a user's schedule for that day
-  * @callback getEventsCallback
-  *
-  * @param {Object} err - Null if success, error object if failure.
-  * @param {Boolean} hasURL - Whether user has set a valid portal URL. Null if failure.
-  * @param {Object} events - Array of all the events in the month. Null if failure.
-  */
+/**
+ * Returns a user's schedule for that day
+ * @callback getEventsCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Boolean} hasURL - Whether user has set a valid portal URL. Null if failure.
+ * @param {Object} events - Array of all the events in the month. Null if failure.
+ */
 
 function getEvents(db, user, date, callback) {
 	if(typeof callback !== 'function') return;
@@ -270,6 +270,7 @@ function getEvents(db, user, date, callback) {
  * @param {Object} calEvent - Calendar event to extract class name from
  * @param {getClassNameCallback} callback - Callback
  */
+
 /**
  * Callback after class name is extracted
  * @callback getClassNameCallback
@@ -277,12 +278,13 @@ function getEvents(db, user, date, callback) {
  * @param {Object} err - Null if success, error object if failure
  * @param {string} className - Class name if success, null if failure
  */
+
 function getClassName(calEvent, callback) {
 	try {
-		var className = _.last(calEvent.summary.match(/\[(.*?)\]/g)).replace(/(\[|\])/g, "");
+		var className = _.last(calEvent.summary.match(/\[(.*?)\]/g)).replace(/(\[|\])/g, '');
 		callback(null, className);
 	} catch(err) {
-		callback(new Error("There was an error getting a class name!"), null);
+		callback(new Error('There was an error getting a class name!'), null);
 	}
 }
 
@@ -294,6 +296,7 @@ function getClassName(calEvent, callback) {
  * @param {string} user - User to get classes from
  * @param {getCanvasClassesCallback} callback - Callback
  */
+
 /**
  * Returns array of classes from canvas
  * @callback getCanvasClassesCallback
@@ -301,6 +304,7 @@ function getClassName(calEvent, callback) {
  * @param {Object} err - Null if success, error object if failure
  * @param {Array} classes - Array of classes from canvas if success, null if failure
  */
+
 function getClasses(db, user, callback) {
 	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
