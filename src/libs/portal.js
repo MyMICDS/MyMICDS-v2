@@ -9,6 +9,7 @@ var config = require(__dirname + '/config.js');
 
 var _           = require('underscore');
 var ical        = require('ical');
+var moment      = require('moment');
 var querystring = require('querystring');
 var request     = require('request');
 var url         = require('url');
@@ -537,7 +538,7 @@ function cleanUp(str) {
 /**
  * Gets a user's classes from the PORTAL, not CANVAS.
  * @function getClasses
- * 
+ *
  * @param {Object} db - Database object
  * @param {string} user - User to get classes from
  * @param {getPortalClassesCallback} callback - Callback
@@ -547,10 +548,22 @@ function cleanUp(str) {
  * Returns array of classes from portal
  * @callback getPortalClassesCallback
  *
- * @param {Object} err - Null if success, error object if failure
- * @param {Array} classes - Array of classes from portal if success, null if failure
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Array} classes - Array of classes from portal. Null if error.
  */
+
 function getClasses(db, user, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid username!'), null);
+		return;
+	}
+
 	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null);
@@ -587,30 +600,68 @@ function getClasses(db, user, callback) {
 
 			var classes = {};
 
+			// Go through each event and add to classes object with a count of how many times they occur
 			for(var eventUid in data) {
 				var calEvent = data[eventUid];
 
-				// if there's no class name or it's just a day 1-6 announcement, ignore it
-				if(typeof calEvent.summary !== 'string' || !_.isEmpty(calEvent.summary.match(validDayRotation))) continue;
+				if(typeof calEvent.summary !== 'string') continue;
 
-				if(_.contains(Object.keys(classes), calEvent.summary)) {
-					// if the class name is already in the object, just increment it
-					classes[calEvent.summary] += 1;
+				var start = moment(calEvent['start']);
+				var end   = moment(calEvent['end']);
+
+				var startDay = start.clone().startOf('day');
+				var endDay = end.clone().startOf('day');
+
+				// Check if it's an all-day event
+				if(start.isSame(startDay) && end.isSame(endDay)) {
+					continue;
+				}
+
+				var className = calEvent.summary.trim();
+
+				if(typeof classes[className] !== 'undefined') {
+					classes[className]++;
 				} else {
-					// otherwise, add the class name
-					classes[calEvent.summary] = 1;
+					classes[className] = 1;
 				}
 			}
 
-			for(var entry in classes) {
-				// remove all class names containing "No Classes", "US", or that are seen in the portal less than 10 times
-				if(entry.includes("No Classes") || entry.includes("US") || classes[entry] < 10) delete classes[entry];
+			var uniqueClasses = Object.keys(classes);
+			var filteredClasses = [];
+
+			for(var i = 0; i < uniqueClasses.length; i++) {
+				var uniqueClass = uniqueClasses[i];
+				var occurences = classes[uniqueClass];
+
+				// Remove all class names containing a certain keyword
+				var classKeywordBlacklist = [
+					'US'
+				];
+
+				if(occurences >= 10) {
+
+					// Check if class contains any word blacklisted
+					var containsBlacklistedWord = false;
+					for(var j = 0; j < classKeywordBlacklist.length; j++) {
+						if(uniqueClass.includes(classKeywordBlacklist[j])) {
+							containsBlacklistedWord = true;
+							break;
+						}
+					}
+
+					// If doesn't contain keyword, push to array
+					if(!containsBlacklistedWord) {
+						filteredClasses.push(uniqueClass);
+					}
+				}
 			}
 
-			// just get the class list
-			var classesList = Object.keys(classes);
+			// console.log('classes', classes);
+			// console.log('unique classes', uniqueClasses);
+			// console.log('filtered classes', filteredClasses);
 
-			callback(null, classesList);
+			callback(null, filteredClasses);
+
 		});
 	});
 }

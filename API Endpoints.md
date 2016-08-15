@@ -47,6 +47,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/portal/test-url`](#portaltest-url)
   * [`/portal/set-url`](#portalset-url)
   * [`/portal/get-schedule`](#portalget-schedule)
+  * [`/portal/get-classes`](#portalget-classes)
 * [User API](#user-api)
   * [`/user/grad-year-to-grade`](#usergrad-year-to-grade)
   * [`/user/grade-to-grad-year`](#usergrade-to-grad-year)
@@ -388,6 +389,14 @@ This will test any given URL to see if it is a valid Portal calendar feed.
 - `schedule.allDay` - This is an array of strings containing events that take place throughout the whole day, and have no specific time.
 
 
+### `/portal/get-classes`
+**Requires user to be logged in.** Returns a list of Portal classes the user has according to their schedule.
+
+#### Response
+- `error` - Null if successful, string containing error if failure.
+- `classes` - Array of classes the user has.
+
+
 
 ## User API
 This is the part of the API that relates to the user. Can be found under `src/routes/userAPI.js`. The associated user module can be found under `src/libs/users.js`.
@@ -501,28 +510,3 @@ Get the available weather data for MICDS.
 #### Response
 - `error` - Null if success, string containing error if failure.
 - `weather` - JSON object with the weather if success, null if failure.
-
-## Alias API
-This is the part of the API that relates to connecting the MICDS portal and Canvas to the native planner system. Can be found under `src/routes/aliasAPI.js`. The associated weather module can be found under `src/libs/alias.js`.
-
-### `/alias/create`
-Create a new alias between remote classes and a MyMICDS class
-
-#### Parameters
-- `type` - Either `portal` or `canvas`.
-- `classNative` - Object ID for the native class to alias.
-- `classRemote` - String containing the class name from the portal or Canvas to alias.
-
-#### Response
-- `error` - Null if success, string containing error if failure.
-
-### `/alias/get`
-Search for an alias with the given class.
-
-#### Parameters
-- `type` - Either `portal` or `canvas`.
-- `classInput` - String containing the class name from the portal or Canvas to search for an alias.
-
-#### Response
-- `error` - Null if success, string containing error if failure.
-- `classOutput` - Object ID of the matching native class if found, `classInput` parameter if not found.
