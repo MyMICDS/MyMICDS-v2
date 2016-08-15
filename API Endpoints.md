@@ -65,7 +65,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
 
 
 ## Alias API
-The part of the API that relates to class aliases. Can be found under `src/routes/aliasAPI.js`. The associated alias module can be found under `src/libs/alias.js`.
+The part of the API that relates to class aliases. Can be found under `src/routes/aliasAPI.js`. The associated aliases module can be found under `src/libs/aliases.js`.
 
 ### `/alias/add`
 Add a class alias.

@@ -6,8 +6,10 @@
  */
 
 var _           = require('underscore');
+var aliases     = require(__dirname + '/aliases.js')
 var htmlParser  = require(__dirname + '/htmlParser.js');
 var ical        = require('ical');
+var prisma      = require('prisma');
 var request     = require('request');
 var url         = require('url');
 var users       = require(__dirname + '/users.js');
@@ -208,61 +210,89 @@ function getEvents(db, user, date, callback) {
 			}
 
 			// Loop through all of the events in the calendar feed and push events within month to validEvents
+			var eventKeys = Object.keys(data);
 			var validEvents = [];
-			for(var eventUid in data) {
-				var canvasEvent = data[eventUid];
 
-				/*
-				 * @TODO fix Nick's shit
-				 */
-				var className;
+			function checkEvent(i) {
+				var canvasEvent = data[eventKeys[i]];
 
-				getClassName(canvasEvent, function(err, name) {
+				var parsedEvent = parseCanvasTitle(canvasEvent.summary);
+				var canvasColor = prisma(parsedEvent.class.raw);
+
+				// Check if alias for class first
+				aliases.getClass(db, user, 'canvas', parsedEvent.class.raw, function(err, hasAlias, aliasClassObject) {
 					if(err) {
-						className = null;
-					} else {
-						className = name;
+						callback(err, null, null);
+						return;
 					}
+
+					var canvasClass = {
+						_id: null,
+						user: user,
+						name: parsedEvent.class.name,
+						teacher: {
+							_id: null,
+							prefix: '',
+							firstName: parsedEvent.class.teacher.firstName,
+							lastName: parsedEvent.class.teacher.lastName
+						},
+						type: 'other',
+						block: 'other',
+						color: canvasColor.hex.toUpperCase()
+					};
+
+					// If there is an alias, use that!
+					if(hasAlias) {
+						canvasClass = aliasClassObject;
+					}
+
+					var start = new Date(canvasEvent.start);
+					var end   = new Date(canvasEvent.end);
+
+					var startMonth = start.getMonth() + 1;
+					var startYear  = start.getFullYear();
+
+					var endMonth = end.getMonth() + 1;
+					var endYear  = end.getFullYear();
+
+					// class will be null if error in getting class name.
+					var insertEvent = {
+						_id  : canvasEvent.uid,
+						user : userDoc.user,
+						class: canvasClass,
+						title: parsedEvent.assignment,
+						start: start,
+						end  : end,
+						link : canvasEvent.url
+					};
+
+					if(typeof canvasEvent['ALT-DESC'] === 'object') {
+						insertEvent.desc = canvasEvent['ALT-DESC'].val;
+						insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
+					} else {
+						insertEvent.desc = '';
+						insertEvent.descPlaintext = '';
+					}
+
+					if((startMonth === date.month && startYear === date.year) || (endMonth === date.month && endYear === date.year)) {
+						// If event start or end is in month
+						validEvents.push(insertEvent);
+					} else if ((startMonth < date.month && startYear <= date.year) && (endMonth > date.month && endYear >= date.year)) {
+						// If event spans before and after month
+						validEvents.push(insertEvent);
+					}
+
+					if(i < eventKeys.length - 1) {
+						// If there's still more events, call function again
+						checkEvent(++i);
+					} else {
+						// All done! Call callback
+						callback(null, true, validEvents);
+					}
+
 				});
-
-				var start = new Date(canvasEvent.start);
-				var end   = new Date(canvasEvent.end);
-
-				var startMonth = start.getMonth() + 1;
-				var startYear  = start.getFullYear();
-
-				var endMonth = end.getMonth() + 1;
-				var endYear  = end.getFullYear();
-
-				// class will be null if error in getting class name.
-				var insertEvent = {
-					_id  : canvasEvent.uid,
-					user : userDoc.user,
-					class: className,
-					title: canvasEvent.summary,
-					start: start,
-					end  : end,
-					link : canvasEvent.url
-				};
-
-				if(typeof canvasEvent['ALT-DESC'] === 'object') {
-					insertEvent.desc = canvasEvent['ALT-DESC'].val;
-					insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
-				} else {
-					insertEvent.desc = '';
-					insertEvent.descPlaintext = '';
-				}
-
-				if((startMonth === date.month && startYear === date.year) || (endMonth === date.month && endYear === date.year)) {
-					// If event start or end is in month
-					validEvents.push(insertEvent);
-				} else if ((startMonth < date.month && startYear <= date.year) && (endMonth > date.month && endYear >= date.year)) {
-					// If event spans before and after month
-					validEvents.push(insertEvent);
-				}
 			}
-
-			callback(null, true, validEvents);
+			checkEvent(0);
 
 		});
 	});
@@ -273,8 +303,6 @@ function getEvents(db, user, date, callback) {
  * @param {string} title - Canvas assignment title
  * @returns {Object}
  */
-
-// Submit signed course overview [T1-Eng 10: Lit. Analysis/Insight:CPRIN]
 
 function parseCanvasTitle(title) {
 	var classTeacherRegex = /\[.+\]/g;
@@ -290,7 +318,7 @@ function parseCanvasTitle(title) {
 	// Also check if there's a teacher, typically seperated by a colon
 	var teacher = (_.last(classTeacherNoBrackets.match(teacherRegex)) || '').replace(/^:/g, '');
 	var teacherFirstName = teacher[0] || '';
-	var teacherLastName = teacher.substring(1);
+	var teacherLastName = (teacher[1] || '') + teacher.substring(2).toLowerCase();
 
 	// Subtract teacher from classTeacher to get the class
 	var className = classTeacher.replace(teacher, '').replace(/\[|\]/g, '').replace(/:$/g, '');

@@ -4,12 +4,12 @@
  * @file Manages alias API endpoints
  */
 
-var alias = require(__dirname + "/../libs/alias.js");
+var aliases = require(__dirname + "/../libs/aliases.js");
 
 module.exports = function(app, db) {
 
 	app.post('/alias/add', function(req, res) {
-		alias.add(db, req.user.user, req.body.type, req.body.classString, req.body.classId, function(err, aliasId) {
+		aliases.add(db, req.user.user, req.body.type, req.body.classString, req.body.classId, function(err, aliasId) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -21,7 +21,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/alias/list', function(req, res) {
-		alias.list(db, req.user.user, function(err, aliases) {
+		aliases.list(db, req.user.user, function(err, aliases) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -33,7 +33,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/alias/delete', function(req, res) {
-		alias.delete(db, req.user.user, req.body.id, function(err) {
+		aliases.delete(db, req.user.user, req.body.id, function(err) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
