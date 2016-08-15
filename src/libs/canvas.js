@@ -212,6 +212,14 @@ function getEvents(db, user, date, callback) {
 			for(var eventUid in data) {
 				var canvasEvent = data[eventUid];
 
+				getClassName(canvasEvent, function(err, name) {
+					if(err) {
+						className = null;
+					} else {
+						className = name;
+					}
+				});
+
 				var start = new Date(canvasEvent.start);
 				var end   = new Date(canvasEvent.end);
 
@@ -221,10 +229,11 @@ function getEvents(db, user, date, callback) {
 				var endMonth = end.getMonth() + 1;
 				var endYear  = end.getFullYear();
 
+				// class will be null if error in getting class name.
 				var insertEvent = {
 					_id  : canvasEvent.uid,
 					user : userDoc.user,
-					class: canvasEvent.class,
+					class: className,
 					title: canvasEvent.summary,
 					start: start,
 					end  : end,
@@ -358,5 +367,4 @@ function getClasses(db, user, callback) {
 module.exports.verifyURL  	= verifyURL;
 module.exports.setURL     	= setURL;
 module.exports.getEvents  	= getEvents;
-module.exports.getClassName = getClassName;
 module.exports.getClasses 	= getClasses;

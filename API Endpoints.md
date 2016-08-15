@@ -130,16 +130,6 @@ This will test any given URL to see if it is a valid Canvas calendar feed.
 - `hasURL` - Whether or not the user has set a Canvas URL in the database.
 - `events` - Array of events from the given month. Null if usr does not have URL set in database.
 
-### `/canvas/get-class-name`
-Gets class name from given calendar event.
-
-#### Parameters
-- `calEvent` - Calendar event to extract class from.
-
-#### Response
-- `error` - Null if successful, string containing error if failure.
-- `className` - Class name if successful, null if failure.
-
 
 ## Class API
 The part of the API relates to the classes. Can be found under `src/routes/classAPI.js`. The associated class and teacher module can be found under `src/libs/classes.js` and `src/libs/teachers.js`.

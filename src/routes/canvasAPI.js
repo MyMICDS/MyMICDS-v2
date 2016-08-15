@@ -56,19 +56,4 @@ module.exports = function(app, db) {
 			});
 		});
 	});
-
-	app.post('/canvas/get-class-name', function(req, res) {
-		canvas.getClassName(req.body.calEvent, function(err, name) {
-			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
-			}
-			res.json({
-				error: errorMessage,
-				className: name
-			});
-		});
-	});
-
 }
