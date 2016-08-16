@@ -21,12 +21,14 @@ module.exports = function() {
 		 */
 
 		var updateBulletin = later.setInterval(function() {
-			console.log('query latest bulletin');
+			console.log('[' + new Date() + '] Check for latest Daily Bulletin');
 
 			dailyBulletin.queryLatest(function(err) {
-				console.log('bulletin err', err);
 				if(err) {
+					console.log('[' + new Date() + '] Error occured for Daily Bulletin! (' + err + ')');
 					/** @TODO Send an email if something isn't working */
+				} else {
+					console.log('[' + new Date() + '] Successfully got latest Daily Bulletin!');
 				}
 			});
 
@@ -37,12 +39,14 @@ module.exports = function() {
 		 */
 
 		var updateWeather = later.setInterval(function() {
-			console.log('update wehater')
+			console.log('[' + new Date() + '] Update Weather');
 
 			weather.update(function(err, weatherJSON) {
-				console.log('weather err', err);
 				if(err) {
+					console.log('[' + new Date() + '] Error occured for weather! (' + err + ')');
 					/** @TODO Send an email if something isn't working */
+				} else {
+					console.log('[' + new Date() + '] Successfully updated weather!');
 				}
 			});
 
