@@ -71,7 +71,7 @@ module.exports = function(app, db) {
 					var start = new Date(date.year, date.month, date.day, end.getDay() === 3 ? 9:8);
 
 					classes.push({
-						name : 'School',
+						class : 'School',
 						start: start,
 						end  : end
 					});

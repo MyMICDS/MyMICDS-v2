@@ -54,6 +54,12 @@ app.set('views', __dirname + '/html');
 app.set('view engine', 'ejs');
 
 /*
+ * Regularly Schedule Tasks (Like Cron-Jobs)
+ */
+
+require(__dirname + '/libs/tasks.js')();
+
+/*
  * Routes
  */
 

@@ -166,6 +166,7 @@ function register(db, user, callback) {
 					confirmed : false,
 					registered: new Date(),
 					confirmationHash: hash,
+					scopes: []
 				}
 
 				userdata.update({ user: newUser.user }, newUser, { upsert: true }, function(err, data) {
