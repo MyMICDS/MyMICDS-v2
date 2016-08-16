@@ -1,26 +1,50 @@
 <!DOCTYPE html>
 <html>
-	<body style="font-family: Arial, sans-serif; margin-bottom: 1em;">
-		<div style="background: #E4E4E4; border-bottom: 0.5em #C9C9C9 solid; border-radius: 0.25em; color: #333; margin: 1em 10%; padding: 0.5em 1em;">
-			<h3>Dear {{firstName}} {{lastName}},</h3>
-			<p>Thanks for signing up! Now, a haiku about signing up:</p>
-			<p>
-				MyMICD
-				<br>
-				There was no room for the S
-				<br>
-				Nor room for '.net'
-			</p>
-		</div>
-		<p style="color: #333; font-size: 1.3em; text-align: center;">
-			Thank you.
+	<body style="
+				 padding: 1rem;
+				 background-color: rgba(0, 0, 0, 0.6);
+				 color: #eee;
+				 font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif">
+		<h3 style="
+				   margin: 0;
+				   font-size: 1.5rem;
+				   font-weight: 300;">Dear {{firstName}} {{lastName}},</h3>
+		<p>Thanks for signing up! Click on the link below to confirm your account. And now a haiku about signing up:</p>
+		<div style="
+					padding: 0.5rem 1rem;
+					margin-bottom: 1rem;
+					font-size: 1.25rem;
+					border-left: 0.25rem solid #eceeef;">
+			MyMICD
 			<br>
-			<small>~MyMICDS Development Team</small>
-		</p>
-		<div style="text-align: center">
-			<a href="{{confirmLink}}" style="background: #29ABE2; border-bottom: 0.2em #006837 solid; border-radius: 0.25em; color: #006837; font-size: 1.5em; font-weight: bold; padding: 0.25em; text-decoration: none;">
-				Click Here to Confirm your Account
-			</a>
+			There was no room for the 'S'
+			<br>
+			Nor room for '.net'
 		</div>
+		<small style="
+					  display: block;
+					  margin-bottom: 1rem;">If you did not create an account for <a href="https://mymicds.net" style="color: #6699ff">MyMICDS.net</a>, place ignore this email.</small>
+
+		<a href="{{confirmLink}}" style="
+										 margin: 0 auto;
+										 padding: 0.75rem 1.5rem;
+										 max-width: 20rem;
+										 display: block;
+										 font-size: 1.25rem;
+										 font-weight: 400;
+										 line-height: 1.25;
+										 text-align: center;
+										 white-space: nowrap;
+										 vertical-align: middle;
+										 cursor: pointer;
+										 -webkit-user-select: none;
+										 -moz-user-select: none;
+										 -ms-user-select: none;
+										 user-select: none;
+										 border: 1px solid #0275d8;
+										 border-radius: 0.3rem;
+										 background-color: #0275d8;
+										 color: #eee;
+										 text-decoration: none;">Confirm my Account!</a>
 	</body>
 </html>
