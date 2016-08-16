@@ -49,6 +49,10 @@ function addAlias(db, user, type, classString, classId, callback) {
 		callback(new Error('Invalid alias type!'), null);
 		return;
 	}
+	if(typeof classString !== 'string') {
+		callback(new Error('Invalid class string!'), null);
+		return;
+	}
 	if(typeof classId !== 'string') {
 		callback(new Error('Invalid class id!'), null);
 		return;

@@ -8,6 +8,7 @@
 var config = require(__dirname + '/config.js');
 
 var _           = require('underscore');
+var aliases     = require(__dirname + '/aliases.js');
 var ical        = require('ical');
 var moment      = require('moment');
 var querystring = require('querystring');
@@ -378,7 +379,7 @@ function getSchedule(db, user, date, callback) {
 					}
 
 					schedule.classes.push({
-						name : cleanUp(calEvent.summary),
+						class: calEvent.summary,
 						start: start,
 						end  : end
 					});
@@ -398,7 +399,30 @@ function getSchedule(db, user, date, callback) {
 				return a.start - b.start;
 			});
 
-			callback(null, true, schedule);
+			// Check if any schedules have an alias. Otherwise, clean up.
+			function cleanClass(i) {
+				var scheduleName = schedule.classes[i].class.trim();
+
+				aliases.getClass(db, user, 'portal', scheduleName, function(err, hasAlias, classObject) {
+
+					var scheduleClass = cleanUp(scheduleName);
+
+					if(hasAlias) {
+						scheduleClass = classObject;
+					}
+
+					schedule.classes[i].class = scheduleClass;
+
+					if(i < schedule.classes.length - 1) {
+						// Continue looping through classes
+						cleanClass(++i);
+					} else {
+						// Done looping through classes!
+						callback(null, true, schedule);
+					}
+				});
+			}
+			cleanClass(0);
 
 		});
 	});
@@ -655,10 +679,6 @@ function getClasses(db, user, callback) {
 					}
 				}
 			}
-
-			// console.log('classes', classes);
-			// console.log('unique classes', uniqueClasses);
-			// console.log('filtered classes', filteredClasses);
 
 			callback(null, filteredClasses);
 
