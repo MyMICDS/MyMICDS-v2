@@ -190,7 +190,7 @@ function listAliases(db, user, callback) {
 				var alias = aliases[i];
 				// Make sure alias type exists
 				if(aliasList[alias.type]) {
-					aliasList[alias.type] = alias;
+					aliasList[alias.type].push(alias);
 				}
 			}
 
