@@ -29,6 +29,7 @@ Documentation for the different JSON API endpoints [can be found here.](API Endp
 - Organize Daily Bulletin Archives by year
 - Fetch other important emails to display besides Daily Bulletin?
 - Email notification if something goes _really_ bad in the back-end, or an error keeps on occurring.
+- MyMICDS Notes - Create a Google Doc or something for each class that everyone can collaborate on
 
 ## Module Ideas
 - Snow day calculator
