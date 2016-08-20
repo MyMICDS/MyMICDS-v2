@@ -401,6 +401,13 @@ function getSchedule(db, user, date, callback) {
 
 			// Check if any schedules have an alias. Otherwise, clean up.
 			function cleanClass(i) {
+
+				if(i >= schedule.classes.length) {
+					// Done looping through classes!
+					callback(null, true, schedule);
+					return;
+				}
+
 				var scheduleName = schedule.classes[i].class.trim();
 
 				aliases.getClass(db, user, 'portal', scheduleName, function(err, hasAlias, classObject) {
@@ -413,13 +420,7 @@ function getSchedule(db, user, date, callback) {
 
 					schedule.classes[i].class = scheduleClass;
 
-					if(i < schedule.classes.length - 1) {
-						// Continue looping through classes
-						cleanClass(++i);
-					} else {
-						// Done looping through classes!
-						callback(null, true, schedule);
-					}
+					cleanClass(++i);
 				});
 			}
 			cleanClass(0);
