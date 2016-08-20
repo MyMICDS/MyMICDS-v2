@@ -142,12 +142,9 @@ function getCurrentFiles(user, callback) {
 			var dirname = dir.name;
 			var dirnameSplit = dirname.split('-');
 
-			console.log(dirnameSplit);
-
 			// Check if background belongs to user
 			if(dirnameSplit.length === 2 && dirnameSplit[0] === user) {
 				userDir = dirname;
-				console.log('valid durname', dirname)
 				break;
 			}
 		}
@@ -227,7 +224,6 @@ function deleteBackground(user, callback) {
 
 		fs.rename(currentPath, deletedPath, function(err) {
 			if(err) {
-				console.log(err);
 				callback(new Error('There was a problem deleting the directory!'));
 				return;
 			}

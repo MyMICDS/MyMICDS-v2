@@ -95,6 +95,8 @@ function upsertClass(db, user, scheduleClass, callback) {
 		scheduleClass.color = scheduleClass.color.toUpperCase();
 	}
 
+	console.log(scheduleClass);
+
 	// Make sure username is valid first
 	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
@@ -140,9 +142,10 @@ function upsertClass(db, user, scheduleClass, callback) {
 					var classDoc = classes[i];
 
 					// If duplicate class, push id to array
-					if(    scheduleClass.name  === classDoc.name
+					if(scheduleClass.name  === classDoc.name
 						&& teacherDoc['_id'].toHexString() === classDoc['teacher'].toHexString()
 						&& scheduleClass.block === classDoc.block
+						&& scheduleClass.color === classDoc.color
 						&& scheduleClass.type  === classDoc.type) {
 
 						dupClassIds.push(classDoc['_id'].toHexString());
@@ -176,6 +179,8 @@ function upsertClass(db, user, scheduleClass, callback) {
 					block: scheduleClass.block,
 					color: scheduleClass.color,
 				}
+
+				console.log(insertClass.color);
 
 				// Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
 				classdata.update({ _id: id }, insertClass, { upsert: true }, function(err, results) {

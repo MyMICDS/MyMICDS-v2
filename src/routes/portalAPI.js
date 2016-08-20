@@ -93,13 +93,17 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/portal/get-classes', function(req, res) {
-		portal.getClasses(db, req.user.user, function(err, classes) {
+		portal.getClasses(db, req.user.user, function(err, hasURL, classes) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
 				var errorMessage = null;
 			}
-			res.json({ error: errorMessage, classes: classes });
+			res.json({
+				error: errorMessage,
+				hasURL: hasURL,
+				classes: classes
+			});
 		});
 	});
 

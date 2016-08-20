@@ -351,43 +351,44 @@ function parseCanvasTitle(title) {
  * @callback getClassesCallback
  *
  * @param {Object} err - Null if success, error object if failure
- * @param {Array} classes - Array of classes from canvas. Null if failure
+ * @param {Boolean} hasURL - Whether or not user has a Canvas URL set. Null if error.
+ * @param {Array} classes - Array of classes from canvas. Null if error or no Canvas URL set.
  */
 
 function getClasses(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
+		callback(new Error('Invalid database connection!'), null, null);
 		return;
 	}
 	if(typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null);
+		callback(new Error('Invalid username!'), null, null);
 		return;
 	}
 
 	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
-			callback(err, null);
+			callback(err, null, null);
 			return;
 		}
 		if(!isUser) {
-			callback(new Error('User doesn\'t exist!'), null);
+			callback(new Error('User doesn\'t exist!'), null, null);
 			return;
 		}
 
 		if(typeof userDoc['canvasURL'] !== 'string') {
-			callback(new Error('Invalid URL!'), null);
+			callback(null, false, null);
 			return;
 		}
 
 		request(userDoc['canvasURL'], function(err, response, body) {
 			if(err) {
-				callback(new Error('There was a problem fetching canvas data from the URL!'), null);
+				callback(new Error('There was a problem fetching canvas data from the URL!'), null, null);
 				return;
 			}
 			if(response.statusCode !== 200) {
-				callback(new Error('Invalid URL!'), null);
+				callback(new Error('Invalid URL!'), null, null);
 				return;
 			}
 
@@ -396,7 +397,7 @@ function getClasses(db, user, callback) {
 			// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
 			// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
 			if(_.isEmpty(data)) {
-				callback(new Error('Invalid URL!'), null);
+				callback(new Error('Invalid URL!'), null, null);
 				return;
 			}
 
@@ -413,7 +414,7 @@ function getClasses(db, user, callback) {
 				}
 			}
 
-			callback(null, classes);
+			callback(null, true, classes);
 
 		});
 	});

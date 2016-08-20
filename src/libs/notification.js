@@ -49,7 +49,6 @@ function getNotifications(db, user, includeCanvas, callback) {
                 })
              }
          }
-         console.log(notifications)
          callback(null, {notifications, announcements})
      });
 }
