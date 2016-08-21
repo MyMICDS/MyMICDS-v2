@@ -89,38 +89,6 @@ MongoClient.connect(config.mongodb.uri, function(err, db) {
 	require(__dirname + '/routes/weatherAPI.js')(app, db);
 });
 
-app.get('/login', function(req, res) {
-	res.render('login', { user: req.user.user });
-});
-
-app.get('/canvas', function(req, res) {
-	res.sendFile(__dirname + '/html/canvas.html');
-});
-
-app.get('/classes', function(req, res) {
-	res.sendFile(__dirname + '/html/classes.html');
-});
-
-app.get('/daily-bulletin', function(req, res) {
-	res.sendFile(__dirname + '/html/daily-bulletin.html');
-});
-
-app.get('/lunch', function(req, res) {
-	res.sendFile(__dirname + '/html/lunch.html');
-});
-
-app.get('/planner', function(req, res) {
-	res.sendFile(__dirname + '/html/planner.html');
-});
-
-app.get('/portal', function(req, res) {
-	res.sendFile(__dirname + '/html/portal.html');
-});
-
-app.get('/users', function(req, res) {
-	res.sendFile(__dirname + '/html/users.html');
-});
-
 app.get('/start', function(req, res) {
 	res.sendFile(__dirname + '/html/start.html');
 });
