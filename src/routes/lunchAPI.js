@@ -9,11 +9,8 @@ var lunch = require(__dirname + '/../libs/lunch.js');
 module.exports = function(app, db) {
 
 	app.post('/lunch/get', function(req, res) {
-		lunch.get({
-			year : parseInt(req.body.year),
-			month: parseInt(req.body.month),
-			day  : parseInt(req.body.day)
-		}, function(err, lunchJSON) {
+		var lunchDate = new Date(parseInt(req.body.year), parseInt(req.body.month - 1), parseInt(req.body.day));
+		lunch.get(lunchDate, function(err, lunchJSON) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
