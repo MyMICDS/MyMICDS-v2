@@ -33,7 +33,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/alias/delete', function(req, res) {
-		aliases.delete(db, req.user.user, req.body.id, function(err) {
+		aliases.delete(db, req.user.user, req.body.type, req.body.id, function(err) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

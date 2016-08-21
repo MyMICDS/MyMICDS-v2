@@ -206,6 +206,7 @@ function listAliases(db, user, callback) {
  *
  * @param {Object} db - Database connection
  * @param {string} user - Username
+ * @param {string} type - Valid alias type
  * @param {string} aliasId - ID of alias
  * @param {deleteAliasCallback} callback - Callback
  */
@@ -216,7 +217,7 @@ function listAliases(db, user, callback) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-function deleteAlias(db, user, aliasId, callback) {
+function deleteAlias(db, user, type, aliasId, callback) {
 	if(typeof callback !== 'function') {
 		callback = function() {};
 	}
@@ -225,32 +226,37 @@ function deleteAlias(db, user, aliasId, callback) {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
-	if(typeof user !== 'string') {
-		callback(new Error('Invalid username!'));
-		return;
-	}
-	// Try to create object id
-	try {
-		var id = new ObjectID(aliasId);
-	} catch(e) {
-		callback(new Error('Invalid alias id!'));
+	if(!_.contains(aliasTypes, type)) {
+		callback(new Error('Invalid alias type!'));
 		return;
 	}
 
-	// Make sure valid user
-	users.get(db, user, function(err, isUser, userDoc) {
+	// Make sure valid alias
+	listAliases(db, user, function(err, aliases) {
+		console.log(aliases);
 		if(err) {
 			callback(err);
 			return;
 		}
-		if(!isUser) {
-			callback(new Error('User doesn\'t exist!'));
+
+		var validAliasId = null;
+		for(var i = 0; i < aliases[type].length; i++) {
+			var alias = aliases[type][i];
+			console.log('does ' + aliasId + ' equal ' + alias._id.toHexString())
+			if(aliasId === alias._id.toHexString()) {
+				validAliasId = alias._id;
+				break;
+			}
+		}
+
+		if(!validAliasId) {
+			callback(new Error('Invalid alias id!'));
 			return;
 		}
 
 		var aliasdata = db.collection('aliases');
 
-		aliasdata.deleteMany({ _id: id, user: userDoc['_id'] }, function(err, results) {
+		aliasdata.deleteMany({ _id: validAliasId }, function(err, results) {
 			if(err) {
 				callback(new Error('There was a problem deleting the alias from the database!'));
 				return;

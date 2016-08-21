@@ -93,6 +93,7 @@ List the aliases available to the user
 Deletes an existing alias
 
 #### Parameters
+- `type` - What type of alias. ('canvas'|'portal')
 - `id` - Id of alias to delete.
 
 #### Response
