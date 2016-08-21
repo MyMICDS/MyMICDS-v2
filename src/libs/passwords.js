@@ -54,8 +54,9 @@ function passwordMatches(db, user, password, callback) {
 			callback(err, null);
 			return;
 		}
+		// If invalid user, we just want to say username / password doesn't match
 		if(!isUser) {
-			callback(new Error('User doesn\'t exist!'), null);
+			callback(null, false);
 			return;
 		}
 
