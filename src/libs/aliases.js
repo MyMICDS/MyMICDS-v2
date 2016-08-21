@@ -233,7 +233,6 @@ function deleteAlias(db, user, type, aliasId, callback) {
 
 	// Make sure valid alias
 	listAliases(db, user, function(err, aliases) {
-		console.log(aliases);
 		if(err) {
 			callback(err);
 			return;
@@ -242,7 +241,6 @@ function deleteAlias(db, user, type, aliasId, callback) {
 		var validAliasId = null;
 		for(var i = 0; i < aliases[type].length; i++) {
 			var alias = aliases[type][i];
-			console.log('does ' + aliasId + ' equal ' + alias._id.toHexString())
 			if(aliasId === alias._id.toHexString()) {
 				validAliasId = alias._id;
 				break;
