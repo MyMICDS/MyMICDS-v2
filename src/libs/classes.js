@@ -8,6 +8,7 @@
 var _           = require('underscore');
 var asyncLib    = require('async');
 var ObjectID    = require('mongodb').ObjectID;
+var prisma      = require('prisma');
 var teachers    = require(__dirname + '/teachers.js');
 var users       = require(__dirname + '/users.js');
 
@@ -242,6 +243,11 @@ function getClasses(db, user, callback) {
 			if(err) {
 				callback(new Error('There was a problem querying the database!'), null);
 				return;
+			}
+
+			// Add 'textDark' to all of the classes based on color
+			for(var i = 0; i < classes.length; i++) {
+				classes[i].textDark = prisma.shouldTextBeDark(classes[i].color);
 			}
 
 			// Go through all events and set user to actual username, and teacher to actual teacher

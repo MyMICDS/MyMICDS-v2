@@ -5,13 +5,14 @@
  * @module canvas
  */
 
-var _           = require('underscore');
-var aliases     = require(__dirname + '/aliases.js')
-var htmlParser  = require(__dirname + '/htmlParser.js');
-var ical        = require('ical');
-var request     = require('request');
-var url         = require('url');
-var users       = require(__dirname + '/users.js');
+var _          = require('underscore');
+var aliases    = require(__dirname + '/aliases.js')
+var htmlParser = require(__dirname + '/htmlParser.js');
+var ical       = require('ical');
+var prisma     = require('prisma');
+var request    = require('request');
+var url        = require('url');
+var users      = require(__dirname + '/users.js');
 
 // URL Calendars come from
 var urlPrefix = 'https://micds.instructure.com/feeds/calendars/';
@@ -223,6 +224,7 @@ function getEvents(db, user, callback) {
 					}
 
 					// Backup object if Canvas class doesn't have alias
+					var defaultColor = '#34444F';
 					var canvasClass = {
 						_id: null,
 						canvas: true,
@@ -236,7 +238,8 @@ function getEvents(db, user, callback) {
 						},
 						type: 'other',
 						block: 'other',
-						color: '#34444F'
+						color: defaultColor,
+						textDark: prisma.shouldTextBeDark(defaultColor)
 					};
 
 					if(hasAlias) {

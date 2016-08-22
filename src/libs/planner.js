@@ -52,8 +52,8 @@ function upsertEvent(db, user, plannerEvent, callback) {
 	if(typeof plannerEvent.title   !== 'string') { callback(new Error('Invalid event title!'), null); return; }
 	if(typeof plannerEvent.desc    !== 'string') plannerEvent.desc = '';
 	if(typeof plannerEvent.classId !== 'string') { plannerEvent.classId = null; }
-	if(typeof plannerEvent.start   !== 'object') { callback(new Error('Invalid event start!'), null);       return; }
-	if(typeof plannerEvent.end     !== 'object') { callback(new Error('Invalid event end!'), null);         return; }
+	if(typeof plannerEvent.start   !== 'object') { callback(new Error('Invalid event start!'), null); return; }
+	if(typeof plannerEvent.end     !== 'object') { callback(new Error('Invalid event end!'),   null); return; }
 	if(typeof plannerEvent.link    !== 'string') plannerEvent.link = '';
 
 	// Made sure start time and end time are consecutive or the same
