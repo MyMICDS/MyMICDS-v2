@@ -14,7 +14,7 @@ module.exports = function(app, db) {
 			month: parseInt(req.body.month)
 		};
 
-		planner.getMonthEvents(db, req.user.user, date, true, function(err, events) {
+		planner.getMonthEvents(db, req.user.user, date, function(err, events) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

@@ -9,7 +9,6 @@ var _           = require('underscore');
 var aliases     = require(__dirname + '/aliases.js')
 var htmlParser  = require(__dirname + '/htmlParser.js');
 var ical        = require('ical');
-var prisma      = require('prisma');
 var request     = require('request');
 var url         = require('url');
 var users       = require(__dirname + '/users.js');
@@ -50,7 +49,7 @@ function verifyURL(canvasURL, callback) {
 	var parsedURL = url.parse(canvasURL);
 
 	// Check if pathname is valid
-	if(!parsedURL.pathname.startsWith('/feeds/calendars/')) {
+	if(!parsedURL.pathname || !parsedURL.pathname.startsWith('/feeds/calendars/')) {
 		// Not a valid URL!
 		callback(null, 'Invalid URL path!', null);
 		return;
@@ -141,14 +140,11 @@ function setURL(db, user, url, callback) {
 }
 
 /**
- * Retrieves a user's calendar from a given month
+ * Retrieves a user's events on Canvas
  * @function getEvents
  *
  * @param {Object} db - Database connection
  * @param {string} user - Username to get schedule
- * @param {Object} date - Object containing date to retrieve schedule. Leaving fields empty will default to today
- * @param {Number} [date.year] - What year to get schedule (Optional. Defaults to current year.)
- * @param {Number} [date.month] - Month number to get schedule. (1-12) (Optional. Defaults to current month.)
  * @param {getEventsCallback} callback - Callback
  */
 
@@ -161,18 +157,12 @@ function setURL(db, user, url, callback) {
  * @param {Object} events - Array of all the events in the month. Null if failure.
  */
 
-function getEvents(db, user, date, callback) {
+function getEvents(db, user, callback) {
 	if(typeof callback !== 'function') return;
-	if(typeof db !== 'object') { new Error('Invalid database connection!'); return; }
 
-	// Default month and year to current date
-	var current = new Date();
-
-	if(typeof date.month !== 'number' || Number.isNaN(date.month) || date.month < 1 || 12 < date.month || date.month % 1 !== 0) {
-		date.month = current.getMonth() + 1;
-	}
-	if(typeof date.year !== 'number' || Number.isNaN(date.month) || date.year % 1 !== 0) {
-		date.year = current.getFullYear();
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'));
+		return;
 	}
 
 	users.get(db, user, function(err, isUser, userDoc) {
@@ -212,22 +202,30 @@ function getEvents(db, user, date, callback) {
 			// Loop through all of the events in the calendar feed and push events within month to validEvents
 			var eventKeys = Object.keys(data);
 			var validEvents = [];
+			// Cache class aliases
+			var classAliases = {};
 
-			function checkEvent(i) {
-				var canvasEvent = data[eventKeys[i]];
+			// Function for getting class to insert according to canvas name
+			function getCanvasClass(parsedEvent, callback) {
+				var name = parsedEvent.class.raw;
 
-				var parsedEvent = parseCanvasTitle(canvasEvent.summary);
-				var canvasColor = prisma(parsedEvent.class.raw);
+				// Check if alias is already cached
+				if(typeof classAliases[name] !== 'undefined') {
+					callback(null, classAliases[name]);
+					return;
+				}
 
-				// Check if alias for class first
-				aliases.getClass(db, user, 'canvas', parsedEvent.class.raw, function(err, hasAlias, aliasClassObject) {
+				// Query aliases to see if possible class object exists
+				aliases.getClass(db, user, 'canvas', name, function(err, hasAlias, aliasClassObject) {
 					if(err) {
-						callback(err, null, null);
+						callback(err, null);
 						return;
 					}
 
+					// Backup object if Canvas class doesn't have alias
 					var canvasClass = {
 						_id: null,
+						canvas: true,
 						user: user,
 						name: parsedEvent.class.name,
 						teacher: {
@@ -238,32 +236,48 @@ function getEvents(db, user, date, callback) {
 						},
 						type: 'other',
 						block: 'other',
-						color: canvasColor.hex.toUpperCase()
+						color: '#34444F'
 					};
 
-					// If there is an alias, use that!
 					if(hasAlias) {
-						canvasClass = aliasClassObject;
+						classAliases[name] = aliasClassObject;
+					} else {
+						classAliases[name] = canvasClass;
+					}
+
+					callback(null, classAliases[name]);
+				});
+			}
+
+
+			// Function to iterate over classes asynchronously
+			function checkEvent(i) {
+
+
+				var canvasEvent = data[eventKeys[i]];
+
+				var parsedEvent = parseCanvasTitle(canvasEvent.summary);
+
+				// Check if alias for class first
+				getCanvasClass(parsedEvent, function(err, canvasClass) {
+					if(err) {
+						callback(err, null, null);
+						return;
 					}
 
 					var start = new Date(canvasEvent.start);
 					var end   = new Date(canvasEvent.end);
 
-					var startMonth = start.getMonth() + 1;
-					var startYear  = start.getFullYear();
-
-					var endMonth = end.getMonth() + 1;
-					var endYear  = end.getFullYear();
-
 					// class will be null if error in getting class name.
 					var insertEvent = {
-						_id  : canvasEvent.uid,
-						user : userDoc.user,
-						class: canvasClass,
-						title: parsedEvent.assignment,
-						start: start,
-						end  : end,
-						link : canvasEvent.url
+						_id   : canvasEvent.uid,
+						canvas: true,
+						user  : userDoc.user,
+						class : canvasClass,
+						title : parsedEvent.assignment,
+						start : start,
+						end   : end,
+						link  : canvasEvent.url || ''
 					};
 
 					if(typeof canvasEvent['ALT-DESC'] === 'object') {
@@ -274,13 +288,7 @@ function getEvents(db, user, date, callback) {
 						insertEvent.descPlaintext = '';
 					}
 
-					if((startMonth === date.month && startYear === date.year) || (endMonth === date.month && endYear === date.year)) {
-						// If event start or end is in month
-						validEvents.push(insertEvent);
-					} else if ((startMonth < date.month && startYear <= date.year) && (endMonth > date.month && endYear >= date.year)) {
-						// If event spans before and after month
-						validEvents.push(insertEvent);
-					}
+					validEvents.push(insertEvent);
 
 					if(i < eventKeys.length - 1) {
 						// If there's still more events, call function again
@@ -420,7 +428,7 @@ function getClasses(db, user, callback) {
 	});
 }
 
-module.exports.verifyURL  	= verifyURL;
-module.exports.setURL     	= setURL;
-module.exports.getEvents  	= getEvents;
-module.exports.getClasses 	= getClasses;
+module.exports.verifyURL  = verifyURL;
+module.exports.setURL     = setURL;
+module.exports.getEvents  = getEvents;
+module.exports.getClasses = getClasses;

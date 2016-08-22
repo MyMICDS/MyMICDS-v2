@@ -160,7 +160,7 @@ This will test any given URL to see if it is a valid Canvas calendar feed.
 
 
 ### `/canvas/get-events`
-**Requires user to be logged in.** This will get any calendar events for a given month. _Refer to `/planner/get-events` if you also want to retrieve the events stored on MyMICDS.net._
+**Requires user to be logged in.** This will get any calendar events for a given month. _Refer to `/planner/get-events` if you want to retrieve the events stored on MyMICDS.net._
 
 #### Parameters
 - `year` - Year to get events from. _(Optional, defaults to current year.)_
@@ -308,7 +308,7 @@ This is the part of the API that relates to the planner. Can be found in `src/ro
 
 
 ### `/planner/get`
-**Requires user to be logged in.** Returns a list of events user has for a given month. **This also returns events from the previous and next month!** If a Canvas URL is set for the user, it will also include any Canvas events for the month. Refer to /canvas/get for retrieving only Canvas-related events.
+**Requires user to be logged in.** Returns a list of events user has for a given month. **This also returns events from the previous and next month!** Refer to /canvas/get for retrieving Canvas-related events.
 
 #### Parameters
 - `year` - Year to get events from. _(Optional, defaults to current year.)_

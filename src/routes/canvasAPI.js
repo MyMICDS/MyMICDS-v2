@@ -38,12 +38,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/canvas/get-events', function(req, res) {
-		var date = {
-			year : parseInt(req.body.year),
-			month: parseInt(req.body.month)
-		};
-
-		canvas.getEvents(db, req.user.user, date, function(err, hasURL, events) {
+		canvas.getEvents(db, req.user.user, function(err, hasURL, events) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

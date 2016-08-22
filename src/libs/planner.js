@@ -222,7 +222,6 @@ function deleteEvent(db, user, eventId, callback) {
  * @param {Object} date - Object containing month/year to get date. (Inputting an empty object will default to current date)
  * @param {Number} [date.year] - What year to get events in (Optional, defaults to current year)
  * @param {Number} [date.month] - What month to get events. Starts at one. (1 - 12) (Optional, defaults to current month)
- * @param {Boolean} includeCanvas - Whether or not we should also query canvas add include Canvas events
  * @param {getMonthEventsCallback} callback - Callback
  */
 
@@ -234,7 +233,7 @@ function deleteEvent(db, user, eventId, callback) {
  * @param {Array} events - Array of documents of events, with teacher documents injected. Null if error.
  */
 
-function getMonthEvents(db, user, date, includeCanvas, callback) {
+function getMonthEvents(db, user, date, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
@@ -244,9 +243,6 @@ function getMonthEvents(db, user, date, includeCanvas, callback) {
 	if(typeof date !== 'object') {
 		callback(new Error('Invalid date object!'), null);
 		return;
-	}
-	if(typeof includeCanvas !== 'boolean') {
-		includeCanvas = true;
 	}
 	// Default month and year to current date
 	var current = new Date();
@@ -268,119 +264,82 @@ function getMonthEvents(db, user, date, includeCanvas, callback) {
 			return;
 		}
 
-		// Query planner data AND Canvas data at the same time
-		asyncLib.parallel([
-			function(callback) {
-				var plannerdata = db.collection('planner');
-				// Get all events that belong to the user
-				plannerdata.find({ user: userDoc['_id'] }).toArray(function(err, events) {
-					if(err) {
-						callback(new Error('There was a problem querying the database!'), null);
-						return;
+		var plannerdata = db.collection('planner');
+		// Get all events that belong to the user
+		plannerdata.find({ user: userDoc['_id'] }).toArray(function(err, events) {
+			if(err) {
+				callback(new Error('There was a problem querying the database!'), null);
+				return;
+			}
+
+			// Go through all events and add all events that are within the month
+			var validEvents = [];
+			var addedEventIds = [];
+			for(var i = 0; i < events.length; i++) {
+				var possibleEvent = events[i];
+
+				var start = possibleEvent.start;
+				var end   = possibleEvent.end;
+
+				var startYear = start.getFullYear();
+				var endYear   = end.getFullYear();
+
+				// How many months forward and backward to also include events
+				var monthPadding = 1;
+
+				// Check previous and next months too
+				for(var j = monthPadding * -1; j <= monthPadding; j++) {
+					// Check if event was already added
+					if(_.contains(addedEventIds, possibleEvent._id)) break;
+
+					var startMonth = start.getMonth() + 1 + j;
+					var endMonth = end.getMonth() + 1 + j;
+
+					if((startMonth === date.month && startYear === date.year) || (endMonth === date.month && endYear === date.year)) {
+						// If event start or end is in month
+						possibleEvent.descPlaintext = htmlParser.htmlToText(possibleEvent.desc);
+						validEvents.push(possibleEvent);
+						addedEventIds.push(possibleEvent._id);
+
+					} else if ((startMonth < date.month && startYear <= date.year) && (endMonth > date.month && endYear >= date.year)) {
+						// If event spans before and after month
+						possibleEvent.descPlaintext = htmlParser.htmlToText(possibleEvent.desc);
+						validEvents.push(possibleEvent);
+						addedEventIds.push(possibleEvent._id);
+
 					}
+				}
+			}
 
-					// Go through all events and add all events that are within the month
-					var validEvents = [];
-					var addedEventIds = [];
-					for(var i = 0; i < events.length; i++) {
-						var possibleEvent = events[i];
-
-						var start = possibleEvent.start;
-						var end   = possibleEvent.end;
-
-						var startYear  = start.getFullYear();
-						var endYear  = end.getFullYear();
-
-						// How many months forward and backward to also include events
-						var monthPadding = 1;
-
-						// Check previous and next months too
-						for(var j = monthPadding * -1; j <= monthPadding; j++) {
-							// Check if event was already added
-							if(_.contains(addedEventIds, possibleEvent._id)) break;
-
-							var startMonth = start.getMonth() + 1 + j;
-							var endMonth = end.getMonth() + 1 + j;
-
-							if((startMonth === date.month && startYear === date.year) || (endMonth === date.month && endYear === date.year)) {
-								// If event start or end is in month
-								possibleEvent.descPlaintext = htmlParser.htmlToText(possibleEvent.desc);
-								validEvents.push(possibleEvent);
-								addedEventIds.push(possibleEvent._id);
-
-							} else if ((startMonth < date.month && startYear <= date.year) && (endMonth > date.month && endYear >= date.year)) {
-								// If event spans before and after month
-								possibleEvent.descPlaintext = htmlParser.htmlToText(possibleEvent.desc);
-								validEvents.push(possibleEvent);
-								addedEventIds.push(possibleEvent._id);
-
-							}
-						}
-					}
-
-					// Insert classes in place of class id's
-					classes.get(db, user, function(err, classes) {
-						if(err) {
-							callback(err, null);
-							return;
-						}
-
-						// Go through each event
-						for(var i = 0; i < validEvents.length; i++) {
-							// Set user to username
-							validEvents[i]['user'] = userDoc['user'];
-							// Default class to null
-							var classId = validEvents[i]['class'];
-							validEvents[i]['class'] = null;
-							// Go through each class to search for matching id
-							if(classId !== null) {
-								var classIdHex = classId.toHexString();
-								for(var j = 0; j < classes.length; j++) {
-									if(classIdHex === classes[j]['_id'].toHexString()) {
-										validEvents[i]['class'] = classes[j];
-										break;
-									}
-								}
-							}
-						}
-
-						callback(null, validEvents);
-
-					});
-
-				});
-			},
-			function(callback) {
-				if(!includeCanvas) {
-					callback(null, []);
+			// Insert classes in place of class id's
+			classes.get(db, user, function(err, classes) {
+				if(err) {
+					callback(err, null);
 					return;
 				}
 
-				canvas.getEvents(db, userDoc['user'], date, function(err, hasURL, events) {
-					if(!hasURL) {
-						callback(null, []);
-						return;
+				// Go through each event
+				for(var i = 0; i < validEvents.length; i++) {
+					// Set user to username
+					validEvents[i]['user'] = userDoc['user'];
+					// Default class to null
+					var classId = validEvents[i]['class'];
+					validEvents[i]['class'] = null;
+					// Go through each class to search for matching id
+					if(classId !== null) {
+						var classIdHex = classId.toHexString();
+						for(var j = 0; j < classes.length; j++) {
+							if(classIdHex === classes[j]['_id'].toHexString()) {
+								validEvents[i]['class'] = classes[j];
+								break;
+							}
+						}
 					}
-					if(err) {
-						callback(null, err);
-						return;
-					}
+				}
 
-					callback(null, events);
+				callback(null, validEvents);
 
-				});
-			}
-		],
-		// After both Canvas query and planner query have compelted
-		function(err, results) {
-			if(err) {
-				callback(err, null);
-				return;
-			}
-			// Combine both arrays into final events array
-			var combinedEvents = results[0].concat(results[1]);
-
-			callback(null, combinedEvents);
+			});
 
 		});
 	});
