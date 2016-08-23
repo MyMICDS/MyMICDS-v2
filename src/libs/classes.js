@@ -11,6 +11,7 @@ var ObjectID    = require('mongodb').ObjectID;
 var prisma      = require('prisma');
 var teachers    = require(__dirname + '/teachers.js');
 var users       = require(__dirname + '/users.js');
+var aliases     = require(__dirname + '/aliases.js');
 
 var Random = require("random-js");
 var engine = Random.engines.mt19937().autoSeed();
@@ -351,6 +352,25 @@ function deleteClass(db, user, classId, callback) {
 			callback(null);
 			teachers.deleteClasslessTeachers(db);
 
+		});
+
+		// delete aliases when a class is deleted
+		aliases.list(db, userDoc['user'], function(err, aliasList) {
+			var types = ['canvas', 'portal']; //so i don't have to type the same thing twice
+			types.forEach(function(aliasArray, currentType) {
+				aliasArray.forEach(function(aliasDoc) {
+					if(aliasDoc['classNative'] === id) {
+						aliases.delete(db, userDoc['user'], currentType, aliasDoc['_id'], function(err) {
+							if(err) {
+								callback(new Error('There was a problem deleting the associated aliases of the class from the database!'));
+								return;
+							}
+
+							callback(null);
+						});
+					}
+				});
+			});
 		});
 	});
 }
