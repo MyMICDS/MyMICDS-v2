@@ -356,8 +356,7 @@ function deleteClass(db, user, classId, callback) {
 
 		// delete aliases when a class is deleted
 		aliases.list(db, userDoc['user'], function(err, aliasList) {
-			var types = ['canvas', 'portal']; //so i don't have to type the same thing twice
-			types.forEach(function(aliasArray, currentType) {
+			aliasList.forEach(function(aliasArray, currentType) {
 				aliasArray.forEach(function(aliasDoc) {
 					if(aliasDoc['classNative'] === id) {
 						aliases.delete(db, userDoc['user'], currentType, aliasDoc['_id'], function(err) {
