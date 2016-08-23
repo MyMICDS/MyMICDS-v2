@@ -353,7 +353,8 @@ function deleteClass(db, user, classId, callback) {
 			teachers.deleteClasslessTeachers(db);
 
 		});
-
+		
+		/*
 		// delete aliases when a class is deleted
 		aliases.list(db, userDoc['user'], function(err, aliasList) {
 			if(err) {
@@ -375,6 +376,7 @@ function deleteClass(db, user, classId, callback) {
 				});
 			});
 		});
+		*/
 	});
 }
 
