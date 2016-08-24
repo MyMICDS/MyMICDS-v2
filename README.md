@@ -39,6 +39,8 @@ Documentation for the different JSON API endpoints [can be found here.](API Endp
   - Until school ends
 - TODO Bulletin point list
 - Quick access add events to planner
+- Embed Web 2.0 Calc
+- Quick links (maybe user can customize link + icon?)
 
 ## Other Repositories
 ### [MyMICDS-v2-Angular](https://github.com/michaelgira23/MyMICDS-v2-Angular)
