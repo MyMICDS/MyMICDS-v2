@@ -5,6 +5,7 @@
  */
 
 var portal = require(__dirname + '/../libs/portal.js');
+var prisma = require('prisma');
 
 module.exports = function(app, db) {
 	app.post('/portal/test-url', function(req, res) {
@@ -66,15 +67,45 @@ module.exports = function(app, db) {
 				var classes = [];
 				// Only add school class if valid day rotation
 				if(scheduleDay !== null) {
-					var end = new Date(date.year, date.month, date.day, 15, 15);
+					var end = new Date(date.year, date.month - 1, date.day, 15, 15);
 					// If day is Wednesday, make start date 9 instead of 8
-					var start = new Date(date.year, date.month, date.day, end.getDay() === 3 ? 9:8);
+					var start = new Date(date.year, date.month - 1, date.day, end.getDay() === 3 ? 9:8);
+
+					var color = '#A5001E';
 
 					classes.push({
-						class: 'School',
+						class: {
+							name: 'School',
+							teacher: {
+								prefix: 'Ms.',
+								firstName: 'Lisa',
+								lastName: 'Lyle'
+							},
+							block: 'other',
+							type: 'other',
+							color: color,
+							textDark: prisma.shouldTextBeDark(color)
+						},
+						start: start,
+						end: end
+					});
+
+					console.log({
+						class: {
+							name: 'School',
+							teacher: {
+								prefix: 'Ms.',
+								firstName: 'Lisa',
+								lastName: 'Lyle'
+							},
+							block: 'other',
+							type: 'other',
+							color: color,
+							textDark: prisma.shouldTextBeDark(color)
+						},
 						start: start,
 						end  : end
-					});
+					})
 				}
 
 				var schedule = {
