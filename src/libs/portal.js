@@ -523,6 +523,13 @@ function cleanUp(str) {
 	// Split string between hyphens and trim each part
 	var parts = str.split('-').map(function(value) { return value.trim() });
 
+	// Get rid of empty strings
+	for(var i = 0; i < parts.length; i++) {
+		if(parts[i] === '') {
+			parts.splice(i, 1);
+		}
+	}
+
 	// Sort array using very special algorithm I thought of in the shower.
 	parts.sort(function(a, b) {
 		// Get length of strings
@@ -556,7 +563,7 @@ function cleanUp(str) {
 		return bGoodBoyPoints - aGoodBoyPoints;
 	});
 
-	return parts[0];
+	return parts[0] || '';
 }
 
 
