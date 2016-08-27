@@ -364,6 +364,7 @@ function deleteClass(db, user, classId, callback) {
 			_.each(aliasList, function(aliasArray, currentType) {
 				aliasArray.forEach(function(aliasDoc) {
 					if(aliasDoc['classNative'] === id) {
+						console.log("we got past the comparison");
 						aliases.delete(db, userDoc['user'], currentType, aliasDoc['_id'], function(err) {
 							if(err) {
 								callback(new Error('There was a problem deleting the associated aliases of the class from the database!'));
