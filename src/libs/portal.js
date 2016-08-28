@@ -7,16 +7,14 @@
 
 var config = require(__dirname + '/config.js');
 
-var _             = require('underscore');
-var aliases       = require(__dirname + '/aliases.js');
-var ical          = require('ical');
-var moment        = require('moment');
-var prisma        = require('prisma');
-var querystring   = require('querystring');
-var request       = require('request');
-var blockSchedule = require(__dirname + '/blockSchedule.js');
-var url           = require('url');
-var users         = require(__dirname + '/users.js');
+var _           = require('underscore');
+var aliases     = require(__dirname + '/aliases.js');
+var ical        = require('ical');
+var moment      = require('moment');
+var querystring = require('querystring');
+var request     = require('request');
+var url         = require('url');
+var users       = require(__dirname + '/users.js');
 
 // URL Calendars come from
 var urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?q=';
@@ -186,7 +184,10 @@ function setURL(db, user, url, callback) {
  *
  * @param {Object} db - Database connection
  * @param {string} user - Username to get schedule
- * @param {Object} date - Date object of day to get schedule
+ * @param {Object} date - Object containing date to retrieve schedule. Leaving fields empty will default to today
+ * @param {Number} [date.year] - What year to get schedule (Optional. Defaults to current year.)
+ * @param {Number} [date.month] - Month number to get schedule. (1-12) (Optional. Defaults to current month.)
+ * @param {Number} [date.day] - Day of month to get schedule. (Optional. Defaults to current day.)
  * @param {getScheduleCallback} callback - Callback
  */
 
@@ -206,317 +207,225 @@ function getSchedule(db, user, date, callback) {
 	if(typeof callback !== 'function') return;
 	if(typeof db !== 'object') { new Error('Invalid database connection!'); return; }
 
-	var scheduleDate = moment(date).startOf('day');
-	var scheduleNextDay = scheduleDate.clone().add(1, 'day');
+	var current = new Date();
+	// Default date to current values
+	if(typeof date.year !== 'number' || date.year % 1 !== 0) {
+		date.year = current.getFullYear();
+	}
+	if(typeof date.month !== 'number' || date.month % 1 !== 0) {
+		date.month = current.getMonth() + 1;
+	}
+	if(typeof date.day !== 'number' || date.day % 1 !== 0) {
+		date.day = current.getDate();
+	}
+
+	var scheduleDate = new Date(date.year, date.month - 1, date.day);
+	var scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
 
 	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null, null);
 			return;
 		}
-
-		/*
-		 * How we determine user's schedule (powered by http://asciiflow.com/):
-		 *
-		 * +------------------+   No       +------------------------+
-		 * | Does user exist? +----------->+ Just have School from  |
-		 * +--------+---------+            | 8:00 (or 9:00) to 3:15 |
-		 *          |                      +------------------------+
-		 *          |
-		 *          | Yes
-		 *          |
-		 *          v
-		 * +--------+---------+   No       +----------------------------------+
-		 * | Does user have a +----------->+ Default to block schedule of     |
-		 * | Portal URL?      |            | users's grade (with any aliases) |
-		 * +--------+---------+            +----------------------------------+
-		 *          |
-		 *          |
-		 *          | Yes
-		 *          |
-		 *          v
-		 * +--------+-----------+   Yes    +-------------------------------+
-		 * | Is there a special +--------->+ Use Portal schedule,          |
-		 * | schedule?          |          | substituting with any aliases |
-		 * +--------+-----------+          +-------------------------------+
-		 *          |
-		 *          |
-		 *          | No
-		 *          |
-		 *          v
-		 * +--------+-----------------+        +-------------------------------------+
-		 * | Query Portal classes and |        | Use block schedule of user's grade, |
-		 * | get each block with its  +------->+ use any classes with corresponding  |
-		 * | corresponding class name |        | blocks, and fallback to Portal URL  |
-		 * +--------------------------+        +-------------------------------------+
-		 *
-		 */
-
-		 // Get default class in case everything else fails
-		var defaultStart = null;
- 		if(scheduleDate.day() !== 3) {
- 			// Not Wednesday, school starts at 8
- 			defaultStart = scheduleDate.clone().hour(8);
- 		} else {
- 			// Wednesday, school starts at 9
- 			defaultStart = scheduleDate.clone().hour(9);
- 		}
- 		var defaultEnd = scheduleDate.clone().hour(15).minute(15);
-
- 		var defaultColor = '#A5001E';
-
-		var defaultClasses = [{
-			class: {
-				name: 'School',
-				teacher: {
-					prefix: 'Ms.',
-					firstName: 'Lisa',
-					lastName: 'Lyle'
-				},
-				block: 'other',
-				type: 'other',
-				color: color,
-				textDark: prisma.shouldTextBeDark(color)
-			},
-			start: start,
-			end: end
-		}];
-
 		if(!isUser) {
-			// Fallback to default schedule if user is invalid
-			getDayRotation(scheduleDate, function(err, scheduleDay) {
-				if(err) {
-					callback(err, null, null);
-					return;
-				}
+			callback(new Error('User doesn\'t exist!'), null, null);
+			return;
+		}
 
-				var schedule = {
-					day: scheduleDay,
-					classes: defaultClasses,
-					allDay: []
-				}
+		if(typeof userDoc['portalURL'] !== 'string') {
+			callback(null, false, null);
+			return;
+		}
 
-				callback(null, false, schedule);
+		request(userDoc['portalURL'], function(err, response, body) {
+			if(err) {
+				callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
+				return;
+			}
+			if(response.statusCode !== 200) {
+				callback(new Error('Invalid URL!'), null, null);
+				return;
+			}
 
-			});
+			var data = ical.parseICS(body);
 
-		} else if(typeof userDoc['portalURL'] !== 'string') {
-			// Fallback to default block schedule for user's grade
-			getDayRotation(scheduleDate, function(err, scheduleDay) {
-				if(err) {
-					callback(err, null, null);
-					return;
-				}
+			// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+			// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+			if(_.isEmpty(data)) {
+				callback(new Error('Invalid URL!'), null, null);
+				return;
+			}
 
+			var schedule = {
+				day: null,
+				classes: [],
+				allDay : []
+			};
 
-				var schedule = blockSchedule.get(scheduleDay, scheduleDate.day() === 3, userDoc['gradYear']);
+			// Loop through all of the events in the calendar feed
+            var conflictIndexes = [];
 
-				if(schedule) {
+			for(var eventUid in data) {
+				var calEvent = data[eventUid];
+				if(typeof calEvent.summary !== 'string') continue;
 
-				} else {
-					// Fallback to default classes
-					var schedule = {
-						day: scheduleDay,
-						classes: defaultClasses,
-						allDay: []
+				var start = new Date(calEvent['start']);
+				var end   = new Date(calEvent['end']);
+
+				var startTime = start.getTime();
+				var endTime   = end.getTime();
+
+				// Make sure the event isn't all whacky
+				if(endTime < startTime) continue;
+
+				// Check if it's an all-day event
+				if(startTime <= scheduleDate.getTime() && scheduleNextDay.getTime() <= endTime) {
+					// See if valid day
+					if(validDayRotation.test(calEvent.summary)) {
+						// Get actual day
+						var day = calEvent.summary.match(/[1-6]/)[0];
+						schedule.day = day;
+						continue;
 					}
 
-					callback(null, false, schedule);
-
-				}
-			});
-
-		} else {
-			// Get Portal calendar feed
-
-			request(userDoc['portalURL'], function(err, response, body) {
-				if(err) {
-					callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
-					return;
-				}
-				if(response.statusCode !== 200) {
-					callback(new Error('Invalid URL!'), null, null);
-					return;
+					schedule.allDay.push(cleanUp(calEvent.summary));
 				}
 
-				var data = ical.parseICS(body);
+				// See if it's part of the schedule
+				if(scheduleDate.getTime() < startTime && endTime < scheduleNextDay.getTime()) {
 
-				// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-				// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-				if(_.isEmpty(data)) {
-					callback(new Error('Invalid URL!'), null, null);
-					return;
-				}
+					// Move other (if any) events with conflicting times
+					for(var classIndex in schedule.classes) {
+						var scheduleClass = schedule.classes[classIndex];
 
-				var schedule = {
-					day: null,
-					classes: [],
-					allDay : []
-				};
+						var blockStart = scheduleClass.start.getTime();
+						var blockEnd   = scheduleClass.end.getTime();
 
-				// Loop through all of the events in the calendar feed
-	            var conflictIndexes = [];
+						// Determine start/end times relative to the class we're currently trying to add
 
-				for(var eventUid in data) {
-					var calEvent = data[eventUid];
-					if(typeof calEvent.summary !== 'string') continue;
+						if(startTime === blockStart) {
+							var startRelation = 'same start';
 
-					var start = moment(calEvent['start']);
-					var end   = moment(calEvent['end']);
+						} else if(startTime === blockEnd) {
+							var startRelation = 'same end';
 
-					// Make sure the event isn't all whacky
-					if(end.isBefore(start)) continue;
+						} else if(startTime < blockStart) {
+							var startRelation = 'before';
 
-					// Check if it's an all-day event
-					if(start.isSameOrBefore(scheduleDate) && end.isSameOrAfter(scheduleNextDay)) {
-						// See if valid day
-						if(validDayRotation.test(calEvent.summary)) {
-							// Get actual day
-							var day = calEvent.summary.match(/[1-6]/)[0];
-							schedule.day = day;
-							continue;
+						} else if(blockEnd < startTime) {
+							var startRelation = 'after';
+
+						} else if(blockStart < startTime && startTime < blockEnd) {
+							var startRelation = 'inside';
 						}
 
-						schedule.allDay.push(cleanUp(calEvent.summary));
-					}
+						if(endTime === blockStart) {
+							var endRelation = 'same start';
 
-					// See if it's part of the schedule
-					if(start.isAfter(scheduleDate) && end.isBefore(scheduleNextDay)) {
+						} else if(endTime === blockEnd) {
+							var endRelation = 'same end';
 
-						// Move other (if any) events with conflicting times
-						for(var classIndex in schedule.classes) {
-							var scheduleClass = schedule.classes[classIndex];
+						} else if(endTime < blockStart) {
+							var endRelation = 'before';
 
-							var blockStart = scheduleClass.start;
-							var blockEnd   = scheduleClass.end;
+						} else if(blockEnd < endTime) {
+							var endRelation = 'after';
 
-							// Determine start/end times relative to the class we're currently trying to add
-							var startRelation = null;
-							if(start.isSame(blockStart)) {
-								startRelation = 'same start';
+						} else if(blockStart < endTime && endTime < blockEnd) {
+							var endRelation = 'inside';
+						}
 
-							} else if(start.isSame(blockEnd)) {
-								startRelation = 'same end';
+						// If new event is totally unrelated to the block, just ignore
+						if(startRelation === 'same end' || startRelation === 'after') continue;
+						if(endRelation === 'same start' || endRelation === 'before') continue;
 
-							} else if(start.isBefore(blockStart)) {
-								startRelation = 'before';
-
-							} else if(start.isAfter(blockEnd)) {
-								startRelation = 'after';
-
-							} else if(start.isAfter(blockStart) && start.isBefore(blockEnd)) {
-								startRelation = 'inside';
-							}
-
-							var endRelation = null;
-							if(end.isSame(blockStart)) {
-								startRelation = 'same start';
-
-							} else if(end.isSame(blockEnd)) {
-								startRelation = 'same end';
-
-							} else if(end.isBefore(blockStart)) {
-								startRelation = 'before';
-
-							} else if(end.isAfter(blockEnd)) {
-								startRelation = 'after';
-
-							} else if(end.isAfter(blockStart) && end.isBefore(blockEnd)) {
-								startRelation = 'inside';
-							}
-
-							// If new event is totally unrelated to the block, just ignore
-							if(startRelation === 'same end' || startRelation === 'after') continue;
-							if(endRelation === 'same start' || endRelation === 'before') continue;
-
-							// If same times, delete
-							if(startRelation === 'same start' && endRelation === 'same end') {
-								// Only push to array if index isn't already in array
-								if(!_.contains(conflictIndexes, classIndex)) {
-									conflictIndexes.push(classIndex);
-								}
-							}
-
-							// If new event completely engulfs the block, delete the block
-							if(startRelation === 'before' && endRelation === 'after') {
-								// Only push to array if index isn't already in array
-								if(!_.contains(conflictIndexes, classIndex)) {
-									conflictIndexes.push(classIndex);
-								}
-							}
-
-							// If new event is inside block
-							if(startRelation === 'inside' && endRelation == 'inside') {
-								// Split event into two
-								var newBlock = scheduleClass;
-								var oldEnd   = scheduleClass.end;
-
-								schedule.classes[classIndex].end = start;
-								newBlock.start = end;
-
-								schedule.classes.push(newBlock);
-							}
-
-							// If start is inside block but end is not
-							if(startRelation === 'inside' && (endRelation === 'after' || endRelation === 'same end')) {
-								schedule.classes[classIndex].end = start;
-							}
-
-							// If end is inside block but start is not
-							if(endRelation === 'inside' && (startRelation === 'before' || startRelation === 'same start')) {
-								schedule.classes[classIndex].start = end;
+						// If same times, delete
+						if(startRelation === 'same start' && endRelation === 'same end') {
+							// Only push to array if index isn't already in array
+							if(!_.contains(conflictIndexes, classIndex)) {
+								conflictIndexes.push(classIndex);
 							}
 						}
 
-						schedule.classes.push({
-							class: calEvent.summary,
-							start: start,
-							end  : end
-						});
-					}
-				}
-
-				// Delete all conflicting classes
-				conflictIndexes.sort();
-				var deleteOffset = 0;
-				for(var i = 0; i < conflictIndexes.length; i++) {
-					var index = conflictIndexes[i] - deleteOffset++;
-					schedule.classes.splice(index, 1);
-				}
-
-				// Reorder schedule because of deleted classes
-				schedule.classes.sort(function(a, b) {
-					return a.start - b.start;
-				});
-
-				// Check if any schedules have an alias. Otherwise, clean up.
-				function cleanClass(i) {
-
-					if(i >= schedule.classes.length) {
-						// Done looping through classes!
-						callback(null, true, schedule);
-						return;
-					}
-
-					var scheduleName = schedule.classes[i].class.trim();
-
-					aliases.getClass(db, user, 'portal', scheduleName, function(err, hasAlias, classObject) {
-
-						var scheduleClass = cleanUp(scheduleName);
-
-						if(hasAlias) {
-							scheduleClass = classObject;
+						// If new event completely engulfs the block, delete the block
+						if(startRelation === 'before' && endRelation === 'after') {
+							// Only push to array if index isn't already in array
+							if(!_.contains(conflictIndexes, classIndex)) {
+								conflictIndexes.push(classIndex);
+							}
 						}
 
-						schedule.classes[i].class = scheduleClass;
+						// If new event is inside block
+						if(startRelation === 'inside' && endRelation == 'inside') {
+							// Split event into two
+							var newBlock = scheduleClass;
+							var oldEnd   = scheduleClass.end;
 
-						cleanClass(++i);
+							schedule.classes[classIndex].end = start;
+							newBlock.start = end;
+
+							schedule.classes.push(newBlock);
+						}
+
+						// If start is inside block but end is not
+						if(startRelation === 'inside' && (endRelation === 'after' || endRelation === 'same end')) {
+							schedule.classes[classIndex].end = start;
+						}
+
+						// If end is inside block but start is not
+						if(endRelation === 'inside' && (startRelation === 'before' || startRelation === 'same start')) {
+							schedule.classes[classIndex].start = end;
+						}
+					}
+
+					schedule.classes.push({
+						class: calEvent.summary,
+						start: start,
+						end  : end
 					});
 				}
-				cleanClass(0);
+			}
 
+			// Delete all conflicting classes
+			conflictIndexes.sort();
+			var deleteOffset = 0;
+			for(var i = 0; i < conflictIndexes.length; i++) {
+				var index = conflictIndexes[i] - deleteOffset++;
+				schedule.classes.splice(index, 1);
+			}
+
+			// Reorder schedule because of deleted classes
+			schedule.classes.sort(function(a, b) {
+				return a.start - b.start;
 			});
-		}
+
+			// Check if any schedules have an alias. Otherwise, clean up.
+			function cleanClass(i) {
+
+				if(i >= schedule.classes.length) {
+					// Done looping through classes!
+					callback(null, true, schedule);
+					return;
+				}
+
+				var scheduleName = schedule.classes[i].class.trim();
+
+				aliases.getClass(db, user, 'portal', scheduleName, function(err, hasAlias, classObject) {
+
+					var scheduleClass = cleanUp(scheduleName);
+
+					if(hasAlias) {
+						scheduleClass = classObject;
+					}
+
+					schedule.classes[i].class = scheduleClass;
+
+					cleanClass(++i);
+				});
+			}
+			cleanClass(0);
+
+		});
 	});
 }
 
@@ -537,7 +446,7 @@ function getSchedule(db, user, date, callback) {
   * @callback getDayRotationCallback
   *
   * @param {Object} err - Null if success, error object if failure.
-  * @param {scheduleDay} day - Integer between 1 and 6. Null if error or no available day.
+  * @param {scheduleDay} - Integer between 1 and 6. Null if error or no available day.
   */
 
 function getDayRotation(date, callback) {
