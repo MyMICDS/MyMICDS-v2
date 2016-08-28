@@ -1,5 +1,6 @@
 {
 	"day1": {
+		"lunchBlock": "d",
 		"regular": [
 			{
 				"block": "a",
@@ -124,6 +125,7 @@
 		]
 	},
 	"day2": {
+		"lunchBlock": "e",
 		"regular": [
 			{
 				"block": "a",
@@ -219,6 +221,7 @@
 		]
 	},
 	"day3": {
+		"lunchBlock": null,
 		"regular": [
 			{
 				"block": "b",
@@ -308,6 +311,7 @@
 		]
 	},
 	"day4": {
+		"lunchBlock": "f",
 		"regular": [
 			{
 				"block": "a",
@@ -432,6 +436,7 @@
 		]
 	},
 	"day5": {
+		"lunchBlock": "g",
 		"regular": [
 			{
 				"block": "a",
@@ -527,6 +532,7 @@
 		]
 	},
 	"day6": {
+		"lunchBlock": null,
 		"regular": [
 			{
 				"block": "b",
