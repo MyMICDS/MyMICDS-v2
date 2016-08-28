@@ -297,7 +297,7 @@
 				"start": "12:35",
 				"end"  : "13:10",
 				"upperclass": true
-			}
+			},
 			{
 				"block": "enrichment",
 				"start": "13:10",
@@ -608,7 +608,7 @@
 				"start": "12:35",
 				"end"  : "13:10",
 				"lowerclass": true
-			}
+			},
 			{
 				"block": "activities",
 				"start": "13:10",

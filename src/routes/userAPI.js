@@ -23,18 +23,18 @@ module.exports = function(app, db) {
 		res.json({ ends: ends });
 	});
 
-    app.post('/user/grade-range', function(req, res) {
-        var gradYears = [];
-        // Set min (inclusive) and max (inclusive)
-        var min = -1; // JK
-        var max = 12; // Senior
-        for(var i = min; i <= max; i++) {
-            gradYears.push(users.gradeToGradYear(i));
-        }
-        // Put most recent years first
-        gradYears.reverse();
-        res.json({ gradYears });
-    });
+	app.post('/user/grade-range', function(req, res) {
+		var gradYears = [];
+		// Set min (inclusive) and max (inclusive)
+		var min = -1; // JK
+		var max = 12; // Senior
+		for(var i = min; i <= max; i++) {
+			gradYears.push(users.gradeToGradYear(i));
+		}
+		// Put most recent years first
+		gradYears.reverse();
+		res.json({ gradYears });
+	});
 
 	app.post('/user/get-info', function(req, res) {
 		users.getInfo(db, req.user.user, true, function(err, userInfo) {
