@@ -138,12 +138,12 @@
 			{
 				"block": "lunch",
 				"start": "11:20",
-				"end"  : "12:50",
+				"end"  : "11:50",
 				"wleh": true
 			},
 			{
 				"block": "e",
-				"start": "12:50",
+				"start": "11:50",
 				"end"  : "13:20",
 				"wleh": true
 			},
@@ -427,6 +427,101 @@
 			{
 				"block": "g",
 				"start": "14:35",
+				"end"  : "15:15"
+			}
+		]
+	},
+	"day5": {
+		"regular": [
+			{
+				"block": "a",
+				"start": "8:00",
+				"end"  : "9:30"
+			},
+			{
+				"block": "c",
+				"start": "9:40",
+				"end"  : "11:10"
+			},
+			{
+				"block": "lunch",
+				"start": "11:20",
+				"end"  : "11:50",
+				"sam": true
+			},
+			{
+				"block": "g",
+				"start": "11:50",
+				"end"  : "13:20",
+				"sam": true
+			},
+			{
+				"block": "g",
+				"start": "11:20",
+				"end"  : "12:50",
+				"wleh": true
+			},
+			{
+				"block": "lunch",
+				"start": "12:50",
+				"end"  : "13:20",
+				"wleh": true
+			},
+			{
+				"block": "advisory",
+				"start": "13:25",
+				"end"  : "13:40"
+			},
+			{
+				"block": "e",
+				"start": "13:45",
+				"end"  : "15:15"
+			}
+		],
+		"lateStart": [
+			{
+				"block": "a",
+				"start": "9:00",
+				"end"  : "10:20"
+			},
+			{
+				"block": "c",
+				"start": "10:30",
+				"end"  : "11:50"
+			},
+			{
+				"block": "lunch",
+				"start": "11:55",
+				"end"  : "12:25",
+				"sam": true
+			},
+			{
+				"block": "g",
+				"start": "12:30",
+				"end"  : "13:50",
+				"sam": true
+			},
+			{
+				"block": "g",
+				"start": "11:55",
+				"end"  : "12:35",
+				"wleh": true
+			},
+			{
+				"block": "lunch",
+				"start": "12:40",
+				"end"  : "13:10",
+				"wleh": true
+			},
+			{
+				"block": "g",
+				"start": "13:10",
+				"end"  : "13:50",
+				"wleh": true
+			},
+			{
+				"block": "e",
+				"start": "13:55",
 				"end"  : "15:15"
 			}
 		]
