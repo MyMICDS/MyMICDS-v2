@@ -526,4 +526,93 @@
 			}
 		]
 	},
+	"day6": {
+		"regular": [
+			{
+				"block": "b",
+				"start": "8:00",
+				"end"  : "9:30"
+			},
+			{
+				"block": "f",
+				"start": "9:40",
+				"end"  : "11:10"
+			},
+			{
+				"block": "lunch",
+				"start": "11:15",
+				"end"  : "11:45",
+				"upperclass": true
+			},
+			{
+				"block": "advisory",
+				"start": "11:50",
+				"end"  : "12:10",
+				"upperclass": true
+			},
+			{
+				"block": "advisory",
+				"start": "11:15",
+				"end"  : "11:35",
+				"lowerclass": true
+			},
+			{
+				"block": "lunch",
+				"start": "11:40",
+				"end"  : "12:10",
+				"lowerclass": true
+			},
+			{
+				"block": "d",
+				"start": "13:45",
+				"end"  : "15:15"
+			}
+		],
+		"lateStart": [
+			{
+				"block": "b",
+				"start": "9:00",
+				"end"  : "10:20"
+			},
+			{
+				"block": "f",
+				"start": "10:30",
+				"end"  : "11:50"
+			},
+			{
+				"block": "lunch",
+				"start": "11:55",
+				"end"  : "12:30",
+				"upperclass": true
+			},
+			{
+				"block": "collaborative",
+				"start": "12:35",
+				"end"  : "13:10",
+				"upperclass": true
+			},
+			{
+				"block": "collaborative",
+				"start": "11:55",
+				"end"  : "12:30",
+				"lowerclass": true
+			},
+			{
+				"block": "lunch",
+				"start": "12:35",
+				"end"  : "13:10",
+				"lowerclass": true
+			}
+			{
+				"block": "activities",
+				"start": "13:10",
+				"end"  : "13:50"
+			},
+			{
+				"block": "d",
+				"start": "13:55",
+				"end"  : "15:15"
+			}
+		]
+	}
 }
