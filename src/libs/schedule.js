@@ -8,6 +8,9 @@
 var _ = require('underscore');
 var users = require(__dirname + '/users.js');
 
+// Schedules
+var highschoolSchedule = require(__dirname + '/../schedules/highschool.json');
+
 var validBlocks = [
 	'a',
 	'b',
