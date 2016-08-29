@@ -84,6 +84,7 @@ function convertType(type) {
  */
 
 function getSchedule(date, day, lateStart, grade, blocks) {
+	console.log('get schedule', date.format());
 
 	if(typeof blocks !== 'object') blocks = {};
 
@@ -102,7 +103,7 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 		};
 	}
 	if(typeof blocks.advisory === 'undefined') {
-		blocks.activities = {
+		blocks.advisory = {
 			name: 'Advisory',
 			teacher: {
 				prefix: '',
@@ -141,7 +142,7 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 		};
 	}
 	if(typeof blocks.enrichment === 'undefined') {
-		blocks.activities = {
+		blocks.enrichment = {
 			name: 'Enrichment',
 			teacher: {
 				prefix: '',
@@ -167,7 +168,7 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 		};
 	}
 	if(typeof blocks.lunch === 'undefined') {
-		blocks.activities = {
+		blocks.lunch = {
 			name: 'Lunch!',
 			teacher: {
 				prefix: '',
@@ -180,7 +181,7 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 		};
 	}
 	if(typeof blocks.recess === 'undefined') {
-		blocks.activities = {
+		blocks.recess = {
 			name: 'Recess',
 			teacher: {
 				prefix: '',
@@ -193,20 +194,27 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 		};
 	}
 
+	console.log(blocks);
+
 	// Make sure date is a moment object
 	date = moment(date);
 
 	// If invalid day, return empty schedule because school isn't in session
 	if(day === null) return [];
-	if(typeof day !== 'number' || day % 1 !== 0 || 1 > grade || grade > 6) {
+	day = parseInt(day);
+	if(typeof day !== 'number' || day % 1 !== 0 || 1 > day || day > 6) {
+		console.log('day invalid', day)
 		return null;
 	}
 
 	if(typeof grade !== 'number' || grade % 1 !== 0 || -1 > grade || grade > 12) {
+		conso.e.log('grade invalid')
 		return null;
 	}
 
 	var schoolName = users.gradeToSchool(grade);
+
+	console.log('day', day, 'grade', grade, 'school', schoolName)
 
 	// We don't have lowerschool schedules
 	if(schoolName === 'lowerschool') return null;
@@ -218,7 +226,7 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 		if(typeof blocks[block] === 'undefined') {
 			var blockName = block[0].toUpperCase() + block.slice(1);
 			if(blockName.length === 1) {
-				blockName = 'Block ' + block;
+				blockName = 'Block ' + blockName;
 			}
 
 			blocks[block] = {
@@ -249,7 +257,7 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 		}
 
 		// Get lunch type and determine what type it is
-		var scheduleLunchBlock = highschoolSchedule['day' + day].lunchBlock;
+		var lunchBlock = highschoolSchedule['day' + day].lunchBlock;
 		var lunchBlockType = null;
 
 		var sam = false;
@@ -303,7 +311,7 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 			userSchedule.push({
 				start: start,
 				end  : end,
-				class: blocks[jsonBlock.type]
+				class: blocks[jsonBlock.block]
 			});
 		}
 
@@ -328,7 +336,7 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 			userSchedule.push({
 				start: start,
 				end  : end,
-				class: blocks[jsonBlock.type]
+				class: blocks[jsonBlock.block]
 			});
 		}
 

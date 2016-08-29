@@ -39,11 +39,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/portal/get-schedule', function(req, res) {
-		var date = {
-			year : parseInt(req.body.year),
-			month: parseInt(req.body.month),
-			day  : parseInt(req.body.day)
-		};
+		var date = new Date(parseInt(req.body.year), parseInt(req.body.month - 1), parseInt(req.body.day));
 
 		portal.getSchedule(db, req.user.user, date, function(err, hasURL, schedule) {
 			if(!err && hasURL) {

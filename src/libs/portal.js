@@ -404,12 +404,14 @@ function getSchedule(db, user, date, callback) {
 							// Get actual day
 							var day = calEvent.summary.match(/[1-6]/)[0];
 							schedule.day = day;
+							console.log('day is roation ' + day)
 							continue;
 						}
 
 						// Check if special schedule
 						var lowercaseSummary = calEvent.summary.toLowerCase();
 						if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
+							console.log('special schedule DETECTED')
 							schedule.special = true;
 							break;
 						}
@@ -591,6 +593,7 @@ function getSchedule(db, user, date, callback) {
 						}
 
 						var blockClasses = blockSchedule.get(scheduleDate, schedule.day, scheduleDate.day() === 3, users.gradYearToGrade(userDoc['gradYear']), blocks);
+						// console.log('block classes', blockClasses);
 
 						// If schedule is null for some reason, default back to portal schedule
 						if(blockClasses !== null) {
@@ -610,7 +613,7 @@ function getSchedule(db, user, date, callback) {
 					}
 
 					var block = schedule.classes[i].class;
-
+					console.log(block);
 					// If Portal class, search for alias or fall back to cleaning up class
 					if(block.portal) {
 						if(typeof aliasCache[block.name] === 'undefined') {
