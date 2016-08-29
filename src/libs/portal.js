@@ -214,7 +214,7 @@ function getSchedule(db, user, date, callback) {
 	var scheduleDate = moment(date).startOf('day');
 	var scheduleNextDay = scheduleDate.clone().add(1, 'day');
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user || '', function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -568,15 +568,17 @@ function getSchedule(db, user, date, callback) {
 							// Determine block
 							var blockPart = _.last(classes[i].match(portalSummaryBlock));
 
+							console.log('block part', blockPart)
+
 							if(blockPart) {
 								var block = _.last(blockPart.match(/[A-G]/g)).toLowerCase();
 
 								// Determine color
-								var color = prisma(calEvent.summary).hex;
+								var color = prisma(classes[i]).hex;
 
 								var scheduleBlock = {
 									portal: true,
-									name: calEvent.summary,
+									name: classes[i],
 									teacher: {
 										prefix: '',
 										firstName: '',
@@ -588,12 +590,12 @@ function getSchedule(db, user, date, callback) {
 									textDark: prisma.shouldTextBeDark(color)
 								};
 
+								console.log('schedule block ' + block, scheduleBlock)
 								blocks[block] = scheduleBlock;
 							}
 						}
 
 						var blockClasses = blockSchedule.get(scheduleDate, schedule.day, scheduleDate.day() === 3, users.gradYearToGrade(userDoc['gradYear']), blocks);
-						// console.log('block classes', blockClasses);
 
 						// If schedule is null for some reason, default back to portal schedule
 						if(blockClasses !== null) {
@@ -613,7 +615,7 @@ function getSchedule(db, user, date, callback) {
 					}
 
 					var block = schedule.classes[i].class;
-					console.log(block);
+
 					// If Portal class, search for alias or fall back to cleaning up class
 					if(block.portal) {
 						if(typeof aliasCache[block.name] === 'undefined') {
@@ -937,6 +939,8 @@ function parseIcalClasses(data, callback) {
 			}
 		}
 	}
+
+	console.log(filteredClasses);
 
 	callback(null, true, filteredClasses);
 }

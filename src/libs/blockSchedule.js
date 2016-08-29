@@ -84,7 +84,6 @@ function convertType(type) {
  */
 
 function getSchedule(date, day, lateStart, grade, blocks) {
-	console.log('get schedule', date.format());
 
 	if(typeof blocks !== 'object') blocks = {};
 
@@ -194,8 +193,6 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 		};
 	}
 
-	console.log(blocks);
-
 	// Make sure date is a moment object
 	date = moment(date);
 
@@ -203,18 +200,14 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 	if(day === null) return [];
 	day = parseInt(day);
 	if(typeof day !== 'number' || day % 1 !== 0 || 1 > day || day > 6) {
-		console.log('day invalid', day)
 		return null;
 	}
 
 	if(typeof grade !== 'number' || grade % 1 !== 0 || -1 > grade || grade > 12) {
-		conso.e.log('grade invalid')
 		return null;
 	}
 
 	var schoolName = users.gradeToSchool(grade);
-
-	console.log('day', day, 'grade', grade, 'school', schoolName)
 
 	// We don't have lowerschool schedules
 	if(schoolName === 'lowerschool') return null;

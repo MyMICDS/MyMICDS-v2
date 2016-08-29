@@ -40,64 +40,19 @@ module.exports = function(app, db) {
 
 	app.post('/portal/get-schedule', function(req, res) {
 		var date = new Date(parseInt(req.body.year), parseInt(req.body.month - 1), parseInt(req.body.day));
+		console.log('portal route', date);
 
 		portal.getSchedule(db, req.user.user, date, function(err, hasURL, schedule) {
-			if(!err && hasURL) {
-				res.json({
-					error: null,
-					schedule: schedule
-				});
-				return;
+			if(err) {
+				var errorMessage = err.message;
+			} else {
+				var errorMessage = null;
 			}
 
-			// There was an error, default to generic schedule
-			portal.getDayRotation(date, function(err, scheduleDay) {
-				if(err) {
-					res.json({
-						error: 'There was a problem fetching your schedule!',
-						schedule: null
-					});
-					return;
-				}
-
-				var classes = [];
-				// Only add school class if valid day rotation
-				if(scheduleDay !== null) {
-					var end = new Date(date.year, date.month - 1, date.day, 15, 15);
-					// If day is Wednesday, make start date 9 instead of 8
-					var start = new Date(date.year, date.month - 1, date.day, end.getDay() === 3 ? 9:8);
-
-					var color = '#A5001E';
-
-					classes.push({
-						class: {
-							name: 'School',
-							teacher: {
-								prefix: 'Ms.',
-								firstName: 'Lisa',
-								lastName: 'Lyle'
-							},
-							block: 'other',
-							type: 'other',
-							color: color,
-							textDark: prisma.shouldTextBeDark(color)
-						},
-						start: start,
-						end: end
-					});
-				}
-
-				var schedule = {
-					day: scheduleDay,
-					classes,
-					allDay: []
-				}
-
-				res.json({
-					error: null,
-					schedule: schedule
-				});
-
+			res.json({
+				error: errorMessage,
+				hasURL: hasURL,
+				schedule: schedule
 			});
 		});
 	});
