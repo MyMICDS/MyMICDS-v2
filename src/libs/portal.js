@@ -9,6 +9,8 @@ var config = require(__dirname + '/config.js');
 
 var _             = require('underscore');
 var aliases       = require(__dirname + '/aliases.js');
+var asyncLib      = require('async');
+var classes       = require(__dirname + '/classes.js');
 var ical          = require('ical');
 var moment        = require('moment');
 var prisma        = require('prisma');
@@ -23,6 +25,8 @@ var urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?q=';
 // RegEx to test if calendar summary is a valid Day Rotation
 var validDayRotation = /^Day [1-6] \((US|MS)\)$/;
 var validDayRotationPlain = /^Day [1-6]$/;
+
+var portalSummaryBlock = / - [0-9] \([A-G][0-9]\)/g;
 
 /**
  * Makes sure a given url is valid and it points to a Portal calendar feed
@@ -198,6 +202,7 @@ function setURL(db, user, url, callback) {
   * @param {Boolean} hasURL - Whether user has set a valid portal URL. Null if failure.
   * @param {Object} schedule - Object containing everything going on that day. Null if failure.
   * @param {Object} schedule.day - Speicifies what day it is in the schedule rotation. Null if no day is found.
+  * @param {Boolean} schedule.special - Whether or not this schedule is a special little snowflake.
   * @param {Object} schedule.classes - Array containing schedule and classes for that day. Empty array if nothing is going on that day.
   * @param {Object} schedule.allDay - Array containing all-day events or events spanning multiple days. Empty array if nothing is going on that day.
   */
@@ -252,18 +257,18 @@ function getSchedule(db, user, date, callback) {
 		 *
 		 */
 
-		 // Get default class in case everything else fails
+		// Get default class in case everything else fails
 		var defaultStart = null;
- 		if(scheduleDate.day() !== 3) {
- 			// Not Wednesday, school starts at 8
- 			defaultStart = scheduleDate.clone().hour(8);
- 		} else {
- 			// Wednesday, school starts at 9
- 			defaultStart = scheduleDate.clone().hour(9);
- 		}
- 		var defaultEnd = scheduleDate.clone().hour(15).minute(15);
+		if(scheduleDate.day() !== 3) {
+			// Not Wednesday, school starts at 8
+			defaultStart = scheduleDate.clone().hour(8);
+		} else {
+			// Wednesday, school starts at 9
+			defaultStart = scheduleDate.clone().hour(9);
+		}
+		var defaultEnd = scheduleDate.clone().hour(15).minute(15);
 
- 		var defaultColor = '#A5001E';
+		var defaultColor = '#A5001E';
 
 		var defaultClasses = [{
 			class: {
@@ -275,12 +280,15 @@ function getSchedule(db, user, date, callback) {
 				},
 				block: 'other',
 				type: 'other',
-				color: color,
-				textDark: prisma.shouldTextBeDark(color)
+				color: defaultColor,
+				textDark: prisma.shouldTextBeDark(defaultColor)
 			},
-			start: start,
-			end: end
+			start: defaultStart,
+			end: defaultEnd
 		}];
+
+		// We will need this for later in the cleanClass() function
+		var aliasCache = {};
 
 		if(!isUser) {
 			// Fallback to default schedule if user is invalid
@@ -292,6 +300,7 @@ function getSchedule(db, user, date, callback) {
 
 				var schedule = {
 					day: scheduleDay,
+					special: false,
 					classes: defaultClasses,
 					allDay: []
 				}
@@ -301,34 +310,54 @@ function getSchedule(db, user, date, callback) {
 			});
 
 		} else if(typeof userDoc['portalURL'] !== 'string') {
-			// Fallback to default block schedule for user's grade
-			getDayRotation(scheduleDate, function(err, scheduleDay) {
+			asyncLib.parallel({
+				day: function(asyncCallback) {
+					getDayRotation(scheduleDate, function(err, scheduleDay) {
+						if(err) {
+							asyncCallback(err, null);
+							return;
+						}
+
+						asyncCallback(null, scheduleDay);
+
+					});
+				},
+				classes: function(asyncCallback) {
+					classes.get(db, user, function(err, classes) {
+						if(err) {
+							asyncCallback(err, null);
+							return;
+						}
+
+						asyncCallback(null, classes);
+
+					});
+				}
+			}, function(err, results) {
 				if(err) {
 					callback(err, null, null);
 					return;
 				}
 
-
-				var schedule = blockSchedule.get(scheduleDay, scheduleDate.day() === 3, userDoc['gradYear']);
-
-				if(schedule) {
-
-				} else {
-					// Fallback to default classes
-					var schedule = {
-						day: scheduleDay,
-						classes: defaultClasses,
-						allDay: []
-					}
-
-					callback(null, false, schedule);
-
+				// Assign each class to it's block
+				var blocks = {};
+				for(var i = 0; i < results.classes.length; i++) {
+					var block = results.classes[i];
+					blocks[block.block] = block; // Very descriptive
 				}
+
+				var schedule = blockSchedule.get(scheduleDate, results.day, scheduleDate.day() === 3, users.gradYearToGrade(userDoc['gradYear']), blocks);
+
+				callback(null, false, {
+					day: results.day,
+					special: false,
+					classes: schedule,
+					allDay: []
+				});
 			});
 
 		} else {
 			// Get Portal calendar feed
-
 			request(userDoc['portalURL'], function(err, response, body) {
 				if(err) {
 					callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
@@ -350,12 +379,13 @@ function getSchedule(db, user, date, callback) {
 
 				var schedule = {
 					day: null,
+					special: false,
 					classes: [],
 					allDay : []
 				};
 
 				// Loop through all of the events in the calendar feed
-	            var conflictIndexes = [];
+				var conflictIndexes = [];
 
 				for(var eventUid in data) {
 					var calEvent = data[eventUid];
@@ -375,6 +405,13 @@ function getSchedule(db, user, date, callback) {
 							var day = calEvent.summary.match(/[1-6]/)[0];
 							schedule.day = day;
 							continue;
+						}
+
+						// Check if special schedule
+						var lowercaseSummary = calEvent.summary.toLowerCase();
+						if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
+							schedule.special = true;
+							break;
 						}
 
 						schedule.allDay.push(cleanUp(calEvent.summary));
@@ -468,8 +505,31 @@ function getSchedule(db, user, date, callback) {
 							}
 						}
 
+						// Determine block
+						var blockPart = _.last(calEvent.summary.match(portalSummaryBlock));
+						var block = 'other';
+
+						if(blockPart) {
+							block = _.last(blockPart.match(/[A-G]/g)).toLowerCase();
+						}
+
+						// Determine color
+						var color = prisma(calEvent.summary).hex;
+
 						schedule.classes.push({
-							class: calEvent.summary,
+							class: {
+								portal: true,
+								name: calEvent.summary,
+								teacher: {
+									prefix: '',
+									firstName: '',
+									lastName: ''
+								},
+								block: block,
+								type: 'other',
+								color: color,
+								textDark: prisma.shouldTextBeDark(color)
+							},
 							start: start,
 							end  : end
 						});
@@ -489,7 +549,58 @@ function getSchedule(db, user, date, callback) {
 					return a.start - b.start;
 				});
 
-				// Check if any schedules have an alias. Otherwise, clean up.
+				if(schedule.special) {
+					// If special schedule, just use default portal schedule
+					cleanClass(0);
+				} else {
+					// If regular schedule, use normal block schedule so we can insert free periods and lunch
+					parseIcalClasses(data, function(err, hasURL, classes) {
+						if(err) {
+							callback(err, null, null);
+							return;
+						}
+
+						// Organize classes into the blocks object
+						var blocks = {};
+						for(var i = 0; i < classes.length; i++) {
+							// Determine block
+							var blockPart = _.last(classes[i].match(portalSummaryBlock));
+
+							if(blockPart) {
+								var block = _.last(blockPart.match(/[A-G]/g)).toLowerCase();
+
+								// Determine color
+								var color = prisma(calEvent.summary).hex;
+
+								var scheduleBlock = {
+									portal: true,
+									name: calEvent.summary,
+									teacher: {
+										prefix: '',
+										firstName: '',
+										lastName: ''
+									},
+									block: block,
+									type: 'other',
+									color: color,
+									textDark: prisma.shouldTextBeDark(color)
+								};
+
+								blocks[block] = scheduleBlock;
+							}
+						}
+
+						var blockClasses = blockSchedule.get(scheduleDate, schedule.day, scheduleDate.day() === 3, users.gradYearToGrade(userDoc['gradYear']), blocks);
+
+						// If schedule is null for some reason, default back to portal schedule
+						if(blockClasses !== null) {
+							schedule.classes = blockClasses;
+						}
+						cleanClass(0);
+					});
+				}
+
+				// Add any aliases, or clean up class. When done, callback
 				function cleanClass(i) {
 
 					if(i >= schedule.classes.length) {
@@ -498,23 +609,36 @@ function getSchedule(db, user, date, callback) {
 						return;
 					}
 
-					var scheduleName = schedule.classes[i].class.trim();
+					var block = schedule.classes[i].class;
 
-					aliases.getClass(db, user, 'portal', scheduleName, function(err, hasAlias, classObject) {
+					// If Portal class, search for alias or fall back to cleaning up class
+					if(block.portal) {
+						if(typeof aliasCache[block.name] === 'undefined') {
+							// Get alias from database
+							aliases.getClass(db, user, 'portal', block.name, function(err, hasAlias, classObject) {
 
-						var scheduleClass = cleanUp(scheduleName);
+								var classAlias = null;
+								if(hasAlias) {
+									classAlias = classObject;
+								} else {
+									classAlias = block;
+									classAlias.name = cleanUp(block.name);
+								}
 
-						if(hasAlias) {
-							scheduleClass = classObject;
+								aliasCache[block.name] = classAlias;
+
+								schedule.classes[i].class = aliasCache[block.name];
+								cleanClass(++i);
+							});
+						} else {
+							// Used cached alias
+							schedule.classes[i].class = aliasCache[block.name];
+							cleanClass(++i);
 						}
-
-						schedule.classes[i].class = scheduleClass;
-
+					} else {
 						cleanClass(++i);
-					});
+					}
 				}
-				cleanClass(0);
-
 			});
 		}
 	});
@@ -672,7 +796,7 @@ function cleanUp(str) {
  * @callback getPortalClassesCallback
  *
  * @param {Object} err - Null if success, error object if failure.
- * @param {Boolean} hasURL - Whether or not the user has a Portal URL set
+ * @param {Boolean} hasURL - Whether or not the user has a Portal URL set. Null if error.
  * @param {Array} classes - Array of classes from portal. Null if error.
  */
 
@@ -722,68 +846,96 @@ function getClasses(db, user, callback) {
 				return;
 			}
 
-			var classes = {};
-
-			// Go through each event and add to classes object with a count of how many times they occur
-			for(var eventUid in data) {
-				var calEvent = data[eventUid];
-
-				if(typeof calEvent.summary !== 'string') continue;
-
-				var start = moment(calEvent['start']);
-				var end   = moment(calEvent['end']);
-
-				var startDay = start.clone().startOf('day');
-				var endDay = end.clone().startOf('day');
-
-				// Check if it's an all-day event
-				if(start.isSame(startDay) && end.isSame(endDay)) {
-					continue;
-				}
-
-				var className = calEvent.summary.trim();
-
-				if(typeof classes[className] !== 'undefined') {
-					classes[className]++;
-				} else {
-					classes[className] = 1;
-				}
-			}
-
-			var uniqueClasses = Object.keys(classes);
-			var filteredClasses = [];
-
-			for(var i = 0; i < uniqueClasses.length; i++) {
-				var uniqueClass = uniqueClasses[i];
-				var occurences = classes[uniqueClass];
-
-				// Remove all class names containing a certain keyword
-				var classKeywordBlacklist = [
-					'US'
-				];
-
-				if(occurences >= 10) {
-
-					// Check if class contains any word blacklisted
-					var containsBlacklistedWord = false;
-					for(var j = 0; j < classKeywordBlacklist.length; j++) {
-						if(uniqueClass.includes(classKeywordBlacklist[j])) {
-							containsBlacklistedWord = true;
-							break;
-						}
-					}
-
-					// If doesn't contain keyword, push to array
-					if(!containsBlacklistedWord) {
-						filteredClasses.push(uniqueClass);
-					}
-				}
-			}
-
-			callback(null, true, filteredClasses);
+			parseIcalClasses(data, callback);
 
 		});
 	});
+}
+
+/**
+ * Retrieves all the classes in a parsed iCal object
+ * @function parseIcalClasses
+ *
+ * @param {Object} data - Parsed iCal object
+ * @param {parseIcalClassesCallback} callback - Callback
+ */
+
+ /**
+  * Returns array of classes from portal
+  * @callback parseIcalClassesCallback
+  *
+  * @param {Object} err - Null if success, error object if failure.
+  * @param {Boolean} hasURL - Whether or not the user has a Portal URL set. Null if error.
+  * @param {Array} classes - Array of classes from portal. Null if error.
+  */
+
+function parseIcalClasses(data, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof data !== 'object') {
+		callback(new Error('Invalid iCal object!'), null, null);
+		return;
+	}
+
+	var classes = {};
+
+	// Go through each event and add to classes object with a count of how many times they occur
+	for(var eventUid in data) {
+		var calEvent = data[eventUid];
+
+		if(typeof calEvent.summary !== 'string') continue;
+
+		var start = moment(calEvent['start']);
+		var end   = moment(calEvent['end']);
+
+		var startDay = start.clone().startOf('day');
+		var endDay = end.clone().startOf('day');
+
+		// Check if it's an all-day event
+		if(start.isSame(startDay) && end.isSame(endDay)) {
+			continue;
+		}
+
+		var className = calEvent.summary.trim();
+
+		if(typeof classes[className] !== 'undefined') {
+			classes[className]++;
+		} else {
+			classes[className] = 1;
+		}
+	}
+
+	var uniqueClasses = Object.keys(classes);
+	var filteredClasses = [];
+
+	for(var i = 0; i < uniqueClasses.length; i++) {
+		var uniqueClass = uniqueClasses[i];
+		var occurences = classes[uniqueClass];
+
+		// Remove all class names containing a certain keyword
+		var classKeywordBlacklist = [
+			'US'
+		];
+
+		if(occurences >= 10) {
+
+			// Check if class contains any word blacklisted
+			var containsBlacklistedWord = false;
+			for(var j = 0; j < classKeywordBlacklist.length; j++) {
+				if(uniqueClass.includes(classKeywordBlacklist[j])) {
+					containsBlacklistedWord = true;
+					break;
+				}
+			}
+
+			// If doesn't contain keyword, push to array
+			if(!containsBlacklistedWord) {
+				filteredClasses.push(uniqueClass);
+			}
+		}
+	}
+
+	callback(null, true, filteredClasses);
 }
 
 module.exports.verifyURL      = verifyURL;

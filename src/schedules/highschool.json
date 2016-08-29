@@ -47,6 +47,12 @@
 				"wleh": true
 			},
 			{
+				"block": "d",
+				"start": "11:05",
+				"end"  : "12:35",
+				"other": true
+			},
+			{
 				"block": "e",
 				"start": "12:40",
 				"end"  : "13:25"
@@ -108,6 +114,12 @@
 				"wleh": true
 			},
 			{
+				"block": "d",
+				"start": "11:40",
+				"end"  : "13:00",
+				"other": true
+			},
+			{
 				"block": "e",
 				"start": "13:05",
 				"end"  : "13:45"
@@ -162,6 +174,12 @@
 				"sam": true
 			},
 			{
+				"block": "e",
+				"start": "11:20",
+				"end"  : "13:20",
+				"other": true
+			},
+			{
 				"block": "advisory",
 				"start": "13:25",
 				"end"  : "13:40"
@@ -212,6 +230,12 @@
 				"start": "13:10",
 				"end"  : "13:50",
 				"sam": true
+			},
+			{
+				"block": "e",
+				"start": "11:55",
+				"end"  : "13:50",
+				"other": true
 			},
 			{
 				"block": "c",
@@ -358,6 +382,12 @@
 				"sam": true
 			},
 			{
+				"block": "f",
+				"start": "11:05",
+				"end"  : "12:35",
+				"other": true
+			},
+			{
 				"block": "d",
 				"start": "12:40",
 				"end"  : "13:25"
@@ -419,6 +449,12 @@
 				"sam": true
 			},
 			{
+				"block": "f",
+				"start": "11:40",
+				"end"  : "13:00",
+				"other": true
+			},
+			{
 				"block": "d",
 				"start": "13:05",
 				"end"  : "13:45"
@@ -473,6 +509,12 @@
 				"wleh": true
 			},
 			{
+				"block": "g",
+				"start": "11:20",
+				"end"  : "13:20",
+				"other": true
+			},
+			{
 				"block": "advisory",
 				"start": "13:25",
 				"end"  : "13:40"
@@ -523,6 +565,12 @@
 				"start": "13:10",
 				"end"  : "13:50",
 				"wleh": true
+			},
+			{
+				"block": "g",
+				"start": "11:55",
+				"end"  : "13:50",
+				"other": true
 			},
 			{
 				"block": "e",

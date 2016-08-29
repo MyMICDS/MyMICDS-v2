@@ -6,6 +6,7 @@
  */
 
 var _      = require('underscore');
+var moment = require('moment');
 var prisma = require('prisma');
 var users  = require(__dirname + '/users.js');
 
@@ -37,7 +38,7 @@ var validBlocks = [
 var validTypes = [
 	'sam',  // Science, Art, Math
 	'wleh', // World Language, English, History
-	'free'  // Free Period
+	'other' // Free Period or something else
 ];
 
 var samTypes = [
@@ -67,7 +68,7 @@ var wlehTypes = [
 function convertType(type) {
 	if(_.contains(samTypes, type)) return 'sam';
 	if(_.contains(wlehTypes, type)) return 'wleh';
-	return 'free';
+	return 'other';
 }
 
 /**
@@ -82,7 +83,7 @@ function convertType(type) {
  * @returns {Object}
  */
 
-function getSchedule(day, lateStart, grade, blocks) {
+function getSchedule(date, day, lateStart, grade, blocks) {
 
 	if(typeof blocks !== 'object') blocks = {};
 
@@ -192,6 +193,11 @@ function getSchedule(day, lateStart, grade, blocks) {
 		};
 	}
 
+	// Make sure date is a moment object
+	date = moment(date);
+
+	// If invalid day, return empty schedule because school isn't in session
+	if(day === null) return [];
 	if(typeof day !== 'number' || day % 1 !== 0 || 1 > grade || grade > 6) {
 		return null;
 	}
@@ -227,12 +233,6 @@ function getSchedule(day, lateStart, grade, blocks) {
 				color: prisma(blockName).hex.toUpperCase()
 			}
 		}
-
-		if(typeof blocks[block] === 'undefined') {
-			// Make sure
-		} else {
-
-		}
 	}
 
 	// User's final schedule
@@ -252,18 +252,19 @@ function getSchedule(day, lateStart, grade, blocks) {
 		var scheduleLunchBlock = highschoolSchedule['day' + day].lunchBlock;
 		var lunchBlockType = null;
 
-		var sam = null;
-		var wleh = null;
+		var sam = false;
+		var wleh = false;
+		var other = false;
 
 		if(lunchBlock) {
 			lunchBlockType = blocks[lunchBlock].type;
 
 			if(lunchBlockType === 'sam') {
 				sam = true;
-				wleh = false;
 			} else if(lunchBlockType === 'wleh') {
-				sam = true;
-				wleh = false;
+				wleh = true;
+			} else {
+				other = true;
 			}
 		}
 
@@ -280,6 +281,9 @@ function getSchedule(day, lateStart, grade, blocks) {
 			if(typeof jsonBlock.wleh !== 'undefined') {
 				if(jsonBlock.wleh !== wleh) continue;
 			}
+			if(typeof jsonBlock.other !== 'undefined') {
+				if(jsonBlock.other !== other) continue;
+			}
 
 			if(typeof jsonBlock.lowerclass !== 'undefined') {
 				if(jsonBlock.lowerclass !== lowerclass) continue;
@@ -288,11 +292,17 @@ function getSchedule(day, lateStart, grade, blocks) {
 				if(jsonBlock.lowerclass !== upperclass) continue;
 			}
 
+			// Get start and end moment objects
+			var startTime = jsonBlock.start.split(':');
+			var start = date.clone().hour(startTime[0]).minute(startTime[1]);
+
+			var endTime = jsonBlock.end.split(':');
+			var end = date.clone().hour(endTime[0]).minute(endTime[1]);
+
 			// Push to user schedule
 			userSchedule.push({
-				start: jsonBlock.start,
-				end  : jsonBlock.end,
-				block: jsonBlock.type,
+				start: start,
+				end  : end,
 				class: blocks[jsonBlock.type]
 			});
 		}
@@ -307,11 +317,17 @@ function getSchedule(day, lateStart, grade, blocks) {
 		for(var i = 0; i < jsonSchedule.length; i++) {
 			var jsonBlock = jsonSchedule[i];
 
+			// Get start and end moment objects
+			var startTime = jsonBlock.start.split(':');
+			var start = date.clone().hour(startTime[0]).minute(startTime[1]);
+
+			var endTime = jsonBlock.end.split(':');
+			var end = date.clone().hour(endTime[0]).minute(endTime[1]);
+
 			// Push to user schedule
 			userSchedule.push({
-				start: jsonBlock.start,
-				end  : jsonBlock.end,
-				block: jsonBlock.type,
+				start: start,
+				end  : end,
 				class: blocks[jsonBlock.type]
 			});
 		}
