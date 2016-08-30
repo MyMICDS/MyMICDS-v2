@@ -482,14 +482,8 @@ function getSchedule(db, user, date, callback) {
 							}
 
 							// If new event is totally unrelated to the block, just ignore
-							if(startRelation === 'same end' || startRelation === 'after') {
-								loopClass(++i);
-								return;
-							}
-							if(endRelation === 'same start' || endRelation === 'before') {
-								loopClass(++i);
-								return;
-							}
+							if(startRelation === 'same end' || startRelation === 'after') continue;
+							if(endRelation === 'same start' || endRelation === 'before') continue;
 
 							// If same times, delete
 							if(startRelation === 'same start' && endRelation === 'same end') {
@@ -532,48 +526,68 @@ function getSchedule(db, user, date, callback) {
 
 						// Determine if there's an alias
 						if(aliasCache[calEvent.summary]) {
+							console.log(calEvent.summary + ' already has lias')
 							schedule.classes.push({
 								class: aliasCache[calEvent.summary],
 								start: start,
 								end: end
 							});
+							loopClass(++i);
 						} else {
 							aliases.getClass(db, user, 'portal', calEvent.summary, function(err, hasAlias, classObject) {
+								if(err) {
+									callback(err, null, null);
+									return;
+								}
 
+								console.log('class object alias', classObject)
+
+								if(hasAlias) {
+									console.log(calEvent.summary + ' has alias! from get alias')
+									aliasCache[calEvent.summary] = classObject;
+								} else {
+									console.log(calEvent.summary + ' doesnt have alias! from get alias')
+
+									// Determine block
+									var blockPart = _.last(calEvent.summary.match(portalSummaryBlock));
+									var block = 'other';
+
+									if(blockPart) {
+										block = _.last(blockPart.match(/[A-G]/g)).toLowerCase();
+									}
+
+									// Determine color
+									var color = prisma(calEvent.summary).hex;
+
+									aliasCache[calEvent.summary] = {
+										portal: true,
+										raw: calEvent.summary,
+										name: cleanUp(calEvent.summary),
+										teacher: {
+											prefix: '',
+											firstName: '',
+											lastName: ''
+										},
+										block: block,
+										type: 'other',
+										color: color,
+										textDark: prisma.shouldTextBeDark(color)
+									}
+								}
+
+								console.log(calEvent.summary);
+								console.log(aliasCache);
+								schedule.classes.push({
+									class: aliasCache[calEvent.summary],
+									start: start,
+									end  : end
+								});
+								loopClass(++i);
 							});
 						}
-
-						// Determine block
-						var blockPart = _.last(calEvent.summary.match(portalSummaryBlock));
-						var block = 'other';
-
-						if(blockPart) {
-							block = _.last(blockPart.match(/[A-G]/g)).toLowerCase();
-						}
-
-						// Determine color
-						var color = prisma(calEvent.summary).hex;
-
-						schedule.classes.push({
-							class: {
-								portal: true,
-								raw: calEvent.summary,
-								name: cleanUp(calEvent.summary),
-								teacher: {
-									prefix: '',
-									firstName: '',
-									lastName: ''
-								},
-								block: block,
-								type: 'other',
-								color: color,
-								textDark: prisma.shouldTextBeDark(color)
-							},
-							start: start,
-							end  : end
-						});
+					} else {
+						loopClass(++i);
 					}
-					loopClass(++i);
 				}
 				loopClass(0);
 
@@ -592,59 +606,67 @@ function getSchedule(db, user, date, callback) {
 						return a.start - b.start;
 					});
 
+					console.log(schedule.classes)
+
 					if(schedule.special) {
 						// If special schedule, just use default portal schedule
 						callback(null, true, schedule);
-					} else {
-						// If regular schedule, use normal block schedule so we can insert free periods and lunch
-						parseIcalClasses(data, function(err, hasURL, classes) {
-							if(err) {
-								callback(err, null, null);
-								return;
-							}
-
-							// Organize classes into the blocks object
-							var blocks = {};
-							for(var i = 0; i < classes.length; i++) {
-								// Determine block
-								var blockPart = _.last(classes[i].match(portalSummaryBlock));
-
-								console.log('block part', blockPart)
-
-								if(blockPart) {
-									var block = _.last(blockPart.match(/[A-G]/g)).toLowerCase();
-
-									// Determine color
-									var color = prisma(classes[i]).hex;
-
-									var scheduleBlock = {
-										portal: true,
-										name: classes[i],
-										teacher: {
-											prefix: '',
-											firstName: '',
-											lastName: ''
-										},
-										block: block,
-										type: 'other',
-										color: color,
-										textDark: prisma.shouldTextBeDark(color)
-									};
-
-									console.log('schedule block ' + block, scheduleBlock)
-									blocks[block] = scheduleBlock;
-								}
-							}
-
-							var blockClasses = blockSchedule.get(scheduleDate, schedule.day, scheduleDate.day() === 3, users.gradYearToGrade(userDoc['gradYear']), blocks);
-
-							// If schedule is null for some reason, default back to portal schedule
-							if(blockClasses !== null) {
-								schedule.classes = blockClasses;
-							}
-							callback(null, true, schedule);
-						});
+						return;
 					}
+
+					// If regular schedule, use normal block schedule so we can insert free periods and lunch
+					parseIcalClasses(data, function(err, hasURL, classes) {
+						if(err) {
+							callback(err, null, null);
+							return;
+						}
+
+						// Organize classes into the blocks object
+						var blocks = {};
+						for(var i = 0; i < classes.length; i++) {
+
+							// Determine block
+							var blockPart = _.last(classes[i].match(portalSummaryBlock));
+
+							if(blockPart) {
+								var block = _.last(blockPart.match(/[A-G]/g)).toLowerCase();
+
+								// Determine color
+								var color = prisma(classes[i]).hex;
+
+								var scheduleBlock = {
+									portal: true,
+									name: classes[i],
+									teacher: {
+										prefix: '',
+										firstName: '',
+										lastName: ''
+									},
+									block: block,
+									type: 'other',
+									color: color,
+									textDark: prisma.shouldTextBeDark(color)
+								};
+
+								blocks[block] = scheduleBlock;
+							}
+						}
+
+						// Override blocks with classes being taken today
+						for(var i = 0; i < schedule.classes.length; i++) {
+							var scheduleClass = schedule.classes[i].class;
+							console.log('go throug hclass', scheduleClass.type, scheduleClass.block)
+							blocks[scheduleClass.block] = scheduleClass;
+						}
+
+						var blockClasses = blockSchedule.get(scheduleDate, schedule.day, scheduleDate.day() === 3, users.gradYearToGrade(userDoc['gradYear']), blocks);
+
+						// If schedule is null for some reason, default back to portal schedule
+						if(blockClasses !== null) {
+							schedule.classes = blockClasses;
+						}
+						callback(null, true, schedule);
+					});
 				}
 			});
 		}
@@ -743,7 +765,7 @@ function cleanUp(str) {
 	if(typeof str !== 'string') return str;
 
 	// Split string between hyphens and trim each part
-	var parts = str.split('-').map(function(value) { return value.trim() });
+	var parts = str.split(' - ').map(function(value) { return value.trim() });
 
 	// Get rid of empty strings
 	for(var i = 0; i < parts.length; i++) {
@@ -941,8 +963,6 @@ function parseIcalClasses(data, callback) {
 			}
 		}
 	}
-
-	console.log(filteredClasses);
 
 	callback(null, true, filteredClasses);
 }
