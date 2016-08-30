@@ -50,7 +50,8 @@
 				"block": "d",
 				"start": "11:05",
 				"end"  : "12:35",
-				"other": true
+				"other": true,
+				"includeLunch": true
 			},
 			{
 				"block": "e",
@@ -117,7 +118,8 @@
 				"block": "d",
 				"start": "11:40",
 				"end"  : "13:00",
-				"other": true
+				"other": true,
+				"includeLunch": true
 			},
 			{
 				"block": "e",
@@ -177,7 +179,8 @@
 				"block": "e",
 				"start": "11:20",
 				"end"  : "13:20",
-				"other": true
+				"other": true,
+				"includeLunch": true
 			},
 			{
 				"block": "advisory",
@@ -235,7 +238,8 @@
 				"block": "e",
 				"start": "11:55",
 				"end"  : "13:50",
-				"other": true
+				"other": true,
+				"includeLunch": true
 			},
 			{
 				"block": "c",
@@ -385,7 +389,8 @@
 				"block": "f",
 				"start": "11:05",
 				"end"  : "12:35",
-				"other": true
+				"other": true,
+				"includeLunch": true
 			},
 			{
 				"block": "d",
@@ -452,7 +457,8 @@
 				"block": "f",
 				"start": "11:40",
 				"end"  : "13:00",
-				"other": true
+				"other": true,
+				"includeLunch": true
 			},
 			{
 				"block": "d",
@@ -512,7 +518,8 @@
 				"block": "g",
 				"start": "11:20",
 				"end"  : "13:20",
-				"other": true
+				"other": true,
+				"includeLunch": true
 			},
 			{
 				"block": "advisory",
@@ -570,7 +577,8 @@
 				"block": "g",
 				"start": "11:55",
 				"end"  : "13:50",
-				"other": true
+				"other": true,
+				"includeLunch": true
 			},
 			{
 				"block": "e",

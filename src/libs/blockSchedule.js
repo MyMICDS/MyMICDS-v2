@@ -300,11 +300,16 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 			var endTime = jsonBlock.end.split(':');
 			var end = date.clone().hour(endTime[0]).minute(endTime[1]);
 
+			var insertBlock = blocks[jsonBlock.block];
+			if(jsonBlock.includeLunch) {
+				insertBlock.name += ' + Lunch';
+			}
+
 			// Push to user schedule
 			userSchedule.push({
 				start: start,
 				end  : end,
-				class: blocks[jsonBlock.block]
+				class: insertBlock
 			});
 		}
 
