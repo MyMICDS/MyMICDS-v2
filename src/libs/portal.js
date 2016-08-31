@@ -575,8 +575,6 @@ function getSchedule(db, user, date, callback) {
 									}
 								}
 
-								console.log(calEvent.summary);
-								console.log(aliasCache);
 								schedule.classes.push({
 									class: aliasCache[calEvent.summary],
 									start: start,

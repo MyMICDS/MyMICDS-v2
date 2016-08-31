@@ -258,15 +258,15 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 		var other = false;
 
 		if(lunchBlock) {
-			lunchBlockType = blocks[lunchBlock].type;
+			var lunchBlockType = convertType(blocks[lunchBlock].type);
+		}
 
-			if(lunchBlockType === 'sam') {
-				sam = true;
-			} else if(lunchBlockType === 'wleh') {
-				wleh = true;
-			} else {
-				other = true;
-			}
+		if(lunchBlockType === 'sam') {
+			sam = true;
+		} else if(lunchBlockType === 'wleh') {
+			wleh = true;
+		} else {
+			other = true;
 		}
 
 		// Loop through JSON and append classes to user schedule
