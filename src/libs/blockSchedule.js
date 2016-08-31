@@ -89,6 +89,7 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 
 	// Add default blocks
 	if(typeof blocks.activities === 'undefined') {
+		var color = '#FF6347';
 		blocks.activities = {
 			name: 'Activities',
 			teacher: {
@@ -98,10 +99,12 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#FF6347'
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 	if(typeof blocks.advisory === 'undefined') {
+		var color = '#EEE'; // Sophisticated white
 		blocks.advisory = {
 			name: 'Advisory',
 			teacher: {
@@ -111,10 +114,12 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#EEE' // Sophisticated white
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 	if(typeof blocks.collaborative === 'undefined') {
+		var color = '#29ABE2';
 		blocks.collaborative = {
 			name: 'Collaborative Work',
 			teacher: {
@@ -124,10 +129,12 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#29ABE2'
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 	if(typeof blocks.community === 'undefined') {
+		var color = '#AA0031';
 		blocks.community = {
 			name: 'Community',
 			teacher: {
@@ -137,10 +144,12 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#AA0031'
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 	if(typeof blocks.enrichment === 'undefined') {
+		var color = '#FF4500';
 		blocks.enrichment = {
 			name: 'Enrichment',
 			teacher: {
@@ -150,10 +159,12 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#FF4500'
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 	if(typeof blocks.flex === 'undefined') {
+		var color = '#CC33FF';
 		blocks.flex = {
 			name: 'Flex',
 			teacher: {
@@ -163,10 +174,12 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#CC33FF'
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 	if(typeof blocks.lunch === 'undefined') {
+		var color = '#116C53';
 		blocks.lunch = {
 			name: 'Lunch!',
 			teacher: {
@@ -176,10 +189,12 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#116C53'
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 	if(typeof blocks.recess === 'undefined') {
+		var color = '#FFFF00';
 		blocks.recess = {
 			name: 'Recess',
 			teacher: {
@@ -189,7 +204,8 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#FFFF00'
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 
