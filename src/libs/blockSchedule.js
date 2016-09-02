@@ -6,6 +6,7 @@
  */
 
 var _      = require('underscore');
+var moment = require('moment');
 var prisma = require('prisma');
 var users  = require(__dirname + '/users.js');
 
@@ -37,7 +38,7 @@ var validBlocks = [
 var validTypes = [
 	'sam',  // Science, Art, Math
 	'wleh', // World Language, English, History
-	'free'  // Free Period
+	'other' // Free Period or something else
 ];
 
 var samTypes = [
@@ -67,7 +68,7 @@ var wlehTypes = [
 function convertType(type) {
 	if(_.contains(samTypes, type)) return 'sam';
 	if(_.contains(wlehTypes, type)) return 'wleh';
-	return 'free';
+	return 'other';
 }
 
 /**
@@ -82,12 +83,13 @@ function convertType(type) {
  * @returns {Object}
  */
 
-function getSchedule(day, lateStart, grade, blocks) {
+function getSchedule(date, day, lateStart, grade, blocks) {
 
 	if(typeof blocks !== 'object') blocks = {};
 
 	// Add default blocks
 	if(typeof blocks.activities === 'undefined') {
+		var color = '#FF6347';
 		blocks.activities = {
 			name: 'Activities',
 			teacher: {
@@ -97,11 +99,13 @@ function getSchedule(day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#FF6347'
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 	if(typeof blocks.advisory === 'undefined') {
-		blocks.activities = {
+		var color = '#EEE'; // Sophisticated white
+		blocks.advisory = {
 			name: 'Advisory',
 			teacher: {
 				prefix: '',
@@ -110,10 +114,12 @@ function getSchedule(day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#EEE' // Sophisticated white
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 	if(typeof blocks.collaborative === 'undefined') {
+		var color = '#29ABE2';
 		blocks.collaborative = {
 			name: 'Collaborative Work',
 			teacher: {
@@ -123,10 +129,12 @@ function getSchedule(day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#29ABE2'
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 	if(typeof blocks.community === 'undefined') {
+		var color = '#AA0031';
 		blocks.community = {
 			name: 'Community',
 			teacher: {
@@ -136,11 +144,13 @@ function getSchedule(day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#AA0031'
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 	if(typeof blocks.enrichment === 'undefined') {
-		blocks.activities = {
+		var color = '#FF4500';
+		blocks.enrichment = {
 			name: 'Enrichment',
 			teacher: {
 				prefix: '',
@@ -149,10 +159,12 @@ function getSchedule(day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#FF4500'
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 	if(typeof blocks.flex === 'undefined') {
+		var color = '#CC33FF';
 		blocks.flex = {
 			name: 'Flex',
 			teacher: {
@@ -162,11 +174,13 @@ function getSchedule(day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#CC33FF'
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 	if(typeof blocks.lunch === 'undefined') {
-		blocks.activities = {
+		var color = '#116C53';
+		blocks.lunch = {
 			name: 'Lunch!',
 			teacher: {
 				prefix: '',
@@ -175,11 +189,13 @@ function getSchedule(day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#116C53'
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 	if(typeof blocks.recess === 'undefined') {
-		blocks.activities = {
+		var color = '#FFFF00';
+		blocks.recess = {
 			name: 'Recess',
 			teacher: {
 				prefix: '',
@@ -188,11 +204,18 @@ function getSchedule(day, lateStart, grade, blocks) {
 			},
 			type: 'other',
 			block: 'other',
-			color: '#FFFF00'
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
 
-	if(typeof day !== 'number' || day % 1 !== 0 || 1 > grade || grade > 6) {
+	// Make sure date is a moment object
+	date = moment(date);
+
+	// If invalid day, return empty schedule because school isn't in session
+	if(day === null) return [];
+	day = parseInt(day);
+	if(typeof day !== 'number' || day % 1 !== 0 || 1 > day || day > 6) {
 		return null;
 	}
 
@@ -212,7 +235,7 @@ function getSchedule(day, lateStart, grade, blocks) {
 		if(typeof blocks[block] === 'undefined') {
 			var blockName = block[0].toUpperCase() + block.slice(1);
 			if(blockName.length === 1) {
-				blockName = 'Block ' + block;
+				blockName = 'Block ' + blockName;
 			}
 
 			blocks[block] = {
@@ -226,12 +249,6 @@ function getSchedule(day, lateStart, grade, blocks) {
 				block: block,
 				color: prisma(blockName).hex.toUpperCase()
 			}
-		}
-
-		if(typeof blocks[block] === 'undefined') {
-			// Make sure
-		} else {
-
 		}
 	}
 
@@ -249,22 +266,23 @@ function getSchedule(day, lateStart, grade, blocks) {
 		}
 
 		// Get lunch type and determine what type it is
-		var scheduleLunchBlock = highschoolSchedule['day' + day].lunchBlock;
+		var lunchBlock = highschoolSchedule['day' + day].lunchBlock;
 		var lunchBlockType = null;
 
-		var sam = null;
-		var wleh = null;
+		var sam = false;
+		var wleh = false;
+		var other = false;
 
 		if(lunchBlock) {
-			lunchBlockType = blocks[lunchBlock].type;
+			var lunchBlockType = convertType(blocks[lunchBlock].type);
+		}
 
-			if(lunchBlockType === 'sam') {
-				sam = true;
-				wleh = false;
-			} else if(lunchBlockType === 'wleh') {
-				sam = true;
-				wleh = false;
-			}
+		if(lunchBlockType === 'sam') {
+			sam = true;
+		} else if(lunchBlockType === 'wleh') {
+			wleh = true;
+		} else {
+			other = true;
 		}
 
 		// Loop through JSON and append classes to user schedule
@@ -280,6 +298,9 @@ function getSchedule(day, lateStart, grade, blocks) {
 			if(typeof jsonBlock.wleh !== 'undefined') {
 				if(jsonBlock.wleh !== wleh) continue;
 			}
+			if(typeof jsonBlock.other !== 'undefined') {
+				if(jsonBlock.other !== other) continue;
+			}
 
 			if(typeof jsonBlock.lowerclass !== 'undefined') {
 				if(jsonBlock.lowerclass !== lowerclass) continue;
@@ -288,12 +309,23 @@ function getSchedule(day, lateStart, grade, blocks) {
 				if(jsonBlock.lowerclass !== upperclass) continue;
 			}
 
+			// Get start and end moment objects
+			var startTime = jsonBlock.start.split(':');
+			var start = date.clone().hour(startTime[0]).minute(startTime[1]);
+
+			var endTime = jsonBlock.end.split(':');
+			var end = date.clone().hour(endTime[0]).minute(endTime[1]);
+
+			var insertBlock = blocks[jsonBlock.block];
+			if(jsonBlock.includeLunch) {
+				insertBlock.name += ' + Lunch';
+			}
+
 			// Push to user schedule
 			userSchedule.push({
-				start: jsonBlock.start,
-				end  : jsonBlock.end,
-				block: jsonBlock.type,
-				class: blocks[jsonBlock.type]
+				start: start,
+				end  : end,
+				class: insertBlock
 			});
 		}
 
@@ -307,12 +339,18 @@ function getSchedule(day, lateStart, grade, blocks) {
 		for(var i = 0; i < jsonSchedule.length; i++) {
 			var jsonBlock = jsonSchedule[i];
 
+			// Get start and end moment objects
+			var startTime = jsonBlock.start.split(':');
+			var start = date.clone().hour(startTime[0]).minute(startTime[1]);
+
+			var endTime = jsonBlock.end.split(':');
+			var end = date.clone().hour(endTime[0]).minute(endTime[1]);
+
 			// Push to user schedule
 			userSchedule.push({
-				start: jsonBlock.start,
-				end  : jsonBlock.end,
-				block: jsonBlock.type,
-				class: blocks[jsonBlock.type]
+				start: start,
+				end  : end,
+				class: blocks[jsonBlock.block]
 			});
 		}
 

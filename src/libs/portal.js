@@ -9,6 +9,8 @@ var config = require(__dirname + '/config.js');
 
 var _             = require('underscore');
 var aliases       = require(__dirname + '/aliases.js');
+var asyncLib      = require('async');
+var classes       = require(__dirname + '/classes.js');
 var ical          = require('ical');
 var moment        = require('moment');
 var prisma        = require('prisma');
@@ -23,6 +25,8 @@ var urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?q=';
 // RegEx to test if calendar summary is a valid Day Rotation
 var validDayRotation = /^Day [1-6] \((US|MS)\)$/;
 var validDayRotationPlain = /^Day [1-6]$/;
+
+var portalSummaryBlock = / - [0-9] \([A-G][0-9]\)/g;
 
 /**
  * Makes sure a given url is valid and it points to a Portal calendar feed
@@ -198,6 +202,7 @@ function setURL(db, user, url, callback) {
   * @param {Boolean} hasURL - Whether user has set a valid portal URL. Null if failure.
   * @param {Object} schedule - Object containing everything going on that day. Null if failure.
   * @param {Object} schedule.day - Speicifies what day it is in the schedule rotation. Null if no day is found.
+  * @param {Boolean} schedule.special - Whether or not this schedule is a special little snowflake.
   * @param {Object} schedule.classes - Array containing schedule and classes for that day. Empty array if nothing is going on that day.
   * @param {Object} schedule.allDay - Array containing all-day events or events spanning multiple days. Empty array if nothing is going on that day.
   */
@@ -209,7 +214,7 @@ function getSchedule(db, user, date, callback) {
 	var scheduleDate = moment(date).startOf('day');
 	var scheduleNextDay = scheduleDate.clone().add(1, 'day');
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user || '', function(err, isUser, userDoc) {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -252,18 +257,18 @@ function getSchedule(db, user, date, callback) {
 		 *
 		 */
 
-		 // Get default class in case everything else fails
+		// Get default class in case everything else fails
 		var defaultStart = null;
- 		if(scheduleDate.day() !== 3) {
- 			// Not Wednesday, school starts at 8
- 			defaultStart = scheduleDate.clone().hour(8);
- 		} else {
- 			// Wednesday, school starts at 9
- 			defaultStart = scheduleDate.clone().hour(9);
- 		}
- 		var defaultEnd = scheduleDate.clone().hour(15).minute(15);
+		if(scheduleDate.day() !== 3) {
+			// Not Wednesday, school starts at 8
+			defaultStart = scheduleDate.clone().hour(8);
+		} else {
+			// Wednesday, school starts at 9
+			defaultStart = scheduleDate.clone().hour(9);
+		}
+		var defaultEnd = scheduleDate.clone().hour(15).minute(15);
 
- 		var defaultColor = '#A5001E';
+		var defaultColor = '#A5001E';
 
 		var defaultClasses = [{
 			class: {
@@ -275,12 +280,15 @@ function getSchedule(db, user, date, callback) {
 				},
 				block: 'other',
 				type: 'other',
-				color: color,
-				textDark: prisma.shouldTextBeDark(color)
+				color: defaultColor,
+				textDark: prisma.shouldTextBeDark(defaultColor)
 			},
-			start: start,
-			end: end
+			start: defaultStart,
+			end: defaultEnd
 		}];
+
+		// We will need this for later in the cleanClass() function
+		var aliasCache = {};
 
 		if(!isUser) {
 			// Fallback to default schedule if user is invalid
@@ -292,6 +300,7 @@ function getSchedule(db, user, date, callback) {
 
 				var schedule = {
 					day: scheduleDay,
+					special: false,
 					classes: defaultClasses,
 					allDay: []
 				}
@@ -301,34 +310,54 @@ function getSchedule(db, user, date, callback) {
 			});
 
 		} else if(typeof userDoc['portalURL'] !== 'string') {
-			// Fallback to default block schedule for user's grade
-			getDayRotation(scheduleDate, function(err, scheduleDay) {
+			asyncLib.parallel({
+				day: function(asyncCallback) {
+					getDayRotation(scheduleDate, function(err, scheduleDay) {
+						if(err) {
+							asyncCallback(err, null);
+							return;
+						}
+
+						asyncCallback(null, scheduleDay);
+
+					});
+				},
+				classes: function(asyncCallback) {
+					classes.get(db, user, function(err, classes) {
+						if(err) {
+							asyncCallback(err, null);
+							return;
+						}
+
+						asyncCallback(null, classes);
+
+					});
+				}
+			}, function(err, results) {
 				if(err) {
 					callback(err, null, null);
 					return;
 				}
 
-
-				var schedule = blockSchedule.get(scheduleDay, scheduleDate.day() === 3, userDoc['gradYear']);
-
-				if(schedule) {
-
-				} else {
-					// Fallback to default classes
-					var schedule = {
-						day: scheduleDay,
-						classes: defaultClasses,
-						allDay: []
-					}
-
-					callback(null, false, schedule);
-
+				// Assign each class to it's block
+				var blocks = {};
+				for(var i = 0; i < results.classes.length; i++) {
+					var block = results.classes[i];
+					blocks[block.block] = block; // Very descriptive
 				}
+
+				var schedule = blockSchedule.get(scheduleDate, results.day, scheduleDate.day() === 3, users.gradYearToGrade(userDoc['gradYear']), blocks);
+
+				callback(null, false, {
+					day: results.day,
+					special: false,
+					classes: schedule,
+					allDay: []
+				});
 			});
 
 		} else {
 			// Get Portal calendar feed
-
 			request(userDoc['portalURL'], function(err, response, body) {
 				if(err) {
 					callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
@@ -350,22 +379,38 @@ function getSchedule(db, user, date, callback) {
 
 				var schedule = {
 					day: null,
+					special: false,
 					classes: [],
 					allDay : []
 				};
 
 				// Loop through all of the events in the calendar feed
-	            var conflictIndexes = [];
+				var eventIndexes = Object.keys(data);
+				var aliasCache = {};
+				var conflictIndexes = [];
 
-				for(var eventUid in data) {
-					var calEvent = data[eventUid];
-					if(typeof calEvent.summary !== 'string') continue;
+				function loopClass(i) {
+
+					// Check if we're finished looping through classes
+					if(i >= eventIndexes.length) {
+						doneClassLoop();
+						return;
+					}
+
+					var calEvent = data[eventIndexes[i]];
+					if(typeof calEvent.summary !== 'string') {
+						loopClass(++i);
+						return;
+					}
 
 					var start = moment(calEvent['start']);
 					var end   = moment(calEvent['end']);
 
 					// Make sure the event isn't all whacky
-					if(end.isBefore(start)) continue;
+					if(end.isBefore(start)) {
+						loopClass(++i);
+						return;
+					}
 
 					// Check if it's an all-day event
 					if(start.isSameOrBefore(scheduleDate) && end.isSameOrAfter(scheduleNextDay)) {
@@ -374,7 +419,18 @@ function getSchedule(db, user, date, callback) {
 							// Get actual day
 							var day = calEvent.summary.match(/[1-6]/)[0];
 							schedule.day = day;
-							continue;
+							console.log('day is roation ' + day)
+							loopClass(++i);
+							return;
+						}
+
+						// Check if special schedule
+						var lowercaseSummary = calEvent.summary.toLowerCase();
+						if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
+							console.log('special schedule DETECTED')
+							schedule.special = true;
+							loopClass(++i);
+							return;
 						}
 
 						schedule.allDay.push(cleanUp(calEvent.summary));
@@ -468,53 +524,148 @@ function getSchedule(db, user, date, callback) {
 							}
 						}
 
-						schedule.classes.push({
-							class: calEvent.summary,
-							start: start,
-							end  : end
-						});
+						// Determine if there's an alias
+						if(aliasCache[calEvent.summary]) {
+							console.log(calEvent.summary + ' already has lias')
+							schedule.classes.push({
+								class: aliasCache[calEvent.summary],
+								start: start,
+								end: end
+							});
+							loopClass(++i);
+						} else {
+							aliases.getClass(db, user, 'portal', calEvent.summary, function(err, hasAlias, classObject) {
+								if(err) {
+									callback(err, null, null);
+									return;
+								}
+
+								console.log('class object alias', classObject)
+
+								if(hasAlias) {
+									console.log(calEvent.summary + ' has alias! from get alias')
+									aliasCache[calEvent.summary] = classObject;
+								} else {
+									console.log(calEvent.summary + ' doesnt have alias! from get alias')
+
+									// Determine block
+									var blockPart = _.last(calEvent.summary.match(portalSummaryBlock));
+									var block = 'other';
+
+									if(blockPart) {
+										block = _.last(blockPart.match(/[A-G]/g)).toLowerCase();
+									}
+
+									// Determine color
+									var color = prisma(calEvent.summary).hex;
+
+									aliasCache[calEvent.summary] = {
+										portal: true,
+										raw: calEvent.summary,
+										name: cleanUp(calEvent.summary),
+										teacher: {
+											prefix: '',
+											firstName: '',
+											lastName: ''
+										},
+										block: block,
+										type: 'other',
+										color: color,
+										textDark: prisma.shouldTextBeDark(color)
+									}
+								}
+
+								schedule.classes.push({
+									class: aliasCache[calEvent.summary],
+									start: start,
+									end  : end
+								});
+								loopClass(++i);
+							});
+						}
+					} else {
+						loopClass(++i);
 					}
 				}
+				loopClass(0);
 
-				// Delete all conflicting classes
-				conflictIndexes.sort();
-				var deleteOffset = 0;
-				for(var i = 0; i < conflictIndexes.length; i++) {
-					var index = conflictIndexes[i] - deleteOffset++;
-					schedule.classes.splice(index, 1);
-				}
+				function doneClassLoop() {
 
-				// Reorder schedule because of deleted classes
-				schedule.classes.sort(function(a, b) {
-					return a.start - b.start;
-				});
+					// Delete all conflicting classes
+					conflictIndexes.sort();
+					var deleteOffset = 0;
+					for(var i = 0; i < conflictIndexes.length; i++) {
+						var index = conflictIndexes[i] - deleteOffset++;
+						schedule.classes.splice(index, 1);
+					}
 
-				// Check if any schedules have an alias. Otherwise, clean up.
-				function cleanClass(i) {
+					// Reorder schedule because of deleted classes
+					schedule.classes.sort(function(a, b) {
+						return a.start - b.start;
+					});
 
-					if(i >= schedule.classes.length) {
-						// Done looping through classes!
+					console.log(schedule.classes)
+
+					if(schedule.special) {
+						// If special schedule, just use default portal schedule
 						callback(null, true, schedule);
 						return;
 					}
 
-					var scheduleName = schedule.classes[i].class.trim();
-
-					aliases.getClass(db, user, 'portal', scheduleName, function(err, hasAlias, classObject) {
-
-						var scheduleClass = cleanUp(scheduleName);
-
-						if(hasAlias) {
-							scheduleClass = classObject;
+					// If regular schedule, use normal block schedule so we can insert free periods and lunch
+					parseIcalClasses(data, function(err, hasURL, classes) {
+						if(err) {
+							callback(err, null, null);
+							return;
 						}
 
-						schedule.classes[i].class = scheduleClass;
+						// Organize classes into the blocks object
+						var blocks = {};
+						for(var i = 0; i < classes.length; i++) {
 
-						cleanClass(++i);
+							// Determine block
+							var blockPart = _.last(classes[i].match(portalSummaryBlock));
+
+							if(blockPart) {
+								var block = _.last(blockPart.match(/[A-G]/g)).toLowerCase();
+
+								// Determine color
+								var color = prisma(classes[i]).hex;
+
+								var scheduleBlock = {
+									portal: true,
+									name: classes[i],
+									teacher: {
+										prefix: '',
+										firstName: '',
+										lastName: ''
+									},
+									block: block,
+									type: 'other',
+									color: color,
+									textDark: prisma.shouldTextBeDark(color)
+								};
+
+								blocks[block] = scheduleBlock;
+							}
+						}
+
+						// Override blocks with classes being taken today
+						for(var i = 0; i < schedule.classes.length; i++) {
+							var scheduleClass = schedule.classes[i].class;
+							console.log('go throug hclass', scheduleClass.type, scheduleClass.block)
+							blocks[scheduleClass.block] = scheduleClass;
+						}
+
+						var blockClasses = blockSchedule.get(scheduleDate, schedule.day, scheduleDate.day() === 3, users.gradYearToGrade(userDoc['gradYear']), blocks);
+
+						// If schedule is null for some reason, default back to portal schedule
+						if(blockClasses !== null) {
+							schedule.classes = blockClasses;
+						}
+						callback(null, true, schedule);
 					});
 				}
-				cleanClass(0);
-
 			});
 		}
 	});
@@ -612,7 +763,7 @@ function cleanUp(str) {
 	if(typeof str !== 'string') return str;
 
 	// Split string between hyphens and trim each part
-	var parts = str.split('-').map(function(value) { return value.trim() });
+	var parts = str.split(' - ').map(function(value) { return value.trim() });
 
 	// Get rid of empty strings
 	for(var i = 0; i < parts.length; i++) {
@@ -672,7 +823,7 @@ function cleanUp(str) {
  * @callback getPortalClassesCallback
  *
  * @param {Object} err - Null if success, error object if failure.
- * @param {Boolean} hasURL - Whether or not the user has a Portal URL set
+ * @param {Boolean} hasURL - Whether or not the user has a Portal URL set. Null if error.
  * @param {Array} classes - Array of classes from portal. Null if error.
  */
 
@@ -722,68 +873,96 @@ function getClasses(db, user, callback) {
 				return;
 			}
 
-			var classes = {};
-
-			// Go through each event and add to classes object with a count of how many times they occur
-			for(var eventUid in data) {
-				var calEvent = data[eventUid];
-
-				if(typeof calEvent.summary !== 'string') continue;
-
-				var start = moment(calEvent['start']);
-				var end   = moment(calEvent['end']);
-
-				var startDay = start.clone().startOf('day');
-				var endDay = end.clone().startOf('day');
-
-				// Check if it's an all-day event
-				if(start.isSame(startDay) && end.isSame(endDay)) {
-					continue;
-				}
-
-				var className = calEvent.summary.trim();
-
-				if(typeof classes[className] !== 'undefined') {
-					classes[className]++;
-				} else {
-					classes[className] = 1;
-				}
-			}
-
-			var uniqueClasses = Object.keys(classes);
-			var filteredClasses = [];
-
-			for(var i = 0; i < uniqueClasses.length; i++) {
-				var uniqueClass = uniqueClasses[i];
-				var occurences = classes[uniqueClass];
-
-				// Remove all class names containing a certain keyword
-				var classKeywordBlacklist = [
-					'US'
-				];
-
-				if(occurences >= 10) {
-
-					// Check if class contains any word blacklisted
-					var containsBlacklistedWord = false;
-					for(var j = 0; j < classKeywordBlacklist.length; j++) {
-						if(uniqueClass.includes(classKeywordBlacklist[j])) {
-							containsBlacklistedWord = true;
-							break;
-						}
-					}
-
-					// If doesn't contain keyword, push to array
-					if(!containsBlacklistedWord) {
-						filteredClasses.push(uniqueClass);
-					}
-				}
-			}
-
-			callback(null, true, filteredClasses);
+			parseIcalClasses(data, callback);
 
 		});
 	});
+}
+
+/**
+ * Retrieves all the classes in a parsed iCal object
+ * @function parseIcalClasses
+ *
+ * @param {Object} data - Parsed iCal object
+ * @param {parseIcalClassesCallback} callback - Callback
+ */
+
+ /**
+  * Returns array of classes from portal
+  * @callback parseIcalClassesCallback
+  *
+  * @param {Object} err - Null if success, error object if failure.
+  * @param {Boolean} hasURL - Whether or not the user has a Portal URL set. Null if error.
+  * @param {Array} classes - Array of classes from portal. Null if error.
+  */
+
+function parseIcalClasses(data, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof data !== 'object') {
+		callback(new Error('Invalid iCal object!'), null, null);
+		return;
+	}
+
+	var classes = {};
+
+	// Go through each event and add to classes object with a count of how many times they occur
+	for(var eventUid in data) {
+		var calEvent = data[eventUid];
+
+		if(typeof calEvent.summary !== 'string') continue;
+
+		var start = moment(calEvent['start']);
+		var end   = moment(calEvent['end']);
+
+		var startDay = start.clone().startOf('day');
+		var endDay = end.clone().startOf('day');
+
+		// Check if it's an all-day event
+		if(start.isSame(startDay) && end.isSame(endDay)) {
+			continue;
+		}
+
+		var className = calEvent.summary.trim();
+
+		if(typeof classes[className] !== 'undefined') {
+			classes[className]++;
+		} else {
+			classes[className] = 1;
+		}
+	}
+
+	var uniqueClasses = Object.keys(classes);
+	var filteredClasses = [];
+
+	for(var i = 0; i < uniqueClasses.length; i++) {
+		var uniqueClass = uniqueClasses[i];
+		var occurences = classes[uniqueClass];
+
+		// Remove all class names containing a certain keyword
+		var classKeywordBlacklist = [
+			'US'
+		];
+
+		if(occurences >= 10) {
+
+			// Check if class contains any word blacklisted
+			var containsBlacklistedWord = false;
+			for(var j = 0; j < classKeywordBlacklist.length; j++) {
+				if(uniqueClass.includes(classKeywordBlacklist[j])) {
+					containsBlacklistedWord = true;
+					break;
+				}
+			}
+
+			// If doesn't contain keyword, push to array
+			if(!containsBlacklistedWord) {
+				filteredClasses.push(uniqueClass);
+			}
+		}
+	}
+
+	callback(null, true, filteredClasses);
 }
 
 module.exports.verifyURL      = verifyURL;
