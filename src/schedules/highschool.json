@@ -286,6 +286,16 @@
 				"upperclass": true
 			},
 			{
+				"block": "collaborative",
+				"start": "12:10",
+				"end"  : "12:50"
+			},
+			{
+				"block": "enrichment",
+				"start": "12:55",
+				"end"  : "13:40"
+			},
+			{
 				"block": "f",
 				"start": "13:45",
 				"end"  : "15:15"
@@ -623,6 +633,16 @@
 				"start": "11:40",
 				"end"  : "12:10",
 				"lowerclass": true
+			},
+			{
+				"block": "collaborative",
+				"start": "12:10",
+				"end"  : "12:50"
+			},
+			{
+				"block": "activities",
+				"start": "12:55",
+				"end"  : "13:40"
 			},
 			{
 				"block": "d",
