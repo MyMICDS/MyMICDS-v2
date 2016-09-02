@@ -2,18 +2,21 @@
 
 /**
  * @file Determines what a user's schedule should be according to the generic block schedule
- * @module schedule
+ * @module blockSchedule
  */
 
-var _ = require('underscore');
-var users = require(__dirname + '/users.js');
+var _      = require('underscore');
+var prisma = require('prisma');
+var users  = require(__dirname + '/users.js');
 
 // Schedules
 var highschoolSchedule   = require(__dirname + '/../schedules/highschool.json');
-var eighthGradeSchedule  = require(__dirname + '/../schedules/grade8.json');
-var seventhGradeSchedule = require(__dirname + '/../schedules/grade7.json');
-var sixthGradeSchedule   = require(__dirname + '/../schedules/grade6.json');
-var fifthGradeSchedule   = require(__dirname + '/../schedules/grade5.json');
+var middleschoolSchedule = {
+	8: require(__dirname + '/../schedules/grade8.json'),
+	7: require(__dirname + '/../schedules/grade7.json'),
+	6: require(__dirname + '/../schedules/grade6.json'),
+	5: require(__dirname + '/../schedules/grade5.json'),
+};
 
 var validBlocks = [
 	'a',
@@ -23,7 +26,7 @@ var validBlocks = [
 	'e',
 	'f',
 	'g',
-	'activities'
+	'activities',
 	'advisory',
 	'collaborative',
 	'community',
@@ -36,6 +39,36 @@ var validTypes = [
 	'wleh', // World Language, English, History
 	'free'  // Free Period
 ];
+
+var samTypes = [
+	'art',
+	'math',
+	'science'
+];
+
+var wlehTypes = [
+	'english',
+	'history',
+	'spanish',
+	'latin',
+	'mandarin',
+	'german',
+	'french'
+];
+
+/**
+ * Converts a classes.js type into a valid schedule type
+ * @function convertType
+ *
+ * @param {string} type - Type of class
+ * @returns {string}
+ */
+
+function convertType(type) {
+	if(_.contains(samTypes, type)) return 'sam';
+	if(_.contains(wlehTypes, type)) return 'wleh';
+	return 'free';
+}
 
 /**
  * Returns a user's generic schedule according to their grade and their class names for each corresponding block. Returns null if something's invalid.
@@ -51,7 +84,7 @@ var validTypes = [
 
 function getSchedule(day, lateStart, grade, blocks) {
 
-	if(typeof blocks !== 'object') return null;
+	if(typeof blocks !== 'object') blocks = {};
 
 	// Add default blocks
 	if(typeof blocks.activities === 'undefined') {
@@ -169,15 +202,37 @@ function getSchedule(day, lateStart, grade, blocks) {
 
 	var schoolName = users.gradeToSchool(grade);
 
-	// If lowerschool, return null
+	// We don't have lowerschool schedules
 	if(schoolName === 'lowerschool') return null;
 
 	// Make sure all blocks are valid
 	for(var i = 0; i < validBlocks.length; i++) {
 		var block = validBlocks[i];
 
-		// Make sure block is in blocks
-		if(typeof blocks[block] === 'undefined') return null;
+		if(typeof blocks[block] === 'undefined') {
+			var blockName = block[0].toUpperCase() + block.slice(1);
+			if(blockName.length === 1) {
+				blockName = 'Block ' + block;
+			}
+
+			blocks[block] = {
+				name: blockName,
+				teacher: {
+					prefix: '',
+					firstName: '',
+					lastName: ''
+				},
+				type: 'other',
+				block: block,
+				color: prisma(blockName).hex.toUpperCase()
+			}
+		}
+
+		if(typeof blocks[block] === 'undefined') {
+			// Make sure
+		} else {
+
+		}
 	}
 
 	// User's final schedule
@@ -237,17 +292,17 @@ function getSchedule(day, lateStart, grade, blocks) {
 			userSchedule.push({
 				start: jsonBlock.start,
 				end  : jsonBlock.end,
-				block: jsonBlock.type
+				block: jsonBlock.type,
 				class: blocks[jsonBlock.type]
 			});
 		}
 
 		return userSchedule;
 
-	} else if(grade === 8) {
+	} else if(schoolName === 'middleschool') {
 
 		// Loop through JSON and append classes to user schedule
-		var jsonSchedule = eighthGradeSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
+		var jsonSchedule = middleschoolSchedule[grade]['day' + day][lateStart ? 'lateStart' : 'regular'];
 
 		for(var i = 0; i < jsonSchedule.length; i++) {
 			var jsonBlock = jsonSchedule[i];
@@ -256,64 +311,7 @@ function getSchedule(day, lateStart, grade, blocks) {
 			userSchedule.push({
 				start: jsonBlock.start,
 				end  : jsonBlock.end,
-				block: jsonBlock.type
-				class: blocks[jsonBlock.type]
-			});
-		}
-
-		return userSchedule;
-
-	} else if(grade === 7) {
-
-		// Loop through JSON and append classes to user schedule
-		var jsonSchedule = seventhGradeSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
-
-		for(var i = 0; i < jsonSchedule.length; i++) {
-			var jsonBlock = jsonSchedule[i];
-
-			// Push to user schedule
-			userSchedule.push({
-				start: jsonBlock.start,
-				end  : jsonBlock.end,
-				block: jsonBlock.type
-				class: blocks[jsonBlock.type]
-			});
-		}
-
-		return userSchedule;
-
-	} else if(grade === 6) {
-
-		// Loop through JSON and append classes to user schedule
-		var jsonSchedule = sixthGradeSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
-
-		for(var i = 0; i < jsonSchedule.length; i++) {
-			var jsonBlock = jsonSchedule[i];
-
-			// Push to user schedule
-			userSchedule.push({
-				start: jsonBlock.start,
-				end  : jsonBlock.end,
-				block: jsonBlock.type
-				class: blocks[jsonBlock.type]
-			});
-		}
-
-		return userSchedule;
-
-	} else if(grade === 5) {
-
-		// Loop through JSON and append classes to user schedule
-		var jsonSchedule = fifthGradeSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
-
-		for(var i = 0; i < jsonSchedule.length; i++) {
-			var jsonBlock = jsonSchedule[i];
-
-			// Push to user schedule
-			userSchedule.push({
-				start: jsonBlock.start,
-				end  : jsonBlock.end,
-				block: jsonBlock.type
+				block: jsonBlock.type,
 				class: blocks[jsonBlock.type]
 			});
 		}
@@ -324,3 +322,5 @@ function getSchedule(day, lateStart, grade, blocks) {
 		return null;
 	}
 }
+
+module.exports.get = getSchedule;

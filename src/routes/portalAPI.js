@@ -89,23 +89,6 @@ module.exports = function(app, db) {
 						start: start,
 						end: end
 					});
-
-					console.log({
-						class: {
-							name: 'School',
-							teacher: {
-								prefix: 'Ms.',
-								firstName: 'Lisa',
-								lastName: 'Lyle'
-							},
-							block: 'other',
-							type: 'other',
-							color: color,
-							textDark: prisma.shouldTextBeDark(color)
-						},
-						start: start,
-						end  : end
-					})
 				}
 
 				var schedule = {
