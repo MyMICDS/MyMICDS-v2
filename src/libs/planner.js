@@ -308,7 +308,7 @@ function getMonthEvents(db, user, date, callback) {
 				var monthPadding = 1;
 
 				// Determine if event should be checked
-				possibleEvent.checked = _.contains(checkedEventsList, possibleEvent._id);
+				possibleEvent.checked = _.contains(checkedEventsList, possibleEvent._id.toHexString());
 
 				// Check previous and next months too
 				for(var j = monthPadding * -1; j <= monthPadding; j++) {

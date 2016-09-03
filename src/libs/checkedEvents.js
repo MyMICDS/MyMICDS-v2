@@ -191,7 +191,7 @@ function listChecked(db, user, callback) {
 			// Append all event ids to array
 			var checkedEventIds = [];
 			for(var i = 0; i < checkedEvents.length; i++) {
-				checkedEventIds.push(checkedEvents[i].classId);
+				checkedEventIds.push(checkedEvents[i].eventId);
 			}
 
 			callback(null, checkedEventIds);
