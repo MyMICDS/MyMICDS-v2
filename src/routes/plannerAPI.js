@@ -4,6 +4,7 @@
  * @file Manages planner API endpoints
  */
 
+var checkedEvents = require(__dirname + '/../libs/checkedEvents.js');
 var planner = require(__dirname + '/../libs/planner.js');
 
 module.exports = function(app, db) {
@@ -63,6 +64,29 @@ module.exports = function(app, db) {
 
 	app.post('/planner/delete', function(req, res) {
 		planner.deleteEvent(db, req.user.user, req.body.id, function(err) {
+			if(err) {
+				var errorMessage = err.message;
+			} else {
+				var errorMessage = null;
+			}
+			res.json({ error: errorMessage });
+		});
+	});
+
+	app.post('/planner/check', function(req, res) {
+		console.log('check event', req.body.id)
+		checkedEvents.check(db, req.user.user, req.body.id, function(err) {
+			if(err) {
+				var errorMessage = err.message;
+			} else {
+				var errorMessage = null;
+			}
+			res.json({ error: errorMessage });
+		});
+	});
+
+	app.post('/planner/uncheck', function(req, res) {
+		checkedEvents.uncheck(db, req.user.user, req.body.id, function(err) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

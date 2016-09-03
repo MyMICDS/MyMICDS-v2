@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @file Manages checked and unchecked events
  * @module checkedEvents
@@ -133,7 +135,66 @@ function getChecked(db, user, eventId, callback) {
 				return;
 			}
 
-			callback(null, checkedEvents.length === 0);
+			callback(null, checkedEvents.length !== 0);
+
+		});
+	});
+}
+
+/**
+ * Returns a list of checked events for user
+ * @function listChecked
+ *
+ * @param {Object} db - Database connection
+ * @param {string} user - Username
+ * @param {listCheckedCallback} callback - Callback
+ */
+
+/**
+ * Returns a list of checked events
+ * @callback listCheckedCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Object} checkedEvents - Array of event ids checked
+ */
+
+function listChecked(db, user, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid username!'), null);
+		return;
+	}
+
+	users.get(db, user, function(err, isUser, userDoc) {
+		if(err) {
+			callback(err, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null);
+			return;
+		}
+
+		var checkedEventsData = db.collection('checkedEvents');
+
+		checkedEventsData.find({ user: userDoc['_id'] }).toArray(function(err, checkedEvents) {
+			if(err) {
+				callback(new Error('There was a problem querying the database!'), null);
+				return;
+			}
+
+			// Append all event ids to array
+			var checkedEventIds = [];
+			for(var i = 0; i < checkedEvents.length; i++) {
+				checkedEventIds.push(checkedEvents[i].classId);
+			}
+
+			callback(null, checkedEventIds);
 
 		});
 	});
