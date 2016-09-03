@@ -40,7 +40,7 @@ var server = http.Server(app);
 
 // Socket.io
 var io = require('socket.io')(server);
-require(__dirname + '/libs/socket.io.js')(io);
+var socketIO = require(__dirname + '/libs/socket.io.js')(io);
 
 // Regularly schedule tasks (similar to Cron-Jobs)
 require(__dirname + '/libs/tasks.js')();
@@ -89,17 +89,21 @@ MongoClient.connect(config.mongodb.uri, function(err, db) {
 	require(__dirname + '/routes/portalAPI.js')(app, db);
 	require(__dirname + '/routes/userAPI.js')(app, db);
 	require(__dirname + '/routes/notificationAPI.js')(app, db);
-	require(__dirname + '/routes/weatherAPI.js')(app, db);
+	require(__dirname + '/routes/weatherAPI.js')(app, db, socketIO);
 });
 
 app.get('/start', function(req, res) {
 	res.sendFile(__dirname + '/html/start.html');
 });
 
+app.get('/socket-io-test', function(req, res) {
+	res.sendFile(__dirname + '/html/socket.html');
+});
+
 /*
  * Initialize Server
  */
 
-app.listen(port, function() {
+server.listen(port, function() {
 	console.log('Server listening on *:' + port);
 });
