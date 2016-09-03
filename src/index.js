@@ -18,6 +18,7 @@ var port = process.env.PORT || config.port;
 
 var bodyParser  = require('body-parser');
 var cors        = require('cors');
+var http        = require('http');
 var jwt         = require(__dirname + '/libs/jwt.js');
 var lunch       = require(__dirname + '/libs/lunch.js');
 var mail        = require(__dirname + '/libs/mail.js');
@@ -31,6 +32,18 @@ var weather     = require(__dirname + '/libs/weather.js');
 
 var express = require('express');
 var app = express();
+var server = http.Server(app);
+
+/*
+ * Realtime Stuff
+ */
+
+// Socket.io
+var io = require('socket.io')(server);
+require(__dirname + '/libs/socket.io.js')(io);
+
+// Regularly schedule tasks (similar to Cron-Jobs)
+require(__dirname + '/libs/tasks.js')();
 
 /**
  * Express Middleware
@@ -48,8 +61,6 @@ app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
 /*
  * Regularly Schedule Tasks (Similar to Cron-Jobs)
  */
-
-require(__dirname + '/libs/tasks.js')();
 
 /*
  * Routes
