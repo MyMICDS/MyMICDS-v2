@@ -7,7 +7,7 @@
 var checkedEvents = require(__dirname + '/../libs/checkedEvents.js');
 var planner = require(__dirname + '/../libs/planner.js');
 
-module.exports = function(app, db) {
+module.exports = function(app, db, socketIO) {
 
 	app.post('/planner/get', function(req, res) {
 		var date = {
@@ -49,15 +49,16 @@ module.exports = function(app, db) {
 			end    : end
 		};
 
-		planner.upsertEvent(db, req.user.user, insertEvent, function(err, id) {
+		planner.upsertEvent(db, req.user.user, insertEvent, function(err, plannerEvent) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
 				var errorMessage = null;
+				socketIO.user(req.user.user, 'planner', 'add', plannerEvent);
 			}
 			res.json({
 				error: errorMessage,
-				id: id
+				id: plannerEvent._id
 			});
 		});
 	});
@@ -68,6 +69,7 @@ module.exports = function(app, db) {
 				var errorMessage = err.message;
 			} else {
 				var errorMessage = null;
+				socketIO.user(req.user.user, 'planner', 'delete', req.body.id);
 			}
 			res.json({ error: errorMessage });
 		});
@@ -80,6 +82,7 @@ module.exports = function(app, db) {
 				var errorMessage = err.message;
 			} else {
 				var errorMessage = null;
+				socketIO.user(req.user.user, 'planner', 'check', req.body.id);
 			}
 			res.json({ error: errorMessage });
 		});
@@ -91,6 +94,7 @@ module.exports = function(app, db) {
 				var errorMessage = err.message;
 			} else {
 				var errorMessage = null;
+				socketIO.user(req.user.user, 'planner', 'uncheck', req.body.id);
 			}
 			res.json({ error: errorMessage });
 		});

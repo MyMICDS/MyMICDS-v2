@@ -42,9 +42,9 @@ module.exports = function(app, db, socketIO) {
 					var errorMessage = err.message;
 				} else {
 					var errorMessage = null;
+					socketIO.global('weather', weatherJSON);
 				}
 				res.json({ error: errorMessage });
-				socketIO.global('weather', weatherJSON);
 			});
 		});
 	});

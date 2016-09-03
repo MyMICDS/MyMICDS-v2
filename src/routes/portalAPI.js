@@ -7,7 +7,7 @@
 var portal = require(__dirname + '/../libs/portal.js');
 var prisma = require('prisma');
 
-module.exports = function(app, db) {
+module.exports = function(app, db, socketIO) {
 	app.post('/portal/test-url', function(req, res) {
 		portal.verifyURL(req.body.url, function(err, isValid, url) {
 			if(err) {
@@ -29,6 +29,7 @@ module.exports = function(app, db) {
 				var errorMessage = err.message;
 			} else {
 				var errorMessage = null;
+				socketIO.user(req.user.user, 'portal', 'set-url', validURL);
 			}
 			res.json({
 				error: errorMessage,

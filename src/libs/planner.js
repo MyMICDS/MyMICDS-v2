@@ -37,7 +37,7 @@ var users 	      = require(__dirname + '/users.js');
  * @callback upsertEventCallback
  *
  * @param {Object} err - Null if success, error object if failure
- * @param {Object} id - ID of event that was upserted. Null if error.
+ * @param {Object} plannerEvent - Object of event that was upserted. Null if error.
  */
 
 function upsertEvent(db, user, plannerEvent, callback) {
@@ -128,6 +128,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 				}
 
 				var insertEvent = {
+					_id  : id,
 					user : userDoc['_id'],
 					class: validClassId,
 					title: plannerEvent.title,
@@ -144,7 +145,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 						return;
 					}
 
-					callback(null, id);
+					callback(null, insertEvent);
 
 				});
 			}

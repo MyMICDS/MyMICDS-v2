@@ -6,7 +6,7 @@
 
 var classes = require(__dirname + '/../libs/classes.js');
 
-module.exports = function(app, db) {
+module.exports = function(app, db, socketIO) {
 
 	app.post('/classes/get', function(req, res) {
 		classes.get(db, req.user.user, function(err, classes) {
@@ -37,15 +37,16 @@ module.exports = function(app, db) {
 			}
 		};
 
-		classes.upsert(db, user, scheduleClass, function(err, id) {
+		classes.upsert(db, user, scheduleClass, function(err, scheduleClass) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
 				var errorMessage = null;
+				socketIO.user(req.user.user, 'classes', 'add', scheduleClass);
 			}
 			res.json({
 				error: errorMessage,
-				id: id
+				id: scheduleClass._id
 			});
 		});
 	});
@@ -56,6 +57,7 @@ module.exports = function(app, db) {
 				var errorMessage = err.message;
 			} else {
 				var errorMessage = null;
+				socketIO.user(req.user.user, 'classes', 'delete', req.body.id);
 			}
 			res.json({ error: errorMessage });
 		});

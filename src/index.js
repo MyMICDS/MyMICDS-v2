@@ -78,17 +78,16 @@ MongoClient.connect(config.mongodb.uri, function(err, db) {
 	app.use(jwt.catchUnauthorized);
 
 	// API Routes
-	require(__dirname + '/routes/aliasAPI.js')(app, db);
-	require(__dirname + '/routes/backgroundAPI.js')(app, db);
-	require(__dirname + '/routes/bulletinAPI.js')(app, db);
-	require(__dirname + '/routes/canvasAPI.js')(app, db);
-	require(__dirname + '/routes/classAPI.js')(app, db);
+	require(__dirname + '/routes/aliasAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/backgroundAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/bulletinAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/canvasAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/classAPI.js')(app, db, socketIO);
 	require(__dirname + '/routes/loginAPI.js')(app, db);
 	require(__dirname + '/routes/lunchAPI.js')(app, db);
-	require(__dirname + '/routes/plannerAPI.js')(app, db);
-	require(__dirname + '/routes/portalAPI.js')(app, db);
-	require(__dirname + '/routes/userAPI.js')(app, db);
-	require(__dirname + '/routes/notificationAPI.js')(app, db);
+	require(__dirname + '/routes/plannerAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/portalAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/userAPI.js')(app, db, socketIO);
 	require(__dirname + '/routes/weatherAPI.js')(app, db, socketIO);
 });
 

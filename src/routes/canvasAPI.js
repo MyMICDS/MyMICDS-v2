@@ -6,7 +6,7 @@
 
 var canvas = require(__dirname + '/../libs/canvas.js');
 
-module.exports = function(app, db) {
+module.exports = function(app, db, socketIO) {
 	app.post('/canvas/test-url', function(req, res) {
 		canvas.verifyURL(req.body.url, function(err, isValid, url) {
 			if(err) {
@@ -28,6 +28,7 @@ module.exports = function(app, db) {
 				var errorMessage = err.message;
 			} else {
 				var errorMessage = null;
+				socketIO.user(req.user.user, 'canvas', 'set-url', validURL);
 			}
 			res.json({
 				error: errorMessage,
