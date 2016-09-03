@@ -5,9 +5,12 @@
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" integrity="sha384-MIwDKRSSImVFAZCVLtU0LMDdON6KVCrZHyVQQj6e8wIEJkW4tvwqXrbMIya1vriY" crossorigin="anonymous">
 	</head>
 	<body>
-		<ul class="list-group">
+		<form class="form-inline">
+			<input class="form-control" placeholder="JWT">
+			<button class="btn btn-info">Auth</button>
+		</form>
 
-		</ul>
+		<ul class="list-group"></ul>
 
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js" integrity="sha384-THPy051/pYDQGanwU6poAc/hOdQxjnOEXzbT+OuUAFqNqFjL+4IGLBgCJC3ZOShY" crossorigin="anonymous"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.2.0/js/tether.min.js" integrity="sha384-Plbmg8JY28KFelvJVai01l8WyZzrYWG825m+cZ0eDDS1f7d/js6ikvy1+X+guPIB" crossorigin="anonymous"></script>
@@ -30,6 +33,14 @@
 
 			socket.on('*', function(eventName, data) {
 				$list.append('<li class="list-group-item"><strong>' + eventName + '</strong> ' + data + '</li>');
+			});
+
+			var $form = $('form');
+			var $jwtInput = $('input');
+
+			$form.submit(function(event) {
+				event.preventDefault();
+				socket.emit('authenticate', $jwtInput.val())
 			});
 		</script>
 	</body>
