@@ -42,6 +42,9 @@ var server = http.Server(app);
 var io = require('socket.io')(server);
 var socketIO = require(__dirname + '/libs/socket.io.js')(io);
 
+// Miscellaneous stuff
+require(__dirname + '/libs/realtime.js')(io, socketIO);
+
 // Regularly schedule tasks (similar to Cron-Jobs)
 require(__dirname + '/libs/tasks.js')();
 
@@ -97,6 +100,10 @@ app.get('/start', function(req, res) {
 
 app.get('/socket-io-test', function(req, res) {
 	res.sendFile(__dirname + '/html/socket.html');
+});
+
+app.get('/spin', function(req, res) {
+	res.sendFile(__dirname + '/html/spin.html');
 });
 
 /*
