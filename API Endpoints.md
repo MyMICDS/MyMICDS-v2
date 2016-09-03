@@ -43,6 +43,8 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/planner/get`](#plannerget)
   * [`/planner/add`](#planneradd)
   * [`/planner/delete`](#plannerdelete)
+  * [`/planner/check`](#plannercheck)
+  * [`/planner/uncheck`](#planneruncheck)
 * [Portal API](#portal-api)
   * [`/portal/test-url`](#portaltest-url)
   * [`/portal/set-url`](#portalset-url)
@@ -304,7 +306,7 @@ Gets the lunch?
 
 
 ## Planner API
-This is the part of the API that relates to the planner. Can be found in `src/routes/plannerAPI.js`. The associated planner module can be found in `src/libs/planner.js`.
+This is the part of the API that relates to the planner. Can be found in `src/routes/plannerAPI.js`. The associated planner and checkedEvents modules can be found in `src/libs/planner.js` and `src/libs/checkedEvents.js`.
 
 
 ### `/planner/get`
@@ -340,6 +342,26 @@ This is the part of the API that relates to the planner. Can be found in `src/ro
 
 #### Parameters
 - `id` - ID of event to delete
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+
+
+### `/planner/check`
+**Requires user to be logged in.** Marks a planner event as completed.
+
+#### Parameters
+- `id` - Event id
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+
+
+### `/planner/uncheck`
+**Requires user to be logged in.** Marks a planner event as uncompleted.
+
+#### Parameters
+- `id` - Event id
 
 #### Response
 - `error` - Null if success, string containing error if failure.
