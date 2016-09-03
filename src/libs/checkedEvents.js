@@ -155,7 +155,7 @@ function getChecked(db, user, eventId, callback) {
  * @callback listCheckedCallback
  *
  * @param {Object} err - Null if success, error object if failure.
- * @param {Object} checkedEvents - Array of event ids checked
+ * @param {Object} checkedEventsList - Array of event ids checked
  */
 
 function listChecked(db, user, callback) {
@@ -257,6 +257,7 @@ function uncheckEvent(db, user, eventId, callback) {
 	});
 }
 
-module.exports.check      = checkEvent;
-module.exports.getChecked = getChecked;
-module.exports.uncheck    = uncheckEvent;
+module.exports.check   = checkEvent;
+module.exports.get     = getChecked;
+module.exports.list    = listChecked;
+module.exports.uncheck = uncheckEvent;

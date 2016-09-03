@@ -5,13 +5,14 @@
  * @module planner
  */
 
-var _          = require('underscore');
-var asyncLib   = require('async');
-var canvas     = require(__dirname + '/canvas.js');
-var classes    = require(__dirname + '/classes.js');
-var htmlParser = require(__dirname + '/htmlParser.js');
-var ObjectID   = require('mongodb').ObjectID;
-var users 	   = require(__dirname + '/users.js');
+var _             = require('underscore');
+var asyncLib      = require('async');
+var canvas        = require(__dirname + '/canvas.js');
+var checkedEvents = require(__dirname + '/checkedEvents.js');
+var classes       = require(__dirname + '/classes.js');
+var htmlParser    = require(__dirname + '/htmlParser.js');
+var ObjectID      = require('mongodb').ObjectID;
+var users 	      = require(__dirname + '/users.js');
 
 /**
  * Add/edit event to planner
@@ -265,12 +266,31 @@ function getMonthEvents(db, user, date, callback) {
 		}
 
 		var plannerdata = db.collection('planner');
-		// Get all events that belong to the user
-		plannerdata.find({ user: userDoc['_id'] }).toArray(function(err, events) {
+
+		asyncLib.parallel([
+			function(asyncCallback) {
+				plannerdata.find({ user: userDoc['_id'] }).toArray(function(err, events) {
+					if(err) {
+						asyncCallback(new Error('There was a problem querying the database!'), null);
+						return;
+					}
+
+					asyncCallback(null, events);
+
+				});
+			},
+			function(asyncCallback) {
+				checkedEvents.list(db, user, asyncCallback);
+			}
+		],
+		function(err, data) {
 			if(err) {
-				callback(new Error('There was a problem querying the database!'), null);
+				callback(err, null);
 				return;
 			}
+
+			var events = data[0];
+			var checkedEventsList = data[1];
 
 			// Go through all events and add all events that are within the month
 			var validEvents = [];
@@ -286,6 +306,9 @@ function getMonthEvents(db, user, date, callback) {
 
 				// How many months forward and backward to also include events
 				var monthPadding = 1;
+
+				// Determine if event should be checked
+				possibleEvent.checked = _.contains(checkedEventsList, possibleEvent._id);
 
 				// Check previous and next months too
 				for(var j = monthPadding * -1; j <= monthPadding; j++) {

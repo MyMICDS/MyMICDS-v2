@@ -5,14 +5,15 @@
  * @module canvas
  */
 
-var _          = require('underscore');
-var aliases    = require(__dirname + '/aliases.js')
-var htmlParser = require(__dirname + '/htmlParser.js');
-var ical       = require('ical');
-var prisma     = require('prisma');
-var request    = require('request');
-var url        = require('url');
-var users      = require(__dirname + '/users.js');
+var _             = require('underscore');
+var aliases       = require(__dirname + '/aliases.js');
+var checkedEvents = require(__dirname + '/checkedEvents.js');
+var htmlParser    = require(__dirname + '/htmlParser.js');
+var ical          = require('ical');
+var prisma        = require('prisma');
+var request       = require('request');
+var url           = require('url');
+var users         = require(__dirname + '/users.js');
 
 // URL Calendars come from
 var urlPrefix = 'https://micds.instructure.com/feeds/calendars/';
@@ -200,111 +201,118 @@ function getEvents(db, user, callback) {
 				return;
 			}
 
-			// Loop through all of the events in the calendar feed and push events within month to validEvents
-			var eventKeys = Object.keys(data);
-			var validEvents = [];
-			// Cache class aliases
-			var classAliases = {};
-
-			// Function for getting class to insert according to canvas name
-			function getCanvasClass(parsedEvent, callback) {
-				var name = parsedEvent.class.raw;
-
-				// Check if alias is already cached
-				if(typeof classAliases[name] !== 'undefined') {
-					callback(null, classAliases[name]);
+			// Get which events are checked
+			checkedEvents.list(db, user, function(err, checkedEventsList) {
+				if(err) {
+					callback(err, null, null);
 					return;
 				}
 
-				// Query aliases to see if possible class object exists
-				aliases.getClass(db, user, 'canvas', name, function(err, hasAlias, aliasClassObject) {
-					if(err) {
-						callback(err, null);
+				// Loop through all of the events in the calendar feed and push events within month to validEvents
+				var eventKeys = Object.keys(data);
+				var validEvents = [];
+				// Cache class aliases
+				var classAliases = {};
+
+				// Function for getting class to insert according to canvas name
+				function getCanvasClass(parsedEvent, callback) {
+					var name = parsedEvent.class.raw;
+
+					// Check if alias is already cached
+					if(typeof classAliases[name] !== 'undefined') {
+						callback(null, classAliases[name]);
 						return;
 					}
 
-					// Backup object if Canvas class doesn't have alias
-					var defaultColor = '#34444F';
-					var canvasClass = {
-						_id: null,
-						canvas: true,
-						user: user,
-						name: parsedEvent.class.name,
-						teacher: {
+					// Query aliases to see if possible class object exists
+					aliases.getClass(db, user, 'canvas', name, function(err, hasAlias, aliasClassObject) {
+						if(err) {
+							callback(err, null);
+							return;
+						}
+
+						// Backup object if Canvas class doesn't have alias
+						var defaultColor = '#34444F';
+						var canvasClass = {
 							_id: null,
-							prefix: '',
-							firstName: parsedEvent.class.teacher.firstName,
-							lastName: parsedEvent.class.teacher.lastName
-						},
-						type: 'other',
-						block: 'other',
-						color: defaultColor,
-						textDark: prisma.shouldTextBeDark(defaultColor)
-					};
+							canvas: true,
+							user: user,
+							name: parsedEvent.class.name,
+							teacher: {
+								_id: null,
+								prefix: '',
+								firstName: parsedEvent.class.teacher.firstName,
+								lastName: parsedEvent.class.teacher.lastName
+							},
+							type: 'other',
+							block: 'other',
+							color: defaultColor,
+							textDark: prisma.shouldTextBeDark(defaultColor)
+						};
 
-					if(hasAlias) {
-						classAliases[name] = aliasClassObject;
-					} else {
-						classAliases[name] = canvasClass;
-					}
+						if(hasAlias) {
+							classAliases[name] = aliasClassObject;
+						} else {
+							classAliases[name] = canvasClass;
+						}
 
-					callback(null, classAliases[name]);
-				});
-			}
-
-
-			// Function to iterate over classes asynchronously
-			function checkEvent(i) {
+						callback(null, classAliases[name]);
+					});
+				}
 
 
-				var canvasEvent = data[eventKeys[i]];
+				// Function to iterate over classes asynchronously
+				function checkEvent(i) {
 
-				var parsedEvent = parseCanvasTitle(canvasEvent.summary);
+					var canvasEvent = data[eventKeys[i]];
+					var parsedEvent = parseCanvasTitle(canvasEvent.summary);
 
-				// Check if alias for class first
-				getCanvasClass(parsedEvent, function(err, canvasClass) {
-					if(err) {
-						callback(err, null, null);
-						return;
-					}
+					// Check if alias for class first
+					getCanvasClass(parsedEvent, function(err, canvasClass) {
+						if(err) {
+							callback(err, null, null);
+							return;
+						}
 
-					var start = new Date(canvasEvent.start);
-					var end   = new Date(canvasEvent.end);
+						var start = new Date(canvasEvent.start);
+						var end   = new Date(canvasEvent.end);
 
-					// class will be null if error in getting class name.
-					var insertEvent = {
-						_id   : canvasEvent.uid,
-						canvas: true,
-						user  : userDoc.user,
-						class : canvasClass,
-						title : parsedEvent.assignment,
-						start : start,
-						end   : end,
-						link  : canvasEvent.url || ''
-					};
+						// class will be null if error in getting class name.
+						var insertEvent = {
+							_id    : canvasEvent.uid,
+							canvas : true,
+							user   : userDoc.user,
+							class  : canvasClass,
+							title  : parsedEvent.assignment,
+							start  : start,
+							end    : end,
+							link   : canvasEvent.url || '',
+							checked: _.contains(checkedEventsList, canvasEvent.uid)
+						};
 
-					if(typeof canvasEvent['ALT-DESC'] === 'object') {
-						insertEvent.desc = canvasEvent['ALT-DESC'].val;
-						insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
-					} else {
-						insertEvent.desc = '';
-						insertEvent.descPlaintext = '';
-					}
+						if(typeof canvasEvent['ALT-DESC'] === 'object') {
+							insertEvent.desc = canvasEvent['ALT-DESC'].val;
+							insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
+						} else {
+							insertEvent.desc = '';
+							insertEvent.descPlaintext = '';
+						}
 
-					validEvents.push(insertEvent);
+						validEvents.push(insertEvent);
 
-					if(i < eventKeys.length - 1) {
-						// If there's still more events, call function again
-						checkEvent(++i);
-					} else {
-						// All done! Call callback
-						callback(null, true, validEvents);
-					}
+						if(i < eventKeys.length - 1) {
+							// If there's still more events, call function again
+							checkEvent(++i);
+						} else {
+							// All done! Call callback
+							callback(null, true, validEvents);
+						}
 
-				});
-			}
-			checkEvent(0);
+					});
+				}
+				checkEvent(0);
 
+			});
 		});
 	});
 }
