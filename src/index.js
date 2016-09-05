@@ -34,6 +34,21 @@ var express = require('express');
 var app = express();
 var server = http.Server(app);
 
+/**
+ * Express Middleware
+ */
+
+// Enable Cross-origin Resource Sharing
+app.use(cors({
+	credentials: false
+}));
+
+// Body Parser for POST Variables
+app.use(bodyParser.json());     // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
+	extended: true
+}));
+
 /*
  * Realtime Stuff
  */
@@ -47,23 +62,6 @@ require(__dirname + '/libs/realtime.js')(io, socketIO);
 
 // Regularly schedule tasks (similar to Cron-Jobs)
 require(__dirname + '/libs/tasks.js')();
-
-/**
- * Express Middleware
- */
-
-// Enable Cross-origin Resource Sharing
-app.use(cors());
-
-// Body Parser for POST Variables
-app.use(bodyParser.json());     // to support JSON-encoded bodies
-app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
-	extended: true
-}));
-
-/*
- * Regularly Schedule Tasks (Similar to Cron-Jobs)
- */
 
 /*
  * Routes
