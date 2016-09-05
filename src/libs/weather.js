@@ -55,7 +55,6 @@ var options = {
  * @function updateWeather
  *
  * @param {updateWeatherCallback}
- * @param {Object} [io] - socket.io object, to emit a 'weather' event with JSON for clients to update
  */
 
 /**
@@ -66,7 +65,7 @@ var options = {
  * @param {Object} weatherJSON - JSON of current weather. Null if error.
  */
 
-function updateWeather(callback, io) {
+function updateWeather(callback) {
 
 	if(typeof callback !== 'function') {
 		callback = function() {};
@@ -87,11 +86,8 @@ function updateWeather(callback, io) {
 				return;
 			}
 
-			// Optionally emit weather event with JSON
-			if(typeof io === 'object') {
-				io.emit('weather', data);
-			}
 			callback(null, data);
+
 		});
 	});
 

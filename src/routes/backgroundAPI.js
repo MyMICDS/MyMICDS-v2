@@ -6,7 +6,7 @@
 
 var backgrounds = require(__dirname + '/../libs/backgrounds.js');
 
-module.exports = function(app, db) {
+module.exports = function(app, db, socketIO) {
 
 	app.post('/background/get', function(req, res) {
 		backgrounds.get(req.user.user, function(err, variants, hasDefault) {
@@ -37,6 +37,7 @@ module.exports = function(app, db) {
 					var errorMessage = err.message;
 				} else {
 					var errorMessage = null;
+					socketIO.user(req.user.user, 'background', 'upload');
 				}
 				res.json({ error: errorMessage });
 			});
@@ -49,6 +50,7 @@ module.exports = function(app, db) {
 				var errorMessage = err.message;
 			} else {
 				var errorMessage = null;
+				socketIO.user(req.user.user, 'background', 'delete');
 			}
 			res.json({ error: errorMessage });
 		});

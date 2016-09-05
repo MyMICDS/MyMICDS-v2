@@ -18,7 +18,7 @@ var port = process.env.PORT || config.port;
 
 var bodyParser  = require('body-parser');
 var cors        = require('cors');
-var ejs         = require('ejs');
+var http        = require('http');
 var jwt         = require(__dirname + '/libs/jwt.js');
 var lunch       = require(__dirname + '/libs/lunch.js');
 var mail        = require(__dirname + '/libs/mail.js');
@@ -32,13 +32,16 @@ var weather     = require(__dirname + '/libs/weather.js');
 
 var express = require('express');
 var app = express();
+var server = http.Server(app);
 
 /**
  * Express Middleware
  */
 
 // Enable Cross-origin Resource Sharing
-app.use(cors());
+app.use(cors({
+	credentials: false
+}));
 
 // Body Parser for POST Variables
 app.use(bodyParser.json());     // to support JSON-encoded bodies
@@ -47,16 +50,17 @@ app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
 }));
 
 /*
- * EJS as Default Render Engine
+ * Realtime Stuff
  */
 
-app.set('views', __dirname + '/html');
-app.set('view engine', 'ejs');
+// Socket.io
+var io = require('socket.io')(server);
+var socketIO = require(__dirname + '/libs/socket.io.js')(io);
 
-/*
- * Regularly Schedule Tasks (Like Cron-Jobs)
- */
+// Miscellaneous stuff
+require(__dirname + '/libs/realtime.js')(io, socketIO);
 
+// Regularly schedule tasks (similar to Cron-Jobs)
 require(__dirname + '/libs/tasks.js')();
 
 /*
@@ -75,28 +79,35 @@ MongoClient.connect(config.mongodb.uri, function(err, db) {
 	app.use(jwt.catchUnauthorized);
 
 	// API Routes
-	require(__dirname + '/routes/aliasAPI.js')(app, db);
-	require(__dirname + '/routes/backgroundAPI.js')(app, db);
-	require(__dirname + '/routes/bulletinAPI.js')(app, db);
-	require(__dirname + '/routes/canvasAPI.js')(app, db);
-	require(__dirname + '/routes/classAPI.js')(app, db);
+	require(__dirname + '/routes/aliasAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/backgroundAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/bulletinAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/canvasAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/classAPI.js')(app, db, socketIO);
 	require(__dirname + '/routes/loginAPI.js')(app, db);
 	require(__dirname + '/routes/lunchAPI.js')(app, db);
-	require(__dirname + '/routes/plannerAPI.js')(app, db);
-	require(__dirname + '/routes/portalAPI.js')(app, db);
-	require(__dirname + '/routes/userAPI.js')(app, db);
-	require(__dirname + '/routes/notificationAPI.js')(app, db);
-	require(__dirname + '/routes/weatherAPI.js')(app, db);
+	require(__dirname + '/routes/plannerAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/portalAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/userAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/weatherAPI.js')(app, db, socketIO);
 });
 
 app.get('/start', function(req, res) {
 	res.sendFile(__dirname + '/html/start.html');
 });
 
+app.get('/socket-io-test', function(req, res) {
+	res.sendFile(__dirname + '/html/socket.html');
+});
+
+app.get('/spin', function(req, res) {
+	res.sendFile(__dirname + '/html/spin.html');
+});
+
 /*
  * Initialize Server
  */
 
-app.listen(port, function() {
+server.listen(port, function() {
 	console.log('Server listening on *:' + port);
 });

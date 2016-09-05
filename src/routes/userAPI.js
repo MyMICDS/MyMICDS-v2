@@ -6,7 +6,7 @@
 
 var users = require(__dirname + '/../libs/users.js');
 
-module.exports = function(app, db) {
+module.exports = function(app, db, socketIO) {
 
 	app.post('/user/grad-year-to-grade', function(req, res) {
 		var grade = users.gradYearToGrade(parseInt(req.body.year));
@@ -71,6 +71,7 @@ module.exports = function(app, db) {
 				var errorMessage = err.message;
 			} else {
 				var errorMessage = null;
+				socketIO.user(req.user.user, 'user', 'change-info', info);
 			}
 			res.json({ error: errorMessage });
 		});

@@ -8,7 +8,7 @@ var _       = require('underscore');
 var users   = require(__dirname + '/../libs/users.js');
 var weather = require(__dirname + '/../libs/weather.js');
 
-module.exports = function(app, db) {
+module.exports = function(app, db, socketIO) {
 
 	app.post('/weather/get', function(req, res) {
 		weather.get(function(err, weatherJSON) {
@@ -42,6 +42,7 @@ module.exports = function(app, db) {
 					var errorMessage = err.message;
 				} else {
 					var errorMessage = null;
+					socketIO.global('weather', weatherJSON);
 				}
 				res.json({ error: errorMessage });
 			});

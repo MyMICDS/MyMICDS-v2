@@ -72,7 +72,7 @@ var validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
  * @callback upsertClassCallback
  *
  * @param {Object} err - Null if success, error object if failure
- * @param {Object} classId - Object ID of class inserted
+ * @param {Object} scheduleClass - Object of class inserted
  */
 
 function upsertClass(db, user, scheduleClass, callback) {
@@ -187,7 +187,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 						return;
 					}
 
-					callback(null, id);
+					callback(null, insertClass);
 					teachers.deleteClasslessTeachers(db);
 
 				});
@@ -353,7 +353,7 @@ function deleteClass(db, user, classId, callback) {
 			teachers.deleteClasslessTeachers(db);
 
 		});
-		
+
 		/*
 		// delete aliases when a class is deleted
 		aliases.list(db, userDoc['user'], function(err, aliasList) {

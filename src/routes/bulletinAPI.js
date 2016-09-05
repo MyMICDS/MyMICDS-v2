@@ -8,7 +8,7 @@ var _             = require('underscore');
 var dailyBulletin = require(__dirname + '/../libs/dailyBulletin.js');
 var users         = require(__dirname + '/../libs/users.js');
 
-module.exports = function(app, db) {
+module.exports = function(app, db, socketIO) {
 
 	app.post('/daily-bulletin/list', function(req, res) {
 		dailyBulletin.getList(function(err, bulletins) {
@@ -43,6 +43,7 @@ module.exports = function(app, db) {
 					var errorMessage = err.message;
 				} else {
 					var errorMessage = null;
+					socketIO.user(req.user.user, 'bulletin', 'query');
 				}
 				res.json({ error: errorMessage });
 			});
@@ -67,6 +68,7 @@ module.exports = function(app, db) {
 					var errorMessage = err.message;
 				} else {
 					var errorMessage = null;
+					socketIO.user(req.user.user, 'bulletin', 'query');
 				}
 				res.json({ error: errorMessage });
 			});
