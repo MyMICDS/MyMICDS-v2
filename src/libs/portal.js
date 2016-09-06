@@ -259,12 +259,14 @@ function getSchedule(db, user, date, callback) {
 
 		// Get default class in case everything else fails
 		var defaultStart = null;
+		var lateStart = false;
 		if(scheduleDate.day() !== 3) {
 			// Not Wednesday, school starts at 8
 			defaultStart = scheduleDate.clone().hour(8);
 		} else {
 			// Wednesday, school starts at 9
 			defaultStart = scheduleDate.clone().hour(9);
+			lateStart = true;
 		}
 		var defaultEnd = scheduleDate.clone().hour(15).minute(15);
 
@@ -346,7 +348,7 @@ function getSchedule(db, user, date, callback) {
 					blocks[block.block] = block; // Very descriptive
 				}
 
-				var schedule = blockSchedule.get(scheduleDate, results.day, scheduleDate.day() === 3, users.gradYearToGrade(userDoc['gradYear']), blocks);
+				var schedule = blockSchedule.get(scheduleDate, results.day, lateStart, users.gradYearToGrade(userDoc['gradYear']), blocks);
 
 				callback(null, false, {
 					day: results.day,
@@ -657,7 +659,7 @@ function getSchedule(db, user, date, callback) {
 							blocks[scheduleClass.block] = scheduleClass;
 						}
 
-						var blockClasses = blockSchedule.get(scheduleDate, schedule.day, scheduleDate.day() === 3, users.gradYearToGrade(userDoc['gradYear']), blocks);
+						var blockClasses = blockSchedule.get(scheduleDate, schedule.day, lateStart, users.gradYearToGrade(userDoc['gradYear']), blocks);
 
 						// If schedule is null for some reason, default back to portal schedule
 						if(blockClasses !== null) {
@@ -675,10 +677,7 @@ function getSchedule(db, user, date, callback) {
  * Get schedule day rotation
  * @function getDayRotation
  *
- * @param {Object} date - Object containing date to retrieve schedule. Leaving fields empty will default to today
- * @param {Number} [date.year] - What year to get schedule (Optional. Defaults to current year.)
- * @param {Number} [date.month] - Month number to get schedule. (1-12) (Optional. Defaults to current month.)
- * @param {Number} [date.day] - Day of month to get schedule. (Optional. Defaults to current day.)
+ * @param {Object} date - Date object containing date to retrieve schedule. Leaving fields empty will default to today.
  *
  * @param {getDayRotationCallback} callback - Callback
  */
@@ -694,19 +693,7 @@ function getSchedule(db, user, date, callback) {
 function getDayRotation(date, callback) {
 	if(typeof callback !== 'function') return;
 
-	var current = new Date();
-	// Default date to current values
-	if(typeof date.year !== 'number' || date.year % 1 !== 0) {
-		date.year = current.getFullYear();
-	}
-	if(typeof date.month !== 'number' || date.month % 1 !== 0) {
-		date.month = current.getMonth();
-	}
-	if(typeof date.day !== 'number' || date.day % 1 !== 0) {
-		date.day = current.getDate();
-	}
-
-	var scheduleDate = new Date(date.year, date.month - 1, date.day);
+	var scheduleDate = new Date(date);
 	var scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
 
 	request(urlPrefix + config.portal.dayRotation, function(err, response, body) {
