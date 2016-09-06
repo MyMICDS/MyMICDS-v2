@@ -39,9 +39,7 @@ var server = http.Server(app);
  */
 
 // Enable Cross-origin Resource Sharing
-app.use(cors({
-	credentials: false
-}));
+app.use(cors());
 
 // Body Parser for POST Variables
 app.use(bodyParser.json());     // to support JSON-encoded bodies
