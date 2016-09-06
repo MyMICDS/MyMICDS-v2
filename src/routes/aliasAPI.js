@@ -17,7 +17,7 @@ module.exports = function(app, db, socketIO) {
 				socketIO.user(req.user.user, 'alias', 'add', {
 					_id: aliasId,
 					type: req.body.type,
-					classNative: classId,
+					classNative: req.body.classId,
 					classRemote: req.body.classString
 				});
 			}
