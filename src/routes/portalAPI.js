@@ -40,7 +40,13 @@ module.exports = function(app, db, socketIO) {
 	});
 
 	app.post('/portal/get-schedule', function(req, res) {
-		var date = new Date(parseInt(req.body.year), parseInt(req.body.month - 1), parseInt(req.body.day));
+		var current = new Date();
+
+		var year = req.body.year || current.getFullYear();
+		var month = req.body.month || current.getMonth() + 1;
+		var day = req.body.day || current.getDate();
+
+		var date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 		console.log('portal route', date);
 
 		portal.getSchedule(db, req.user.user, date, function(err, hasURL, schedule) {
