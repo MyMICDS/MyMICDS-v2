@@ -421,7 +421,7 @@ function getSchedule(db, user, date, callback) {
 							// Get actual day
 							var day = calEvent.summary.match(/[1-6]/)[0];
 							schedule.day = day;
-							console.log('day is roation ' + day)
+							// console.log('day is roation ' + day)
 							loopClass(++i);
 							return;
 						}
@@ -429,7 +429,7 @@ function getSchedule(db, user, date, callback) {
 						// Check if special schedule
 						var lowercaseSummary = calEvent.summary.toLowerCase();
 						if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
-							console.log('special schedule DETECTED')
+							// console.log('special schedule DETECTED')
 							schedule.special = true;
 							loopClass(++i);
 							return;
@@ -528,7 +528,7 @@ function getSchedule(db, user, date, callback) {
 
 						// Determine if there's an alias
 						if(aliasCache[calEvent.summary]) {
-							console.log(calEvent.summary + ' already has lias')
+							// console.log(calEvent.summary + ' already has lias')
 							schedule.classes.push({
 								class: aliasCache[calEvent.summary],
 								start: start,
@@ -542,13 +542,13 @@ function getSchedule(db, user, date, callback) {
 									return;
 								}
 
-								console.log('class object alias', classObject)
+								// console.log('class object alias', classObject)
 
 								if(hasAlias) {
-									console.log(calEvent.summary + ' has alias! from get alias')
+									// console.log(calEvent.summary + ' has alias! from get alias')
 									aliasCache[calEvent.summary] = classObject;
 								} else {
-									console.log(calEvent.summary + ' doesnt have alias! from get alias')
+									// console.log(calEvent.summary + ' doesnt have alias! from get alias')
 
 									// Determine block
 									var blockPart = _.last(calEvent.summary.match(portalSummaryBlock));
@@ -606,7 +606,7 @@ function getSchedule(db, user, date, callback) {
 						return a.start - b.start;
 					});
 
-					console.log(schedule.classes)
+					// console.log(schedule.classes)
 
 					if(schedule.special) {
 						// If special schedule, just use default portal schedule
@@ -655,7 +655,7 @@ function getSchedule(db, user, date, callback) {
 						// Override blocks with classes being taken today
 						for(var i = 0; i < schedule.classes.length; i++) {
 							var scheduleClass = schedule.classes[i].class;
-							console.log('go throug hclass', scheduleClass.type, scheduleClass.block)
+							// console.log('go throug hclass', scheduleClass.type, scheduleClass.block)
 							blocks[scheduleClass.block] = scheduleClass;
 						}
 
