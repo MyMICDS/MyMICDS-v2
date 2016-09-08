@@ -32,7 +32,8 @@ var validBlocks = [
 	'collaborative',
 	'community',
 	'enrichment',
-	'lunch'
+	'lunch',
+	'pe'
 ];
 
 var validTypes = [
