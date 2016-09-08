@@ -614,59 +614,21 @@ function getSchedule(db, user, date, callback) {
 						return;
 					}
 
-					// If regular schedule, use normal block schedule so we can insert free periods and lunch
-					parseIcalClasses(data, function(err, hasURL, classes) {
-						if(err) {
-							callback(err, null, null);
-							return;
-						}
+					// Override blocks with classes being taken today
+					var blocks = {};
+					for(var i = 0; i < schedule.classes.length; i++) {
+						var scheduleClass = schedule.classes[i].class;
+						// console.log('go throug hclass', scheduleClass.type, scheduleClass.block)
+						blocks[scheduleClass.block] = scheduleClass;
+					}
 
-						// Organize classes into the blocks object
-						var blocks = {};
-						for(var i = 0; i < classes.length; i++) {
+					var blockClasses = blockSchedule.get(scheduleDate, schedule.day, lateStart, users.gradYearToGrade(userDoc['gradYear']), blocks);
 
-							// Determine block
-							var blockPart = _.last(classes[i].match(portalSummaryBlock));
-
-							if(blockPart) {
-								var block = _.last(blockPart.match(/[A-G]/g)).toLowerCase();
-
-								// Determine color
-								var color = prisma(classes[i]).hex;
-
-								var scheduleBlock = {
-									portal: true,
-									name: classes[i],
-									teacher: {
-										prefix: '',
-										firstName: '',
-										lastName: ''
-									},
-									block: block,
-									type: 'other',
-									color: color,
-									textDark: prisma.shouldTextBeDark(color)
-								};
-
-								blocks[block] = scheduleBlock;
-							}
-						}
-
-						// Override blocks with classes being taken today
-						for(var i = 0; i < schedule.classes.length; i++) {
-							var scheduleClass = schedule.classes[i].class;
-							// console.log('go throug hclass', scheduleClass.type, scheduleClass.block)
-							blocks[scheduleClass.block] = scheduleClass;
-						}
-
-						var blockClasses = blockSchedule.get(scheduleDate, schedule.day, lateStart, users.gradYearToGrade(userDoc['gradYear']), blocks);
-
-						// If schedule is null for some reason, default back to portal schedule
-						if(blockClasses !== null) {
-							schedule.classes = blockClasses;
-						}
-						callback(null, true, schedule);
-					});
+					// If schedule is null for some reason, default back to portal schedule
+					if(blockClasses !== null) {
+						schedule.classes = blockClasses;
+					}
+					callback(null, true, schedule);
 				}
 			});
 		}
