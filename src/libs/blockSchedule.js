@@ -212,7 +212,7 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 	if(typeof blocks.pe === 'undefined') {
 		var color = '#91E11D';
 		blocks.pe = {
-			name: 'PE',
+			name: 'Physical Education',
 			teacher: {
 				prefix: '',
 				firstName: '',

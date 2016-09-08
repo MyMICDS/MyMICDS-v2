@@ -47,7 +47,6 @@ module.exports = function(app, db, socketIO) {
 		var day = req.body.day || current.getDate();
 
 		var date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-		console.log('portal route', date);
 
 		portal.getSchedule(db, req.user.user, date, function(err, hasURL, schedule) {
 			if(err) {
