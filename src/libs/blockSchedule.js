@@ -209,6 +209,21 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 			textDark: prisma.shouldTextBeDark(color)
 		};
 	}
+	if(typeof blocks.pe === 'undefined') {
+		var color = '#91E11D';
+		blocks.pe = {
+			name: 'PE',
+			teacher: {
+				prefix: '',
+				firstName: '',
+				lastName: ''
+			},
+			type: 'other',
+			block: 'other',
+			color: color,
+			textDark: prisma.shouldTextBeDark(color)
+		};
+	}
 
 	// Make sure date is a moment object
 	date = moment(date);
