@@ -7,7 +7,7 @@
 try {
 	var config = require(__dirname + '/libs/config.js');
 } catch(e) {
-	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.JS.EXAMPLE***');
+	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }
 
 var port = process.env.PORT || config.port;
@@ -57,9 +57,6 @@ var socketIO = require(__dirname + '/libs/socket.io.js')(io);
 
 // Miscellaneous stuff
 require(__dirname + '/libs/realtime.js')(io, socketIO);
-
-// Regularly schedule tasks (similar to Cron-Jobs)
-require(__dirname + '/libs/tasks.js')();
 
 /*
  * Routes

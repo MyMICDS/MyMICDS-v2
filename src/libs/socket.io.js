@@ -43,7 +43,7 @@ module.exports = function(io) {
 		});
 	});
 
-	return {
+	var methods = {
 		global: function() {
 			io.emit.apply(io, arguments);
 		},
@@ -62,4 +62,6 @@ module.exports = function(io) {
 			});
 		}
 	};
+
+	return methods;
 }
