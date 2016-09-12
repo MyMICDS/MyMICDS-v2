@@ -234,12 +234,12 @@ function teacherTeaches(db, teacherId, callback) {
  * @param {deleteClasslessTeachersCallback} callback - Callback
  */
 
- /**
-  * Returns an error if any. Also has extremely long name.
-  * @callback deleteClasslessTeachersCallback
-  *
-  * @param {Object} err - Null if success, error object if failure
-  */
+/**
+ * Returns an error if any. Also has extremely long name.
+ * @callback deleteClasslessTeachersCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ */
 
 function deleteClasslessTeachers(db, callback) {
 	if(typeof callback !== 'function') {

@@ -25,7 +25,7 @@ module.exports = function(app, db, socketIO) {
 	app.post('/classes/add', function(req, res) {
 		var user = req.user.user;
 		var scheduleClass = {
-			id  : req.body.id,
+			_id  : req.body.id,
 			name: req.body.name,
 			color: req.body.color,
 			block: req.body.block,
@@ -46,7 +46,7 @@ module.exports = function(app, db, socketIO) {
 			}
 			res.json({
 				error: errorMessage,
-				id: scheduleClass._id
+				id: scheduleClass ? scheduleClass._id : null
 			});
 		});
 	});

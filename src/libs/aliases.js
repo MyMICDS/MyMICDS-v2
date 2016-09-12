@@ -6,6 +6,7 @@
  */
 
 var _ 		 = require('underscore');
+var asyncLib = require('async');
 var classes  = require(__dirname + '/classes.js');
 var ObjectID = require('mongodb').ObjectID;
 var users    = require(__dirname + '/users.js');
@@ -353,7 +354,106 @@ function getAliasClass(db, user, type, classInput, callback) {
 	});
 }
 
+/**
+ * Deletes all aliases that are not linked to any class
+ * @function deleteClasslessAliases
+ *
+ * @param {Object} db - Databse connection
+ * @param {deleteClasslessAliasesCallback} callback - Callback
+ */
+
+/**
+ * Returns an error if any. Also has extremely long name.
+ * @callback deleteClasslessAliasesCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ */
+
+function deleteClasslessAliases(db, callback) {
+	if(typeof callback !== 'function') {
+		callback = function() {};
+	}
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'));
+		return;
+	}
+
+	var aliasdata = db.collection('aliases');
+	var classdata = db.collection('classes');
+
+	asyncLib.parallel({
+		// Get aliases
+		aliases: function(asyncCallback) {
+			aliasdata.find({}).toArray(function(err, docs) {
+				if(err) {
+					asyncCallback(new Error('There was a problem querying the database!'), null);
+					return;
+				}
+
+				asyncCallback(null, docs);
+
+			});
+		},
+		// Get classes
+		classes: function(asyncCallback) {
+			classdata.find({}).toArray(function(err, docs) {
+				if(err) {
+					asyncCallback(new Error('There was a problem querying the database!'), null);
+					return;
+				}
+
+				asyncCallback(null, docs);
+
+			});
+		}
+	}, function(err, results) {
+		if(err) {
+			callback(err);
+			return;
+		}
+
+		// Loop through aliases asynchronously
+		function checkAlias(i) {
+			if(i >= results.aliases.length) {
+				// Done looping through classes
+				callback(null);
+				return;
+			}
+
+			var alias = results.aliases[i];
+
+			var validClass = false;
+			for(var j = 0; j < results.classes.length; j++) {
+				var dbClass = results.classes[j];
+
+				// Check if alias has a corresponding class id with the same user
+				if(alias.classNative.toHexString() === dbClass._id.toHexString()) {
+					validClass = true;
+					break;
+				}
+			}
+
+			// If there isn't a corresponding class with this alias, delete
+			if(!validClass) {
+				aliasdata.deleteMany({ _id: alias._id, user: alias.user }, function(err, results) {
+					if(err) {
+						callback(new Error('There was a problem deleting an alias in the database!'));
+						return;
+					}
+
+					checkAlias(++i);
+				});
+			} else {
+				checkAlias(++i);
+			}
+		}
+		checkAlias(0);
+	});
+}
+
 module.exports.add = addAlias;
 module.exports.list = listAliases;
 module.exports.delete = deleteAlias;
 module.exports.getClass = getAliasClass;
+module.exports.deleteClasslessAliases = deleteClasslessAliases;

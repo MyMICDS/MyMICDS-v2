@@ -5,13 +5,13 @@
  * @module classes
  */
 
-var _           = require('underscore');
-var asyncLib    = require('async');
-var ObjectID    = require('mongodb').ObjectID;
-var prisma      = require('prisma');
-var teachers    = require(__dirname + '/teachers.js');
-var users       = require(__dirname + '/users.js');
-var aliases     = require(__dirname + '/aliases.js');
+var _        = require('underscore');
+var aliases  = require(__dirname + '/aliases.js');
+var asyncLib = require('async');
+var ObjectID = require('mongodb').ObjectID;
+var prisma   = require('prisma');
+var teachers = require(__dirname + '/teachers.js');
+var users    = require(__dirname + '/users.js');
 
 var Random = require("random-js");
 var engine = Random.engines.mt19937().autoSeed();
@@ -53,7 +53,7 @@ var validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
  * @param {string} user - Username to insert the class under
  *
  * @param {Object} scheduleClass - JSON of class to add
- * @param {string} [scheduleClass.id] - Id to modify class under (Optional)
+ * @param {string} [scheduleClass._id] - Id to modify class under (Optional)
  * @param {string} scheduleClass.name - Name of class
  * @param {string} [scheduleClass.color] - Hex value of class color. Please include hash ('#') symbol. (Optional, default random color)
  * @param {string} [scheduleClass.block] - Which block the class takes place (Optional. Default to 'other')
@@ -79,7 +79,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 	// Input validation best validation
 	if(typeof callback !== 'function') callback = function() {};
 	if(typeof db !== 'object') { callback(new Error('Invalid database connection!'), null); return; }
-	if(typeof scheduleClass.id !== 'string') scheduleClass.id = '';
+	if(typeof scheduleClass._id !== 'string') scheduleClass._id = '';
 
 	if(typeof user               !== 'string') { callback(new Error('Invalid username!'),     null); return; }
 	if(typeof scheduleClass      !== 'object') { callback(new Error('Invalid class object!'), null); return; }
@@ -126,10 +126,10 @@ function upsertClass(db, user, scheduleClass, callback) {
 
 				// Lets see if any of the classes are the one we are supposed to edit
 				var validEditId = false;
-				if(scheduleClass.id !== '') {
+				if(scheduleClass._id !== '') {
 					for(var i = 0; i < classes.length; i++) {
 						var classId = classes[i]['_id'];
-						if(scheduleClass.id === classId.toHexString()) {
+						if(scheduleClass._id === classId.toHexString()) {
 							validEditId = classId;
 							break;
 						}
@@ -157,7 +157,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 					// If the edit id matches one of the dup classes, maybe the student accidentally pressed 'save'.
 					// Since nothing changed in that case, just return no error
 					if(validEditId) {
-						callback(null, validEditId);
+						callback(null, scheduleClass);
 					} else {
 						callback(new Error('Tried to insert a duplicate class!'), null);
 					}
@@ -172,6 +172,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 				}
 
 				var insertClass = {
+					_id: id,
 					user: userDoc['_id'],
 					name: scheduleClass.name,
 					teacher: teacherDoc['_id'],
@@ -350,34 +351,14 @@ function deleteClass(db, user, classId, callback) {
 			}
 
 			callback(null);
+			// @TODO: Error handling if these fail
 			teachers.deleteClasslessTeachers(db);
-
-		});
-
-		/*
-		// delete aliases when a class is deleted
-		aliases.list(db, userDoc['user'], function(err, aliasList) {
-			if(err) {
-				callback(new Error('There was a problem finding the associated aliases of the class from the database!'));
-				return;
-			}
-			_.each(aliasList, function(aliasArray, currentType) {
-				aliasArray.forEach(function(aliasDoc) {
-					if(aliasDoc['classNative'] === id) {
-						console.log("we got past the comparison");
-						aliases.delete(db, userDoc['user'], currentType, aliasDoc['_id'], function(err) {
-							if(err) {
-								callback(new Error('There was a problem deleting the associated aliases of the class from the database!'));
-								return;
-							}
-
-							callback(null);
-						});
-					}
-				});
+			aliases.deleteClasslessAliases(db, function(err) {
+				console.log('got callback', typeof err)
+				// console.log(err);
 			});
+
 		});
-		*/
 	});
 }
 
