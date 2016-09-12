@@ -21,7 +21,7 @@ var users 	      = require(__dirname + '/users.js');
  * @param {Object} db - Database connection
  * @param {string} user - Username to insert event under
  * @param {Object} plannerEvent - Event object
- * @param {string} [plannerEvent.id] - Optional id to edit event under
+ * @param {string} [plannerEvent._id] - Optional id to edit event under
  * @param {string} plannerEvent.title - Main summary/label of the event
  * @param {string} [plannerEvent.desc] - Event description with details (Optional)
  * @param {string} [plannerEvent.classId] - Object ID of associated class (Optional)
@@ -49,7 +49,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 	if(typeof user !== 'string') { callback(new Error('Invalid user!'),                null); return; }
 
 	if(typeof plannerEvent         !== 'object') { callback(new Error('Invalid event object!'), null); return; }
-	if(typeof plannerEvent.id      !== 'string') plannerEvent.id = '';
+	if(typeof plannerEvent._id     !== 'string') plannerEvent._id = '';
 	if(typeof plannerEvent.title   !== 'string') { callback(new Error('Invalid event title!'), null); return; }
 	if(typeof plannerEvent.desc    !== 'string') plannerEvent.desc = '';
 	if(typeof plannerEvent.classId !== 'string') { plannerEvent.classId = null; }
@@ -65,7 +65,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 
 	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
-			callback(err);
+			callback(err, null);
 			return;
 		}
 		if(!isUser) {
@@ -75,7 +75,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 
 		classes.get(db, user, function(err, classes) {
 			if(err) {
-				callback(err);
+				callback(err, null);
 				return;
 			}
 
@@ -94,7 +94,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 			var plannerdata = db.collection('planner');
 
 			var validEditId = false;
-			if(plannerEvent.id === '') {
+			if(plannerEvent._id === '') {
 				// Just insert event if no id is provided
 				insertEvent();
 			} else {
@@ -108,7 +108,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 					// Look through all events if id is valid
 					for(var i = 0; i < events.length; i++) {
 						var eventId = events[i]['_id'];
-						if(plannerEvent.id === eventId.toHexString()) {
+						if(plannerEvent._id === eventId.toHexString()) {
 							validEditId = eventId;
 							break;
 						}
