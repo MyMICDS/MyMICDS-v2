@@ -41,7 +41,7 @@ module.exports = function(app, db, socketIO) {
 		}
 
 		var insertEvent = {
-			id     : req.body.id,
+			_id    : req.body.id,
 			title  : req.body.title,
 			desc   : req.body.desc,
 			classId: req.body.classId,
