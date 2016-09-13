@@ -57,8 +57,8 @@ function getLunch(date, db, callback) {
 
 			// Alert admins if lunch page has moved
 			admins.sendEmail(db, {
-				subject: "Error Notification - Lunch Retrieval",
-				html: "There was a problem with the lunch URL.<br>Error message: " + err
+				subject: 'Error Notification - Lunch Retrieval',
+				html: 'There was a problem with the lunch URL.<br>Error message: ' + err
 			}, function(err) {
 				if(err) {
 					console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
@@ -108,7 +108,7 @@ function parseLunch(body) {
 		for(var i = 0; i < schools.length; i++) {
 			var school = schools[i];
 
-			var schoolLunch = day.find('div[location="' + school + '"]');
+			var schoolLunch = day.find('div[location='' + school + '']');
 
 			// Make sure it's not the weekend
 			if(schoolLunch.length > 0) {

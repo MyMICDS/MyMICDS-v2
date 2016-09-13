@@ -22,7 +22,7 @@ if(config.production) {
 	console.log('Starting tasks server!');
 
 	MongoClient.connect(config.mongodb.uri, function(err, db) {
-		if err throw err;
+		if(err) throw err;
 
 		var fiveMinuteInterval = later.parse.text('every 5 min');
 
@@ -39,8 +39,8 @@ if(config.production) {
 
 					// Alert admins if there's an error querying the Daily Bulletin
 					admins.sendEmail(db, {
-						subject: "Error Notification - Daily Bulletin Retrieval",
-						html: "There was an error when retrieving the daily bulletin.<br>Error message: " + err
+						subject: 'Error Notification - Daily Bulletin Retrieval',
+						html: 'There was an error when retrieving the daily bulletin.<br>Error message: ' + err
 					}, function(err) {
 						if(err) {
 							console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
@@ -68,8 +68,8 @@ if(config.production) {
 
 					// Alert admins if problem getting weather
 					admins.sendEmail(db, {
-						subject: "Error Notification - Weather Retrieval",
-						html: "There was an error when retrieving the weather.<br>Error message: " + err
+						subject: 'Error Notification - Weather Retrieval',
+						html: 'There was an error when retrieving the weather.<br>Error message: ' + err
 					}, function(err) {
 						if(err) {
 							console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
