@@ -13,50 +13,72 @@ try {
 var dailyBulletin = require(__dirname + '/libs/dailyBulletin.js');
 var later         = require('later');
 var weather       = require(__dirname + '/libs/weather.js');
+var admins		  = require(__dirname + '/libs/admins.js');
+var MongoClient   = require('mongodb').MongoClient;
 
 // Only run these intervals in production so we don't waste our API calls
 if(config.production) {
 
 	console.log('Starting tasks server!');
 
-	var fiveMinuteInterval = later.parse.text('every 5 min');
+	MongoClient.connect(config.mongodb.uri, function(dbErr, db) {
 
-	/*
-	 * Get Daily Bulletin every 5 minutes
-	 */
+		var fiveMinuteInterval = later.parse.text('every 5 min');
 
-	var updateBulletin = later.setInterval(function() {
-		console.log('[' + new Date() + '] Check for latest Daily Bulletin');
+		/*
+		 * Get Daily Bulletin every 5 minutes
+		 */
 
-		dailyBulletin.queryLatest(function(err) {
-			if(err) {
-				console.log('[' + new Date() + '] Error occured for Daily Bulletin! (' + err + ')');
-				/** @TODO Send an email if something isn't working */
-			} else {
-				console.log('[' + new Date() + '] Successfully got latest Daily Bulletin!');
-			}
-		});
+		var updateBulletin = later.setInterval(function() {
+			console.log('[' + new Date() + '] Check for latest Daily Bulletin');
 
-	}, fiveMinuteInterval);
+			dailyBulletin.queryLatest(function(err) {
+				if(err) {
+					console.log('[' + new Date() + '] Error occured for Daily Bulletin! (' + err + ')');
+					if(!dbErr) {
+						admins.sendEmail(db, {
+							subject: "Error Notification - Daily Bulletin Retrieval",
+							html: "There was an error when retrieving the daily bulletin.<br>Error message: " + err
+						}, function(err) {
+							console.log('[' + new Date() + '] Error occured when sending admin notifications! (' + err + ')');
+						});
+					} else {
+						console.log('[' + new Date() + '] Error when connecting to database! (' + err + ')');
+					}
+				} else {
+					console.log('[' + new Date() + '] Successfully got latest Daily Bulletin!');
+				}
+			});
 
-	/*
-	 * Get new weather info every 5 minutes
-	 */
+		}, fiveMinuteInterval);
 
-	var updateWeather = later.setInterval(function() {
-		console.log('[' + new Date() + '] Update Weather');
+		/*
+		 * Get new weather info every 5 minutes
+		 */
 
-		weather.update(function(err, weatherJSON) {
-			if(err) {
-				console.log('[' + new Date() + '] Error occured for weather! (' + err + ')');
-				/** @TODO Send an email if something isn't working */
-			} else {
-				console.log('[' + new Date() + '] Successfully updated weather!');
-			}
-		});
+		var updateWeather = later.setInterval(function() {
+			console.log('[' + new Date() + '] Update Weather');
 
-	}, fiveMinuteInterval);
+			weather.update(function(err, weatherJSON) {
+				if(err) {
+					console.log('[' + new Date() + '] Error occured for weather! (' + err + ')');
+					if(!dbErr) {
+						admins.sendEmail(db, {
+							subject: "Error Notification - Weather Retrieval",
+							html: "There was an error when retrieving the weather.<br>Error message: " + err
+						}, function(err) {
+							console.log('[' + new Date() + '] Error occured when sending admin notifications! (' + err + ')');
+						});
+					} else {
+						console.log('[' + new Date() + '] Error when connecting to database! (' + err + ')');
+					}
+				} else {
+					console.log('[' + new Date() + '] Successfully updated weather!');
+				}
+			});
 
+		}, fiveMinuteInterval);
+	});
 } else {
 	console.log('Not starting tasks server because we are not on production.');
 }
