@@ -10,18 +10,19 @@ try {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }
 
+var admins		  = require(__dirname + '/libs/admins.js');
 var dailyBulletin = require(__dirname + '/libs/dailyBulletin.js');
 var later         = require('later');
-var weather       = require(__dirname + '/libs/weather.js');
-var admins		  = require(__dirname + '/libs/admins.js');
 var MongoClient   = require('mongodb').MongoClient;
+var weather       = require(__dirname + '/libs/weather.js');
 
 // Only run these intervals in production so we don't waste our API calls
 if(config.production) {
 
 	console.log('Starting tasks server!');
 
-	MongoClient.connect(config.mongodb.uri, function(dbErr, db) {
+	MongoClient.connect(config.mongodb.uri, function(err, db) {
+		if err throw err;
 
 		var fiveMinuteInterval = later.parse.text('every 5 min');
 
@@ -35,16 +36,18 @@ if(config.production) {
 			dailyBulletin.queryLatest(function(err) {
 				if(err) {
 					console.log('[' + new Date() + '] Error occured for Daily Bulletin! (' + err + ')');
-					if(!dbErr) {
-						admins.sendEmail(db, {
-							subject: "Error Notification - Daily Bulletin Retrieval",
-							html: "There was an error when retrieving the daily bulletin.<br>Error message: " + err
-						}, function(err) {
+
+					// Alert admins if there's an error querying the Daily Bulletin
+					admins.sendEmail(db, {
+						subject: "Error Notification - Daily Bulletin Retrieval",
+						html: "There was an error when retrieving the daily bulletin.<br>Error message: " + err
+					}, function(err) {
+						if(err) {
 							console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
-						});
-					} else {
-						console.log('[' + new Date() + '] Error when connecting to database! (' + err + ')');
-					}
+							return;
+						}
+						console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
+					});
 				} else {
 					console.log('[' + new Date() + '] Successfully got latest Daily Bulletin!');
 				}
@@ -62,16 +65,18 @@ if(config.production) {
 			weather.update(function(err, weatherJSON) {
 				if(err) {
 					console.log('[' + new Date() + '] Error occured for weather! (' + err + ')');
-					if(!dbErr) {
-						admins.sendEmail(db, {
-							subject: "Error Notification - Weather Retrieval",
-							html: "There was an error when retrieving the weather.<br>Error message: " + err
-						}, function(err) {
+
+					// Alert admins if problem getting weather
+					admins.sendEmail(db, {
+						subject: "Error Notification - Weather Retrieval",
+						html: "There was an error when retrieving the weather.<br>Error message: " + err
+					}, function(err) {
+						if(err) {
 							console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
-						});
-					} else {
-						console.log('[' + new Date() + '] Error when connecting to database! (' + err + ')');
-					}
+							return;
+						}
+						console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
+					});
 				} else {
 					console.log('[' + new Date() + '] Successfully updated weather!');
 				}

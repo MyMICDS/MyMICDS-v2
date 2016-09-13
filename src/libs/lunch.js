@@ -11,12 +11,12 @@ try {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }
 
+var admins  = require(__dirname + '/admins.js');
 var fs      = require('fs-extra');
 var request = require('request');
 var cheerio = require('cheerio');
 var moment  = require('moment');
 var utils   = require(__dirname + '/utils.js');
-var admins  = require(__dirname + '/admins.js');
 
 var lunchURL = 'http://myschooldining.com/MICDS/calendarWeek';
 var schools  = ['Lower School', 'Middle School', 'Upper School'];
@@ -54,13 +54,19 @@ function getLunch(date, db, callback) {
 			return;
 		}
 		if(res.statusCode !== 200) {
+
+			// Alert admins if lunch page has moved
 			admins.sendEmail(db, {
 				subject: "Error Notification - Lunch Retrieval",
 				html: "There was a problem with the lunch URL.<br>Error message: " + err
 			}, function(err) {
-				callback(new Error('There was a problem with sending the admin error notification!'), null);
-				return;
+				if(err) {
+					console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
+					return;
+				}
+				console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
 			});
+
 			callback(new Error('There was a problem with the lunch URL!'), null);
 			return;
 		}
