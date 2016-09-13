@@ -32,9 +32,9 @@ var mail = require(__dirname + "/mail.js");
 		return;
 	}
 
-	var userscoll = db.collection('users');
+	var userdata = db.collection('users');
 
-	userscoll.find({scopes: ['admin']}).toArray(function(err, docs) {
+	userdata.find({scopes: ['admin']}).toArray(function(err, docs) {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'), null);
 			return;

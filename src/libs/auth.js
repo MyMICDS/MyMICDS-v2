@@ -12,6 +12,7 @@ var jwt         = require(__dirname + '/jwt.js');
 var mail        = require(__dirname + '/mail.js');
 var passwords   = require(__dirname + '/passwords.js');
 var users       = require(__dirname + '/users.js');
+var admins 		= require(__dirname + '/admins.js');
 
 /**
  * Validates a user's credentials and updates the 'lastLogin' field.
@@ -184,6 +185,24 @@ function register(db, user, callback) {
 
 					// Send confirmation email
 					mail.sendHTML(email, 'Confirm your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
+
+					// Send admin notification email
+					var emailGrade = users.gradYearToGrade(newUser.gradYear);
+					if(emailGrade == null) {
+						var emailGrade = 'Teacher';
+					}
+
+					var adminMessage = {
+						subject: 'New User - ' + newUser.firstName + ' ' + newUser.lastName,
+						html: newUser.firstName + ' ' + newUser.lastName + ' (' + emailGrade + ') just signed up for MyMICDS.net.'
+					};
+					admins.sendEmail(db, adminMessage, function(err) {
+						if(err) {
+							callback(new Error('There was a problem sending the admin register notifications!'));
+							return;
+						}
+						callback(null);
+					});
 				});
 			});
 		});
