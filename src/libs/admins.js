@@ -10,7 +10,7 @@ var mail = require(__dirname + "/mail.js");
 /**
  * Gets usernames of admins from database
  * @function getAdmins
- * 
+ *
  * @param {Object} db - Database connection
  * @param {getAdminsCallback} callback - Callback
  */
@@ -20,10 +20,10 @@ var mail = require(__dirname + "/mail.js");
  * @callback getAdminsCallback
  *
  * @param {Object} err - Null if success, error object if failure
- * @param {Array} adminList - Array of admin usernames if success, null if failure
+ * @param {Array} admins - Array of admin user objects if success, null if failure
  */
+
  function getAdmins(db, callback) {
- 	// validate inputs
  	if(typeof callback !== 'function') {
 		callback = function() {};
 	}
@@ -32,29 +32,22 @@ var mail = require(__dirname + "/mail.js");
 		return;
 	}
 
-	var userscoll = db.collection('users');
+	var userdata = db.collection('users');
 
-	userscoll.find({scopes: ['admin']}).toArray(function(err, docs) {
+	userdata.find({scopes: ['admin']}).toArray(function(err, docs) {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'), null);
 			return;
 		}
 
-		var adminList = [];
-
-		// push all usernames into adminList
-		docs.forEach(function(userDoc) {
-			adminList.push(userDoc['user'])
-		});
-
-		callback(null, adminList);
+		callback(null, docs);
 	});
  }
 
 /**
  * Sends all admins a notification email
  * @function sendAdminEmail
- * 
+ *
  * @param {Object} db - Database connection
  * @param {Object} message - JSON containing details of message
  * @param {string} message.subject - Subject of email
@@ -68,8 +61,8 @@ var mail = require(__dirname + "/mail.js");
  *
  * @param {Object} err - Null if success, error object if failure
  */
+
  function sendAdminEmail(db, message, callback) {
- 	// validate inputs
  	if(typeof callback !== 'function') {
 		callback = function() {};
 	}
@@ -77,33 +70,24 @@ var mail = require(__dirname + "/mail.js");
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
- 	if(typeof message !== 'object') {
-		callback(new Error('Invalid message object!'));
-		return;
-	}
-	if(typeof message.subject !== 'string') {
-		callback(new Error('Invalid mail subject!'));
-		return;
-	}
-	if(typeof message.html !== 'string') {
-		callback(new Error('Invalid mail html!'));
-		return;
-	}
 
- 	getAdmins(db, function(err, adminList) {
+	// Get admin objects
+ 	getAdmins(db, function(err, admins) {
  		if(err) {
  			callback(new Error('Error getting list of admins!'));
  			return;
  		}
 
- 		// add "@micds.org" to all admin usernames to get email addresses
- 		var adminEmails = adminList.map(function(admin) {
- 			return admin + "@micds.org";
- 		});
+		var adminEmails = [];
 
+		for(var i = 0; i < admins.length; i++) {
+			adminEmails.push(admin.user + '@micds.org');
+		}
+
+		// Send email
  		mail.send(adminEmails, message, function(err) {
  			if(err) {
- 				callback(new Error('Error sending email to admins!'));
+ 				callback(err);
  			}
 
  			callback(null);
