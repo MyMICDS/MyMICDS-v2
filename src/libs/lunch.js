@@ -5,11 +5,18 @@
  * @module lunch
  */
 
+try {
+	var config = require(__dirname + '/config.js');
+} catch(e) {
+	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
+}
+
 var fs      = require('fs-extra');
 var request = require('request');
 var cheerio = require('cheerio');
 var moment  = require('moment');
 var utils   = require(__dirname + '/utils.js');
+var admins  = require(__dirname + '/admins.js');
 
 var lunchURL = 'http://myschooldining.com/MICDS/calendarWeek';
 var schools  = ['Lower School', 'Middle School', 'Upper School'];
@@ -20,6 +27,7 @@ var JSONPath = __dirname + '/../public/json/weather.json';
  * @function getLunch
  *
  * @param {Object} date - Javascript Date Object containing date to retrieve lunch. If invalid, defaults to today.
+ * @param {Object} db - Database object
  * @param {getLunchCallback} callback - Callback
  */
 
@@ -31,7 +39,11 @@ var JSONPath = __dirname + '/../public/json/weather.json';
  * @param {Object} lunchJSON - JSON of lunch menu for the week. Null if error.
  */
 
-function getLunch(date, callback) {
+function getLunch(date, db, callback) {
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
 
 	var currentDay = moment(date).day('Wednesday');
 
@@ -42,11 +54,13 @@ function getLunch(date, callback) {
 			return;
 		}
 		if(res.statusCode !== 200) {
-			/**
-			 * @TODO -
-			 * This should never happen and could mean the URL changed.
-			 * It should send email to MyMICDS Devs.
-			 */
+			admins.sendEmail(db, {
+				subject: "Error Notification - Lunch Retrieval",
+				html: "There was a problem with the lunch URL.<br>Error message: " + err
+			}, function(err) {
+				callback(new Error('There was a problem with sending the admin error notification!'), null);
+				return;
+			});
 			callback(new Error('There was a problem with the lunch URL!'), null);
 			return;
 		}

@@ -40,7 +40,7 @@ if(config.production) {
 							subject: "Error Notification - Daily Bulletin Retrieval",
 							html: "There was an error when retrieving the daily bulletin.<br>Error message: " + err
 						}, function(err) {
-							console.log('[' + new Date() + '] Error occured when sending admin notifications! (' + err + ')');
+							console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
 						});
 					} else {
 						console.log('[' + new Date() + '] Error when connecting to database! (' + err + ')');
@@ -67,7 +67,7 @@ if(config.production) {
 							subject: "Error Notification - Weather Retrieval",
 							html: "There was an error when retrieving the weather.<br>Error message: " + err
 						}, function(err) {
-							console.log('[' + new Date() + '] Error occured when sending admin notifications! (' + err + ')');
+							console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
 						});
 					} else {
 						console.log('[' + new Date() + '] Error when connecting to database! (' + err + ')');
