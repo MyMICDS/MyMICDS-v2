@@ -6,6 +6,7 @@
  */
 
 var _           = require('underscore');
+var admins      = require(__dirname + '/admins.js');
 var crypto      = require('crypto');
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
 var jwt         = require(__dirname + '/jwt.js');
@@ -192,7 +193,6 @@ function register(db, user, callback) {
 					}, function(err) {
 						if(err) {
 							console.log('[' + new Date() + '] Error occured when sending admin notification! (' + err + ')');
-							return;
 						}
 					});
 				});

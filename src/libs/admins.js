@@ -81,7 +81,7 @@ var mail = require(__dirname + "/mail.js");
 		var adminEmails = [];
 
 		for(var i = 0; i < admins.length; i++) {
-			adminEmails.push(admin.user + '@micds.org');
+			adminEmails.push(admins[i].user + '@micds.org');
 		}
 
 		// Send email

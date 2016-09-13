@@ -108,7 +108,7 @@ function parseLunch(body) {
 		for(var i = 0; i < schools.length; i++) {
 			var school = schools[i];
 
-			var schoolLunch = day.find('div[location='' + school + '']');
+			var schoolLunch = day.find('div[location="' + school + '"]');
 
 			// Make sure it's not the weekend
 			if(schoolLunch.length > 0) {
