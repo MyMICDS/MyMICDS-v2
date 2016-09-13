@@ -23,6 +23,7 @@ var mail = require(__dirname + "/mail.js");
  * @param {Array} adminList - Array of admin usernames if success, null if failure
  */
  function getAdmins(db, callback) {
+ 	// validate inputs
  	if(typeof callback !== 'function') {
 		callback = function() {};
 	}
@@ -41,6 +42,7 @@ var mail = require(__dirname + "/mail.js");
 
 		var adminList = [];
 
+		// push all usernames into adminList
 		docs.forEach(function(userDoc) {
 			adminList.push(userDoc['user'])
 		});
@@ -94,6 +96,7 @@ var mail = require(__dirname + "/mail.js");
  			return;
  		}
 
+ 		// add "@micds.org" to all admin usernames to get email addresses
  		var adminEmails = adminList.map(function(admin) {
  			return admin + "@micds.org";
  		});
@@ -107,3 +110,6 @@ var mail = require(__dirname + "/mail.js");
  		});
  	});
  }
+
+ module.exports.get = getAdmins;
+ module.exports.sendEmail = sendAdminEmail;
