@@ -13,6 +13,7 @@ var jwt         = require(__dirname + '/jwt.js');
 var mail        = require(__dirname + '/mail.js');
 var passwords   = require(__dirname + '/passwords.js');
 var users       = require(__dirname + '/users.js');
+var admins 		= require(__dirname + '/admins.js');
 
 /**
  * Validates a user's credentials and updates the 'lastLogin' field.
