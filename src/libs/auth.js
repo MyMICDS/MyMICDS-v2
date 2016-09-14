@@ -6,6 +6,7 @@
  */
 
 var _           = require('underscore');
+var admins      = require(__dirname + '/admins.js');
 var crypto      = require('crypto');
 var cryptoUtils = require(__dirname + '/cryptoUtils.js');
 var jwt         = require(__dirname + '/jwt.js');
@@ -184,6 +185,16 @@ function register(db, user, callback) {
 
 					// Send confirmation email
 					mail.sendHTML(email, 'Confirm your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
+
+					// Let's celebrate and the message throughout the land!
+					admins.sendEmail(db, {
+						subject: newUser.user + ' just created a 2.0 account!',
+						html: newUser.firstName + ' ' + newUser.lastName + ' (' + newUser.gradYear + ') just created an account with the username ' + newUser.user
+					}, function(err) {
+						if(err) {
+							console.log('[' + new Date() + '] Error occured when sending admin notification! (' + err + ')');
+						}
+					});
 				});
 			});
 		});

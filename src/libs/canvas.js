@@ -329,7 +329,7 @@ function parseCanvasTitle(title) {
 	var firstLastBrackets = /(^\[)|(\]$)/g;
 
 	// Get what's in the square brackets, including square brackets
-	var classTeacher = _.last(title.match(classTeacherRegex));
+	var classTeacher = _.last(title.match(classTeacherRegex)) || '';
 	var classTeacherNoBrackets = classTeacher.replace(firstLastBrackets, '');
 	// Subtract the class/teacher from the Canvas title
 	var assignmentName = title.replace(classTeacherRegex, '').trim();
