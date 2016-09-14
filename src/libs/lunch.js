@@ -26,8 +26,8 @@ var JSONPath = __dirname + '/../public/json/weather.json';
  * Gets the lunch from /src/api/lunch.json. Will create one if it doesn't already exist.
  * @function getLunch
  *
- * @param {Object} date - Javascript Date Object containing date to retrieve lunch. If invalid, defaults to today.
  * @param {Object} db - Database object
+ * @param {Object} date - Javascript Date Object containing date to retrieve lunch. If invalid, defaults to today.
  * @param {getLunchCallback} callback - Callback
  */
 
@@ -39,7 +39,9 @@ var JSONPath = __dirname + '/../public/json/weather.json';
  * @param {Object} lunchJSON - JSON of lunch menu for the week. Null if error.
  */
 
-function getLunch(date, db, callback) {
+function getLunch(db, date, callback) {
+	if(typeof callback !== 'function') return;
+
 	if(typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
