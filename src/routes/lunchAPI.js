@@ -10,7 +10,7 @@ module.exports = function(app, db) {
 
 	app.post('/lunch/get', function(req, res) {
 		var lunchDate = new Date(parseInt(req.body.year), parseInt(req.body.month - 1), parseInt(req.body.day));
-		lunch.get(lunchDate, function(err, lunchJSON) {
+		lunch.get(db, lunchDate, function(err, lunchJSON) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
