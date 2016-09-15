@@ -104,8 +104,11 @@ function isRevoked(db) {
 					return;
 				}
 
-				done(null, blacklisted);
+				// Update 'lastVisited' field in user document
+				var userdata = db.collection('users');
+				userdata.update(userDoc, { $currentDate: { lastVisited: true }});
 
+				done(null, blacklisted);
 			});
 		});
 	}
