@@ -375,7 +375,12 @@ function calendarToEvent(calLink) {
 	var courseId = querystring.parse(calObject.query)['include_contexts'].replace('_', 's/');
 
 	// Remove hash sign and switch to event URL format
-	var eventId = calObject.hash.slice(1).replace('_', 's/');
+	var eventString = calObject.hash.slice(1);
+	if(eventString.contains('assignment')) {
+		var eventId = eventString.replace('assignment_', 'assignments/');
+	} else if(eventString.contains('calendar_event')) {
+		var eventId = eventString.replace('calendar_event_', 'calendar_events/');
+	}
 
 	return 'https://micds.instructure.com/' + courseId + '/' + eventId;
 }
