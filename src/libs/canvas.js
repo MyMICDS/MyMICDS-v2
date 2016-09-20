@@ -376,9 +376,9 @@ function calendarToEvent(calLink) {
 
 	// Remove hash sign and switch to event URL format
 	var eventString = calObject.hash.slice(1);
-	if(eventString.contains('assignment')) {
+	if(eventString.includes('assignment')) {
 		var eventId = eventString.replace('assignment_', 'assignments/');
-	} else if(eventString.contains('calendar_event')) {
+	} else if(eventString.includes('calendar_event')) {
 		var eventId = eventString.replace('calendar_event_', 'calendar_events/');
 	}
 
