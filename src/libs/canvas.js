@@ -11,6 +11,7 @@ var checkedEvents = require(__dirname + '/checkedEvents.js');
 var htmlParser    = require(__dirname + '/htmlParser.js');
 var ical          = require('ical');
 var prisma        = require('prisma');
+var querystring   = require('querystring');
 var request       = require('request');
 var url           = require('url');
 var users         = require(__dirname + '/users.js');
@@ -286,7 +287,7 @@ function getEvents(db, user, callback) {
 							title  : parsedEvent.assignment,
 							start  : start,
 							end    : end,
-							link   : canvasEvent.url || '',
+							link   : calendarToEvent(canvasEvent.url) || '',
 							checked: _.contains(checkedEventsList, canvasEvent.uid)
 						};
 
@@ -319,6 +320,8 @@ function getEvents(db, user, callback) {
 
 /**
  * Parses a Canvas assignment title into class name and teacher's name.
+ * @function parseCanvasTitle
+ * 
  * @param {string} title - Canvas assignment title
  * @returns {Object}
  */
@@ -354,6 +357,27 @@ function parseCanvasTitle(title) {
 			}
 		}
 	};
+}
+
+/**
+ * Parses a Canvas calendar link into an assignment/event link.
+ * @function calendarToEvent
+ *
+ * @param {string} calLink - Calendar link
+ * @returns {string}
+ */
+
+function calendarToEvent(calLink) {
+	// Example calendar link: https://micds.instructure.com/calendar?include_contexts=course_XXXXXXX&month=XX&year=XXXX#assignment_XXXXXXX
+	// 'assignment' can also be 'calendar_event'
+	var calObject = url.parse(calLink);
+
+	var courseId = querystring.parse(calObject.query)['include_contexts'].replace('_', 's/');
+
+	// Remove hash sign and switch to event URL format
+	var eventId = calObject.hash.slice(1).replace('_', 's/');
+
+	return 'https://micds.instructure.com/' + courseId + '/' + eventId;
 }
 
 /**
