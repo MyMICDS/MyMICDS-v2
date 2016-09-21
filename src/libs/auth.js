@@ -68,7 +68,7 @@ function login(db, user, password, rememberMe, callback) {
 			return;
 		}
 		if(!passwordMatches) {
-			callback(null, false, 'Username', null);
+			callback(null, false, 'Invalid username / password!', null);
 			return;
 		}
 
