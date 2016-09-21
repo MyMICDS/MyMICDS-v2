@@ -30,39 +30,45 @@ var admins 		= require(__dirname + '/admins.js');
  * Callback after a user is logged in
  * @callback loginCallback
  *
- * @param {Object} err - Null if successful, error object if failure
+ * @param {Object} err - Null if successful, error object if failure.
  * @param {Boolean} response - True if credentials match in database, false if not. Null if error.
- * @param {string} jwt - JSON Web Token for user to make API calls with
+ * @param {string} message - Message containing details for humans. Null if error.
+ * @param {string} jwt - JSON Web Token for user to make API calls with. Null if error, login invalid, or rememberMe is false.
  */
 
 function login(db, user, password, rememberMe, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null, null);
+		callback(new Error('Invalid database connection!'), null, null, null);
 		return;
 	}
 	if(typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null, null);
+		callback(new Error('Invalid username!'), null, null, null);
 		return;
 	} else {
 		user = user.toLowerCase();
 	}
 	if(typeof password !== 'string') {
-		callback(new Error('Invalid password!'), null, null);
+		callback(new Error('Invalid password!'), null, null, null);
 		return;
 	}
 	if(typeof rememberMe !== 'boolean') {
 		rememberMe = true;
 	}
 
-	passwords.passwordMatches(db, user, password, function(err, passwordMatches) {
+	passwords.passwordMatches(db, user, password, function(err, passwordMatches, confirmed) {
 		if(err) {
-			callback(err, null, null);
+			callback(err, null, null, null);
+			return;
+		}
+
+		if(!confirmed) {
+			callback(null, false, 'Account is not confirmed! Please check your email or register again.', null);
 			return;
 		}
 		if(!passwordMatches) {
-			callback(null, false, null);
+			callback(null, false, 'Username', null);
 			return;
 		}
 
@@ -74,11 +80,11 @@ function login(db, user, password, rememberMe, callback) {
 		// Now we need to create a JWT
 		jwt.generate(db, user, rememberMe, function(err, jwt) {
 			if(err) {
-				callback(err, null, null);
+				callback(err, null, null, null);
 				return;
 			}
 
-			callback(null, true, jwt);
+			callback(null, true, 'Success!', jwt);
 
 		});
 	});
