@@ -13,8 +13,9 @@ module.exports = function(app, db) {
 	app.post('/auth/login', function(req, res) {
 		if(req.user) {
 			res.json({
-				error  : 'You\'re already logged in, silly!',
+				error  : null,
 				success: false,
+				message: 'You\'re already logged in, silly!',
 				jwt    : null
 			});
 			return;
@@ -22,7 +23,7 @@ module.exports = function(app, db) {
 
 		var rememberMe = typeof req.body.remember !== 'undefined';
 
-		auth.login(db, req.body.user, req.body.password, rememberMe, function(err, response, jwt) {
+		auth.login(db, req.body.user, req.body.password, rememberMe, function(err, response, message, jwt) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -32,6 +33,7 @@ module.exports = function(app, db) {
 			res.json({
 				error  : errorMessage,
 				success: response,
+				message: message,
 				jwt    : jwt
 			});
 		});

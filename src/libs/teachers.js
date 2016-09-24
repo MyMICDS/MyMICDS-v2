@@ -89,43 +89,80 @@ function addTeacher(db, teacher, callback) {
  * @param {getTeacherCallback} callback - Callback
  */
 
- /**
-  * Returns the document of teacher
-  * @callback getTeacherCallback
-  *
-  * @param {Object} err - Null if success, error object if failure
-  * @param {Boolean} isTeacher - True if there is a valid teacher, false if not. Null if error.
-  * @param {Object} teacher - Teacher document. Null if error or no valid teacher.
-  */
+/**
+ * Returns the document of teacher
+ * @callback getTeacherCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Boolean} isTeacher - True if there is a valid teacher, false if not. Null if error.
+ * @param {Object} teacher - Teacher document. Null if error or no valid teacher.
+ */
 
-  function getTeacher(db, teacherId, callback) {
-	  if(typeof callback !== 'function') return;
+function getTeacher(db, teacherId, callback) {
+	if(typeof callback !== 'function') return;
 
-	  if(typeof db !== 'object') {
-		  callback(new Error('Invalid database connection!'), null, null);
-		  return;
-	  }
-	  if(typeof teacherId !== 'object') {
-		  callback(new Error('Invalid teacher id object!'), null, null);
-		  return;
-	  }
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null, null);
+		return;
+	}
+	if(typeof teacherId !== 'object') {
+		callback(new Error('Invalid teacher id object!'), null, null);
+		return;
+	}
 
-	  var teacherdata = db.collection('teachers');
-	  // Query database to find possible teacher
-	  teacherdata.find({ _id: teacherId }).toArray(function(err, docs) {
-		  if(err) {
-			  callback(new Error('There was a problem querying the database!'), null, null);
-			  return;
-		  }
+	var teacherdata = db.collection('teachers');
+	// Query database to find possible teacher
+	teacherdata.find({ _id: teacherId }).toArray(function(err, docs) {
+		if(err) {
+			callback(new Error('There was a problem querying the database!'), null, null);
+			return;
+		}
 
-		  if(docs.length === 0) {
-			  callback(null, false, null)
-		  } else {
-			  callback(null, true, docs[0]);
-		  }
+		if(docs.length === 0) {
+			callback(null, false, null)
+		} else {
+			callback(null, true, docs[0]);
+		}
 
-	  });
-  }
+	});
+}
+
+/**
+ * Returns an array of all teachers in database for Typeahead
+ * @function listTeachers
+ *
+ * @param {Object} db - Database connection
+ * @param {listTeachersCallback} callback - Callback
+ */
+
+/**
+ * Returns array of teachers
+ * @callback listTeachersCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Object} teachers - Array of teacher objects. Null if error.
+ */
+
+function listTeachers(db, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+
+	var teacherdata = db.collection('teachers');
+
+	teacherdata.find({}).toArray(function(err, docs) {
+		if(err) {
+			callback(new Error('There was a problem querying the database!'), null, null);
+			return;
+		}
+
+		callback(null, docs);
+
+	});
+}
 
 /**
  * Deletes a teacher if no other person has it
@@ -281,4 +318,5 @@ function deleteClasslessTeachers(db, callback) {
 
 module.exports.add = addTeacher;
 module.exports.get = getTeacher;
+module.exports.list = listTeachers;
 module.exports.deleteClasslessTeachers = deleteClasslessTeachers;

@@ -35,28 +35,29 @@ var passwordBlacklist = [
  *
  * @param {Object} err - Null if successful, error object if failure.
  * @param {Boolean} matches - True if password matches, false if not. Null if error.
+ * @param {Boolean} confirmed - Whether or not the user has confirmed their account.
  */
 
 function passwordMatches(db, user, password, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
+		callback(new Error('Invalid database connection!'), null, null);
 		return;
 	}
 	if(typeof password !== 'string') {
-		callback(new Error('Invalid password!'), null);
+		callback(new Error('Invalid password!'), null, null);
 		return;
 	}
 
 	users.get(db, user, function(err, isUser, userDoc) {
 		if(err) {
-			callback(err, null);
+			callback(err, null, null);
 			return;
 		}
 		// If invalid user, we just want to say username / password doesn't match
 		if(!isUser) {
-			callback(null, false);
+			callback(null, false, false);
 			return;
 		}
 
@@ -64,11 +65,11 @@ function passwordMatches(db, user, password, callback) {
 
 		bcrypt.compare(password, hash, function(err, res) {
 			if(err) {
-				callback(new Error('There was a problem comparing the passwords!'), null);
+				callback(new Error('There was a problem comparing the passwords!'), null, null);
 				return;
 			}
 
-			callback(null, res);
+			callback(null, res, !!userDoc['confirmed']);
 
 		});
 	});
