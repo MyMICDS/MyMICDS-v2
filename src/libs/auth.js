@@ -64,7 +64,7 @@ function login(db, user, password, rememberMe, callback) {
 		}
 
 		if(!confirmed) {
-			callback(null, false, 'Account is not confirmed! Please check your email or register again.', null);
+			callback(null, false, 'Account is not confirmed! Please check your email or register under the same username to resend the email.', null);
 			return;
 		}
 		if(!passwordMatches) {
