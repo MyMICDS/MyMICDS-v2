@@ -39,6 +39,8 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/auth/reset-password`](#userreset-password)
 * [Lunch API](#lunch-api)
   * [`/lunch/get`](#lunchget)
+* [Notifications API](#notification-api)
+  * [`/notification/get`](#notificationget)
 * [Planner API](#planner-api)
   * [`/planner/get`](#plannerget)
   * [`/planner/add`](#planneradd)
@@ -57,13 +59,8 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/user/grade-range`](#usergrade-range)
   * [`/user/get-info`](#userget-info)
   * [`/user/change-info`](#userchange-info)
-* [Notifications API](#notification-api)
-  * [`/notification/get`](#notificationget)
 * [Weather API](#weather-api)
   * [`/weather/get`](#weatherget)
-* [Alias API](#alias-api)
-  * [`/alias/create`](#aliascreate)
-  * [`/alias/get`](#aliasget)
 
 
 
@@ -418,6 +415,30 @@ This will test any given URL to see if it is a valid Portal calendar feed.
 #### Response
 - `error` - Null if successful, string containing error if failure.
 - `classes` - Array of classes the user has.
+
+
+
+## Snowday Calculator API
+This is the part of the API that relates to the [Snowday Calculator](http://www.snowdaycalculator.com/calculator.php). Can be found under `src/routes/snowdayAPI.js`. The associated snowday calculator module can be found under `src/libs/snowdayCalculator.js`.
+
+### `/snowday/calculate`
+Query the Snowday Calculate to get data for the next two days
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+- `data` - Object containing date as key, object containing data as value.
+
+
+
+## Sports API
+This is the part of the API that relates to the sports API. Scores are queried using the Rams Army app's API. Can be found under `src/routes/sportsAPI.js`. The associated sports module can be found under `src/libs/sports.js`.
+
+### `/sports/scores`
+Query the Rams Army app to get scores and events for MICDS athletics.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+- `scores` - Object containing a scores array and an events array
 
 
 
