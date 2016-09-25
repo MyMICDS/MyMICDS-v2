@@ -48,7 +48,7 @@ module.exports = function(io) {
 			io.emit.apply(io, arguments);
 		},
 		user: function() {
-			var argumentsArray = Array.prototype.slice.call(arguments);
+			var argumentsArray = Array.from(arguments);
 			var emitUser = argumentsArray[0];
 			var emitEvent = argumentsArray.slice(1);
 
