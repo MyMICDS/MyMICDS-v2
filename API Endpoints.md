@@ -52,6 +52,8 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/portal/set-url`](#portalset-url)
   * [`/portal/get-schedule`](#portalget-schedule)
   * [`/portal/get-classes`](#portalget-classes)
+* [Statistics API](#stats-api)
+  * [`/stats/get`](#statsget)
 * [User API](#user-api)
   * [`/user/grad-year-to-grade`](#usergrad-year-to-grade)
   * [`/user/grade-to-grad-year`](#usergrade-to-grad-year)
@@ -416,6 +418,15 @@ This will test any given URL to see if it is a valid Portal calendar feed.
 - `error` - Null if successful, string containing error if failure.
 - `classes` - Array of classes the user has.
 
+## Statistics API
+This is the part of the API that relates to MyMICDS usage statistics. Can be found under `src/routes/statsAPI.js`. The associated stats module can be found under `src/libs/stats.js`.
+
+### `/stats/get`
+Query the database to get usage statistics for amount of registered users, amount of active users, and amount of users registered today.
+
+#### Response
+- `error` - Null if successful, string containing error if failure.
+- `stats` - Object containing statistics.
 
 
 ## Snowday Calculator API
