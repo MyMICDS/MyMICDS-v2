@@ -6,7 +6,7 @@
 
 var stats = require(__dirname + "/../libs/stats.js");
 
-module.exports = function(app, db, socketIO) {
+module.exports = function(app, db) {
 
 	app.post('/stats/get', function(req, res) {
 		stats.get(db, function(err, statsObj) {
