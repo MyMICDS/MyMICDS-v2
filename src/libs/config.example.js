@@ -33,6 +33,11 @@ module.exports =
 		dayRotation: '' // You can use anybody's Schedule Rotation calendar ID from the Portal
 	},
 
+	ramsArmy: {
+		user: 'support@mymicds.net',
+		pass: ''
+	},
+
 	googleServiceAccount: {
 		'type': 'service_account',
 		'project_id': '',
