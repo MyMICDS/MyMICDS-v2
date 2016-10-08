@@ -5,8 +5,7 @@
  * @module stats
  */
 
-var asyncLib = require('async')
-var moment   = require('moment');
+var moment = require('moment');
 
 /**
  * Get usage statistics
