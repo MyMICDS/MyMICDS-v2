@@ -5,12 +5,13 @@
  * @module stats
  */
 
-var moment = require('moment');
+var asyncLib = require('async')
+var moment   = require('moment');
 
 /**
  * Get usage statistics
  * @function getStats
- * 
+ *
  * @param {Object} db - Database connection
  * @param {getStatsCallback} callback - Callback
  */
@@ -24,68 +25,79 @@ var moment = require('moment');
  */
 
 function getStats(db, callback) {
+
+	var stats = {
+		registered: {
+			total: 0,
+			today: 0,
+			gradYears: {}
+		},
+		visitedToday: {
+			total: 0,
+			gradYears: {}
+		}
+	};
 	var userdata = db.collection('users');
 
-	userdata.count(function(err, userCount) {
-		if(err) {
-			callback(new Error('There was an error counting the registered users!'), null);
-			return;
-		}
+	// Get all users
+	userdata.find({ confirmed: true }).toArray(function(err, userDocs) {
+		// Get user registered count
+		stats.registered.total = userDocs.length;
 
-		userdata.distinct('gradYear', function(err, gradYears) {
-			if(err) {
-				callback(new Error('There was an error getting the user graduation years!'), null);
-				return;
+		// Get array of unique gradYears
+		var gradYears = [];
+		for(var i = 0; i < userDocs.length; i++) {
+			var gradYear = userDocs[i].gradYear;
+
+			// If gradYear is null, it's a teacher
+			if(gradYear === null) {
+				gradYear = 'teacher';
 			}
 
-			var yearDates = {};
+			// If gradYear isn't in the array yet, push to gradYears
+			if(!gradYears.includes(gradYear)) {
+				gradYears.push(gradYear);
+			}
+		}
 
-			gradYears.forEach(function(year) {
-				yearDates[year] = {};
+		// First off, set every graduation year to 0 or empty object
+		for(var i = 0; i < gradYears.length; i++) {
+			var gradYear = gradYears[i];
 
-				userdata.find({gradYear: year}).toArray(function(err, userDocs) {
-					if(err) {
-						callback(new Error('There was an error getting the user register dates!'), null);
-						return;
-					}
+			stats.registered.gradYears[gradYear] = {};
+			stats.visitedToday.gradYears[gradYear] = 0;
+		}
 
-					userDocs.forEach(function(userDoc) {
-						var registerDay = moment(userDoc['registered']).format('YYYY-MM-DD');
+		// Loop through all the users for when they registered and last time they visited the site
+		var today = moment();
+		for(var i = 0; i < userDocs.length; i++) {
+			var userDoc = userDocs[i];
 
-						if(Object.keys(yearDates[year]).includes(registerDay)) {
-							yearDates[year][registerDay]++;
-						} else {
-							yearDates[year][registerDay] = 1;
-						}
-					});
+			// If gradYear is null, it's a teacher
+			var gradYear = userDoc.gradYear;
+			if(gradYear === null) {
+				gradYear = 'teacher'
+			}
 
-					userdata.find({lastVisited: {$gte: moment().startOf('day').toDate()}}).count(function(err, visitCount) {
-						if(err) {
-							callback(new Error('There was an error finding the recently active users!'), null);
-							return;
-						}
+			// Get day user registered
+			var registered = moment(userDoc.registered);
+			var formatRegistered = registered.format('YYYY-MM-DD');
 
-						userdata.find({registered: {$gte: moment().startOf('day').toDate()}}).count(function(err, registerCount) {
-							if(err) {
-								callback(new Error('There was an error finding the recently registered users!'), null);
-								return;
-							}
-						
-							var statistics = {
-								registered: {
-									total: userCount,
-									today: registerCount,
-									gradYears: yearDates
-								},
-								visitedToday: visitCount
-							};
+			// Check if user registered today
+			if(today.isSame(registered, 'day')) {
+				stats.registered.today++;
+			}
 
-							callback(null, statistics);
-						});
-					});
-				});
-			});
-		});
+			stats.registered.gradYears[gradYear][formatRegistered] = stats.registered.gradYears[gradYear][formatRegistered] + 1 || 1;
+
+			// Check if user visited today
+			if(today.isSame(userDoc.lastVisited, 'day')) {
+				stats.visitedToday.total++;
+				stats.visitedToday.gradYears[gradYear]++;
+			}
+		}
+
+		callback(null, stats);
 	});
 }
 

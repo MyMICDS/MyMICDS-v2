@@ -388,11 +388,9 @@ function deleteClasslessAliases(db, callback) {
 			aliasdata.find({}).toArray(function(err, docs) {
 				if(err) {
 					asyncCallback(new Error('There was a problem querying the database!'), null);
-					return;
+				} else {
+					asyncCallback(null, docs);
 				}
-
-				asyncCallback(null, docs);
-
 			});
 		},
 		// Get classes
@@ -400,11 +398,9 @@ function deleteClasslessAliases(db, callback) {
 			classdata.find({}).toArray(function(err, docs) {
 				if(err) {
 					asyncCallback(new Error('There was a problem querying the database!'), null);
-					return;
+				} else {
+					asyncCallback(null, docs);
 				}
-
-				asyncCallback(null, docs);
-
 			});
 		}
 	}, function(err, results) {
