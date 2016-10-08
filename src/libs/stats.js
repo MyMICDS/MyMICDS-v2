@@ -20,10 +20,16 @@ var moment = require('moment');
  * @callback getStatsCallback
  *
  * @param {Object} err - Null if success, error object if failure.
- * @param {Object} statistics - Object containing statistics if success, null if failure.
+ * @param {Object} statistics - Object containing statistics. Null if error.
  */
 
 function getStats(db, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
 
 	var stats = {
 		registered: {
@@ -40,6 +46,11 @@ function getStats(db, callback) {
 
 	// Get all users
 	userdata.find({ confirmed: true }).toArray(function(err, userDocs) {
+		if(err) {
+			callback(new Error('There was a problem querying the users from the database!'), null);
+			return;
+		}
+
 		// Get user registered count
 		stats.registered.total = userDocs.length;
 
