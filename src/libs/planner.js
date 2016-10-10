@@ -273,11 +273,9 @@ function getMonthEvents(db, user, date, callback) {
 				plannerdata.find({ user: userDoc['_id'] }).toArray(function(err, events) {
 					if(err) {
 						asyncCallback(new Error('There was a problem querying the database!'), null);
-						return;
+					} else {
+						asyncCallback(null, events);
 					}
-
-					asyncCallback(null, events);
-
 				});
 			},
 			function(asyncCallback) {

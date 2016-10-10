@@ -317,22 +317,18 @@ function getSchedule(db, user, date, callback) {
 					getDayRotation(scheduleDate, function(err, scheduleDay) {
 						if(err) {
 							asyncCallback(err, null);
-							return;
+						} else {
+							asyncCallback(null, scheduleDay);
 						}
-
-						asyncCallback(null, scheduleDay);
-
 					});
 				},
 				classes: function(asyncCallback) {
 					classes.get(db, user, function(err, classes) {
 						if(err) {
 							asyncCallback(err, null);
-							return;
+						} else {
+							asyncCallback(null, classes);
 						}
-
-						asyncCallback(null, classes);
-
 					});
 				}
 			}, function(err, results) {
