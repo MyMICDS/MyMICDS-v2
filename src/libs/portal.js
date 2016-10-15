@@ -301,6 +301,11 @@ function getSchedule(db, user, date, callback) {
 					return;
 				}
 
+				// Check if there's actually school
+				if(scheduleDay === null) {
+					defaultClasses = [];
+				}
+
 				var schedule = {
 					day: scheduleDay,
 					special: false,
@@ -345,8 +350,8 @@ function getSchedule(db, user, date, callback) {
 					blocks[block.block] = block; // Very descriptive
 				}
 
+				// Check if there's actually school
 				var schedule = [];
-
 				if(results.day !== null) {
 					schedule = blockSchedule.get(scheduleDate, results.day, lateStart, users.gradYearToGrade(userDoc['gradYear']), blocks);
 				}
