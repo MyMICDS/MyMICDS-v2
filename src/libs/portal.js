@@ -221,7 +221,8 @@ function getSchedule(db, user, date, callback) {
 		}
 
 		/*
-		 * How we determine user's schedule (powered by http://asciiflow.com/):
+		 * How we determine user's schedule (powered by http://asciiflow.com/)
+		 * TBT 9th grade Python unit flowcharts
 		 *
 		 * +------------------+   No       +------------------------+
 		 * | Does user exist? +----------->+ Just have School from  |
@@ -344,7 +345,11 @@ function getSchedule(db, user, date, callback) {
 					blocks[block.block] = block; // Very descriptive
 				}
 
-				var schedule = blockSchedule.get(scheduleDate, results.day, lateStart, users.gradYearToGrade(userDoc['gradYear']), blocks);
+				var schedule = [];
+
+				if(results.day !== null) {
+					schedule = blockSchedule.get(scheduleDate, results.day, lateStart, users.gradYearToGrade(userDoc['gradYear']), blocks);
+				}
 
 				callback(null, false, {
 					day: results.day,
