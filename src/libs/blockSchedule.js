@@ -85,7 +85,7 @@ function convertType(type) {
 
 function getSchedule(grade, day, lateStart) {
 	grade = parseInt(grade);
-	if(typeof grade !== 'number' || _.isNaN(day) || -1 > grade || grade > 12) {
+	if(typeof grade !== 'number' || _.isNaN(grade) || -1 > grade || grade > 12) {
 		return null;
 	}
 
@@ -114,25 +114,9 @@ function getSchedule(grade, day, lateStart) {
 			upperclass = false;
 		}
 
-		// Get lunch type and determine what type it is
-		var lunchBlock = highschoolSchedule['day' + day].lunchBlock;
-		var lunchBlockType = null;
-
 		var sam = false;
 		var wleh = false;
 		var other = true;
-
-		if(lunchBlock) {
-			var lunchBlockType = convertType(blocks[lunchBlock].type);
-		}
-
-		if(lunchBlockType === 'sam') {
-			sam = true;
-		} else if(lunchBlockType === 'wleh') {
-			wleh = true;
-		} else {
-			other = true;
-		}
 
 		// Loop through JSON and append classes to user schedule
 		var jsonSchedule = highschoolSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
@@ -158,56 +142,20 @@ function getSchedule(grade, day, lateStart) {
 				if(jsonBlock.lowerclass !== upperclass) continue;
 			}
 
-			// Get start and end moment objects
-			var startTime = jsonBlock.start.split(':');
-			var start = date.clone().hour(startTime[0]).minute(startTime[1]);
-
-			var endTime = jsonBlock.end.split(':');
-			var end = date.clone().hour(endTime[0]).minute(endTime[1]);
-
-			var insertBlock = blocks[jsonBlock.block];
-			if(jsonBlock.includeLunch) {
-				insertBlock.name += ' + Lunch';
-			}
-
 			// Push to user schedule
-			userSchedule.push({
-				start: start,
-				end  : end,
-				class: insertBlock
-			});
+			userSchedule.push(jsonBlock);
 		}
 
 		return userSchedule;
 
 	} else if(schoolName === 'middleschool') {
-
-		// Loop through JSON and append classes to user schedule
-		var jsonSchedule = middleschoolSchedule[grade]['day' + day][lateStart ? 'lateStart' : 'regular'];
-
-		for(var i = 0; i < jsonSchedule.length; i++) {
-			var jsonBlock = jsonSchedule[i];
-
-			// Get start and end moment objects
-			var startTime = jsonBlock.start.split(':');
-			var start = date.clone().hour(startTime[0]).minute(startTime[1]);
-
-			var endTime = jsonBlock.end.split(':');
-			var end = date.clone().hour(endTime[0]).minute(endTime[1]);
-
-			// Push to user schedule
-			userSchedule.push({
-				start: start,
-				end  : end,
-				class: blocks[jsonBlock.block]
-			});
-		}
-
-		return userSchedule;
+		// Directly return JSON from middleschool schedule
+		return middleschoolSchedule[grade]['day' + day][lateStart ? 'lateStart' : 'regular'];
 
 	} else {
 		return null;
 	}
 }
 
-module.exports.get = getSchedule;
+module.exports.blocks = validBlocks;
+module.exports.get    = getSchedule;

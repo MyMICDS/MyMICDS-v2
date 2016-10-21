@@ -317,64 +317,6 @@ function getDayRotation(date, callback) {
 }
 
 /**
- * Cleans up the silly event titles we get from the portal
- * @function cleanUp
- *
- * @param {string} str - Summary to clean up
- * @returns {string}
- */
-
-function cleanUp(str) {
-	if(typeof str !== 'string') return str;
-
-	// Split string between hyphens and trim each part
-	var parts = str.split(' - ').map(function(value) { return value.trim() });
-
-	// Get rid of empty strings
-	for(var i = 0; i < parts.length; i++) {
-		if(parts[i] === '') {
-			parts.splice(i, 1);
-		}
-	}
-
-	// Sort array using very special algorithm I thought of in the shower.
-	parts.sort(function(a, b) {
-		// Get length of strings
-		var aLength = a.length;
-		var bLength = b.length;
-
-		// Get count of alphabetic characters in strings
-		var alphabetic = /[A-Z]/ig;
-		var aAlphabeticMatches = a.match(alphabetic);
-		var bAlphabeticMatches = b.match(alphabetic);
-
-		// .match actually returns an array. If it isn't null, assign length.
-		var aAlphabeticCount = 0;
-		if(aAlphabeticMatches) {
-			aAlphabeticCount = aAlphabeticMatches.length;
-		}
-
-		var bAlphabeticCount = 0;
-		if(bAlphabeticMatches) {
-			bAlphabeticCount = bAlphabeticMatches.length;
-		}
-
-		// Get ratio of alphabetic / total characters
-		var aRatio = aAlphabeticCount / aLength;
-		var bRatio = bAlphabeticCount / bLength;
-
-		// Final score is length multiplied by ratio
-		var aGoodBoyPoints = aLength * aRatio;
-		var bGoodBoyPoints = bLength * bRatio;
-
-		return bGoodBoyPoints - aGoodBoyPoints;
-	});
-
-	return parts[0] || '';
-}
-
-
-/**
  * Gets a user's classes from the PORTAL, not CANVAS.
  * @function getClasses
  *
@@ -530,8 +472,71 @@ function parseIcalClasses(data, callback) {
 	callback(null, true, filteredClasses);
 }
 
+/**
+ * Cleans up the silly event titles we get from the portal
+ * @function cleanUp
+ *
+ * @param {string} str - Summary to clean up
+ * @returns {string}
+ */
+
+function cleanUp(str) {
+	if(typeof str !== 'string') return str;
+
+	// Split string between hyphens and trim each part
+	var parts = str.split(' - ').map(function(value) { return value.trim() });
+
+	// Get rid of empty strings
+	for(var i = 0; i < parts.length; i++) {
+		if(parts[i] === '') {
+			parts.splice(i, 1);
+		}
+	}
+
+	// Sort array using very special algorithm I thought of in the shower.
+	parts.sort(function(a, b) {
+		// Get length of strings
+		var aLength = a.length;
+		var bLength = b.length;
+
+		// Get count of alphabetic characters in strings
+		var alphabetic = /[A-Z]/ig;
+		var aAlphabeticMatches = a.match(alphabetic);
+		var bAlphabeticMatches = b.match(alphabetic);
+
+		// .match actually returns an array. If it isn't null, assign length.
+		var aAlphabeticCount = 0;
+		if(aAlphabeticMatches) {
+			aAlphabeticCount = aAlphabeticMatches.length;
+		}
+
+		var bAlphabeticCount = 0;
+		if(bAlphabeticMatches) {
+			bAlphabeticCount = bAlphabeticMatches.length;
+		}
+
+		// Get ratio of alphabetic / total characters
+		var aRatio = aAlphabeticCount / aLength;
+		var bRatio = bAlphabeticCount / bLength;
+
+		// Final score is length multiplied by ratio
+		var aGoodBoyPoints = aLength * aRatio;
+		var bGoodBoyPoints = bLength * bRatio;
+
+		return bGoodBoyPoints - aGoodBoyPoints;
+	});
+
+	return parts[0] || '';
+}
+
+// RegEx
+module.exports.validDayRotation   = validDayRotation;
+module.exports.portalSummaryBlock = portalSummaryBlock;
+
+// Functions
 module.exports.verifyURL      = verifyURL;
 module.exports.setURL         = setURL;
 module.exports.getCal         = getCal;
 module.exports.getDayRotation = getDayRotation;
 module.exports.getClasses	  = getClasses;
+module.exports.cleanUp        = cleanUp;

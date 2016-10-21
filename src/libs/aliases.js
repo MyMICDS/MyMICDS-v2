@@ -202,6 +202,71 @@ function listAliases(db, user, callback) {
 }
 
 /**
+ * Returns a object containing aliases and their corresponding class object
+ * @function mapAliases
+ *
+ * @param {Object} db - Database connection
+ * @param {string} user - Username
+ * @param {mapAliasesCallback} callback - Callback
+ */
+
+/**
+ * Returns an object containing Canvas and Portal aliases and their corresponding class objects
+ * @callback mapAliasesCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Object} aliases - Two objects for Canvas and Portal aliases, which are also objects with key being alias and value being class object. If that makes any sense.
+ */
+
+function mapAliases(db, user, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid username!'), null);
+		return;
+	}
+
+	asyncLib.parallel({
+		aliases: function(asyncCallback) {
+			listAliases(db, user, asyncCallback);
+		},
+		classes: function(asyncCallback) {
+			classes.get(db, user, asyncCallback);
+		}
+	}, function(err, results) {
+		if(err) {
+			callback(err, null);
+			return;
+		}
+
+		var classMap = {};
+		var aliasMap = {};
+
+		// Organize classes by id
+		for(var i = 0; i < results.classes.length; i++) {
+			var scheduleClass = results.classes[i];
+			classMap[scheduleClass._id.toHexString()] = scheduleClass;
+		}
+
+		// Organize aliases by native class id
+		for(var i = 0; i < aliasTypes.length; i++) {
+			var type = aliasTypes[i];
+			aliasMap[type] = {};
+
+			if(typeof results.aliases[type] !== 'object') continue;
+
+			for(var j = 0; j < results.aliases[type].length; j++) {
+
+			}
+		}
+	});
+}
+
+/**
  * Deletes an alias
  * @function deleteAlias
  *
@@ -448,8 +513,9 @@ function deleteClasslessAliases(db, callback) {
 	});
 }
 
-module.exports.add = addAlias;
-module.exports.list = listAliases;
-module.exports.delete = deleteAlias;
+module.exports.add      = addAlias;
+module.exports.list     = listAliases;
+module.exports.map      = mapAliases;
+module.exports.delete   = deleteAlias;
 module.exports.getClass = getAliasClass;
 module.exports.deleteClasslessAliases = deleteClasslessAliases;
