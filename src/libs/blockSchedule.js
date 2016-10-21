@@ -76,197 +76,30 @@ function convertType(type) {
  * Returns a user's generic schedule according to their grade and their class names for each corresponding block. Returns null if something's invalid.
  * @function getSchedule
  *
+ * @param {Number} grade - User's grade (Note: We only support middleschool and highschool schedules)
  * @param {Number} day - What schedule rotation day it is (1-6)
  * @param {Boolean} lateStart - Whether or not schedule should be the late start variant
- * @param {Number} grade - User's grade (Note: We only support middleschool and highschool schedules)
- * @param {Object} blocks - A JSON with they keys as the blocks, and value is the class object
  *
  * @returns {Object}
  */
 
-function getSchedule(date, day, lateStart, grade, blocks) {
-
-	if(typeof blocks !== 'object') blocks = {};
-
-	// Add default blocks
-	if(typeof blocks.activities === 'undefined') {
-		var color = '#FF6347';
-		blocks.activities = {
-			name: 'Activities',
-			teacher: {
-				prefix: '',
-				firstName: '',
-				lastName: ''
-			},
-			type: 'other',
-			block: 'other',
-			color: color,
-			textDark: prisma.shouldTextBeDark(color)
-		};
-	}
-	if(typeof blocks.advisory === 'undefined') {
-		var color = '#EEE'; // Sophisticated white
-		blocks.advisory = {
-			name: 'Advisory',
-			teacher: {
-				prefix: '',
-				firstName: '',
-				lastName: ''
-			},
-			type: 'other',
-			block: 'other',
-			color: color,
-			textDark: prisma.shouldTextBeDark(color)
-		};
-	}
-	if(typeof blocks.collaborative === 'undefined') {
-		var color = '#29ABE2';
-		blocks.collaborative = {
-			name: 'Collaborative Work',
-			teacher: {
-				prefix: '',
-				firstName: '',
-				lastName: ''
-			},
-			type: 'other',
-			block: 'other',
-			color: color,
-			textDark: prisma.shouldTextBeDark(color)
-		};
-	}
-	if(typeof blocks.community === 'undefined') {
-		var color = '#AA0031';
-		blocks.community = {
-			name: 'Community',
-			teacher: {
-				prefix: '',
-				firstName: '',
-				lastName: ''
-			},
-			type: 'other',
-			block: 'other',
-			color: color,
-			textDark: prisma.shouldTextBeDark(color)
-		};
-	}
-	if(typeof blocks.enrichment === 'undefined') {
-		var color = '#FF4500';
-		blocks.enrichment = {
-			name: 'Enrichment',
-			teacher: {
-				prefix: '',
-				firstName: '',
-				lastName: ''
-			},
-			type: 'other',
-			block: 'other',
-			color: color,
-			textDark: prisma.shouldTextBeDark(color)
-		};
-	}
-	if(typeof blocks.flex === 'undefined') {
-		var color = '#CC33FF';
-		blocks.flex = {
-			name: 'Flex',
-			teacher: {
-				prefix: '',
-				firstName: '',
-				lastName: ''
-			},
-			type: 'other',
-			block: 'other',
-			color: color,
-			textDark: prisma.shouldTextBeDark(color)
-		};
-	}
-	if(typeof blocks.lunch === 'undefined') {
-		var color = '#116C53';
-		blocks.lunch = {
-			name: 'Lunch!',
-			teacher: {
-				prefix: '',
-				firstName: '',
-				lastName: ''
-			},
-			type: 'other',
-			block: 'other',
-			color: color,
-			textDark: prisma.shouldTextBeDark(color)
-		};
-	}
-	if(typeof blocks.recess === 'undefined') {
-		var color = '#FFFF00';
-		blocks.recess = {
-			name: 'Recess',
-			teacher: {
-				prefix: '',
-				firstName: '',
-				lastName: ''
-			},
-			type: 'other',
-			block: 'other',
-			color: color,
-			textDark: prisma.shouldTextBeDark(color)
-		};
-	}
-	if(typeof blocks.pe === 'undefined') {
-		var color = '#91E11D';
-		blocks.pe = {
-			name: 'Physical Education',
-			teacher: {
-				prefix: '',
-				firstName: '',
-				lastName: ''
-			},
-			type: 'other',
-			block: 'other',
-			color: color,
-			textDark: prisma.shouldTextBeDark(color)
-		};
+function getSchedule(grade, day, lateStart) {
+	grade = parseInt(grade);
+	if(typeof grade !== 'number' || _.isNaN(day) || -1 > grade || grade > 12) {
+		return null;
 	}
 
-	// Make sure date is a moment object
-	date = moment(date);
-
-	// If invalid day, return empty schedule because school isn't in session
-	if(day === null) return [];
 	day = parseInt(day);
-	if(typeof day !== 'number' || day % 1 !== 0 || 1 > day || day > 6) {
+	if(typeof day !== 'number' || _.isNaN(day) || 1 > day || day > 6) {
 		return null;
 	}
 
-	if(typeof grade !== 'number' || grade % 1 !== 0 || -1 > grade || grade > 12) {
-		return null;
-	}
+	lateStart = !!lateStart;
 
 	var schoolName = users.gradeToSchool(grade);
 
 	// We don't have lowerschool schedules
 	if(schoolName === 'lowerschool') return null;
-
-	// Make sure all blocks are valid
-	for(var i = 0; i < validBlocks.length; i++) {
-		var block = validBlocks[i];
-
-		if(typeof blocks[block] === 'undefined') {
-			var blockName = block[0].toUpperCase() + block.slice(1);
-			if(blockName.length === 1) {
-				blockName = 'Block ' + blockName;
-			}
-
-			blocks[block] = {
-				name: blockName,
-				teacher: {
-					prefix: '',
-					firstName: '',
-					lastName: ''
-				},
-				type: 'other',
-				block: block,
-				color: prisma(blockName).hex.toUpperCase()
-			}
-		}
-	}
 
 	// User's final schedule
 	var userSchedule = [];
@@ -287,7 +120,7 @@ function getSchedule(date, day, lateStart, grade, blocks) {
 
 		var sam = false;
 		var wleh = false;
-		var other = false;
+		var other = true;
 
 		if(lunchBlock) {
 			var lunchBlockType = convertType(blocks[lunchBlock].type);
