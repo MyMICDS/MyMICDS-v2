@@ -76,6 +76,7 @@ function convertType(type) {
  * Returns a user's generic schedule according to their grade and their class names for each corresponding block. Returns null if something's invalid.
  * @function getSchedule
  *
+ * @param {Object} date - Date to set date objects to. If null, will return regular strings with times in 24-hour time '15:15'
  * @param {Number} grade - User's grade (Note: We only support middleschool and highschool schedules)
  * @param {Number} day - What schedule rotation day it is (1-6)
  * @param {Boolean} lateStart - Whether or not schedule should be the late start variant
@@ -83,17 +84,21 @@ function convertType(type) {
  * @returns {Object}
  */
 
-function getSchedule(grade, day, lateStart) {
+function getSchedule(date, grade, day, lateStart) {
+	// Validate inputs
+	if(date) {
+		date = moment(date);
+	} else {
+		date = null;
+	}
 	grade = parseInt(grade);
 	if(typeof grade !== 'number' || _.isNaN(grade) || -1 > grade || grade > 12) {
 		return null;
 	}
-
 	day = parseInt(day);
 	if(typeof day !== 'number' || _.isNaN(day) || 1 > day || day > 6) {
 		return null;
 	}
-
 	lateStart = !!lateStart;
 
 	var schoolName = users.gradeToSchool(grade);
@@ -146,15 +151,24 @@ function getSchedule(grade, day, lateStart) {
 			userSchedule.push(jsonBlock);
 		}
 
-		return userSchedule;
-
 	} else if(schoolName === 'middleschool') {
 		// Directly return JSON from middleschool schedule
-		return middleschoolSchedule[grade]['day' + day][lateStart ? 'lateStart' : 'regular'];
-
-	} else {
-		return null;
+		userSchedule = middleschoolSchedule[grade]['day' + day][lateStart ? 'lateStart' : 'regular'];
 	}
+
+	// If date isn't null, set times relative to date object
+	if(date) {
+		for(var i = 0; i < userSchedule.length; i++) {
+			// Get start and end moment objects
+			var startTime = userSchedule[i].start.split(':');
+			userSchedule[i].start = date.clone().hour(startTime[0]).minute(startTime[1]);
+
+			var endTime = userSchedule[i].end.split(':');
+			userSchedule[i].end = date.clone().hour(endTime[0]).minute(endTime[1]);
+		}
+	}
+
+	return userSchedule;
 }
 
 module.exports.blocks = validBlocks;

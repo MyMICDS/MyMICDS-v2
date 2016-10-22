@@ -202,40 +202,38 @@ function getSchedule(db, user, date, callback) {
 		 *
 		 */
 
-		// Get default class in case everything else fails
-		var defaultStart = null;
-		var lateStart = false;
-		if(scheduleDate.day() !== 3) {
-			// Not Wednesday, school starts at 8
-			defaultStart = scheduleDate.clone().hour(8);
-		} else {
-			// Wednesday, school starts at 9
-			defaultStart = scheduleDate.clone().hour(9);
-			lateStart = true;
-		}
-		var defaultEnd = scheduleDate.clone().hour(15).minute(15);
+		// Determine when school should start and end for a default schedule
+ 		var lateStart = false;
+ 		var defaultStart = null;
+ 		if(scheduleDate.day() !== 3) {
+ 			// Not Wednesday, school starts at 8
+ 			defaultStart = scheduleDate.clone().hour(8);
+ 		} else {
+ 			// Wednesday, school starts at 9
+ 			defaultStart = scheduleDate.clone().hour(9);
+ 			lateStart = true;
+ 		}
+ 		var defaultEnd = scheduleDate.clone().hour(15).minute(15);
 
-		var defaultColor = '#A5001E';
+ 		// Default color for class
+ 		var defaultColor = '#A5001E';
 
-		var defaultClasses = [{
-			class: {
-				name: 'School',
-				teacher: {
-					prefix: 'Ms.',
-					firstName: 'Lisa',
-					lastName: 'Lyle'
-				},
-				block: 'other',
-				type: 'other',
-				color: defaultColor,
-				textDark: prisma.shouldTextBeDark(defaultColor)
-			},
-			start: defaultStart,
-			end: defaultEnd
-		}];
-
-		// We will need this for later in the cleanClass() function
-		var aliasCache = {};
+ 		var defaultClasses = [{
+ 			class: {
+ 				name: 'School',
+ 				teacher: {
+ 					prefix: 'Ms.',
+ 					firstName: 'Lisa',
+ 					lastName: 'Lyle'
+ 				},
+ 				block: 'other',
+ 				type: 'other',
+ 				color: defaultColor,
+ 				textDark: prisma.shouldTextBeDark(defaultColor)
+ 			},
+ 			start: defaultStart,
+ 			end: defaultEnd
+ 		}];
 
 		if(!isUser) {
 			// Fallback to default schedule if user is invalid
@@ -256,6 +254,8 @@ function getSchedule(db, user, date, callback) {
 			});
 
 		} else if(typeof userDoc['portalURL'] !== 'string') {
+			// If user is logged in, but hasn't configured their Portal URL
+			// We would know their grade, and therefore their generic block schedule, as well as any classes they configured
 			asyncLib.parallel({
 				day: function(asyncCallback) {
 					portal.getDayRotation(scheduleDate, function(err, scheduleDay) {
@@ -289,7 +289,7 @@ function getSchedule(db, user, date, callback) {
 				}
 
 				// Look up Block Schedule for user
-				var daySchedule = blockSchedule.get(users.gradYearToGrade(userDoc['gradYear']), results.day, lateStart);
+				var daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc['gradYear']), results.day, lateStart);
 				// Insert any possible classes the user as configured in Settings
 				var schedule = combineClassesSchedule(scheduleDate, daySchedule, blocks);
 
@@ -302,6 +302,8 @@ function getSchedule(db, user, date, callback) {
 			});
 
 		} else {
+			// The user is logged in and has configured their Portal URL
+			// We can therefore overlay their Portal classes ontop of their default block schedule for 100% coverage.
 			asyncLib.parallel({
 				// Get Portal calendar feed
 				portal: function(asyncCallback) {
@@ -318,13 +320,15 @@ function getSchedule(db, user, date, callback) {
 				},
 				// Get Portal aliases and their class objects
 				aliases: function(asyncCallback) {
-					aliases.map(db, user, asyncCallback);
+					aliases.mapList(db, user, asyncCallback);
 				},
 			}, function(err, results) {
 				if(err) {
 					callback(err, null, null);
+					return;
 				}
 
+				var portalSchedule = [];
 				var schedule = {
 					day: null,
 					special: false,
@@ -332,33 +336,20 @@ function getSchedule(db, user, date, callback) {
 					allDay : []
 				};
 
-				// Loop through all of the events in the calendar feed
-				var eventIndexes = Object.keys(data);
-				var aliasCache = {};
+				// Keep track of which classes we need to delete
 				var conflictIndexes = [];
 
-				function loopClass(i) {
-
-					// Check if we're finished looping through classes
-					if(i >= eventIndexes.length) {
-						doneClassLoop();
-						return;
-					}
-
-					var calEvent = data[eventIndexes[i]];
-					if(typeof calEvent.summary !== 'string') {
-						loopClass(++i);
-						return;
-					}
+				// Go through all the events in the Portal calendar
+				var eventIndexes = Object.keys(results.portal.cal);
+				for(var i = 0; i < eventIndexes.length; i++) {
+					var calEvent = results.portal.cal[eventIndexes[i]];
+					if(typeof calEvent.summary !== 'string') continue;
 
 					var start = moment(calEvent['start']);
 					var end   = moment(calEvent['end']);
 
 					// Make sure the event isn't all whacky
-					if(end.isBefore(start)) {
-						loopClass(++i);
-						return;
-					}
+					if(end.isBefore(start)) continue;
 
 					// Check if it's an all-day event
 					if(start.isSameOrBefore(scheduleDate) && end.isSameOrAfter(scheduleNextDay)) {
@@ -367,215 +358,82 @@ function getSchedule(db, user, date, callback) {
 							// Get actual day
 							var day = calEvent.summary.match(/[1-6]/)[0];
 							schedule.day = day;
-							// console.log('day is roation ' + day)
-							loopClass(++i);
-							return;
+							continue;
 						}
 
 						// Check if special schedule
 						var lowercaseSummary = calEvent.summary.toLowerCase();
 						if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
-							// console.log('special schedule DETECTED')
 							schedule.special = true;
-							loopClass(++i);
-							return;
+							continue;
 						}
 
 						schedule.allDay.push(portal.cleanUp(calEvent.summary));
-					}
 
-					// See if it's part of the schedule
-					if(start.isAfter(scheduleDate) && end.isBefore(scheduleNextDay)) {
+					} else if(start.isAfter(scheduleDate) && end.isBefore(scheduleNextDay)) {
+						// See if it's part of the schedule
 
-						// Move other (if any) events with conflicting times
-						for(var classIndex in schedule.classes) {
-							var scheduleClass = schedule.classes[classIndex];
+						// We should use the Portal class's alias; otherwise, we should fallback to a default class object. [sp1a]
+						if(typeof results.aliases.portal[calEvent.summary] !== 'object') {
+							console.log('create default block for', calEvent.summary);
 
-							var blockStart = scheduleClass.start;
-							var blockEnd   = scheduleClass.end;
+							// Determine block
+							var blockPart = _.last(calEvent.summary.match(portal.portalSummaryBlock));
+							var block = 'other';
 
-							// Determine start/end times relative to the class we're currently trying to add
-							var startRelation = null;
-							if(start.isSame(blockStart)) {
-								startRelation = 'same start';
-
-							} else if(start.isSame(blockEnd)) {
-								startRelation = 'same end';
-
-							} else if(start.isBefore(blockStart)) {
-								startRelation = 'before';
-
-							} else if(start.isAfter(blockEnd)) {
-								startRelation = 'after';
-
-							} else if(start.isAfter(blockStart) && start.isBefore(blockEnd)) {
-								startRelation = 'inside';
+							if(blockPart) {
+								block = _.last(blockPart.match(/[A-G]/g)).toLowerCase();
 							}
 
-							var endRelation = null;
-							if(end.isSame(blockStart)) {
-								startRelation = 'same start';
+							// Generate random color
+							var color = prisma(calEvent.summary).hex;
 
-							} else if(end.isSame(blockEnd)) {
-								startRelation = 'same end';
-
-							} else if(end.isBefore(blockStart)) {
-								startRelation = 'before';
-
-							} else if(end.isAfter(blockEnd)) {
-								startRelation = 'after';
-
-							} else if(end.isAfter(blockStart) && end.isBefore(blockEnd)) {
-								startRelation = 'inside';
-							}
-
-							// If new event is totally unrelated to the block, just ignore
-							if(startRelation === 'same end' || startRelation === 'after') continue;
-							if(endRelation === 'same start' || endRelation === 'before') continue;
-
-							// If same times, delete
-							if(startRelation === 'same start' && endRelation === 'same end') {
-								// Only push to array if index isn't already in array
-								if(!_.contains(conflictIndexes, classIndex)) {
-									conflictIndexes.push(classIndex);
-								}
-							}
-
-							// If new event completely engulfs the block, delete the block
-							if(startRelation === 'before' && endRelation === 'after') {
-								// Only push to array if index isn't already in array
-								if(!_.contains(conflictIndexes, classIndex)) {
-									conflictIndexes.push(classIndex);
-								}
-							}
-
-							// If new event is inside block
-							if(startRelation === 'inside' && endRelation == 'inside') {
-								// Split event into two
-								var newBlock = scheduleClass;
-								var oldEnd   = scheduleClass.end;
-
-								schedule.classes[classIndex].end = start;
-								newBlock.start = end;
-
-								schedule.classes.push(newBlock);
-							}
-
-							// If start is inside block but end is not
-							if(startRelation === 'inside' && (endRelation === 'after' || endRelation === 'same end')) {
-								schedule.classes[classIndex].end = start;
-							}
-
-							// If end is inside block but start is not
-							if(endRelation === 'inside' && (startRelation === 'before' || startRelation === 'same start')) {
-								schedule.classes[classIndex].start = end;
-							}
+							// RegEx for determining block and stuff is a bit intense; therefore, we should cache it. [sp1a]
+							results.aliases.portal[calEvent.summary] = {
+								portal: true,
+								raw: calEvent.summary,
+								name: portal.cleanUp(calEvent.summary),
+								teacher: {
+									prefix: '',
+									firstName: '',
+									lastName: ''
+								},
+								block: block,
+								type: 'other',
+								color: color,
+								textDark: prisma.shouldTextBeDark(color)
+							};
 						}
 
-						// Determine if there's an alias
-						if(aliasCache[calEvent.summary]) {
-							// console.log(calEvent.summary + ' already has lias')
-							schedule.classes.push({
-								class: aliasCache[calEvent.summary],
-								start: start,
-								end: end
-							});
-							loopClass(++i);
-						} else {
-							aliases.getClass(db, user, 'portal', calEvent.summary, function(err, hasAlias, classObject) {
-								if(err) {
-									callback(err, null, null);
-									return;
-								}
-
-								// console.log('class object alias', classObject)
-
-								if(hasAlias) {
-									// console.log(calEvent.summary + ' has alias! from get alias')
-									aliasCache[calEvent.summary] = classObject;
-								} else {
-									// console.log(calEvent.summary + ' doesnt have alias! from get alias')
-
-									// Determine block
-									var blockPart = _.last(calEvent.summary.match(portal.portalSummaryBlock));
-									var block = 'other';
-
-									if(blockPart) {
-										block = _.last(blockPart.match(/[A-G]/g)).toLowerCase();
-									}
-
-									// Determine color
-									var color = prisma(calEvent.summary).hex;
-
-									aliasCache[calEvent.summary] = {
-										portal: true,
-										raw: calEvent.summary,
-										name: portal.cleanUp(calEvent.summary),
-										teacher: {
-											prefix: '',
-											firstName: '',
-											lastName: ''
-										},
-										block: block,
-										type: 'other',
-										color: color,
-										textDark: prisma.shouldTextBeDark(color)
-									}
-								}
-
-								schedule.classes.push({
-									class: aliasCache[calEvent.summary],
-									start: start,
-									end  : end
-								});
-								loopClass(++i);
-							});
-						}
-					} else {
-						loopClass(++i);
+						// Add block into Portal Schedule array
+						portalSchedule.push({
+							class: results.aliases.portal[calEvent.summary],
+							start: start,
+							end: end
+						})
 					}
 				}
-				loopClass(0);
 
-				function doneClassLoop() {
+				portalSchedule = ordineSchedule([], portalSchedule);
 
-					// Delete all conflicting classes
-					conflictIndexes.sort();
-					var deleteOffset = 0;
-					for(var i = 0; i < conflictIndexes.length; i++) {
-						var index = conflictIndexes[i] - deleteOffset++;
-						schedule.classes.splice(index, 1);
-					}
-
-					// Reorder schedule because of deleted classes
-					schedule.classes.sort(function(a, b) {
-						return a.start - b.start;
-					});
-
-					// console.log(schedule.classes)
-
-					if(schedule.special) {
-						// If special schedule, just use default portal schedule
-						callback(null, true, schedule);
-						return;
-					}
-
-					// Override blocks with classes being taken today
-					var blocks = {};
-					for(var i = 0; i < schedule.classes.length; i++) {
-						var scheduleClass = schedule.classes[i].class;
-						// console.log('go throug hclass', scheduleClass.type, scheduleClass.block)
-						blocks[scheduleClass.block] = scheduleClass;
-					}
-
-					var blockClasses = blockSchedule.get(users.gradYearToGrade(userDoc['gradYear']), schedule.day, lateStart);
-
-					// If schedule is null for some reason, default back to portal schedule
-					if(blockClasses !== null) {
-						schedule.classes = blockClasses;
-					}
+				// If special schedule, just use default portal schedule
+				if(schedule.special) {
+					schedule.classes = portalSchedule;
 					callback(null, true, schedule);
+					return;
 				}
+
+				var daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc['gradYear']), schedule.day, lateStart);
+
+				// If schedule is null for some reason, default back to portal schedule
+				if(daySchedule === null) {
+					schedule.classes = portalSchedule;
+				} else {
+					// If there is a default day schedule, overlap Portal classes over default
+					schedule.classes = ordineSchedule(portalSchedule, daySchedule);
+				}
+
+				callback(null, true, schedule);
 			});
 		}
 	});
@@ -606,16 +464,9 @@ function combineClassesSchedule(date, schedule, blocks) {
 	// Loop through schedule
 	for(var i = 0; i < schedule.length; i++) {
 		var jsonBlock = schedule[i];
-		var block = jsonBlock.block;
-
-		// Get start and end moment objects
-		var startTime = jsonBlock.start.split(':');
-		var start = date.clone().hour(startTime[0]).minute(startTime[1]);
-
-		var endTime = jsonBlock.end.split(':');
-		var end = date.clone().hour(endTime[0]).minute(endTime[1]);
 
 		// Check if user has configured a class for this block
+		var block = jsonBlock.block;
 		var scheduleClass = blocks[block];
 
 		if(typeof scheduleClass !== 'object') {
@@ -646,12 +497,130 @@ function combineClassesSchedule(date, schedule, blocks) {
 }
 
 /**
- * Orders classes by time. Classes later in the array will override the classes in the earlier in the array. Combination of order and combine.
+ * Combination of order and combine. Returns an array of the new class combined with other classes in proper order
  * @function ordineSchedule
  *
- * @param {Object} classes - Array / object of classes to order
- * @param {Object} overrideClasses - Array / object of classes to override initial classes
- * @param {Boolean|string} includeAliases - Whether or not to link classes to possible Portal Alias.
+ * @param {Object} baseSchedule - Array of existing classes
+ * @param {Object} addClasses - Array of block objects to add to the class array. Will override base classes if conflict!
+ * @returns {Object}
  */
+
+function ordineSchedule(baseSchedule, addClasses) {
+	if(!_.isArray(baseSchedule)) baseSchedule = [];
+	if(!_.isArray(addClasses)) addClasses = [];
+
+	// Add each class to the base schedule
+	for(var i = 0; i < addClasses.length; i++) {
+		var addClass = addClasses[i];
+		var start = addClass.start;
+		var end = addClass.end;
+
+		// Keep track of conflicting indexes
+		var conflictIndexes = [];
+
+		// Move other (if any) events with conflicting times
+		for(var j = 0; j < baseSchedule.length; j++) {
+			var scheduleClass = baseSchedule[j];
+
+			var blockStart = scheduleClass.start;
+			var blockEnd   = scheduleClass.end;
+
+			// Determine start/end times relative to the class we're currently trying to add
+			var startRelation = null;
+			if(start.isSame(blockStart)) {
+				startRelation = 'same start';
+
+			} else if(start.isSame(blockEnd)) {
+				startRelation = 'same end';
+
+			} else if(start.isBefore(blockStart)) {
+				startRelation = 'before';
+
+			} else if(start.isAfter(blockEnd)) {
+				startRelation = 'after';
+
+			} else if(start.isAfter(blockStart) && start.isBefore(blockEnd)) {
+				startRelation = 'inside';
+			}
+
+			var endRelation = null;
+			if(end.isSame(blockStart)) {
+				startRelation = 'same start';
+
+			} else if(end.isSame(blockEnd)) {
+				startRelation = 'same end';
+
+			} else if(end.isBefore(blockStart)) {
+				startRelation = 'before';
+
+			} else if(end.isAfter(blockEnd)) {
+				startRelation = 'after';
+
+			} else if(end.isAfter(blockStart) && end.isBefore(blockEnd)) {
+				startRelation = 'inside';
+			}
+
+			// If new event is totally unrelated to the block, just ignore
+			if(startRelation === 'same end' || startRelation === 'after') continue;
+			if(endRelation === 'same start' || endRelation === 'before') continue;
+
+			// If same times, delete
+			if(startRelation === 'same start' && endRelation === 'same end') {
+				// Only push to array if index isn't already in array
+				if(!_.contains(conflictIndexes, j)) {
+					conflictIndexes.push(j);
+				}
+			}
+
+			// If new event completely engulfs the block, delete the block
+			if(startRelation === 'before' && endRelation === 'after') {
+				// Only push to array if index isn't already in array
+				if(!_.contains(conflictIndexes, j)) {
+					conflictIndexes.push(j);
+				}
+			}
+
+			// If new event is inside block
+			if(startRelation === 'inside' && endRelation == 'inside') {
+				// Split event into two
+				var newBlock = scheduleClass;
+				var oldEnd   = scheduleClass.end;
+
+				baseSchedule[j].end = start;
+				newBlock.start = end;
+
+				baseSchedule.push(newBlock);
+			}
+
+			// If start is inside block but end is not
+			if(startRelation === 'inside' && (endRelation === 'after' || endRelation === 'same end')) {
+				baseSchedule[j].end = start;
+			}
+
+			// If end is inside block but start is not
+			if(endRelation === 'inside' && (startRelation === 'before' || startRelation === 'same start')) {
+				baseSchedule[j].start = end;
+			}
+
+			baseSchedule.push(addClass);
+		}
+
+		// Delete all conflicting classes
+		conflictIndexes.sort();
+		var deleteOffset = 0;
+		for(var j = 0; j < conflictIndexes.length; j++) {
+			var index = conflictIndexes[j] - deleteOffset++;
+			baseSchedule.splice(index, 1);
+		}
+	}
+
+	// Reorder schedule because of deleted classes
+	baseSchedule.sort(function(a, b) {
+		return a.start - b.start;
+	});
+
+	console.log('combine', baseSchedule);
+	return baseSchedule;
+}
 
 module.exports.get = getSchedule;

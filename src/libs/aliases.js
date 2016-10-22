@@ -260,9 +260,12 @@ function mapAliases(db, user, callback) {
 			if(typeof results.aliases[type] !== 'object') continue;
 
 			for(var j = 0; j < results.aliases[type].length; j++) {
-
+				var aliasObject = results.aliases[type][j];
+				aliasMap[type][aliasObject.classRemote] = classMap[aliasObject.classNative.toHexString()];
 			}
 		}
+
+		callback(null, aliasMap);
 	});
 }
 
@@ -515,7 +518,7 @@ function deleteClasslessAliases(db, callback) {
 
 module.exports.add      = addAlias;
 module.exports.list     = listAliases;
-module.exports.map      = mapAliases;
+module.exports.mapList  = mapAliases;
 module.exports.delete   = deleteAlias;
 module.exports.getClass = getAliasClass;
 module.exports.deleteClasslessAliases = deleteClasslessAliases;
