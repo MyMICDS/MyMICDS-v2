@@ -39,8 +39,8 @@ var genericBlocks = {
 		},
 		type: 'other',
 		block: 'other',
-		color: '#EEE',
-		textDark: prisma.shouldTextBeDark('#EEE')
+		color: '#5a98ec',
+		textDark: prisma.shouldTextBeDark('#5a98ec')
 	},
 	collaborative: {
 		name: 'Collaborative Work',
@@ -203,39 +203,40 @@ function getSchedule(db, user, date, callback) {
 		 */
 
 		// Determine when school should start and end for a default schedule
- 		var lateStart = false;
- 		var defaultStart = null;
- 		if(scheduleDate.day() !== 3) {
- 			// Not Wednesday, school starts at 8
- 			defaultStart = scheduleDate.clone().hour(8);
- 		} else {
- 			// Wednesday, school starts at 9
- 			defaultStart = scheduleDate.clone().hour(9);
- 			lateStart = true;
- 		}
- 		var defaultEnd = scheduleDate.clone().hour(15).minute(15);
+		var lateStart = false;
+		var defaultStart = null;
+		if(scheduleDate.day() !== 3) {
+			// Not Wednesday, school starts at 8
+			defaultStart = scheduleDate.clone().hour(8);
+		} else {
+			// Wednesday, school starts at 9
+			defaultStart = scheduleDate.clone().hour(9);
+			lateStart = true;
+		}
+		var defaultEnd = scheduleDate.clone().hour(15).minute(15);
 
- 		// Default color for class
- 		var defaultColor = '#A5001E';
+		// Default color for class
+		var defaultColor = '#A5001E';
 
- 		var defaultClasses = [{
- 			class: {
- 				name: 'School',
- 				teacher: {
- 					prefix: 'Ms.',
- 					firstName: 'Lisa',
- 					lastName: 'Lyle'
- 				},
- 				block: 'other',
- 				type: 'other',
- 				color: defaultColor,
- 				textDark: prisma.shouldTextBeDark(defaultColor)
- 			},
- 			start: defaultStart,
- 			end: defaultEnd
- 		}];
+		var defaultClasses = [{
+			class: {
+				name: 'School',
+				teacher: {
+					prefix: 'Ms.',
+					firstName: 'Lisa',
+					lastName: 'Lyle'
+				},
+				block: 'other',
+				type: 'other',
+				color: defaultColor,
+				textDark: prisma.shouldTextBeDark(defaultColor)
+			},
+			start: defaultStart,
+			end: defaultEnd
+		}];
 
-		if(!isUser) {
+		// If it isn't a user OR it's a teacher with no Portal URL
+		if(!isUser || (userDoc['gradYear'] === null && typeof userDoc['portalURL'] !== 'string')) {
 			// Fallback to default schedule if user is invalid
 			portal.getDayRotation(scheduleDate, function(err, scheduleDay) {
 				if(err) {
@@ -292,6 +293,13 @@ function getSchedule(db, user, date, callback) {
 					blocks[block.block] = block; // Very descriptive
 				}
 
+				// Include generic blocks in with the supplied blocks
+				_.each(genericBlocks, function(value, key) {
+					if(typeof blocks[key] !== 'object') {
+						blocks[key] = value;
+					}
+				});
+
 				var schedule = {
 					day: results.day,
 					special: false,
@@ -302,6 +310,7 @@ function getSchedule(db, user, date, callback) {
 				// Look up Block Schedule for user
 				var daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc['gradYear']), results.day, lateStart);
 
+				// Only combine with block schedule if the block schedule exists
 				if(!daySchedule) {
 					callback(null, false, schedule);
 					return;
@@ -379,6 +388,7 @@ function getSchedule(db, user, date, callback) {
 							continue;
 						}
 
+						// Push event to all-day events
 						schedule.allDay.push(portal.cleanUp(calEvent.summary));
 
 					} else if(start.isAfter(scheduleDate) && end.isBefore(scheduleNextDay)) {
@@ -402,7 +412,6 @@ function getSchedule(db, user, date, callback) {
 							// RegEx for determining block and stuff is a bit intense; therefore, we should cache it. [sp1a]
 							results.aliases.portal[calEvent.summary] = {
 								portal: true,
-								raw: calEvent.summary,
 								name: portal.cleanUp(calEvent.summary),
 								teacher: {
 									prefix: '',
@@ -440,46 +449,74 @@ function getSchedule(db, user, date, callback) {
 				if(daySchedule === null) {
 					schedule.classes = portalSchedule;
 				} else {
-					// Format blocks into block object
-					var formattedDaySchedule = [];
+
+					// Keep track of original lunch start and end
+					var lunchSpan = {
+						start: null,
+						end: null
+					};
+
 					for(var i = 0; i < daySchedule.length; i++) {
-						var blockObject = daySchedule[i];
-						var block = blockObject.block;
-
-						if(typeof genericBlocks[block] === 'object') {
-							console.log('generic block', block)
-							formattedDaySchedule.push({
-								class: genericBlocks[block],
-								start: blockObject.start,
-								end: blockObject.end
-							});
-							continue;
+						var block = daySchedule[i];
+						if(block.includeLunch) {
+							lunchSpan.start = block.start;
+							lunchSpan.end = block.end;
+							break;
 						}
-
-						var blockName = block[0].toUpperCase() + block.slice(1);
-						var color = prisma(block).hex;
-						var blockClass = {
-							name: blockName,
-							teacher: {
-								prefix: '',
-								firstName: '',
-								lastName: ''
-							},
-							type: 'other',
-							block: block,
-							color: color,
-							textDark: prisma.shouldTextBeDark(color)
-						};
-
-						formattedDaySchedule.push({
-							class: blockClass,
-							start: blockObject.start,
-							end: blockObject.end
-						});
 					}
 
 					// Overlap Portal classes over default
-					schedule.classes = ordineSchedule(formattedDaySchedule, portalSchedule);
+					schedule.classes = ordineSchedule(daySchedule, portalSchedule);
+
+					// Go through lunch again and determine if half of lunch as been overlapped by another class.
+					// If so, change the incdeLunch period to just 'Lunch' if no period has overlapped, it probably means the user has a free period.
+					// Go through schedule classes again to add aliases to blocks from block schedule
+					for(var i = 0; i < schedule.classes.length; i++) {
+						var scheduleClass = schedule.classes[i];
+
+						// Check if it was an original 'includeLunch' period
+						if(scheduleClass.includeLunch && lunchSpan) {
+							var sharedBlock = scheduleClass.block;
+							// delete scheduleClass.block;
+							scheduleClass.class = genericBlocks.lunch;
+
+							// Check if the lunch period is the same as before overlap
+							if(scheduleClass.start === lunchSpan.start && scheduleClass.end === lunchSpan.end) {
+								// It's a free period + lunch
+								scheduleClass.class.name = 'Block ' + sharedBlock.toUpperCase() + ' + ' + scheduleClass.class.name;
+							}
+						} else if(scheduleClass.block) {
+							var block = scheduleClass.block;
+
+							// It's a class from the block schedule. Create a class object for it
+							if(typeof genericBlocks[block] === 'object') {
+								scheduleClass.class = genericBlocks[block];
+							} else {
+								var blockName = 'Block ' + block[0].toUpperCase() + block.slice(1);
+								var color = prisma(block).hex;
+								scheduleClass.class = {
+									name: blockName,
+									teacher: {
+										prefix: '',
+										firstName: '',
+										lastName: ''
+									},
+									type: 'other',
+									block: block,
+									color: color,
+									textDark: prisma.shouldTextBeDark(color)
+								};
+							}
+						}
+
+						schedule.classes[i] = {
+							class: scheduleClass.class,
+							start: scheduleClass.start,
+							end: scheduleClass.end
+						};
+					}
+
+					console.log(JSON.stringify(lunchSpan))
 				}
 
 				callback(null, true, schedule);
@@ -503,25 +540,18 @@ function combineClassesSchedule(date, schedule, blocks) {
 	if(!_.isArray(schedule)) schedule = [];
 	if(typeof blocks !== 'object') blocks = {};
 
-	// Include generic blocks in with the supplied blocks
-	_.each(genericBlocks, function(value, key) {
-		if(typeof blocks[key] !== 'object') {
-			blocks[key] = value;
-		}
-	});
-
+	// Loop through schedule
 	var combinedSchedule = [];
 
-	// Loop through schedule
 	for(var i = 0; i < schedule.length; i++) {
-		var jsonBlock = schedule[i];
+		var blockObject = schedule[i];
 
 		// Check if user has configured a class for this block
-		var block = jsonBlock.block;
+		var block = blockObject.block;
 		var scheduleClass = blocks[block];
 
 		if(typeof scheduleClass !== 'object') {
-			var blockName = block[0].toUpperCase() + block.slice(1);
+			var blockName = 'Block ' + block[0].toUpperCase() + block.slice(1);
 			var color = prisma(block).hex;
 			scheduleClass = {
 				name: blockName,
@@ -537,13 +567,19 @@ function combineClassesSchedule(date, schedule, blocks) {
 			}
 		}
 
+		// Check if we should also be adding lunch
+		if(blockObject.includeLunch) {
+			scheduleClass.name += ' + Lunch!';
+		}
+
 		combinedSchedule.push({
 			class: scheduleClass,
-			start: block.start,
-			end: block.end
+			start: blockObject.start,
+			end: blockObject.end
 		});
 	}
 
+	JSON.stringify(combinedSchedule);
 	return combinedSchedule;
 }
 

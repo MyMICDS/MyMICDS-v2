@@ -156,6 +156,9 @@ function getSchedule(date, grade, day, lateStart) {
 		userSchedule = middleschoolSchedule[grade]['day' + day][lateStart ? 'lateStart' : 'regular'];
 	}
 
+	// Copy the JSON so we don't modify the original reference
+	userSchedule = JSON.parse(JSON.stringify(userSchedule));
+
 	// If date isn't null, set times relative to date object
 	if(date && userSchedule) {
 		for(var i = 0; i < userSchedule.length; i++) {
