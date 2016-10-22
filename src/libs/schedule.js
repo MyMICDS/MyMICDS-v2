@@ -246,8 +246,12 @@ function getSchedule(db, user, date, callback) {
 				var schedule = {
 					day: scheduleDay,
 					special: false,
-					classes: defaultClasses,
+					classes: [],
 					allDay: []
+				}
+
+				if(scheduleDay) {
+					schedule.classes = defaultClasses;
 				}
 
 				callback(null, false, schedule);
@@ -288,17 +292,24 @@ function getSchedule(db, user, date, callback) {
 					blocks[block.block] = block; // Very descriptive
 				}
 
-				// Look up Block Schedule for user
-				var daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc['gradYear']), results.day, lateStart);
-				// Insert any possible classes the user as configured in Settings
-				var schedule = combineClassesSchedule(scheduleDate, daySchedule, blocks);
-
-				callback(null, false, {
+				var schedule = {
 					day: results.day,
 					special: false,
-					classes: schedule,
+					classes: [],
 					allDay: []
-				});
+				};
+
+				// Look up Block Schedule for user
+				var daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc['gradYear']), results.day, lateStart);
+
+				if(!daySchedule) {
+					callback(null, false, schedule);
+					return;
+				}
+
+				// Insert any possible classes the user as configured in Settings
+				schedule.classes = combineClassesSchedule(scheduleDate, daySchedule, blocks);
+				callback(null, false, schedule);
 			});
 
 		} else {
@@ -356,7 +367,7 @@ function getSchedule(db, user, date, callback) {
 						// See if valid day
 						if(portal.validDayRotation.test(calEvent.summary)) {
 							// Get actual day
-							var day = calEvent.summary.match(/[1-6]/)[0];
+							var day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
 							schedule.day = day;
 							continue;
 						}
@@ -429,8 +440,46 @@ function getSchedule(db, user, date, callback) {
 				if(daySchedule === null) {
 					schedule.classes = portalSchedule;
 				} else {
-					// If there is a default day schedule, overlap Portal classes over default
-					schedule.classes = ordineSchedule(portalSchedule, daySchedule);
+					// Format blocks into block object
+					var formattedDaySchedule = [];
+					for(var i = 0; i < daySchedule.length; i++) {
+						var blockObject = daySchedule[i];
+						var block = blockObject.block;
+
+						if(typeof genericBlocks[block] === 'object') {
+							console.log('generic block', block)
+							formattedDaySchedule.push({
+								class: genericBlocks[block],
+								start: blockObject.start,
+								end: blockObject.end
+							});
+							continue;
+						}
+
+						var blockName = block[0].toUpperCase() + block.slice(1);
+						var color = prisma(block).hex;
+						var blockClass = {
+							name: blockName,
+							teacher: {
+								prefix: '',
+								firstName: '',
+								lastName: ''
+							},
+							type: 'other',
+							block: block,
+							color: color,
+							textDark: prisma.shouldTextBeDark(color)
+						};
+
+						formattedDaySchedule.push({
+							class: blockClass,
+							start: blockObject.start,
+							end: blockObject.end
+						});
+					}
+
+					// Overlap Portal classes over default
+					schedule.classes = ordineSchedule(formattedDaySchedule, portalSchedule);
 				}
 
 				callback(null, true, schedule);
@@ -451,8 +500,10 @@ function getSchedule(db, user, date, callback) {
 
 function combineClassesSchedule(date, schedule, blocks) {
 	date = moment(date);
+	if(!_.isArray(schedule)) schedule = [];
 	if(typeof blocks !== 'object') blocks = {};
 
+	// Include generic blocks in with the supplied blocks
 	_.each(genericBlocks, function(value, key) {
 		if(typeof blocks[key] !== 'object') {
 			blocks[key] = value;
@@ -470,7 +521,7 @@ function combineClassesSchedule(date, schedule, blocks) {
 		var scheduleClass = blocks[block];
 
 		if(typeof scheduleClass !== 'object') {
-			var blockName =  block[0].toUpperCase() + block.slice(1);
+			var blockName = block[0].toUpperCase() + block.slice(1);
 			var color = prisma(block).hex;
 			scheduleClass = {
 				name: blockName,
@@ -488,8 +539,8 @@ function combineClassesSchedule(date, schedule, blocks) {
 
 		combinedSchedule.push({
 			class: scheduleClass,
-			start: start,
-			end: end
+			start: block.start,
+			end: block.end
 		});
 	}
 
@@ -512,6 +563,7 @@ function ordineSchedule(baseSchedule, addClasses) {
 	// Add each class to the base schedule
 	for(var i = 0; i < addClasses.length; i++) {
 		var addClass = addClasses[i];
+
 		var start = addClass.start;
 		var end = addClass.end;
 
@@ -545,24 +597,59 @@ function ordineSchedule(baseSchedule, addClasses) {
 
 			var endRelation = null;
 			if(end.isSame(blockStart)) {
-				startRelation = 'same start';
+				endRelation = 'same start';
 
 			} else if(end.isSame(blockEnd)) {
-				startRelation = 'same end';
+				endRelation = 'same end';
 
 			} else if(end.isBefore(blockStart)) {
-				startRelation = 'before';
+				endRelation = 'before';
 
 			} else if(end.isAfter(blockEnd)) {
-				startRelation = 'after';
+				endRelation = 'after';
 
 			} else if(end.isAfter(blockStart) && end.isBefore(blockEnd)) {
-				startRelation = 'inside';
+				endRelation = 'inside';
 			}
 
 			// If new event is totally unrelated to the block, just ignore
 			if(startRelation === 'same end' || startRelation === 'after') continue;
 			if(endRelation === 'same start' || endRelation === 'before') continue;
+
+			// If start is before or equal to block start
+			if(startRelation === 'before' || startRelation === 'same start') {
+				// If end is inside, we can still keep half of the block
+				if(endRelation === 'inside') {
+					baseSchedule[j].start = end;
+				}
+
+				// If new class completely engulfs the block, delete
+				if(endRelation === 'same end' || endRelation === 'after') {
+					// Only push to array if index isn't already in array
+					if(!_.contains(conflictIndexes, j)) {
+						conflictIndexes.push(j);
+					}
+				}
+			}
+
+			// If end is inside the block
+			if(startRelation === 'inside') {
+				// If new event is inside block
+				if(endRelation === 'inside') {
+					// Split event into two
+					var newBlock = scheduleClass;
+					var oldEnd   = scheduleClass.end;
+
+					baseSchedule[j].end = start;
+					newBlock.start = end;
+
+					baseSchedule.push(newBlock);
+				}
+
+				if(endRelation === 'same end' || endRelation === 'after') {
+					baseSchedule[j].end = start;
+				}
+			}
 
 			// If same times, delete
 			if(startRelation === 'same start' && endRelation === 'same end') {
@@ -571,38 +658,6 @@ function ordineSchedule(baseSchedule, addClasses) {
 					conflictIndexes.push(j);
 				}
 			}
-
-			// If new event completely engulfs the block, delete the block
-			if(startRelation === 'before' && endRelation === 'after') {
-				// Only push to array if index isn't already in array
-				if(!_.contains(conflictIndexes, j)) {
-					conflictIndexes.push(j);
-				}
-			}
-
-			// If new event is inside block
-			if(startRelation === 'inside' && endRelation == 'inside') {
-				// Split event into two
-				var newBlock = scheduleClass;
-				var oldEnd   = scheduleClass.end;
-
-				baseSchedule[j].end = start;
-				newBlock.start = end;
-
-				baseSchedule.push(newBlock);
-			}
-
-			// If start is inside block but end is not
-			if(startRelation === 'inside' && (endRelation === 'after' || endRelation === 'same end')) {
-				baseSchedule[j].end = start;
-			}
-
-			// If end is inside block but start is not
-			if(endRelation === 'inside' && (startRelation === 'before' || startRelation === 'same start')) {
-				baseSchedule[j].start = end;
-			}
-
-			baseSchedule.push(addClass);
 		}
 
 		// Delete all conflicting classes
@@ -612,6 +667,9 @@ function ordineSchedule(baseSchedule, addClasses) {
 			var index = conflictIndexes[j] - deleteOffset++;
 			baseSchedule.splice(index, 1);
 		}
+
+		// After all other classes are accounted for, add this new class
+		baseSchedule.push(addClass);
 	}
 
 	// Reorder schedule because of deleted classes
@@ -619,7 +677,7 @@ function ordineSchedule(baseSchedule, addClasses) {
 		return a.start - b.start;
 	});
 
-	console.log('combine', baseSchedule);
+	// console.log('combine', baseSchedule);
 	return baseSchedule;
 }
 

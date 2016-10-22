@@ -157,7 +157,7 @@ function getSchedule(date, grade, day, lateStart) {
 	}
 
 	// If date isn't null, set times relative to date object
-	if(date) {
+	if(date && userSchedule) {
 		for(var i = 0; i < userSchedule.length; i++) {
 			// Get start and end moment objects
 			var startTime = userSchedule[i].start.split(':');

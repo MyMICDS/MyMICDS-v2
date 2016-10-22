@@ -304,7 +304,7 @@ function getDayRotation(date, callback) {
 				// See if valid day
 				if(validDayRotationPlain.test(calEvent.summary)) {
 					// Get actual day
-					var day = calEvent.summary.match(/[1-6]/)[0];
+					var day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
 					callback(null, day);
 					return;
 				}
