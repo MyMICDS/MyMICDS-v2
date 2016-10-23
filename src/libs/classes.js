@@ -354,8 +354,7 @@ function deleteClass(db, user, classId, callback) {
 			// @TODO: Error handling if these fail
 			teachers.deleteClasslessTeachers(db);
 			aliases.deleteClasslessAliases(db, function(err) {
-				console.log('got callback', typeof err)
-				// console.log(err);
+				console.log('[' + new Date() + '] Error occured when deleting classless teachers! (' + err + ')');
 			});
 
 		});

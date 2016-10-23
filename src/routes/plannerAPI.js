@@ -76,7 +76,6 @@ module.exports = function(app, db, socketIO) {
 	});
 
 	app.post('/planner/check', function(req, res) {
-		console.log('check event', req.body.id)
 		checkedEvents.check(db, req.user.user, req.body.id, function(err) {
 			if(err) {
 				var errorMessage = err.message;

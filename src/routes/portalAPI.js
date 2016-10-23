@@ -1,11 +1,10 @@
 'use strict';
 
 /**
- * @file Manages schedule API endpoints
+ * @file Manages Portal API endpoints
  */
 
 var portal = require(__dirname + '/../libs/portal.js');
-var prisma = require('prisma');
 
 module.exports = function(app, db, socketIO) {
 	app.post('/portal/test-url', function(req, res) {
@@ -35,30 +34,6 @@ module.exports = function(app, db, socketIO) {
 				error: errorMessage,
 				valid: isValid,
 				url  : validURL
-			});
-		});
-	});
-
-	app.post('/portal/get-schedule', function(req, res) {
-		var current = new Date();
-
-		var year = req.body.year || current.getFullYear();
-		var month = req.body.month || current.getMonth() + 1;
-		var day = req.body.day || current.getDate();
-
-		var date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-
-		portal.getSchedule(db, req.user.user, date, function(err, hasURL, schedule) {
-			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
-			}
-
-			res.json({
-				error: errorMessage,
-				hasURL: hasURL,
-				schedule: schedule
 			});
 		});
 	});
