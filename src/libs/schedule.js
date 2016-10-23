@@ -396,7 +396,6 @@ function getSchedule(db, user, date, callback) {
 
 						// We should use the Portal class's alias; otherwise, we should fallback to a default class object. [sp1a]
 						if(typeof results.aliases.portal[calEvent.summary] !== 'object') {
-							console.log('create default block for', calEvent.summary);
 
 							// Determine block
 							var blockPart = _.last(calEvent.summary.match(portal.portalSummaryBlock));
@@ -515,8 +514,6 @@ function getSchedule(db, user, date, callback) {
 							end: scheduleClass.end
 						};
 					}
-
-					console.log(JSON.stringify(lunchSpan))
 				}
 
 				callback(null, true, schedule);
@@ -713,7 +710,6 @@ function ordineSchedule(baseSchedule, addClasses) {
 		return a.start - b.start;
 	});
 
-	// console.log('combine', baseSchedule);
 	return baseSchedule;
 }
 

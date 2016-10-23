@@ -84,8 +84,6 @@ function getScores(callback) {
 				return;
 			}
 
-			// console.log(body.scores);
-
 			var scores = {};
 			scores.scores = [];
 			scores.events = [];
