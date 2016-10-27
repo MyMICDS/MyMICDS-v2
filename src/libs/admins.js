@@ -23,8 +23,8 @@ var mail = require(__dirname + "/mail.js");
  * @param {Array} admins - Array of admin user objects if success, null if failure
  */
 
- function getAdmins(db, callback) {
- 	if(typeof callback !== 'function') {
+function getAdmins(db, callback) {
+	if(typeof callback !== 'function') {
 		callback = function() {};
 	}
 	if(typeof db !== 'object') {
@@ -42,7 +42,7 @@ var mail = require(__dirname + "/mail.js");
 
 		callback(null, docs);
 	});
- }
+}
 
 /**
  * Sends all admins a notification email
@@ -62,8 +62,8 @@ var mail = require(__dirname + "/mail.js");
  * @param {Object} err - Null if success, error object if failure
  */
 
- function sendAdminEmail(db, message, callback) {
- 	if(typeof callback !== 'function') {
+function sendAdminEmail(db, message, callback) {
+	if(typeof callback !== 'function') {
 		callback = function() {};
 	}
 	if(typeof db !== 'object') {
@@ -72,11 +72,11 @@ var mail = require(__dirname + "/mail.js");
 	}
 
 	// Get admin objects
- 	getAdmins(db, function(err, admins) {
- 		if(err) {
- 			callback(new Error('Error getting list of admins!'));
- 			return;
- 		}
+	getAdmins(db, function(err, admins) {
+		if(err) {
+			callback(new Error('Error getting list of admins!'));
+			return;
+		}
 
 		var adminEmails = [];
 
@@ -85,15 +85,15 @@ var mail = require(__dirname + "/mail.js");
 		}
 
 		// Send email
- 		mail.send(adminEmails, message, function(err) {
- 			if(err) {
- 				callback(err);
- 			}
+		mail.send(adminEmails, message, function(err) {
+			if(err) {
+				callback(err);
+			}
 
- 			callback(null);
- 		});
- 	});
- }
+			callback(null);
+		});
+	});
+}
 
- module.exports.get = getAdmins;
- module.exports.sendEmail = sendAdminEmail;
+module.exports.get = getAdmins;
+module.exports.sendEmail = sendAdminEmail;
