@@ -9,8 +9,17 @@ var lunch = require(__dirname + '/../libs/lunch.js');
 module.exports = function(app, db) {
 
 	app.post('/lunch/get', function(req, res) {
-		var lunchDate = new Date(parseInt(req.body.year), parseInt(req.body.month - 1), parseInt(req.body.day));
-		lunch.get(db, lunchDate, function(err, lunchJSON) {
+
+		var current = new Date();
+
+		var year = req.body.year || current.getFullYear();
+		var month = req.body.month || current.getMonth() + 1;
+		var day = req.body.day || current.getDate();
+
+		var date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+		lunch.get(db, date, function(err, lunchJSON) {
+
 			if(err) {
 				var errorMessage = err.message;
 			} else {
