@@ -450,17 +450,15 @@ function getSchedule(db, user, date, callback) {
 				} else {
 
 					// Keep track of original lunch start and end
-					var lunchSpan = {
-						start: null,
-						end: null
-					};
+					var lunchSpan = [];
 
 					for(var i = 0; i < daySchedule.length; i++) {
 						var block = daySchedule[i];
 						if(block.includeLunch) {
-							lunchSpan.start = block.start;
-							lunchSpan.end = block.end;
-							break;
+							lunchSpan.push({
+								start: block.start,
+								end: block.end
+							});
 						}
 					}
 
@@ -480,9 +478,12 @@ function getSchedule(db, user, date, callback) {
 							scheduleClass.class = genericBlocks.lunch;
 
 							// Check if the lunch period is the same as before overlap
-							if(scheduleClass.start === lunchSpan.start && scheduleClass.end === lunchSpan.end) {
-								// It's a free period + lunch
-								scheduleClass.class.name = 'Block ' + sharedBlock.toUpperCase() + ' + ' + scheduleClass.class.name;
+							for(var j = 0; j < lunchSpan.length; j++) {
+								if(scheduleClass.start === lunchSpan[j].start && scheduleClass.end === lunchSpan[j].end) {
+									// It's a free period + lunch
+									scheduleClass.class.name = 'Block ' + sharedBlock.toUpperCase() + ' + ' + scheduleClass.class.name;
+									break;
+								}
 							}
 						} else if(scheduleClass.block) {
 							var block = scheduleClass.block;

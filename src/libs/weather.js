@@ -6,7 +6,7 @@
  */
 
 var config   = require(__dirname + '/config.js');
-var Forecast = require('forecast.io');
+var DarkSky  = require('forecast.io');
 var fs       = require('fs-extra');
 
 var JSONPath = __dirname + '/../api/weather.json';
@@ -72,9 +72,9 @@ function updateWeather(callback) {
 	}
 
 	// Create forecast object to query
-	var forecast = new Forecast(options);
+	var darksky = new DarkSky(options);
 
-	forecast.get(latitude, longitude, function(err, res, data) {
+	darksky.get(latitude, longitude, function(err, res, data) {
 		if(err) {
 			callback(new Error('There was a problem fetching the weather data!'), null);
 			return;
