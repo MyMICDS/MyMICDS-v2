@@ -598,8 +598,8 @@ function ordineSchedule(baseSchedule, addClasses) {
 	for(var i = 0; i < addClasses.length; i++) {
 		var addClass = addClasses[i];
 
-		var start = addClass.start;
-		var end = addClass.end;
+		var start = moment(addClass.start);
+		var end   = moment(addClass.end);
 
 		// Keep track of conflicting indexes
 		var conflictIndexes = [];
@@ -608,8 +608,8 @@ function ordineSchedule(baseSchedule, addClasses) {
 		for(var j = 0; j < baseSchedule.length; j++) {
 			var scheduleClass = baseSchedule[j];
 
-			var blockStart = scheduleClass.start;
-			var blockEnd   = scheduleClass.end;
+			var blockStart = moment(scheduleClass.start);
+			var blockEnd   = moment(scheduleClass.end);
 
 			// Determine start/end times relative to the class we're currently trying to add
 			var startRelation = null;
@@ -654,7 +654,7 @@ function ordineSchedule(baseSchedule, addClasses) {
 			if(startRelation === 'before' || startRelation === 'same start') {
 				// If end is inside, we can still keep half of the block
 				if(endRelation === 'inside') {
-					baseSchedule[j].start = end;
+					baseSchedule[j].start = end.clone();
 				}
 
 				// If new class completely engulfs the block, delete
@@ -671,17 +671,17 @@ function ordineSchedule(baseSchedule, addClasses) {
 				// If new event is inside block
 				if(endRelation === 'inside') {
 					// Split event into two
-					var newBlock = scheduleClass;
-					var oldEnd   = scheduleClass.end;
+					var newBlock = JSON.parse(JSON.stringify(scheduleClass));
+					var oldEnd   = scheduleClass.end.clone();
 
-					baseSchedule[j].end = start;
-					newBlock.start = end;
+					baseSchedule[j].end = start.clone();
+					newBlock.start = end.clone();
 
 					baseSchedule.push(newBlock);
 				}
 
 				if(endRelation === 'same end' || endRelation === 'after') {
-					baseSchedule[j].end = start;
+					baseSchedule[j].end = start.clone();
 				}
 			}
 
