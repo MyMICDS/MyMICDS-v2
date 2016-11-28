@@ -674,8 +674,12 @@ function ordineSchedule(baseSchedule, addClasses) {
 					var newBlock = JSON.parse(JSON.stringify(scheduleClass));
 					var oldEnd   = scheduleClass.end.clone();
 
+					// Set old block to beginning of next block
 					baseSchedule[j].end = start.clone();
+					// Set new block start where the next block left off
 					newBlock.start = end.clone();
+					// Also make sure end is a moment object because it goes through JSON.stringify
+					newBlock.end = moment(newBlock.end);
 
 					baseSchedule.push(newBlock);
 				}
@@ -705,6 +709,11 @@ function ordineSchedule(baseSchedule, addClasses) {
 		// After all other classes are accounted for, add this new class
 		baseSchedule.push(addClass);
 	}
+
+	// Delete all classes that start and end at the same time, or end is before start
+	baseSchedule = baseSchedule.filter(function(value) {
+		return value.start.unix() < value.end.unix();
+	});
 
 	// Reorder schedule because of deleted classes
 	baseSchedule.sort(function(a, b) {
