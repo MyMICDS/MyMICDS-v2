@@ -714,4 +714,5 @@ function ordineSchedule(baseSchedule, addClasses) {
 	return baseSchedule;
 }
 
-module.exports.get = getSchedule;
+module.exports.get    = getSchedule;
+module.exports.ordine = ordineSchedule;
