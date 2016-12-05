@@ -4,6 +4,7 @@
  */
 
 var $       = require('cheerio');
+var admins  = require(__dirname + '/admins.js');
 var moment  = require('moment');
 var request = require('request');
 
@@ -26,7 +27,7 @@ var snowdays = 0;
  * @param {Object} data - Returns object containing data for the next two days from Snowday Calculator. Null if error.
  */
 
-function calculate(callback) {
+function calculate(db, callback) {
 	if(typeof callback !== 'function') return;
 
 	request.get({
@@ -44,6 +45,25 @@ function calculate(callback) {
 
 		// Snowday Calculator is weird and transfers Javascript code, so we use RegEx to get the values
 		var variables = body.match(/[a-zA-Z]+\[\d+\] = .+;/g);
+
+		// If for some reason there are no variables
+		if(!variables) {
+
+			// This is not expected; alert admins
+			admins.sendEmail(db, {
+				subject: 'Error Notification - Snowday Calculator',
+				html: 'There was a problem with the retrieving snowday calculator values.<br>Error message: ' + err
+			}, function(err) {
+				if(err) {
+					console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
+					return;
+				}
+				console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
+			});
+
+			callback(null, {});
+			return;
+		}
 
 		// Map variable names to what they mean
 		var labels = {
