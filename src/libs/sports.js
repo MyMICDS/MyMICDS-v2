@@ -39,7 +39,8 @@ function login(callback) {
 	}, function(err, res, body) {
 		body = JSON.parse(body);
 		if(err || res.statusCode !== 200 || body.response !== 'ok') {
-			callback(new Error('There was a problem logging in the Rams Army app!'), null);
+			let error = body.error ? body.error : 'Unknown';
+			callback(new Error('There was a problem logging in the Rams Army app! Error: ' + error), null);
 			return;
 		}
 
