@@ -1,3 +1,9 @@
+/// dependencies
+// express
+// fs
+// request
+// body-parser
+
 var express = require('express');
 var fs = require("fs");
 var request = require('request');
@@ -47,7 +53,7 @@ app.post('/quote/submit', function (req, res) {
   var submit = "From: " + author + ": " + contents + " @[" + date + "]";
 
   // submit to requests file
-  fs.writeFile(__dirname + "/quotes_data/archive/submits.txt", submit, function (err){
+  fs.writeFile(__dirname + "/quotes_data_archive/submits.txt", submit, function (err){
     if (err) {
       console.log("Error Writing to File! #BeginSubmit: " + submit + " #EndSubmit");
     }
