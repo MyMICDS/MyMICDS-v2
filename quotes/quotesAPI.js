@@ -3,6 +3,7 @@
 // fs
 // request
 // body-parser
+// rng
 
 var express = require('express');
 var fs = require("fs");
@@ -41,14 +42,15 @@ app.post('/quotes/get', function (req, res) {
     var archiveData;
 
     // read archive
-    fs.readFile(__dirname + "/quotes_data_archive/stored_quotes.json" + "utf8", function read(err, data) {
+    fs.readFile(__dirname + "/quotes_data_archive/stored_quotes.json", "utf8", function read(err, data) {
       archiveIndex = JSON.parse(data).indexInfo.index;
-      archiveData = JSON.parse(data);
+      archiveData = JSON.parse(data).quoteArchive;
+      console.log(archiveIndex + ", " + archiveData);
     });
 
     // pick a random number
-    var randomnumber = Math.floor((Math.random() * archiveIndex) + 1);
-    res.send(archiveData).quote_archive + "." + randomnumber "." + contents;
+
+    res.send(archiveData[Math.random() * archiveData.length | 0].contents);
   }
   else if (type == "day" && auth == global.postauthkey) {
     res.end("Successful Paramater!");
