@@ -33,9 +33,9 @@ app.post('/quotes/get', function (req, res) {
 
   }
   else {
-    res.end("Not valid POST");
+    res.send("Not valid POST");
   }
-  res.end("Success!");
+  res.send("Success!");
 });
 
 // submit a quote
@@ -52,7 +52,7 @@ app.post('/quote/submit', function (req, res) {
       console.log("Error Writing to File! #BeginSubmit: " + submit + " #EndSubmit");
     }
   });
-  res.end("Submission Success!");
+  res.send("Submission Success!");
 });
 
 // open port
