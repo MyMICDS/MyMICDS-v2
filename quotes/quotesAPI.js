@@ -11,6 +11,9 @@ var bodyParser = require('body-parser');
 
 var app = express();
 
+// current authkey:
+global.postauthkey = "98k86h643h2k";
+
 // CORS headers and other
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -31,12 +34,27 @@ app.get('/quotes/test', function (req, res){
 app.post('/quotes/get', function (req, res) {
   /// params: type
   var type = req.body.type;
+  var auth = req.body.authkey;
 
-  if (type == "rand") {
+  if (type == "rand" && auth == global.postauthkey) {
+    var archiveIndex;
+    var archiveData;
 
+    // read archive
+    fs.readFile(__dirname + "/quotes_data_archive/stored_quotes.json" + "utf8", function read(err, data) {
+      archiveIndex = JSON.parse(data).indexInfo.index;
+      archiveData = JSON.parse(data);
+    });
+
+    // pick a random number
+    var randomnumber = Math.floor((Math.random() * archiveIndex) + 1);
+    res.send(archiveData).quote_archive + "." + randomnumber "." + contents;
   }
-  else if (type == "day") {
-
+  else if (type == "day" && auth == global.postauthkey) {
+    res.end("Successful Paramater!");
+  }
+  else if (auth != global.postauthkey) {
+    res.send("403 Not Valid Authorization POST Key");
   }
   else {
     res.send("Not valid POST");
@@ -48,12 +66,12 @@ app.post('/quotes/get', function (req, res) {
 app.post('/quote/submit', function (req, res) {
   var author = req.body.author;
   var contents = req.body.contents;
-  var date = new Date().getDate();
+  var date = new Date();
 
-  var submit = "From: " + author + ": " + contents + " @[" + date + "]";
+  var submit = "From: " + req.body.author + ": " + req.body.contents + " @[" + date + "]" + "\n";
 
   // submit to requests file
-  fs.writeFile(__dirname + "/quotes_data_archive/submits.txt", submit, function (err){
+  fs.appendFile(__dirname + "/quotes_data_archive/submits.txt", submit, function (err){
     if (err) {
       console.log("Error Writing to File! #BeginSubmit: " + submit + " #EndSubmit");
     }
