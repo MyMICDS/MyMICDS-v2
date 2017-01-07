@@ -3,7 +3,6 @@
 // fs
 // request
 // body-parser
-// rng
 
 var express = require('express');
 var fs = require("fs");
@@ -26,6 +25,8 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 
+console.log("Ready!");
+
 // test
 app.get('/quotes/test', function (req, res){
   res.end("QuotesAPI Test: Hello!");
@@ -33,35 +34,34 @@ app.get('/quotes/test', function (req, res){
 
 // get quote
 app.post('/quotes/get', function (req, res) {
-  /// params: type
+  /// params: type, authkey
   var type = req.body.type;
   var auth = req.body.authkey;
 
   if (type == "rand" && auth == global.postauthkey) {
-    var archiveIndex;
-    var archiveData;
 
     // read archive
     fs.readFile(__dirname + "/quotes_data_archive/stored_quotes.json", "utf8", function read(err, data) {
-      archiveIndex = JSON.parse(data).indexInfo.index;
-      archiveData = JSON.parse(data).quoteArchive;
-      console.log(archiveIndex + ", " + archiveData);
+      var storedQuotesRaw = JSON.parse(data);
+
+      // pick a random quote and send it
+      var randomNumber = Math.floor((Math.random() * (parseInt(JSON.parse(data).indexInfo.index))));
+      res.send(JSON.parse(data).quoteArchive.quotes[randomNumber] + " - " + JSON.parse(data).quoteArchive.authors[randomNumber] + "\n" + " (Submitted on: " + JSON.parse(data).quoteArchive.dates[randomNumber] + ")");
+
+      if (err) {
+        console.log("Read Error!");
+      }
     });
-
-    // pick a random number
-
-    res.send(archiveData[Math.random() * archiveData.length | 0].contents);
   }
   else if (type == "day" && auth == global.postauthkey) {
-    res.end("Successful Paramater!");
+    res.send("Successful Day Paramater POST! No content yet");
   }
   else if (auth != global.postauthkey) {
-    res.send("403 Not Valid Authorization POST Key");
+    res.send("403 Not a Valid Authorization POST Key");
   }
   else {
-    res.send("Not valid POST");
+    res.send("Not valid POST Request!");
   }
-  res.send("Success!");
 });
 
 // submit a quote
