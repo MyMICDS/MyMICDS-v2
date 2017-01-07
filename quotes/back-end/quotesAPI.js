@@ -11,7 +11,7 @@ var bodyParser = require('body-parser');
 
 var app = express();
 
-// current authkey:
+// get current current authkey
 global.postauthkey = "98k86h643h2k";
 
 // CORS headers and other
@@ -41,7 +41,7 @@ app.post('/quotes/get', function (req, res) {
   if (type == "rand" && auth == global.postauthkey) {
 
     // read archive
-    fs.readFile(__dirname + "/quotes_data_archive/stored_quotes.json", "utf8", function read(err, data) {
+    fs.readFile(__dirname + "../libs/stored_quotes.json", "utf8", function read(err, data) {
       var storedQuotesRaw = JSON.parse(data);
 
       // pick a random quote and send it
@@ -82,10 +82,11 @@ app.post('/quote/submit', function (req, res) {
 });
 
 // open port
+/*
 var server = app.listen(1511, function () {
 
   var host = server.address().address;
   var port = server.address().port;
 
   console.log("App listening at http://localhost", host, port);
-})
+})*/
