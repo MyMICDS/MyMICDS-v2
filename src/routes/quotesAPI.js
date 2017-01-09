@@ -4,18 +4,16 @@
 // request
 // body-parser
 
-var express = require('express');
 var fs = require("fs");
 var request = require('request');
-var bodyParser = require('body-parser');
-
 var app = express();
 
+module.exports = function(app) {
 // get current current authkey
 global.postauthkey = "98k86h643h2k";
 
 // CORS headers and other
-app.use(function(req, res, next) {
+/*app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
@@ -23,7 +21,7 @@ app.use(function(req, res, next) {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
-}));
+}));*/
 
 console.log("Ready!");
 
@@ -90,3 +88,4 @@ var server = app.listen(1511, function () {
 
   console.log("App listening at http://localhost", host, port);
 })*/
+}
