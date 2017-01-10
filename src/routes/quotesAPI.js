@@ -6,9 +6,8 @@
 
 var fs = require("fs");
 var request = require('request');
-var app = express();
 
-module.exports = function(app) {
+module.exports = function(app, db) {
 // get current current authkey
 global.postauthkey = "98k86h643h2k";
 
