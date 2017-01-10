@@ -65,16 +65,51 @@ app.post('/quotes/get', function (req, res) {
 app.post('/quote/submit', function (req, res) {
   var author = req.body.author;
   var contents = req.body.contents;
+  var title = req.body.title;
   var date = new Date();
 
-  var submit = "From: " + req.body.author + ": " + req.body.contents + " @[" + date + "]" + "\n";
+  var submit = req.body.contents + " - " + author;
 
   // submit to requests file
-  fs.appendFile(__dirname + "../libs/quotes_data_archive/submits.txt", submit, function (err){
-    if (err) {
-      console.log("Error Writing to File! #BeginSubmit: " + submit + " #EndSubmit");
-    }
+  var insertDocument = function(db, callback) {
+   db.collection('restaurants').insertOne( {
+      "address" : {
+         "street" : "2 Avenue",
+         "zipcode" : "10075",
+         "building" : "1480",
+         "coord" : [ -73.9557413, 40.7720266 ]
+      },
+      "borough" : "Manhattan",
+      "cuisine" : "Italian",
+      "grades" : [
+         {
+            "date" : new Date("2014-10-01T00:00:00Z"),
+            "grade" : "A",
+            "score" : 11
+         },
+         {
+            "date" : new Date("2014-01-16T00:00:00Z"),
+            "grade" : "B",
+            "score" : 17
+         }
+      ],
+      "name" : "Vella",
+      "restaurant_id" : "41704620"
+   }, function(err, result) {
+    assert.equal(err, null);
+    console.log("Inserted a document into the restaurants collection.");
+    callback();
   });
+};
+
+db.connect('mongodb://mymicds-client:1amAcli3nt@45.56.70.141:27017/mymicds-userdata', function(err, db) {
+  assert.equal(null, err);
+  insertDocument(db, function() {
+      db.close();
+  });
+});
+
+
   res.send("Submission Success!");
 });
 
