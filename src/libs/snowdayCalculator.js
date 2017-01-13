@@ -36,7 +36,8 @@ function calculate(db, callback) {
 			zipcode: zipcode,
 			snowdays: snowdays,
 			school: schoolId
-		}
+		},
+		gzip: true
 	}, function(err, res, body) {
 		if(err || res.statusCode !== 200) {
 			callback(new Error('There was a problem querying the Snowday Calculator!'), null);
