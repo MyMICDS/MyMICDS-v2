@@ -13,12 +13,9 @@ module.exports = function(app, db) {
 			html: 'Suggestion From ' + req.user.user + "\n" + "Type: " + req.body.type + "\n" + "Submission: " + req.body.submission
 		}, function(err) {
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				res.json({error: err.message});
 			}
-
-			res.json({error: errorMessage});
+			res.json(null);
 		});
 	});
 }
