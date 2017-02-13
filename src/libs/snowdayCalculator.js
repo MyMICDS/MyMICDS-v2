@@ -51,16 +51,16 @@ function calculate(db, callback) {
 		if(!variables) {
 
 			// This is not expected; alert admins
-			admins.sendEmail(db, {
-				subject: 'Error Notification - Snowday Calculator',
-				html: 'There was a problem with the retrieving snowday calculator values.<br>Error message: ' + err
-			}, function(err) {
-				if(err) {
-					console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
-					return;
-				}
-				console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
-			});
+			// admins.sendEmail(db, {
+			// 	subject: 'Error Notification - Snowday Calculator',
+			// 	html: 'There was a problem with the retrieving snowday calculator values.<br>Error message: ' + err
+			// }, function(err) {
+			// 	if(err) {
+			// 		console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
+			// 		return;
+			// 	}
+			// 	console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
+			// });
 
 			callback(null, {});
 			return;
