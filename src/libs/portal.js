@@ -55,7 +55,7 @@ function verifyURL(portalURL, callback) {
 	}
 
 	// Parse URL first
-	var parsedURL = url.parse(portalURL);
+	var parsedURL = url.parse(decodeURI(portalURL));
 	var queries = querystring.parse(parsedURL.query);
 
 	if(typeof queries.q !== 'string') {

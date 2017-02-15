@@ -49,7 +49,7 @@ function verifyURL(canvasURL, callback) {
 	}
 
 	// Parse URL first
-	var parsedURL = url.parse(canvasURL);
+	var parsedURL = url.parse(decodeURI(canvasURL));
 
 	// Check if pathname is valid
 	if(!parsedURL.pathname || !parsedURL.pathname.startsWith('/feeds/calendars/')) {
@@ -321,7 +321,7 @@ function getEvents(db, user, callback) {
 /**
  * Parses a Canvas assignment title into class name and teacher's name.
  * @function parseCanvasTitle
- * 
+ *
  * @param {string} title - Canvas assignment title
  * @returns {Object}
  */
