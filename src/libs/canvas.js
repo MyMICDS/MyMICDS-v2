@@ -49,7 +49,7 @@ function verifyURL(canvasURL, callback) {
 	}
 
 	// Parse URL first
-	var parsedURL = url.parse(decodeURI(canvasURL));
+	var parsedURL = url.parse(canvasURL);
 
 	// Check if pathname is valid
 	if(!parsedURL.pathname || !parsedURL.pathname.startsWith('/feeds/calendars/')) {
