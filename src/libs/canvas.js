@@ -321,7 +321,7 @@ function getEvents(db, user, callback) {
 /**
  * Parses a Canvas assignment title into class name and teacher's name.
  * @function parseCanvasTitle
- * 
+ *
  * @param {string} title - Canvas assignment title
  * @returns {Object}
  */

@@ -21,7 +21,7 @@ var url           = require('url');
 var users         = require(__dirname + '/users.js');
 
 // URL Calendars come from
-var urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?q=';
+var urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?z=';
 // RegEx to test if calendar summary is a valid Day Rotation
 var validDayRotation = /^Day [1-6] \((US|MS)\)$/;
 var validDayRotationPlain = /^Day [1-6]$/;
@@ -58,12 +58,12 @@ function verifyURL(portalURL, callback) {
 	var parsedURL = url.parse(portalURL);
 	var queries = querystring.parse(parsedURL.query);
 
-	if(typeof queries.q !== 'string') {
+	if(typeof queries.z !== 'string') {
 		callback(null, 'URL does not contain calendar ID!', null);
 		return;
 	}
 
-	var validURL = urlPrefix + queries.q;
+	var validURL = urlPrefix + queries.z;
 
 	// Not lets see if we can actually get any data from here
 	request(validURL, function(err, response, body) {
