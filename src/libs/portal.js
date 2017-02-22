@@ -316,6 +316,75 @@ function getDayRotation(date, callback) {
 	});
 }
 
+
+/**
+ * Get all of the schedule day rotations we can get
+ * @function getDayRotations
+ *
+ * @param {getDayRotationCallback} callback - Callback
+ */
+
+ /**
+  * Returns an integer between 1 and 6 for what day it is
+  * @callback getDayRotationsCallback
+  *
+  * @param {Object} err - Null if success, error object if failure.
+  * @param {scheduleDay} day - Object containing integers 1-6 organized by year, month, and date (Ex. January 3rd, 2017 would be `day.2017.1.3`)
+  */
+
+function getDayRotations(callback) {
+	if(typeof callback !== 'function') return;
+
+	var days = {};
+
+	request(urlPrefix + config.portal.dayRotation, function(err, response, body) {
+		if(err || response.statusCode !== 200) {
+			callback(new Error('There was a problem fetching the day rotation!'), null);
+			return;
+		}
+
+		var data = ical.parseICS(body);
+
+		// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+		// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+		if(_.isEmpty(data)) {
+			callback(new Error('There was a problem fetching the day rotation!'), null);
+			return;
+		}
+
+		for(var eventUid in data) {
+			var calEvent = data[eventUid];
+			if(typeof calEvent.summary !== 'string') continue;
+
+			var start = new Date(calEvent['start']);
+			var end   = new Date(calEvent['end']);
+
+			var year = start.getFullYear();
+			var month = start.getMonth() + 1;
+			var date = start.getDate();
+
+			// See if valid day
+			if(validDayRotationPlain.test(calEvent.summary)) {
+				// Get actual day
+				var day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
+
+				if (typeof days[year] !== 'object') {
+					days[year] = {};
+				}
+
+				if (typeof days[year][month] !== 'object') {
+					days[year][month] = {};
+				}
+
+				days[year][month][date] = day;
+			}
+		}
+
+		callback(null, days);
+
+	});
+}
+
 /**
  * Gets a user's classes from the PORTAL, not CANVAS.
  * @function getClasses
@@ -534,9 +603,10 @@ module.exports.validDayRotation   = validDayRotation;
 module.exports.portalSummaryBlock = portalSummaryBlock;
 
 // Functions
-module.exports.verifyURL      = verifyURL;
-module.exports.setURL         = setURL;
-module.exports.getCal         = getCal;
-module.exports.getDayRotation = getDayRotation;
-module.exports.getClasses	  = getClasses;
-module.exports.cleanUp        = cleanUp;
+module.exports.verifyURL       = verifyURL;
+module.exports.setURL          = setURL;
+module.exports.getCal          = getCal;
+module.exports.getDayRotation  = getDayRotation;
+module.exports.getDayRotations = getDayRotations;
+module.exports.getClasses      = getClasses;
+module.exports.cleanUp         = cleanUp;

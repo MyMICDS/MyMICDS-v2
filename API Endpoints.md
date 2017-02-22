@@ -52,6 +52,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/portal/set-url`](#portalset-url)
   * [`/portal/get-schedule`](#portalget-schedule)
   * [`/portal/get-classes`](#portalget-classes)
+  * [`/portal/day-rotation`](#portalday-rotation)
 * [Statistics API](#stats-api)
   * [`/stats/get`](#statsget)
 * [User API](#user-api)
@@ -417,6 +418,16 @@ This will test any given URL to see if it is a valid Portal calendar feed.
 #### Response
 - `error` - Null if successful, string containing error if failure.
 - `classes` - Array of classes the user has.
+
+
+### `/portal/day-rotation`
+Returns an object of all the schedule day rotations we can get.
+
+#### Response
+- `error` - Null if successful, string containing error if failure.
+- `days` - Object containing integers 1-6 organized by year, month, and date (Ex. January 3rd, 2017 would be `day.2017.1.3`).
+
+
 
 ## Statistics API
 This is the part of the API that relates to MyMICDS usage statistics. Can be found under `src/routes/statsAPI.js`. The associated stats module can be found under `src/libs/stats.js`.
