@@ -135,15 +135,26 @@ function getCurrentFiles(user, callback) {
 			return;
 		}
 
-		// Look for any user directories that aren't deleted
+		// Look through all the directories
 		var userDir = null;
 		for(var i = 0; i < userDirs.length; i++) {
 			var dir = path.parse(userDirs[i]);
 			var dirname = dir.name;
 			var dirnameSplit = dirname.split('-');
 
+			// Check directory isn't deleted
+			if(dirnameSplit[0] === 'deleted') {
+				continue;
+			}
+
+			// Get rid of timestamp and get name
+			delete dirnameSplit[dirnameSplit.length - 1];
+
+			// Directory owner's username (which may have dashes in it)
+			var directoryOwner = dirnameSplit.join('-');
+
 			// Check if background belongs to user
-			if(dirnameSplit.length === 2 && dirnameSplit[0] === user) {
+			if(directoryOwner === user) {
 				userDir = dirname;
 				break;
 			}
