@@ -148,7 +148,7 @@ function getCurrentFiles(user, callback) {
 			}
 
 			// Get rid of timestamp and get name
-			delete dirnameSplit[dirnameSplit.length - 1];
+			dirnameSplit.pop();
 
 			// Directory owner's username (which may have dashes in it)
 			var directoryOwner = dirnameSplit.join('-');
