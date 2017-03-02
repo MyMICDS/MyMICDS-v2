@@ -28,7 +28,7 @@ var validDayRotationPlain = /^Day [1-6]$/;
 
 var portalSummaryBlock = / - [0-9]{1,2} \([A-G][0-9]\)$/g;
 // Modified portal summary block to clean up everythiing for displaying
-var cleanUpBlockSuffix = / -( [0-9]{1,2} \(.+\))?$/g
+var cleanUpBlockSuffix = / -( )?([0-9]{1,2} \(.+\))?$/g
 
 /**
  * Makes sure a given url is valid and it points to a Portal calendar feed
