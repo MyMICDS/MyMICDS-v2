@@ -53,4 +53,18 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
+	app.post('/portal/day-rotation', function(req, res) {
+		portal.getDayRotations(function(err, days) {
+			if(err) {
+				var errorMessage = err.message;
+			} else {
+				var errorMessage = null;
+			}
+			res.json({
+				error: errorMessage,
+				days: days
+			});
+		});
+	});
+
 }
