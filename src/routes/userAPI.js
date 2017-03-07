@@ -18,11 +18,6 @@ module.exports = function(app, db, socketIO) {
 		res.json({ year: gradYear });
 	});
 
-	app.post('/user/school-ends', function(req, res) {
-		var ends = users.schoolEnds();
-		res.json({ ends: ends });
-	});
-
 	app.post('/user/grade-range', function(req, res) {
 		var gradYears = [];
 		// Set min (inclusive) and max (inclusive)

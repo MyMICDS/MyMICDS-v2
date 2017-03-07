@@ -29,6 +29,9 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/classes/delete`](#classesdelete)
 * [Daily Bulletin API](#daily-bulletin-api)
   * [`/daily-bulletin/list`](#daily-bulletinlist)
+* [Dates API](#dates-api)
+  * [`/dates/school-ends`](#datesschool-ends)
+  * [`/dates/breaks`](#datesbreaks)
 * [Login API](#login-api)
   * [`/auth/login`](#authlogin)
   * [`/auth/logout`](#authlogout)
@@ -225,7 +228,7 @@ The part of the API relates to the classes. Can be found under `src/routes/class
 
 
 ## Daily Bulletin API
-The part of the API that relates to the Daily Bulletin. Can be found in `src/routes/bulletinAPI.js`. This associated dailyBulletin module can be found under `src/libs/dailyBulletin.js`.
+The part of the API that relates to the Daily Bulletin. Can be found in `src/routes/bulletinAPI.js`. The associated dailyBulletin module can be found under `src/libs/dailyBulletin.js`.
 
 
 ### `/daily-bulletin/list`
@@ -235,6 +238,27 @@ Gets an array of bulletin filenames from newest to oldest.
 - `error` - Null if success, string containing error if failure.
 - `baseURL` - Base URL all Daily Bulletins are stored in.
 - `bulletins` - Array of bulletins names from newest to oldest. Null if error.
+
+
+
+## Dates API
+The part of the API that realtes to dates and time. Can be found in `src/routes/datesAPI.js`. The associated dates module can be found under `src/libs/dates.js`.
+
+
+### `/dates/school-ends`
+Returns the date when school ends. During Summer, returns the date next school year ends.
+
+#### Response
+- `date` - Date when school ends. Last Friday of may at 11:30.
+
+
+### `/dates/breaks`
+Returns an object containing days we have off of school. Includes weekends, long weekends, vacations, and other.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+- `breaks` - An object containing a `weekends`, `longWeekends`, `vacations`, and `other` which are arrays containing a `start` and an `end` date.
+
 
 
 ## Login API
@@ -485,13 +509,6 @@ A little utility that converts a grade into a high school graduation year.
 
 #### Response
 - `year` - Class graduation year.
-
-
-### `/user/school-ends`
-Returns the date when school ends. During Summer, returns the date next school year ends.
-
-#### Response
-- `date` - Date when school ends. Last Friday of may at 11:30.
 
 
 ### `/user/grade-range`

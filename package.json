@@ -44,6 +44,8 @@
     "body-parser": "^1.15.0",
     "cheerio": "^0.22.0",
     "cors": "^2.8.0",
+    "deepstream.io": "^2.1.2",
+    "deepstream.io-storage-mongodb": "^1.0.2",
     "express": "^4.13.4",
     "express-jwt": "^5.1.0",
     "forecast.io": "0.0.11",
