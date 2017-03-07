@@ -10,8 +10,8 @@ try {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }
 
-var Deepstream = require( 'deepstream.io' );
-var MongoDBStorageConnector = require( 'deepstream.io-storage-mongodb' );
+var Deepstream = require('deepstream.io');
+var MongoDBStorageConnector = require('deepstream.io-storage-mongodb');
 var server = new Deepstream();
 
 server.set('storage', new MongoDBStorageConnector( {

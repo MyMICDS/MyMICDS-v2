@@ -6,6 +6,7 @@
  */
 
 var _      = require('underscore');
+var dates  = require(__dirname + '/dates.js');
 var moment = require('moment');
 
 /**
@@ -203,60 +204,6 @@ function changeInfo(db, user, info, callback) {
 }
 
 /**
- * Returns a Moment.js object the date and time school is going to end
- * Based on two consecutive years, we have gather enough data and deeply analyzed that the last day of school is _probably_ the last Friday of May.
- * @function lastFridayMay
- * @param {Number} year - Which May to get last Friday from
- * @returns {Object}
- */
-
-function lastFridayMay(year) {
-	var current = moment();
-	if(typeof year !== 'number' || year % 1 !== 0) {
-		year = current.year();
-	}
-
-	var lastDayOfMay = moment().year(year).month('May').endOf('month').startOf('day').hours(11).minutes(30);
-
-	/*
-	 * Fun fact: This is literally the only switch statement in the whole MyMICDS codebase.
-	 */
-
-	switch(lastDayOfMay.day()) {
-		case 5:
-			// If day is already Friday
-			var lastDay = lastDayOfMay;
-		case 6:
-			// Last day is Sunday
-			var lastDay = lastDayOfMay.subtract(1, 'day');
-		default:
-			// Subtract day of week (which cancels it out) and start on Saturday.
-			// Then subtract to days to get from Saturday to Friday.
-			var lastDay = lastDayOfMay.subtract(lastDayOfMay.day() + 2, 'days');
-	}
-
-	return lastDay;
-}
-
-/**
- * Returns a Moment.js object when the next last day of school is.
- * Based on two consecutive years, we have gather enough data and deeply analyzed that the last day of school is _probably_ the last Friday of May.
- * @function schoolEnds
- * @returns {Object}
- */
-
-function schoolEnds() {
-	var current = moment();
-	var lastDayThisYear = lastFridayMay();
-
-	if(lastDayThisYear.isAfter(current)) {
-		return lastDayThisYear;
-	} else {
-		return lastFridayMay(current.year() + 1);
-	}
-}
-
-/**
  * Converts a graduation year to a grade.
  * If the grade is Junior-Kindergarten (JK) or Senior-Kindergarten (SK) then the respective -1 and 0 integers are returned.
  * @function gradYearToGrade
@@ -322,7 +269,6 @@ function gradeToSchool(grade) {
 module.exports.get        	   = getUser;
 module.exports.getInfo         = getInfo;
 module.exports.changeInfo      = changeInfo;
-module.exports.schoolEnds      = schoolEnds;
 module.exports.gradYearToGrade = gradYearToGrade;
 module.exports.gradeToGradYear = gradeToGradYear;
 module.exports.gradeToSchool   = gradeToSchool;

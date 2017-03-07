@@ -28,7 +28,13 @@ var validDayRotationPlain = /^Day [1-6]$/;
 
 var portalSummaryBlock = / - [0-9]{1,2} \([A-G][0-9]\)$/g;
 // Modified portal summary block to clean up everythiing for displaying
-var cleanUpBlockSuffix = / -( )?([0-9]{1,2} \(.+\))?$/g
+var cleanUpBlockSuffix = / -( )?([0-9]{1,2} \(.+\))?$/g;
+
+// Range of Portal calendars in months
+var portalRange = {
+	previous: 2,
+	upcoming: 12
+};
 
 /**
  * Makes sure a given url is valid and it points to a Portal calendar feed
@@ -331,7 +337,7 @@ function getDayRotation(date, callback) {
   * @callback getDayRotationsCallback
   *
   * @param {Object} err - Null if success, error object if failure.
-  * @param {scheduleDay} day - Object containing integers 1-6 organized by year, month, and date (Ex. January 3rd, 2017 would be `day.2017.1.3`)
+  * @param {scheduleDay} days - Object containing integers 1-6 organized by year, month, and date (Ex. January 3rd, 2017 would be `day.2017.1.3`)
   */
 
 function getDayRotations(callback) {
@@ -559,6 +565,9 @@ function cleanUp(str) {
 // RegEx
 module.exports.validDayRotation   = validDayRotation;
 module.exports.portalSummaryBlock = portalSummaryBlock;
+
+// Constants
+module.exports.portalRange = portalRange;
 
 // Functions
 module.exports.verifyURL       = verifyURL;
