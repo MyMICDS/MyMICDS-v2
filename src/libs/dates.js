@@ -128,12 +128,14 @@ function getBreaks(callback) {
 		return;
 	}
 
+	// Get array of days that have no day rotation
 	getDaysOff(function(err, days) {
 		if(err) {
 			callback(err, null);
 			return;
 		}
 
+		// Group days off into arrays
 		var i = 0;
 		var groupedDays = days.reduce(function(stack, b) {
 			var cur = stack[i];
@@ -151,9 +153,70 @@ function getBreaks(callback) {
 
 			return stack;
 
-		}, []);
+		}, [])
+		// For some reason first element is always undefined or something
+		groupedDays.shift();
 
-		callback(null, groupedDays);
+		/*
+		 * Categorize breaks
+		 *
+		 * Weekends - Breaks that are exclusively Saturday and Sunday
+		 * Long Weekends - Breaks that include Saturday and Sunday. Can include weekdays but cannot be more than a week (7 days).
+		 * Vacations - Breaks that are more than a week (7 days).
+		 * Other - For some reason if there's a day off in the middle of the week.
+		 */
+
+		var categorizedBreaks = {
+			weekends: [],
+			longWeekends: [],
+			vacations: [],
+			other: []
+		};
+
+		console.log('grouped ays', groupedDays);
+		for(var j = 0; j < groupedDays.length; j++) {
+			var group = groupedDays[j];
+
+			// Check if weekend
+			if(group.length === 2 && group[0].day() === 6 && group[1].day() === 0) {
+				categorizedBreaks.weekends.push({
+					start: group[0],
+					end: group[group.length - 1]
+				});
+				continue;
+			}
+
+			// Check if Saturday / Sunday are included in break
+			var weekendIncluded = false;
+			for(var k = 0; k < group.length; k++) {
+				if(group[k].day() === 6 || group[k].day() === 0) {
+					weekendIncluded = true;
+					continue;
+				}
+			}
+
+			if(weekendIncluded) {
+				if(group.length < 7) {
+					categorizedBreaks.longWeekends.push({
+						start: group[0],
+						end: group[group.length - 1]
+					});
+				} else {
+					categorizedBreaks.vacations.push({
+						start: group[0],
+						end: group[group.length - 1]
+					});
+				}
+			} else {
+				categorizedBreaks.other.push({
+					start: group[0],
+					end: group[group.length - 1]
+				});
+			}
+
+		}
+
+		callback(null, categorizedBreaks);
 	});
 }
 

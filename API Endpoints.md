@@ -31,6 +31,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/daily-bulletin/list`](#daily-bulletinlist)
 * [Dates API](#dates-api)
   * [`/dates/school-ends`](#datesschool-ends)
+  * [`/dates/breaks`](#datesbreaks)
 * [Login API](#login-api)
   * [`/auth/login`](#authlogin)
   * [`/auth/logout`](#authlogout)
@@ -249,6 +250,14 @@ Returns the date when school ends. During Summer, returns the date next school y
 
 #### Response
 - `date` - Date when school ends. Last Friday of may at 11:30.
+
+
+### `/dates/breaks`
+Returns an object containing days we have off of school. Includes weekends, long weekends, vacations, and other.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+- `breaks` - An object containing a `weekends`, `longWeekends`, `vacations`, and `other` which are arrays containing a `start` and an `end` date.
 
 
 
