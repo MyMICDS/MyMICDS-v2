@@ -220,5 +220,6 @@ function getBreaks(callback) {
 	});
 }
 
-module.exports.schoolEnds = schoolEnds;
-module.exports.getBreaks = getBreaks;
+module.exports.lastFridayMay = lastFridayMay;
+module.exports.schoolEnds    = schoolEnds;
+module.exports.getBreaks     = getBreaks;
