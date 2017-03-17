@@ -138,21 +138,20 @@ function upsertModules(db, user, modules, callback) {
 		// TODO @michaelgira23
 
 		function handleModule(i) {
-			if(i > module.length) {
-				// something
+			if(i < module.length) {
+				moduledata.update({ _id: module['_id'], user: module['user'] }, { $set: module }, { upsert: true }, function(err) {
+					if(err) {
+						callback(err);
+						return;
+					}
+
+					handleModule(++i);
+				});
+			} else {
+				callback(null);
 			}
-
-			moduledata.update({ _id: module['_id'], user: module['user'] }, { $set: module }, { upsert: true }, function(err) {
-				if(err) {
-					callback(err);
-					return;
-				}
-
-				handleModule(++i);
-			});
-
-			handleModule(0);
 		}
+		handleModule(0);
 	});
 }
 
