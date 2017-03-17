@@ -21,12 +21,20 @@ var url           = require('url');
 var users         = require(__dirname + '/users.js');
 
 // URL Calendars come from
-var urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?q=';
+var urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?z=';
 // RegEx to test if calendar summary is a valid Day Rotation
 var validDayRotation = /^Day [1-6] \((US|MS)\)$/;
 var validDayRotationPlain = /^Day [1-6]$/;
 
 var portalSummaryBlock = / - [0-9]{1,2} \([A-G][0-9]\)$/g;
+// Modified portal summary block to clean up everythiing for displaying
+var cleanUpBlockSuffix = / -( )?([0-9]{1,2} \(.+\))?$/g;
+
+// Range of Portal calendars in months
+var portalRange = {
+	previous: 2,
+	upcoming: 12
+};
 
 /**
  * Makes sure a given url is valid and it points to a Portal calendar feed
@@ -58,12 +66,12 @@ function verifyURL(portalURL, callback) {
 	var parsedURL = url.parse(portalURL);
 	var queries = querystring.parse(parsedURL.query);
 
-	if(typeof queries.q !== 'string') {
+	if(typeof queries.z !== 'string') {
 		callback(null, 'URL does not contain calendar ID!', null);
 		return;
 	}
 
-	var validURL = urlPrefix + queries.q;
+	var validURL = urlPrefix + queries.z;
 
 	// Not lets see if we can actually get any data from here
 	request(validURL, function(err, response, body) {
@@ -316,6 +324,75 @@ function getDayRotation(date, callback) {
 	});
 }
 
+
+/**
+ * Get all of the schedule day rotations we can get
+ * @function getDayRotations
+ *
+ * @param {getDayRotationCallback} callback - Callback
+ */
+
+ /**
+  * Returns an integer between 1 and 6 for what day it is
+  * @callback getDayRotationsCallback
+  *
+  * @param {Object} err - Null if success, error object if failure.
+  * @param {scheduleDay} days - Object containing integers 1-6 organized by year, month, and date (Ex. January 3rd, 2017 would be `day.2017.1.3`)
+  */
+
+function getDayRotations(callback) {
+	if(typeof callback !== 'function') return;
+
+	var days = {};
+
+	request(urlPrefix + config.portal.dayRotation, function(err, response, body) {
+		if(err || response.statusCode !== 200) {
+			callback(new Error('There was a problem fetching the day rotation!'), null);
+			return;
+		}
+
+		var data = ical.parseICS(body);
+
+		// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+		// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+		if(_.isEmpty(data)) {
+			callback(new Error('There was a problem fetching the day rotation!'), null);
+			return;
+		}
+
+		for(var eventUid in data) {
+			var calEvent = data[eventUid];
+			if(typeof calEvent.summary !== 'string') continue;
+
+			var start = new Date(calEvent['start']);
+			var end   = new Date(calEvent['end']);
+
+			var year = start.getFullYear();
+			var month = start.getMonth() + 1;
+			var date = start.getDate();
+
+			// See if valid day
+			if(validDayRotationPlain.test(calEvent.summary)) {
+				// Get actual day
+				var day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
+
+				if (typeof days[year] !== 'object') {
+					days[year] = {};
+				}
+
+				if (typeof days[year][month] !== 'object') {
+					days[year][month] = {};
+				}
+
+				days[year][month][date] = day;
+			}
+		}
+
+		callback(null, days);
+
+	});
+}
+
 /**
  * Gets a user's classes from the PORTAL, not CANVAS.
  * @function getClasses
@@ -482,61 +559,21 @@ function parseIcalClasses(data, callback) {
 
 function cleanUp(str) {
 	if(typeof str !== 'string') return str;
-
-	// Split string between hyphens and trim each part
-	var parts = str.split(' - ').map(function(value) { return value.trim() });
-
-	// Get rid of empty strings
-	for(var i = 0; i < parts.length; i++) {
-		if(parts[i] === '') {
-			parts.splice(i, 1);
-		}
-	}
-
-	// Sort array using very special algorithm I thought of in the shower.
-	parts.sort(function(a, b) {
-		// Get length of strings
-		var aLength = a.length;
-		var bLength = b.length;
-
-		// Get count of alphabetic characters in strings
-		var alphabetic = /[A-Z]/ig;
-		var aAlphabeticMatches = a.match(alphabetic);
-		var bAlphabeticMatches = b.match(alphabetic);
-
-		// .match actually returns an array. If it isn't null, assign length.
-		var aAlphabeticCount = 0;
-		if(aAlphabeticMatches) {
-			aAlphabeticCount = aAlphabeticMatches.length;
-		}
-
-		var bAlphabeticCount = 0;
-		if(bAlphabeticMatches) {
-			bAlphabeticCount = bAlphabeticMatches.length;
-		}
-
-		// Get ratio of alphabetic / total characters
-		var aRatio = aAlphabeticCount / aLength;
-		var bRatio = bAlphabeticCount / bLength;
-
-		// Final score is length multiplied by ratio
-		var aGoodBoyPoints = aLength * aRatio;
-		var bGoodBoyPoints = bLength * bRatio;
-
-		return bGoodBoyPoints - aGoodBoyPoints;
-	});
-
-	return parts[0] || '';
+	return str.replace(cleanUpBlockSuffix, '');
 }
 
 // RegEx
 module.exports.validDayRotation   = validDayRotation;
 module.exports.portalSummaryBlock = portalSummaryBlock;
 
+// Constants
+module.exports.portalRange = portalRange;
+
 // Functions
-module.exports.verifyURL      = verifyURL;
-module.exports.setURL         = setURL;
-module.exports.getCal         = getCal;
-module.exports.getDayRotation = getDayRotation;
-module.exports.getClasses	  = getClasses;
-module.exports.cleanUp        = cleanUp;
+module.exports.verifyURL       = verifyURL;
+module.exports.setURL          = setURL;
+module.exports.getCal          = getCal;
+module.exports.getDayRotation  = getDayRotation;
+module.exports.getDayRotations = getDayRotations;
+module.exports.getClasses      = getClasses;
+module.exports.cleanUp         = cleanUp;
