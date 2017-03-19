@@ -136,7 +136,7 @@ function upsertModules(db, user, modules, callback) {
 		var moduledata = db.collection('modules');
 
 		// I really want to use an arrow function here, but Michael won't let me
-		moduledata.deleteMany({ _id: { $nin: modules.map(function(m) { return m['_id']; }) } }, function(err) {
+		moduledata.deleteMany({ _id: { $nin: modules.map(function(m) { return m['_id']; }) }, user: userDoc['user'] }, function(err) {
 			if(err) {
 				callback(err);
 				return;
@@ -144,7 +144,7 @@ function upsertModules(db, user, modules, callback) {
 
 			function handleModule(i) {
 				if(i < module.length) {
-					moduledata.update({ _id: module['_id'], user: module['user'] }, { $set: module }, { upsert: true }, function(err) {
+					moduledata.update({ _id: module['_id'], user: userDoc['user'] }, { $set: module }, { upsert: true }, function(err) {
 						if(err) {
 							callback(err);
 							return;
