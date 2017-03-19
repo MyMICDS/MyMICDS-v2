@@ -5,6 +5,8 @@
  * @module modules
  */
 
+var _ = require('underscore');
+
 // All allowed modules
 var moduleList = ['date', 'lunch', 'progress', 'schedule', 'snowday', 'stickynotes', 'weather'];
 
@@ -13,7 +15,7 @@ var columnsPerRow = 4;
 // Modules to give user if none found
 var defaultModules = [
 	{
-		name: 'progress',
+		type: 'progress',
 		row: 0,
 		column: 0,
 		width: columnsPerRow,
@@ -23,14 +25,14 @@ var defaultModules = [
 		}
 	},
 	{
-		name: 'schedule',
+		type: 'schedule',
 		row: 1,
 		column: 0,
 		width: columnsPerRow / 2,
 		height: 1
 	},
 	{
-		name: 'weather',
+		type: 'weather',
 		row: 1,
 		column: 1,
 		width: columnsPerRow / 2,
@@ -141,6 +143,12 @@ function upsertModules(db, user, modules, callback) {
 				callback(err);
 				return;
 			}
+			if(!modules.every(function(m) { return _.contains(moduleList, m.type); })) {
+				callback(new Error('Invalid module type!'));
+				return;
+			}
+
+			// TODO: check for overlapping
 
 			function handleModule(i) {
 				if(i < module.length) {
