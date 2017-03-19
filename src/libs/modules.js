@@ -134,6 +134,28 @@ function upsertModules(db, user, modules, callback) {
 			callback(new Error('User doesn\'t exist!'));
 			return;
 		}
+		if(!modules.every(function(m) { return _.contains(moduleList, m.type); })) {
+			callback(new Error('Invalid module type!'));
+			return;
+		}
+
+		var moduleGrid = [];
+
+		for(var i = 0; i < modules.length; i++) {
+			var mod = modules[i];
+			for(var j = mod.row; j <= mod.row + mod.height; j++) {
+				if(typeof moduleGrid[j] !== 'object') moduleGrid[j] = [];
+
+				for(var k = mod.column; k <= mod.column + mod.width; k++) {
+					if(moduleGrid[j][k]) {
+						callback(new Error('Modules overlap!'));
+						return;
+					}
+
+					moduleGrid[j][k] = true;
+				}
+			}
+		}
 
 		var moduledata = db.collection('modules');
 
@@ -143,12 +165,6 @@ function upsertModules(db, user, modules, callback) {
 				callback(err);
 				return;
 			}
-			if(!modules.every(function(m) { return _.contains(moduleList, m.type); })) {
-				callback(new Error('Invalid module type!'));
-				return;
-			}
-
-			// TODO: check for overlapping
 
 			function handleModule(i) {
 				if(i < module.length) {
