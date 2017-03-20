@@ -6,6 +6,7 @@
  */
 
 var _ = require('underscore');
+var users = require(__dirname + '/users.js');
 
 // All allowed modules
 var moduleList = ['date', 'lunch', 'progress', 'schedule', 'snowday', 'stickynotes', 'weather'];
