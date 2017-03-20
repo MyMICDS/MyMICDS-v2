@@ -62,5 +62,8 @@ module.exports = function(app, db, socketIO) {
 			res.json({ error: errorMessage });
 		});
 	});
-
+	
+	app.post('classes/students/get', function (req, res) {
+		var cls = req.body.class;
+	});
 };
