@@ -47,7 +47,6 @@
     "express": "^4.14.0",
     "express-jwt": "^5.1.0",
     "forecast.io": "0.0.11",
-    "fs": "0.0.1-security",
     "fs-extra": "^1.0.0",
     "google-batch": "0.0.7",
     "googleapis": "^14.1.0",
