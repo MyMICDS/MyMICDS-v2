@@ -25,7 +25,7 @@ module.exports = function(app, db) {
 	});
 
 	app.post('/quote/insert', function(req, res) {
-		quotes.insertQuote(db, req.body.author, req.body.quote, function(err) {
+		quotes.insert(db, req.body.author, req.body.quote, function(err) {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
