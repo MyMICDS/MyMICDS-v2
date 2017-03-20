@@ -1,38 +1,39 @@
+'use strict';
+
 var quotes = require(__dirname + '/../libs/quotes.js');
 
+var Random = require("random-js");
+var engine = Random.engines.mt19937().autoSeed();
+
 module.exports = function(app, db) {
-var count = 0;
-var maxIndex;
 
-quotes.getIndex(db, function (index) {
-	maxIndex = index;
-});
+	app.post('/quote/get', function(req, res) {
+		quotes.get(db, function(err, quotes) {
+			if(err) {
+				var errorMessage = err.message;
+				var quote = null;
+			} else {
+				var errorMessage = null;
+				var quote = Random.pick(engine, quotes);
+			}
 
-/**
-	This retrieves quotes
-*/
-
-app.post('/quote/get', function (req, res) {
-	if (count > maxIndex) {
-		count = 0;
-		quotes.getQuote(db, count, function (result) {
-			res.json({quote:JSON.parse(result).quote, author:JSON.parse(result).author});
+			res.json({
+				error: errorMessage,
+				quote: quote
+			});
 		});
-		count++;
-	}
-	
-	else {
-		quotes.getQuote(db, count, function (result) {
-			res.json({quote:JSON.parse(result).quote, author:JSON.parse(result).author});
-		});
-		count++;
-	}
-});
-
-app.post('/quote/insert', function (req, res) {
-	// insert quote to collection
-	quotes.insertQuote(db, req.body.author, req.body.quote, function (result) {
-		res.end(result);
 	});
-});
+
+	app.post('/quote/insert', function(req, res) {
+		quotes.insertQuote(db, req.body.author, req.body.quote, function(err) {
+			if(err) {
+				var errorMessage = err.message;
+			} else {
+				var errorMessage = null;
+			}
+
+			res.json({ error: errorMessage });
+		});
+	});
+
 };
