@@ -9,7 +9,7 @@ var _ = require('underscore');
 var users = require(__dirname + '/users.js');
 
 // All allowed modules
-var moduleList = ['date', 'lunch', 'progress', 'schedule', 'snowday', 'stickynotes', 'weather'];
+var moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather'];
 
 var columnsPerRow = 4;
 
@@ -58,6 +58,7 @@ var defaultModules = [
  * @param {Object} err - Null if success, error object if failure
  * @param {Array} modules - Array of user's currently active modules if success, null ir error
  */
+
 function getModules(db, user, callback) {
 	// Input validation
 	if(typeof callback !== 'function') return;
@@ -111,6 +112,7 @@ function getModules(db, user, callback) {
  *
  * @param {Object} err - Null if success, error object if null
  */
+
 function upsertModules(db, user, modules, callback) {
 	// Input validation
 	if(typeof callback !== 'function') return;
