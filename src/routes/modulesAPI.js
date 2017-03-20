@@ -6,7 +6,7 @@
 
 var modules = require(__dirname + '/../libs/modules.js');
 
-module.exports = function(app, db, socketIO) {
+module.exports = function(app, db) {
 
 	app.post('/modules/get', function(req, res) {
 		modules.get(db, req.user.user, function(err, modules) {
