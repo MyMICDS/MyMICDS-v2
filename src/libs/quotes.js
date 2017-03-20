@@ -1,6 +1,11 @@
 'use strict';
 
 /**
+ * @file Functions for distributing our wisdom throughout the world. One API call at a time.
+ * @module quotes
+ */
+
+/**
  * Get a quote from the database
  * @function getQuote
  *
