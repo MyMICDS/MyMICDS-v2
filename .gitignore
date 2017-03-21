@@ -1,6 +1,10 @@
 docs
 node_modules
 *.log
+
+.idea
+.vscode
+
 src/api
 src/libs/config.js
 src/public/daily-bulletin
