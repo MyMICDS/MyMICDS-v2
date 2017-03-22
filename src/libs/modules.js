@@ -141,6 +141,10 @@ function upsertModules(db, user, modules, callback) {
 			callback(new Error('Invalid module type!'));
 			return;
 		}
+		if(!modules.every(function(m) { return m.column + m.width <= columnsPerRow; })) {
+			callback(new Error('Module width exceeds row width of ' + columnsPerRow + ' columns!'));
+			return;
+		}
 
 		var moduleGrid = [];
 
