@@ -39,7 +39,7 @@
 			var $tag = $('.tag.tag-primary');
 
 			$tag.on('mousedown mouseup', function() {
-				console.log('toggle')
+				console.log('toggle');
 				socket.emit('progress label click toggle');
 			});
 

@@ -38,7 +38,7 @@ function calculate(db, callback) {
 			school: schoolId
 		},
 		gzip: true
-	}, function(err, res, body) {
+	}, (err, res, body) => {
 		if(err || res.statusCode !== 200) {
 			callback(new Error('There was a problem querying the Snowday Calculator!'), null);
 			return;

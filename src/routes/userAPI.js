@@ -6,19 +6,19 @@
 
 var users = require(__dirname + '/../libs/users.js');
 
-module.exports = function(app, db, socketIO) {
+module.exports = (app, db, socketIO) => {
 
-	app.post('/user/grad-year-to-grade', function(req, res) {
+	app.post('/user/grad-year-to-grade', (req, res) => {
 		var grade = users.gradYearToGrade(parseInt(req.body.year));
 		res.json({ grade: grade });
 	});
 
-	app.post('/user/grade-to-grad-year', function(req, res) {
+	app.post('/user/grade-to-grad-year', (req, res) => {
 		var gradYear = users.gradeToGradYear(parseInt(req.body.grade));
 		res.json({ year: gradYear });
 	});
 
-	app.post('/user/grade-range', function(req, res) {
+	app.post('/user/grade-range', (req, res) => {
 		var gradYears = [];
 		// Set min (inclusive) and max (inclusive)
 		var min = -1; // JK
@@ -31,8 +31,8 @@ module.exports = function(app, db, socketIO) {
 		res.json({ gradYears });
 	});
 
-	app.post('/user/get-info', function(req, res) {
-		users.getInfo(db, req.user.user, true, function(err, userInfo) {
+	app.post('/user/get-info', (req, res) => {
+		users.getInfo(db, req.user.user, true, (err, userInfo) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -45,7 +45,7 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/user/change-info', function(req, res) {
+	app.post('/user/change-info', (req, res) => {
 		var info = {};
 
 		if(typeof req.body.firstName === 'string' && req.body.firstName !== '') {
@@ -61,7 +61,7 @@ module.exports = function(app, db, socketIO) {
 			info.gradYear = parseInt(req.body.gradYear);
 		}
 
-		users.changeInfo(db, req.user.user, info, function(err) {
+		users.changeInfo(db, req.user.user, info, err => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

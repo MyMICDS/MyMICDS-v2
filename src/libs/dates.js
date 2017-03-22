@@ -101,7 +101,7 @@ function getDaysOff(callback) {
 		return;
 	}
 
-	portal.getDayRotations(function(err, days) {
+	portal.getDayRotations((err, days) => {
 		if(err) {
 			callback(err, null);
 			return;
@@ -148,7 +148,7 @@ function getBreaks(callback) {
 	}
 
 	// Get array of days that have no day rotation
-	getDaysOff(function(err, days) {
+	getDaysOff((err, days) => {
 		if(err) {
 			callback(err, null);
 			return;
@@ -156,7 +156,7 @@ function getBreaks(callback) {
 
 		// Group days off into arrays
 		var i = 0;
-		var groupedDays = days.reduce(function(stack, b) {
+		var groupedDays = days.reduce((stack, b) => {
 			var cur = stack[i];
 			var a = cur ? cur[cur.length - 1] : 0;
 

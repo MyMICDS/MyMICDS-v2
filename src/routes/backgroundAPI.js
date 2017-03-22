@@ -6,10 +6,10 @@
 
 var backgrounds = require(__dirname + '/../libs/backgrounds.js');
 
-module.exports = function(app, db, socketIO) {
+module.exports = (app, db, socketIO) => {
 
-	app.post('/background/get', function(req, res) {
-		backgrounds.get(req.user.user, function(err, variants, hasDefault) {
+	app.post('/background/get', (req, res) => {
+		backgrounds.get(req.user.user, (err, variants, hasDefault) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -23,16 +23,16 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/background/upload', function(req, res) {
+	app.post('/background/upload', (req, res) => {
 		// Write image to user-backgrounds
-		backgrounds.upload(db)(req, res, function(err) {
+		backgrounds.upload(db)(req, res, err => {
 			if(err) {
 				res.json({ error: err.message });
 				return;
 			}
 
 			// Add blurred version of image
-			backgrounds.blurUser(req.user.user, function(err) {
+			backgrounds.blurUser(req.user.user, err => {
 				if(err) {
 					var errorMessage = err.message;
 				} else {
@@ -44,8 +44,8 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/background/delete', function(req, res) {
-		backgrounds.delete(req.user.user, function(err) {
+	app.post('/background/delete', (req, res) => {
+		backgrounds.delete(req.user.user, err => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

@@ -6,10 +6,10 @@
 
 var sports = require(__dirname + '/../libs/sports.js');
 
-module.exports = function(app) {
+module.exports = app => {
 
-	app.post('/sports/scores', function(req, res) {
-		sports.scores(function(err, scores) {
+	app.post('/sports/scores', (req, res) => {
+		sports.scores((err, scores) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

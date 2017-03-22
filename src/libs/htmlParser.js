@@ -18,13 +18,13 @@ function htmlToText(html) {
 	var plaintext = '';
 
 	var parser = new htmlparser.Parser({
-		onopentag: function(name, attribs) {
+		onopentag: (name, attribs) => {
 			// Do nothing
 		},
-		ontext: function(text) {
+		ontext: text => {
 			plaintext += text;
 		},
-		onclosetag: function(tagname) {
+		onclosetag: tagname => {
 			// Do nothing
 		}
 	}, { decodeEntities: true });

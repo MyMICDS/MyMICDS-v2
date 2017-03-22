@@ -64,7 +64,7 @@ function verifyURL(canvasURL, callback) {
 	var validURL = urlPrefix + userCalendar;
 
 	// Not lets see if we can actually get any data from here
-	request(validURL, function(err, response, body) {
+	request(validURL, (err, response, body) => {
 		if(err) {
 			callback(new Error('There was a problem fetching calendar data from the URL!'), null, null);
 			return;
@@ -100,7 +100,7 @@ function verifyURL(canvasURL, callback) {
 
 function setURL(db, user, url, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof db !== 'object') {
@@ -108,7 +108,7 @@ function setURL(db, user, url, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -118,7 +118,7 @@ function setURL(db, user, url, callback) {
 			return;
 		}
 
-		verifyURL(url, function(err, isValid, validURL) {
+		verifyURL(url, (err, isValid, validURL) => {
 			if(err) {
 				callback(err, null, null);
 				return;
@@ -129,7 +129,7 @@ function setURL(db, user, url, callback) {
 
 			var userdata = db.collection('users');
 
-			userdata.update({ _id: userDoc['_id'] }, { $set: { canvasURL: validURL }}, { upsert: true }, function(err, result) {
+			userdata.update({ _id: userDoc['_id'] }, { $set: { canvasURL: validURL }}, { upsert: true }, (err, result) => {
 				if(err) {
 					callback(new Error('There was a problem updating the URL to the database!'), null, null);
 					return;
@@ -168,7 +168,7 @@ function getEvents(db, user, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -183,7 +183,7 @@ function getEvents(db, user, callback) {
 			return;
 		}
 
-		request(userDoc.canvasURL, function(err, response, body) {
+		request(userDoc.canvasURL, (err, response, body) => {
 			if(err) {
 				callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
 				return;
@@ -203,7 +203,7 @@ function getEvents(db, user, callback) {
 			}
 
 			// Get which events are checked
-			checkedEvents.list(db, user, function(err, checkedEventsList) {
+			checkedEvents.list(db, user, (err, checkedEventsList) => {
 				if(err) {
 					callback(err, null, null);
 					return;
@@ -226,7 +226,7 @@ function getEvents(db, user, callback) {
 					}
 
 					// Query aliases to see if possible class object exists
-					aliases.getClass(db, user, 'canvas', name, function(err, hasAlias, aliasClassObject) {
+					aliases.getClass(db, user, 'canvas', name, (err, hasAlias, aliasClassObject) => {
 						if(err) {
 							callback(err, null);
 							return;
@@ -269,7 +269,7 @@ function getEvents(db, user, callback) {
 					var parsedEvent = parseCanvasTitle(canvasEvent.summary);
 
 					// Check if alias for class first
-					getCanvasClass(parsedEvent, function(err, canvasClass) {
+					getCanvasClass(parsedEvent, (err, canvasClass) => {
 						if(err) {
 							callback(err, null, null);
 							return;
@@ -415,7 +415,7 @@ function getClasses(db, user, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -430,7 +430,7 @@ function getClasses(db, user, callback) {
 			return;
 		}
 
-		request(userDoc['canvasURL'], function(err, response, body) {
+		request(userDoc['canvasURL'], (err, response, body) => {
 			if(err) {
 				callback(new Error('There was a problem fetching canvas data from the URL!'), null, null);
 				return;

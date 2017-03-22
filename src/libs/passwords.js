@@ -50,7 +50,7 @@ function passwordMatches(db, user, password, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -63,7 +63,7 @@ function passwordMatches(db, user, password, callback) {
 
 		var hash = userDoc['password'];
 
-		bcrypt.compare(password, hash, function(err, res) {
+		bcrypt.compare(password, hash, (err, res) => {
 			if(err) {
 				callback(new Error('There was a problem comparing the passwords!'), null, null);
 				return;
@@ -95,7 +95,7 @@ function passwordMatches(db, user, password, callback) {
 
 function changePassword(db, user, oldPassword, newPassword, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof db !== 'object') {
@@ -111,7 +111,7 @@ function changePassword(db, user, oldPassword, newPassword, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err);
 			return;
@@ -122,7 +122,7 @@ function changePassword(db, user, oldPassword, newPassword, callback) {
 		}
 
 		// Compare oldPassword with password in database
-		passwordMatches(db, user, oldPassword, function(err, matches) {
+		passwordMatches(db, user, oldPassword, (err, matches) => {
 			if(err) {
 				callback(err);
 				return;
@@ -133,7 +133,7 @@ function changePassword(db, user, oldPassword, newPassword, callback) {
 			}
 
 			// Hash new password
-			cryptoUtils.hashPassword(newPassword, function(err, hash) {
+			cryptoUtils.hashPassword(newPassword, (err, hash) => {
 				if(err) {
 					callback(err);
 					return;
@@ -141,7 +141,7 @@ function changePassword(db, user, oldPassword, newPassword, callback) {
 
 				// Update new password into database
 				var userdata = db.collection('users');
-				userdata.update({ user: user }, { $set: { password: hash }, $currentDate: { lastPasswordChange: true }}, function(err, results) {
+				userdata.update({ user: user }, { $set: { password: hash }, $currentDate: { lastPasswordChange: true }}, (err, results) => {
 					if(err) {
 						callback(new Error('There was a problem updating the password in the database!'));
 						return;
@@ -174,7 +174,7 @@ function changePassword(db, user, oldPassword, newPassword, callback) {
 
 function resetPasswordEmail(db, user, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof db !== 'object') {
@@ -182,7 +182,7 @@ function resetPasswordEmail(db, user, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err);
 			return;
@@ -193,7 +193,7 @@ function resetPasswordEmail(db, user, callback) {
 		}
 
 		// Generate password hash for confirmation link
-		crypto.randomBytes(16, function(err, buf) {
+		crypto.randomBytes(16, (err, buf) => {
 			 if(err) {
 				callback(new Error('There was a problem generating a random confirmation hash!'));
 				return;
@@ -204,7 +204,7 @@ function resetPasswordEmail(db, user, callback) {
 
 			// Now let's insert the passwordChangeHash into the database
 			var userdata = db.collection('users');
-			userdata.update({ _id: userDoc['_id'], user: userDoc['user'] }, { $set: { passwordChangeHash: hashedHash }}, { upsert: true }, function(err, results) {
+			userdata.update({ _id: userDoc['_id'], user: userDoc['user'] }, { $set: { passwordChangeHash: hashedHash }}, { upsert: true }, (err, results) => {
 				if(err) {
 					callback(new Error('There was a problem inserting the confirmation hash into the database!'));
 					return;
@@ -246,7 +246,7 @@ function resetPasswordEmail(db, user, callback) {
 
 function resetPassword(db, user, password, hash, callback) {
 	if(typeof callback !== 'function') {
-		callback = function () {};
+		callback = () => {};
 	}
 
 	if(typeof db !== 'object') {
@@ -261,7 +261,7 @@ function resetPassword(db, user, password, hash, callback) {
 		callback(new Error('Invalid hash!'));
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err);
 			return;
@@ -282,7 +282,7 @@ function resetPassword(db, user, password, hash, callback) {
 		}
 
 		// Change password
-		cryptoUtils.hashPassword(password, function(err, hashedPassword) {
+		cryptoUtils.hashPassword(password, (err, hashedPassword) => {
 			if(err) {
 				callback(err);
 				return;
@@ -290,7 +290,7 @@ function resetPassword(db, user, password, hash, callback) {
 
 			var userdata = db.collection('users');
 			// Update password in the database
-			userdata.update({ _id: userDoc['_id'], user: userDoc['user'] }, { $set: { password: hashedPassword, passwordChangeHash: null}, $currentDate: { lastPasswordChange: true }}, function(err, results) {
+			userdata.update({ _id: userDoc['_id'], user: userDoc['user'] }, { $set: { password: hashedPassword, passwordChangeHash: null}, $currentDate: { lastPasswordChange: true }}, (err, results) => {
 				if(err) {
 					callback(new Error('There was a problem updating the password in the database!'));
 					return;

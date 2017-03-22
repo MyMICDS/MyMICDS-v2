@@ -25,7 +25,7 @@ var crypto = require('crypto');
  */
 
 function hashPassword(password, callback) {
-	bcrypt.hash(password, 10, function(err, hash) {
+	bcrypt.hash(password, 10, (err, hash) => {
 		if(err) {
 			callback(new Error('There was a problem hashing the password!'), null);
 			return;

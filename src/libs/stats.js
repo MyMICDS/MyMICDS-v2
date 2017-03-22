@@ -45,7 +45,7 @@ function getStats(db, callback) {
 	var userdata = db.collection('users');
 
 	// Get all users
-	userdata.find({ confirmed: true }).toArray(function(err, userDocs) {
+	userdata.find({ confirmed: true }).toArray((err, userDocs) => {
 		if(err) {
 			callback(new Error('There was a problem querying the users from the database!'), null);
 			return;

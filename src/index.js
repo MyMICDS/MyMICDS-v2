@@ -65,7 +65,7 @@ require(__dirname + '/libs/realtime.js')(io, socketIO);
 require(__dirname + '/routes/assets.js')(app, express);
 
 // Connect to database
-MongoClient.connect(config.mongodb.uri, function(err, db) {
+MongoClient.connect(config.mongodb.uri, (err, db) => {
 	if(err) throw err;
 
 	// Enable JWT authentication middleware
@@ -86,7 +86,7 @@ MongoClient.connect(config.mongodb.uri, function(err, db) {
 	require(__dirname + '/routes/plannerAPI.js')(app, db, socketIO);
 	require(__dirname + '/routes/portalAPI.js')(app, db, socketIO);
 	require(__dirname + '/routes/quotesAPI.js')(app, db);
-	require(__dirname + '/routes/scheduleAPI.js')(app, db)
+	require(__dirname + '/routes/scheduleAPI.js')(app, db);
 	require(__dirname + '/routes/snowdayAPI.js')(app, db);
 	require(__dirname + '/routes/sportsAPI.js')(app);
 	require(__dirname + '/routes/statsAPI.js')(app, db);
@@ -96,15 +96,15 @@ MongoClient.connect(config.mongodb.uri, function(err, db) {
 	require(__dirname + '/routes/weatherAPI.js')(app, db, socketIO);
 });
 
-app.get('/start', function(req, res) {
+app.get('/start', (req, res) => {
 	res.sendFile(__dirname + '/html/start.html');
 });
 
-app.get('/socket-io-test', function(req, res) {
+app.get('/socket-io-test', (req, res) => {
 	res.sendFile(__dirname + '/html/socket.html');
 });
 
-app.get('/spin', function(req, res) {
+app.get('/spin', (req, res) => {
 	res.sendFile(__dirname + '/html/spin.html');
 });
 
@@ -112,6 +112,6 @@ app.get('/spin', function(req, res) {
  * Initialize Server
  */
 
-server.listen(port, function() {
+server.listen(port, () => {
 	console.log('Server listening on *:' + port);
 });

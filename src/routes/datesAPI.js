@@ -6,14 +6,14 @@
 
 var dates = require(__dirname + '/../libs/dates.js');
 
-module.exports = function(app) {
+module.exports = app => {
 
-	app.post('/dates/school-ends', function(req, res) {
+	app.post('/dates/school-ends', (req, res) => {
 		res.json({ date: dates.schoolEnds() });
 	});
 
-	app.post('/dates/breaks', function(req, res) {
-		dates.getBreaks(function(err, breaks) {
+	app.post('/dates/breaks', (req, res) => {
+		dates.getBreaks((err, breaks) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

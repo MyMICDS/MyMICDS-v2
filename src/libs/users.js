@@ -41,7 +41,7 @@ function getUser(db, user, callback) {
 
 	var userdata = db.collection('users');
 	// Query database to find possible user
-	userdata.find({ user: user }).toArray(function(err, docs) {
+	userdata.find({ user: user }).toArray((err, docs) => {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'), null, null);
 			return;
@@ -84,7 +84,7 @@ function getInfo(db, user, privateInfo, callback) {
 		privateInfo = false;
 	}
 
-	getUser(db, user, function(err, isUser, userDoc) {
+	getUser(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null);
 			return;
@@ -146,7 +146,7 @@ function getInfo(db, user, privateInfo, callback) {
 
 function changeInfo(db, user, info, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof info !== 'object') {
@@ -159,7 +159,7 @@ function changeInfo(db, user, info, callback) {
 		return;
 	}
 
-	getUser(db, user, function(err, isUser, userDoc) {
+	getUser(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err);
 			return;
@@ -191,7 +191,7 @@ function changeInfo(db, user, info, callback) {
 
 		// Update data
 		var userdata = db.collection('users');
-		userdata.update({ _id: userDoc['_id'], user: user }, { $set: set }, { upsert: true }, function(err, results) {
+		userdata.update({ _id: userDoc['_id'], user: user }, { $set: set }, { upsert: true }, (err, results) => {
 			if(err) {
 				callback(new Error('There was a problem updating the databse!'));
 				return;

@@ -6,10 +6,10 @@
 
 var snowdayCalculator = require(__dirname + '/../libs/snowdayCalculator.js');
 
-module.exports = function(app, db) {
+module.exports = (app, db) => {
 
-	app.post('/snowday/calculate', function(req, res) {
-		snowdayCalculator.calculate(db, function(err, data) {
+	app.post('/snowday/calculate', (req, res) => {
+		snowdayCalculator.calculate(db, (err, data) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

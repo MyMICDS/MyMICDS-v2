@@ -50,7 +50,7 @@ function getLunch(db, date, callback) {
 	var currentDay = moment(date).day('Wednesday');
 
 	// Send POST request to lunch website
-	request.post(lunchURL, { form: { 'current_day': currentDay.format() }}, function(err, res, body) {
+	request.post(lunchURL, { form: { 'current_day': currentDay.format() }}, (err, res, body) => {
 		if(err) {
 			callback(new Error('There was a problem fetching the lunch data!'), null);
 			return;
@@ -61,7 +61,7 @@ function getLunch(db, date, callback) {
 			admins.sendEmail(db, {
 				subject: 'Error Notification - Lunch Retrieval',
 				html: 'There was a problem with the lunch URL.<br>Error message: ' + err
-			}, function(err) {
+			}, err => {
 				if(err) {
 					console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
 					return;

@@ -2,10 +2,10 @@
 
 var notifications = require(__dirname + '/../libs/notification.js');
 
-module.exports = function(app, db) {
+module.exports = (app, db) => {
 
-    app.post('/notification/get', function(req, res) {
-        notifications.get(db, req.user.user, true, function(err, events) {
+    app.post('/notification/get', (req, res) => {
+        notifications.get(db, req.user.user, true, (err, events) => {
             if(err) {
 				var errorMessage = err.message;
 			} else {

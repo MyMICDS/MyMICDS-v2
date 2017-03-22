@@ -43,7 +43,7 @@ var users 	      = require(__dirname + '/users.js');
 function upsertEvent(db, user, plannerEvent, callback) {
 
 	// Validate inputs
-	if(typeof callback !== 'function') callback = function() {};
+	if(typeof callback !== 'function') callback = () => {};
 
 	if(typeof db   !== 'object') { callback(new Error('Invalid database connection!'), null); return; }
 	if(typeof user !== 'string') { callback(new Error('Invalid user!'),                null); return; }
@@ -63,7 +63,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null);
 			return;
@@ -73,7 +73,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 			return;
 		}
 
-		classes.get(db, user, function(err, classes) {
+		classes.get(db, user, (err, classes) => {
 			if(err) {
 				callback(err, null);
 				return;
@@ -99,7 +99,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 				insertEvent();
 			} else {
 				// Check if edit id is valid
-				plannerdata.find({ user: userDoc['_id'] }).toArray(function(err, events) {
+				plannerdata.find({ user: userDoc['_id'] }).toArray((err, events) => {
 					if(err) {
 						callback(new Error('There was a problem querying the database!'), null);
 						return;
@@ -139,7 +139,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 				}
 
 				// Insert event into database
-				plannerdata.update({ _id: id }, insertEvent, { upsert: true }, function(err, results) {
+				plannerdata.update({ _id: id }, insertEvent, { upsert: true }, (err, results) => {
 					if(err) {
 						callback(new Error('There was a problem inserting the event into the database!'), null);
 						return;
@@ -173,7 +173,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 function deleteEvent(db, user, eventId, callback) {
 
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof db !== 'object') {
@@ -190,7 +190,7 @@ function deleteEvent(db, user, eventId, callback) {
 	}
 
 	// Make sure valid user and get user id
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err);
 			return;
@@ -203,7 +203,7 @@ function deleteEvent(db, user, eventId, callback) {
 		var plannerdata = db.collection('planner');
 
 		// Delete all events with specified id
-		plannerdata.deleteMany({ _id: id, user: userDoc['_id'] }, function(err, results) {
+		plannerdata.deleteMany({ _id: id, user: userDoc['_id'] }, (err, results) => {
 			if(err) {
 				callback(new Error('There was a problem deleting the event from the database!'));
 				return;
@@ -256,7 +256,7 @@ function getMonthEvents(db, user, date, callback) {
 		date.year = current.getFullYear();
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null);
 			return;
@@ -269,20 +269,20 @@ function getMonthEvents(db, user, date, callback) {
 		var plannerdata = db.collection('planner');
 
 		asyncLib.parallel([
-			function(asyncCallback) {
-				plannerdata.find({ user: userDoc['_id'] }).toArray(function(err, events) {
-					if(err) {
-						asyncCallback(new Error('There was a problem querying the database!'), null);
-					} else {
-						asyncCallback(null, events);
-					}
-				});
-			},
-			function(asyncCallback) {
-				checkedEvents.list(db, user, asyncCallback);
-			}
-		],
-		function(err, data) {
+				asyncCallback => {
+					plannerdata.find({ user: userDoc['_id'] }).toArray((err, events) => {
+						if(err) {
+							asyncCallback(new Error('There was a problem querying the database!'), null);
+						} else {
+							asyncCallback(null, events);
+						}
+					});
+				},
+				asyncCallback => {
+					checkedEvents.list(db, user, asyncCallback);
+				}
+			],
+		(err, data) => {
 			if(err) {
 				callback(err, null);
 				return;
@@ -334,7 +334,7 @@ function getMonthEvents(db, user, date, callback) {
 			}
 
 			// Insert classes in place of class id's
-			classes.get(db, user, function(err, classes) {
+			classes.get(db, user, (err, classes) => {
 				if(err) {
 					callback(err, null);
 					return;

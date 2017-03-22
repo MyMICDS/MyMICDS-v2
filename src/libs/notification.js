@@ -7,7 +7,7 @@ function getNotifications(db, user, includeCanvas, callback) {
     if(typeof callback !=='function') return;
 
      var notifications = {upcoming: [], ending: []};
-     planner.getMonthEvents(db, user, includeCanvas, function(err, events) {
+     planner.getMonthEvents(db, user, includeCanvas, (err, events) => {
          if (err) {
              callback(err);
              return;

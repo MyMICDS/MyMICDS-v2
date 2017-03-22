@@ -8,9 +8,9 @@ var auth      = require(__dirname + '/../libs/auth.js');
 var jwt       = require(__dirname + '/../libs/jwt.js');
 var passwords = require(__dirname + '/../libs/passwords.js');
 
-module.exports = function(app, db) {
+module.exports = (app, db) => {
 
-	app.post('/auth/login', function(req, res) {
+	app.post('/auth/login', (req, res) => {
 		if(req.user) {
 			res.json({
 				error  : null,
@@ -23,7 +23,7 @@ module.exports = function(app, db) {
 
 		var rememberMe = typeof req.body.remember !== 'undefined';
 
-		auth.login(db, req.body.user, req.body.password, rememberMe, function(err, response, message, jwt) {
+		auth.login(db, req.body.user, req.body.password, rememberMe, (err, response, message, jwt) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -39,14 +39,14 @@ module.exports = function(app, db) {
 		});
 	});
 
-	app.post('/auth/logout', function(req, res) {
+	app.post('/auth/logout', (req, res) => {
 		var token = req.get('Authorization');
 		// If there's a token, we need to get rid of the 'Bearer ' at the beginning
 		if(token) {
 			token = token.slice(7);
 		}
 
-		jwt.revoke(db, req.user, token, function(err) {
+		jwt.revoke(db, req.user, token, err => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -56,7 +56,7 @@ module.exports = function(app, db) {
 		});
 	});
 
-	app.post('/auth/register', function(req, res) {
+	app.post('/auth/register', (req, res) => {
 
 		var user = {
 			user     : req.body.user,
@@ -70,7 +70,7 @@ module.exports = function(app, db) {
 			user.gradYear = null;
 		}
 
-		auth.register(db, user, function(err) {
+		auth.register(db, user, err => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -80,8 +80,8 @@ module.exports = function(app, db) {
 		});
 	});
 
-	app.post('/auth/confirm', function(req, res) {
-		auth.confirm(db, req.body.user, req.body.hash, function(err) {
+	app.post('/auth/confirm', (req, res) => {
+		auth.confirm(db, req.body.user, req.body.hash, err => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -91,8 +91,8 @@ module.exports = function(app, db) {
 		});
 	});
 
-	app.post('/auth/change-password', function(req, res) {
-		passwords.changePassword(db, req.user.user, req.body.oldPassword, req.body.newPassword, function(err) {
+	app.post('/auth/change-password', (req, res) => {
+		passwords.changePassword(db, req.user.user, req.body.oldPassword, req.body.newPassword, err => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -102,12 +102,12 @@ module.exports = function(app, db) {
 		});
 	});
 
-	app.post('/auth/forgot-password', function(req, res) {
+	app.post('/auth/forgot-password', (req, res) => {
 		if(req.user.user) {
 			res.json({ error: 'You are already logged in, silly!' });
 			return;
 		}
-		passwords.resetPasswordEmail(db, req.body.user, function(err) {
+		passwords.resetPasswordEmail(db, req.body.user, err => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -117,12 +117,12 @@ module.exports = function(app, db) {
 		});
 	});
 
-	app.post('/auth/reset-password', function(req, res) {
+	app.post('/auth/reset-password', (req, res) => {
 		if(req.user.user) {
 			res.json({ error: 'You are already logged in, silly!' });
 			return;
 		}
-		passwords.resetPassword(db, req.body.user, req.body.password, req.body.hash, function(err) {
+		passwords.resetPassword(db, req.body.user, req.body.password, req.body.hash, err => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

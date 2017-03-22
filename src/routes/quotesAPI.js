@@ -5,10 +5,10 @@ var quotes = require(__dirname + '/../libs/quotes.js');
 var Random = require("random-js");
 var engine = Random.engines.mt19937().autoSeed();
 
-module.exports = function(app, db) {
+module.exports = (app, db) => {
 
-	app.post('/quote/get', function(req, res) {
-		quotes.get(db, function(err, quotes) {
+	app.post('/quote/get', (req, res) => {
+		quotes.get(db, (err, quotes) => {
 			if(err) {
 				var errorMessage = err.message;
 				var quote = null;
@@ -24,8 +24,8 @@ module.exports = function(app, db) {
 		});
 	});
 
-	app.post('/quote/insert', function(req, res) {
-		quotes.insert(db, req.body.author, req.body.quote, function(err) {
+	app.post('/quote/insert', (req, res) => {
+		quotes.insert(db, req.body.author, req.body.quote, err => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

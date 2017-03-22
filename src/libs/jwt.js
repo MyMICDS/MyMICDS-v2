@@ -55,7 +55,7 @@ function authorize(db) {
  */
 
 function isRevoked(db) {
-	return function(req, payload, done) {
+	return (req, payload, done) => {
 		if(typeof payload !== 'object') {
 			done(null, true);
 			return;
@@ -75,7 +75,7 @@ function isRevoked(db) {
 			return;
 		}
 
-		users.get(db, payload.user, function(err, isUser, userDoc) {
+		users.get(db, payload.user, (err, isUser, userDoc) => {
 			if(err) {
 				done(err, true);
 				return;
@@ -98,7 +98,7 @@ function isRevoked(db) {
 			// Make sure token isn't blacklisted (usually if logged out)
 			var jwt = req.get('Authorization').slice(7);
 
-			isBlacklisted(db, jwt, function(err, blacklisted) {
+			isBlacklisted(db, jwt, (err, blacklisted) => {
 				if(err) {
 					callback(err, true);
 					return;
@@ -175,7 +175,7 @@ function generate(db, user, rememberMe, callback) {
 		var expiration = '12 hours';
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null);
 			return;
@@ -208,7 +208,7 @@ function generate(db, user, rememberMe, callback) {
 			audience : config.hostedOn,
 			issuer   : config.hostedOn
 
-		}, function(err, token) {
+		}, (err, token) => {
 			if(err) {
 				callback(new Error('There was a problem generating a JWT!'), null);
 				return;
@@ -251,7 +251,7 @@ function isBlacklisted(db, jwt, callback) {
 
 	var JWTdata = db.collection('JWTBlacklist');
 
-	JWTdata.find({ jwt: jwt }).toArray(function(err, docs) {
+	JWTdata.find({ jwt: jwt }).toArray((err, docs) => {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'), null);
 			return;
@@ -281,7 +281,7 @@ function isBlacklisted(db, jwt, callback) {
 
 function revoke(db, payload, jwt, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof db !== 'object') {
@@ -305,7 +305,7 @@ function revoke(db, payload, jwt, callback) {
 		jwt: jwt,
 		expires: new Date(payload.exp * 1000),
 		revoked: current
-	}, function(err) {
+	}, err => {
 		if(err) {
 			callback(new Error('There was a problem revoking the JWT in the database!'));
 			return;

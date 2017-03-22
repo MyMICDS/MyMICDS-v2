@@ -14,7 +14,7 @@ var utils     = require(__dirname + '/utils.js');
 
 var googleServiceAccount = require(__dirname + '/googleServiceAccount.js');
 var googleBatch          = require('google-batch');
-var google               = googleBatch.require('googleapis')
+var google               = googleBatch.require('googleapis');
 var gmail                = google.gmail('v1');
 
 // Where public accesses backgrounds
@@ -38,11 +38,11 @@ var query = 'label:us-daily-bulletin';
 
 function queryLatest(callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	// Get Google Service Account
-	googleServiceAccount.create(function(err, jwtClient) {
+	googleServiceAccount.create((err, jwtClient) => {
 		if(err) {
 			callback(err);
 			return;
@@ -53,7 +53,7 @@ function queryLatest(callback) {
 			auth: jwtClient,
 			userId: 'me',
 			q: query
-		}, function(err, messageList) {
+		}, (err, messageList) => {
 			if(err) {
 				callback(new Error('There was a problem listing the messages from Gmail!'));
 				return;
@@ -67,7 +67,7 @@ function queryLatest(callback) {
 				auth: jwtClient,
 				userId: 'me',
 				id: recentMsgId
-			}, function(err, recentMessage) {
+			}, (err, recentMessage) => {
 				if(err) {
 					callback(new Error('There was a problem getting the most recent email!'));
 					return;
@@ -99,7 +99,7 @@ function queryLatest(callback) {
 					userId: 'me',
 					messageId: recentMsgId,
 					id: attachmentId
-				}, function(err, attachment) {
+				}, (err, attachment) => {
 					if(err) {
 						callback(new Error('There was a problem getting the PDF attachment!'));
 						return;
@@ -117,14 +117,14 @@ function queryLatest(callback) {
 						+ '-' + utils.leadingZeros(bulletinDate.getDate());
 
 					// Make sure directory for Daily Bulletin exists
-					fs.ensureDir(bulletinPDFDir, function(err) {
+					fs.ensureDir(bulletinPDFDir, err => {
 						if(err) {
 							callback(new Error('There was a problem ensuring directory for Daily Bulletins!'));
 							return;
 						}
 
 						// Write PDF to file
-						fs.writeFile(bulletinPDFDir + '/' + bulletinName + '.pdf', pdf, function(err) {
+						fs.writeFile(bulletinPDFDir + '/' + bulletinName + '.pdf', pdf, err => {
 							if(err) {
 								callback(new Error('There was a problem writing the PDF!'));
 								return;
@@ -154,11 +154,11 @@ function queryLatest(callback) {
 
 function queryAll(callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	console.log('Trying to query all the Daily Bulletins in existence. This may take a bit of time...');
-	googleServiceAccount.create(function(err, jwtClient) {
+	googleServiceAccount.create((err, jwtClient) => {
 		if(err) {
 			callback(err);
 			return;
@@ -179,7 +179,7 @@ function queryAll(callback) {
 				listQuery.pageToken = nextPageToken;
 			}
 
-			gmail.users.messages.list(listQuery, function(err, messageList) {
+			gmail.users.messages.list(listQuery, (err, messageList) => {
 				if(err) {
 					callback(new Error('There was a problem listing the messages from Gmail!'));
 					return;
@@ -203,7 +203,7 @@ function queryAll(callback) {
 					var getMessages = [];
 
 					console.log('Get detailed information about messages...');
-					function addMessageToBatch(i, inBatch) {
+					let addMessageToBatch = (i, inBatch) => {
 						if(i >= 0) {
 							// Add to batch
 							var messageId = messageIds[i].id;
@@ -218,7 +218,7 @@ function queryAll(callback) {
 
 							// If there are 100 queries in Batch request, query it.
 							if(inBatch === 100) {
-								batch.exec(function(err, responses, errorDetails) {
+								batch.exec((err, responses, errorDetails) => {
 									getMessages = getMessages.concat(responses);
 									batch.clear();
 									addMessageToBatch(--i, 0);
@@ -229,7 +229,7 @@ function queryAll(callback) {
 						} else {
 							// Finished making batch requests
 							// Execute the remaining of the API requests in the batch
-							batch.exec(function(err, responses, errorDetails) {
+							batch.exec((err, responses, errorDetails) => {
 								getMessages = getMessages.concat(responses);
 								batch.clear();
 								console.log('Got ' + getMessages.length + ' emails containing Daily Bulletins');
@@ -279,7 +279,7 @@ function queryAll(callback) {
 										inBatch++;
 
 										if(inBatch === 100) {
-											batch.exec(function(err, responses, errorDetails) {
+											batch.exec((err, responses, errorDetails) => {
 												dailyBulletins = dailyBulletins.concat(responses);
 												batch.clear();
 												addAttachmentToBatch(++l, 0);
@@ -291,7 +291,7 @@ function queryAll(callback) {
 									} else {
 										// Finished getting attachments
 										// Execute the remaining of the API requests in the batch
-										batch.exec(function(err, responses, errorDetails) {
+										batch.exec((err, responses, errorDetails) => {
 											dailyBulletins = dailyBulletins.concat(responses);
 											batch.clear();
 
@@ -299,7 +299,7 @@ function queryAll(callback) {
 											console.log('Writing Daily Bulletins to file...');
 
 											// Make sure directory for Daily Bulletin exists
-											fs.ensureDir(bulletinPDFDir, function(err) {
+											fs.ensureDir(bulletinPDFDir, err => {
 												if(err) {
 													callback(new Error('There was a problem ensuring directory for Daily Bulletins!'));
 													return;
@@ -329,7 +329,7 @@ function queryAll(callback) {
 															+ '.pdf';
 
 														// Write PDF to file
-														fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf, function(err) {
+														fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf, err => {
 															if(err) {
 																callback(new Error('There was a problem writing the PDF!'));
 																return;
@@ -384,13 +384,13 @@ function getList(callback) {
 	if(typeof callback !== 'function') return;
 
 	// Read directory
-	fs.ensureDir(bulletinPDFDir, function(err) {
+	fs.ensureDir(bulletinPDFDir, err => {
 		if(err) {
 			callback(new Error('There was a problem ensuring the bulletin directory exists!'), null);
 			return;
 		}
 
-		fs.readdir(bulletinPDFDir, function(err, files) {
+		fs.readdir(bulletinPDFDir, (err, files) => {
 			if(err) {
 				callback(new Error('There was a problem reading the bulletin directory!'), null);
 				return;

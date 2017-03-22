@@ -8,10 +8,10 @@ var _       = require('underscore');
 var users   = require(__dirname + '/../libs/users.js');
 var weather = require(__dirname + '/../libs/weather.js');
 
-module.exports = function(app, db, socketIO) {
+module.exports = (app, db, socketIO) => {
 
-	app.post('/weather/get', function(req, res) {
-		weather.get(function(err, weatherJSON) {
+	app.post('/weather/get', (req, res) => {
+		weather.get((err, weatherJSON) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -24,9 +24,9 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/weather/update', function(req, res) {
+	app.post('/weather/update', (req, res) => {
 		// Check if admin
-		users.get(db, req.user.user, function(err, isUser, userDoc) {
+		users.get(db, req.user.user, (err, isUser, userDoc) => {
 			if(err) {
 				res.json({ error: err.message });
 				return;
@@ -37,7 +37,7 @@ module.exports = function(app, db, socketIO) {
 			}
 
 			// Alright, username checks out
-			weather.update(function(err, weatherJSON) {
+			weather.update((err, weatherJSON) => {
 				if(err) {
 					var errorMessage = err.message;
 				} else {

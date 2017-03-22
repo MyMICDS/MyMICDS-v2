@@ -6,9 +6,9 @@
 
 var canvas = require(__dirname + '/../libs/canvas.js');
 
-module.exports = function(app, db, socketIO) {
-	app.post('/canvas/test-url', function(req, res) {
-		canvas.verifyURL(req.body.url, function(err, isValid, url) {
+module.exports = (app, db, socketIO) => {
+	app.post('/canvas/test-url', (req, res) => {
+		canvas.verifyURL(req.body.url, (err, isValid, url) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -22,8 +22,8 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/canvas/set-url', function(req, res) {
-		canvas.setURL(db, req.user.user, req.body.url, function(err, isValid, validURL) {
+	app.post('/canvas/set-url', (req, res) => {
+		canvas.setURL(db, req.user.user, req.body.url, (err, isValid, validURL) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -38,8 +38,8 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/canvas/get-events', function(req, res) {
-		canvas.getEvents(db, req.user.user, function(err, hasURL, events) {
+	app.post('/canvas/get-events', (req, res) => {
+		canvas.getEvents(db, req.user.user, (err, hasURL, events) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -53,8 +53,8 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/canvas/get-classes', function(req, res) {
-		canvas.getClasses(db, req.user.user, function(err, hasURL, classes) {
+	app.post('/canvas/get-classes', (req, res) => {
+		canvas.getClasses(db, req.user.user, (err, hasURL, classes) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

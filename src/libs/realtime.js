@@ -3,16 +3,16 @@
  * @module realtime
  */
 
-module.exports = function(io, socketIO) {
-	io.on('connection', function(socket) {
+module.exports = (io, socketIO) => {
+	io.on('connection', socket => {
 		socket.pressingProgressLabel = false;
 
-		socket.on('progress label click', function(pressed) {
+		socket.on('progress label click', pressed => {
 			socket.pressingProgressLabel = pressed;
 			calcProgressSpin();
 		});
 
-		socket.on('disconnect', function() {
+		socket.on('disconnect', () => {
 			socket.pressingProgressLabel = false;
 			calcProgressSpin();
 		})

@@ -30,7 +30,7 @@ function getQuotes(db, callback) {
 
 	var quotesData = db.collection('quotes');
 
-	quotesData.find({}).toArray(function(err, quotes) {
+	quotesData.find({}).toArray((err, quotes) => {
 		if(err) {
 			callback(new Error('There was a problem getting all the quotes from the database!'), null);
 			return;
@@ -79,7 +79,7 @@ function insertQuote(db, author, quote, callback) {
 	quotesData.insertOne({
 		author: author,
 		quote: quote
-	}, function(err, result) {
+	}, (err, result) => {
 		if(err) {
 			callback(new Error('There was a problem inserting the quote into the database!'));
 			return;

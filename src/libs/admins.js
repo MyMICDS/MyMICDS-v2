@@ -4,8 +4,7 @@
  * @file Manages information and functions regarding the MyMICDS admins
  * @module admins
  */
-
-var mail = require(__dirname + "/mail.js");
+const mail = require(__dirname + "/mail.js");
 
 /**
  * Gets usernames of admins from database
@@ -25,16 +24,16 @@ var mail = require(__dirname + "/mail.js");
 
 function getAdmins(db, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 	if(typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
 
-	var userdata = db.collection('users');
+	let userdata = db.collection('users');
 
-	userdata.find({scopes: ['admin']}).toArray(function(err, docs) {
+	userdata.find({scopes: ['admin']}).toArray((err, docs) => {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'), null);
 			return;
@@ -64,7 +63,7 @@ function getAdmins(db, callback) {
 
 function sendAdminEmail(db, message, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 	if(typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
@@ -72,20 +71,20 @@ function sendAdminEmail(db, message, callback) {
 	}
 
 	// Get admin objects
-	getAdmins(db, function(err, admins) {
+	getAdmins(db, (err, admins) => {
 		if(err) {
 			callback(new Error('Error getting list of admins!'));
 			return;
 		}
 
-		var adminEmails = [];
+		let adminEmails = [];
 
-		for(var i = 0; i < admins.length; i++) {
+		for(let i = 0; i < admins.length; i++) {
 			adminEmails.push(admins[i].user + '@micds.org');
 		}
 
 		// Send email
-		mail.send(adminEmails, message, function(err) {
+		mail.send(adminEmails, message, err => {
 			if(err) {
 				callback(err);
 			}

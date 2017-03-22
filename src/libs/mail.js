@@ -34,7 +34,7 @@ function send(users, message, callback) {
 
 	// Validate inputs
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof users !== 'string' && typeof users !== 'object') {
@@ -63,7 +63,7 @@ function send(users, message, callback) {
 		html   : message.html,
 	}
 
-	transporter.sendMail(mailOptions, function(err, info) {
+	transporter.sendMail(mailOptions, (err, info) => {
 
 		if(err) {
 			callback(new Error('There was a problem sending the mail!'));
@@ -97,7 +97,7 @@ function sendHTML(users, subject, file, data, callback) {
 
 	// Validate inputs
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof file !== 'string') {
@@ -108,7 +108,7 @@ function sendHTML(users, subject, file, data, callback) {
 		data = {};
 	}
 
-	fs.readFile(file, 'utf8', function(err, body) {
+	fs.readFile(file, 'utf8', (err, body) => {
 		if(err) {
 			callback(new Error('There was a problem reading the HTML path for the mail!'));
 			return;

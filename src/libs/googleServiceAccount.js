@@ -36,7 +36,7 @@ function createServiceAccount(callback) {
 
 	var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, scopes, impersonate);
 
-	jwtClient.authorize(function(err, tokens) {
+	jwtClient.authorize((err, tokens) => {
 		if(err) {
 			callback(new Error('There was a problem authorizing the Google Service Account!'), null);
 			return;

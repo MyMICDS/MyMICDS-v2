@@ -1,7 +1,7 @@
 'use strict';
 
-var dates = require(__dirname + '/../libs/dates.js');
+const dates = require(__dirname + '/../libs/dates.js');
 
-dates.getBreaks(function(err, breaks) {
+dates.getBreaks((err, breaks) => {
 	console.log(err, breaks);
 });

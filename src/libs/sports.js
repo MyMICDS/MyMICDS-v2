@@ -36,7 +36,7 @@ function login(callback) {
 			user: config.ramsArmy.user,
 			pass: config.ramsArmy.pass
 		}
-	}, function(err, res, body) {
+	}, (err, res, body) => {
 		body = JSON.parse(body);
 		if(err || res.statusCode !== 200 || body.response !== 'ok') {
 			let error = body.error ? body.error : 'Unknown';
@@ -67,7 +67,7 @@ function login(callback) {
 function getScores(callback) {
 	if(typeof callback !== 'function') return;
 
-	login(function(err, loginKey) {
+	login((err, loginKey) => {
 		if(err) {
 			callback(err, null);
 			return;
@@ -78,7 +78,7 @@ function getScores(callback) {
 			form: {
 				'login_key': loginKey
 			}
-		}, function(err, res, body) {
+		}, (err, res, body) => {
 			body = JSON.parse(body);
 			if(err || res.statusCode !== 200) {
 				callback(new Error('There was a problem logging in the Rams Army app!'), null);
@@ -90,10 +90,10 @@ function getScores(callback) {
 			scores.events = [];
 
 			// Push all events to scores object
-			_.each(body.scores, function(value, key) {
+			_.each(body.scores, (value, key) => {
 				scores.scores.push(value);
 			});
-			_.each(body.events, function(value, key) {
+			_.each(body.events, (value, key) => {
 				scores.events.push(value);
 			});
 

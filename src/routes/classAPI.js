@@ -6,10 +6,10 @@
 
 var classes = require(__dirname + '/../libs/classes.js');
 
-module.exports = function(app, db, socketIO) {
+module.exports = (app, db, socketIO) => {
 
-	app.post('/classes/get', function(req, res) {
-		classes.get(db, req.user.user, function(err, classes) {
+	app.post('/classes/get', (req, res) => {
+		classes.get(db, req.user.user, (err, classes) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -22,7 +22,7 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/classes/add', function(req, res) {
+	app.post('/classes/add', (req, res) => {
 		var user = req.user.user;
 		var scheduleClass = {
 			_id  : req.body.id,
@@ -37,7 +37,7 @@ module.exports = function(app, db, socketIO) {
 			}
 		};
 
-		classes.upsert(db, user, scheduleClass, function(err, scheduleClass) {
+		classes.upsert(db, user, scheduleClass, (err, scheduleClass) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -51,8 +51,8 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/classes/delete', function(req, res) {
-		classes.delete(db, req.user.user, req.body.id, function(err) {
+	app.post('/classes/delete', (req, res) => {
+		classes.delete(db, req.user.user, req.body.id, err => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -63,7 +63,7 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 	
-	app.post('classes/students/get', function (req, res) {
+	app.post('classes/students/get', (req, res) => {
 		var cls = req.body.class;
 	});
 };

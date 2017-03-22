@@ -5,44 +5,44 @@
  */
 
 try {
-	var config = require(__dirname + '/libs/config.js');
+	const config = require(__dirname + '/libs/config.js');
 } catch(e) {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }
 
-var admins		  = require(__dirname + '/libs/admins.js');
-var dailyBulletin = require(__dirname + '/libs/dailyBulletin.js');
-var later         = require('later');
-var MongoClient   = require('mongodb').MongoClient;
-var weather       = require(__dirname + '/libs/weather.js');
+const admins = require(__dirname + '/libs/admins.js');
+const dailyBulletin = require(__dirname + '/libs/dailyBulletin.js');
+const later = require('later');
+const MongoClient = require('mongodb').MongoClient;
+const weather = require(__dirname + '/libs/weather.js');
 
 // Only run these intervals in production so we don't waste our API calls
 if(config.production) {
 
 	console.log('Starting tasks server!');
 
-	MongoClient.connect(config.mongodb.uri, function(err, db) {
+	MongoClient.connect(config.mongodb.uri, (err, db) => {
 		if(err) throw err;
 
-		var fiveMinuteInterval = later.parse.text('every 5 min');
+		const fiveMinuteInterval = later.parse.text('every 5 min');
 
 		/*
 		 * Get Daily Bulletin every 5 minutes
 		 */
 
-		var updateBulletin = later.setInterval(function() {
+		const updateBulletin = later.setInterval(() => {
 			console.log('[' + new Date() + '] Check for latest Daily Bulletin');
 
-			dailyBulletin.queryLatest(function(err) {
-				if(err) {
+			dailyBulletin.queryLatest(err => {
+				if (err) {
 					console.log('[' + new Date() + '] Error occured for Daily Bulletin! (' + err + ')');
 
 					// Alert admins if there's an error querying the Daily Bulletin
 					admins.sendEmail(db, {
 						subject: 'Error Notification - Daily Bulletin Retrieval',
 						html: 'There was an error when retrieving the daily bulletin.<br>Error message: ' + err
-					}, function(err) {
-						if(err) {
+					}, err => {
+						if (err) {
 							console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
 							return;
 						}
@@ -59,19 +59,19 @@ if(config.production) {
 		 * Get new weather info every 5 minutes
 		 */
 
-		var updateWeather = later.setInterval(function() {
+		const updateWeather = later.setInterval(() => {
 			console.log('[' + new Date() + '] Update Weather');
 
-			weather.update(function(err, weatherJSON) {
-				if(err) {
+			weather.update((err, weatherJSON) => {
+				if (err) {
 					console.log('[' + new Date() + '] Error occured for weather! (' + err + ')');
 
 					// Alert admins if problem getting weather
 					admins.sendEmail(db, {
 						subject: 'Error Notification - Weather Retrieval',
 						html: 'There was an error when retrieving the weather.<br>Error message: ' + err
-					}, function(err) {
-						if(err) {
+					}, err => {
+						if (err) {
 							console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
 							return;
 						}

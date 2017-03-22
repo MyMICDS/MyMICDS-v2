@@ -10,9 +10,9 @@ var config = require(__dirname + '/config.js');
 var _   = require('underscore');
 var jwt = require('jsonwebtoken');
 
-module.exports = function(io) {
+module.exports = io => {
 
-	io.on('connection', function(socket) {
+	io.on('connection', socket => {
 
 		/*
 		 * We keep the client connected so it can still recieve global events like weahter.
@@ -20,7 +20,7 @@ module.exports = function(io) {
 		 * like if the user changed their background.
 		 */
 
-		socket.on('authenticate', function(token) {
+		socket.on('authenticate', token => {
 
 			jwt.verify(token, config.jwt.secret, {
 				algorithms: ['HS256'],
@@ -28,7 +28,7 @@ module.exports = function(io) {
 				issuer: config.hostedOn,
 				clockTolerance: 30
 
-			}, function(err, decoded) {
+			}, (err, decoded) => {
 				if(err) {
 					socket.emit('unauthorized');
 					return;
@@ -44,15 +44,15 @@ module.exports = function(io) {
 	});
 
 	var methods = {
-		global: function() {
+		global: () => {
 			io.emit.apply(io, arguments);
 		},
-		user: function() {
+		user: () => {
 			var argumentsArray = Array.from(arguments);
 			var emitUser = argumentsArray[0];
 			var emitEvent = argumentsArray.slice(1);
 
-			_.each(io.sockets.connected, function(value, key) {
+			_.each(io.sockets.connected, (value, key) => {
 				// Check if user is authorized
 				if(!value.decodedToken) return;
 				// If logged in user has same username as target user

@@ -4,22 +4,21 @@
  * @file Determines what a user's schedule should be according to the generic block schedule
  * @module blockSchedule
  */
-
-var _      = require('underscore');
-var moment = require('moment');
-var prisma = require('prisma');
-var users  = require(__dirname + '/users.js');
+const _ = require('underscore');
+const moment = require('moment');
+const prisma = require('prisma');
+const users = require(__dirname + '/users.js');
 
 // Schedules
-var highschoolSchedule   = require(__dirname + '/../schedules/highschool.json');
-var middleschoolSchedule = {
+const highschoolSchedule = require(__dirname + '/../schedules/highschool.json');
+const middleschoolSchedule = {
 	8: require(__dirname + '/../schedules/grade8.json'),
 	7: require(__dirname + '/../schedules/grade7.json'),
 	6: require(__dirname + '/../schedules/grade6.json'),
 	5: require(__dirname + '/../schedules/grade5.json'),
 };
 
-var validBlocks = [
+const validBlocks = [
 	'a',
 	'b',
 	'c',
@@ -36,19 +35,19 @@ var validBlocks = [
 	'pe'
 ];
 
-var validTypes = [
+const validTypes = [
 	'sam',  // Science, Art, Math
 	'wleh', // World Language, English, History
 	'other' // Free Period or something else
 ];
 
-var samTypes = [
+const samTypes = [
 	'art',
 	'math',
 	'science'
 ];
 
-var wlehTypes = [
+const wlehTypes = [
 	'english',
 	'history',
 	'spanish',
@@ -85,7 +84,8 @@ function convertType(type) {
  */
 
 function getSchedule(date, grade, day, lateStart) {
-	// Validate inputs
+	let i;
+// Validate inputs
 	if(date) {
 		date = moment(date);
 	} else {
@@ -101,33 +101,33 @@ function getSchedule(date, grade, day, lateStart) {
 	}
 	lateStart = !!lateStart;
 
-	var schoolName = users.gradeToSchool(grade);
+	const schoolName = users.gradeToSchool(grade);
 
 	// We don't have lowerschool schedules
 	if(schoolName === 'lowerschool') return null;
 
 	// User's final schedule
-	var userSchedule = [];
+	let userSchedule = [];
 
 	// Use highschool schedule if upperschool
 	if(schoolName === 'upperschool') {
 		// Determine if lowerclassman (9 - 10) or upperclassman (11 - 12)
-		var lowerclass = false;
-		var upperclass = true;
+		let lowerclass = false;
+		let upperclass = true;
 		if(grade === 9 || grade === 10) {
 			lowerclass = true;
 			upperclass = false;
 		}
 
-		var sam = false;
-		var wleh = false;
-		var other = true;
+		let sam = false;
+		let wleh = false;
+		let other = true;
 
 		// Loop through JSON and append classes to user schedule
-		var jsonSchedule = highschoolSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
+		let jsonSchedule = highschoolSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
 
-		for(var i = 0; i < jsonSchedule.length; i++) {
-			var jsonBlock = jsonSchedule[i];
+		for(i = 0; i < jsonSchedule.length; i++) {
+			let jsonBlock = jsonSchedule[i];
 
 			// Check for any restrictions on the schedule
 			if(typeof jsonBlock.sam !== 'undefined') {
@@ -161,12 +161,12 @@ function getSchedule(date, grade, day, lateStart) {
 
 	// If date isn't null, set times relative to date object
 	if(date && userSchedule) {
-		for(var i = 0; i < userSchedule.length; i++) {
+		for(i = 0; i < userSchedule.length; i++) {
 			// Get start and end moment objects
-			var startTime = userSchedule[i].start.split(':');
+			let startTime = userSchedule[i].start.split(':');
 			userSchedule[i].start = date.clone().hour(startTime[0]).minute(startTime[1]);
 
-			var endTime = userSchedule[i].end.split(':');
+			let endTime = userSchedule[i].end.split(':');
 			userSchedule[i].end = date.clone().hour(endTime[0]).minute(endTime[1]);
 		}
 	}

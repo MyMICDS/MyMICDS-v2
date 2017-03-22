@@ -1,20 +1,20 @@
 'use strict';
 
 try {
-	var config = require(__dirname + '/../libs/config.js');
+	const config = require(__dirname + '/../libs/config.js');	
 } catch(e) {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }
 
-var MongoClient = require('mongodb').MongoClient;
-var portal = require(__dirname + '/../libs/portal.js');
+const MongoClient = require('mongodb').MongoClient;
+const portal = require(__dirname + '/../libs/portal.js');
 
-var user = process.argv[2];
+let user = process.argv[2];
 
-MongoClient.connect(config.mongodb.uri, function(err, db) {
+MongoClient.connect(config.mongodb.uri, (err, db) => {
 	if(err) throw err;
 
-	portal.getClasses(db, user, function(err, hasURL, classes) {
+	portal.getClasses(db, user, (err, hasURL, classes) => {
 		if(!classes) throw 'Classes is null!';
 
 		console.log(classes);

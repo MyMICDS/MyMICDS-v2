@@ -7,15 +7,15 @@
 var checkedEvents = require(__dirname + '/../libs/checkedEvents.js');
 var planner = require(__dirname + '/../libs/planner.js');
 
-module.exports = function(app, db, socketIO) {
+module.exports = (app, db, socketIO) => {
 
-	app.post('/planner/get', function(req, res) {
+	app.post('/planner/get', (req, res) => {
 		var date = {
 			year : parseInt(req.body.year),
 			month: parseInt(req.body.month)
 		};
 
-		planner.getMonthEvents(db, req.user.user, date, function(err, events) {
+		planner.getMonthEvents(db, req.user.user, date, (err, events) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -28,7 +28,7 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/planner/add', function(req, res) {
+	app.post('/planner/add', (req, res) => {
 
 		var start = new Date();
 		if(req.body.start) {
@@ -49,7 +49,7 @@ module.exports = function(app, db, socketIO) {
 			end    : end
 		};
 
-		planner.upsertEvent(db, req.user.user, insertEvent, function(err, plannerEvent) {
+		planner.upsertEvent(db, req.user.user, insertEvent, (err, plannerEvent) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -63,8 +63,8 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/planner/delete', function(req, res) {
-		planner.deleteEvent(db, req.user.user, req.body.id, function(err) {
+	app.post('/planner/delete', (req, res) => {
+		planner.deleteEvent(db, req.user.user, req.body.id, err => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -75,8 +75,8 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/planner/check', function(req, res) {
-		checkedEvents.check(db, req.user.user, req.body.id, function(err) {
+	app.post('/planner/check', (req, res) => {
+		checkedEvents.check(db, req.user.user, req.body.id, err => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -87,8 +87,8 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/planner/uncheck', function(req, res) {
-		checkedEvents.uncheck(db, req.user.user, req.body.id, function(err) {
+	app.post('/planner/uncheck', (req, res) => {
+		checkedEvents.uncheck(db, req.user.user, req.body.id, err => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

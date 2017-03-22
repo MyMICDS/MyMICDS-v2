@@ -6,10 +6,10 @@
 
 var aliases = require(__dirname + "/../libs/aliases.js");
 
-module.exports = function(app, db, socketIO) {
+module.exports = (app, db, socketIO) => {
 
-	app.post('/alias/add', function(req, res) {
-		aliases.add(db, req.user.user, req.body.type, req.body.classString, req.body.classId, function(err, aliasId) {
+	app.post('/alias/add', (req, res) => {
+		aliases.add(db, req.user.user, req.body.type, req.body.classString, req.body.classId, (err, aliasId) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -26,8 +26,8 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/alias/list', function(req, res) {
-		aliases.list(db, req.user.user, function(err, aliases) {
+	app.post('/alias/list', (req, res) => {
+		aliases.list(db, req.user.user, (err, aliases) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {
@@ -38,8 +38,8 @@ module.exports = function(app, db, socketIO) {
 		});
 	});
 
-	app.post('/alias/delete', function(req, res) {
-		aliases.delete(db, req.user.user, req.body.type, req.body.id, function(err) {
+	app.post('/alias/delete', (req, res) => {
+		aliases.delete(db, req.user.user, req.body.type, req.body.id, err => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

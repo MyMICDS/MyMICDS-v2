@@ -40,7 +40,7 @@ function checkEvent(db, user, eventId, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err);
 			return;
@@ -50,7 +50,7 @@ function checkEvent(db, user, eventId, callback) {
 			return;
 		}
 
-		getChecked(db, user, eventId, function(err, checked) {
+		getChecked(db, user, eventId, (err, checked) => {
 			if(err) {
 				callback(err);
 				return;
@@ -70,7 +70,7 @@ function checkEvent(db, user, eventId, callback) {
 
 			var checkedEventsData = db.collection('checkedEvents');
 
-			checkedEventsData.insert(insertChecked, function(err, results) {
+			checkedEventsData.insert(insertChecked, (err, results) => {
 				if(err) {
 					callback(new Error('There was a problem crossing out the event in the database!'));
 					return;
@@ -117,7 +117,7 @@ function getChecked(db, user, eventId, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null);
 			return;
@@ -129,7 +129,7 @@ function getChecked(db, user, eventId, callback) {
 
 		var checkedEventsData = db.collection('checkedEvents');
 
-		checkedEventsData.find({ user: userDoc['_id'], eventId: eventId }).toArray(function(err, checkedEvents) {
+		checkedEventsData.find({ user: userDoc['_id'], eventId: eventId }).toArray((err, checkedEvents) => {
 			if(err) {
 				callback(new Error('There was a problem querying the database!'), null);
 				return;
@@ -170,7 +170,7 @@ function listChecked(db, user, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null);
 			return;
@@ -182,7 +182,7 @@ function listChecked(db, user, callback) {
 
 		var checkedEventsData = db.collection('checkedEvents');
 
-		checkedEventsData.find({ user: userDoc['_id'] }).toArray(function(err, checkedEvents) {
+		checkedEventsData.find({ user: userDoc['_id'] }).toArray((err, checkedEvents) => {
 			if(err) {
 				callback(new Error('There was a problem querying the database!'), null);
 				return;
@@ -233,7 +233,7 @@ function uncheckEvent(db, user, eventId, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err);
 			return;
@@ -245,7 +245,7 @@ function uncheckEvent(db, user, eventId, callback) {
 
 		var checkedEventsData = db.collection('checkedEvents');
 
-		checkedEventsData.deleteMany({ user: userDoc['_id'], eventId: eventId }, function(err, results) {
+		checkedEventsData.deleteMany({ user: userDoc['_id'], eventId: eventId }, (err, results) => {
 			if(err) {
 				callback(new Error('There was a problem uncrossing the event in the database!'));
 				return;

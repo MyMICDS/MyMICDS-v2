@@ -158,7 +158,7 @@ function getSchedule(db, user, date, callback) {
 	var scheduleDate = moment(date).startOf('day');
 	var scheduleNextDay = scheduleDate.clone().add(1, 'day');
 
-	users.get(db, user || '', function(err, isUser, userDoc) {
+	users.get(db, user || '', (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -238,7 +238,7 @@ function getSchedule(db, user, date, callback) {
 		// If it isn't a user OR it's a teacher with no Portal URL
 		if(!isUser || (userDoc['gradYear'] === null && typeof userDoc['portalURL'] !== 'string')) {
 			// Fallback to default schedule if user is invalid
-			portal.getDayRotation(scheduleDate, function(err, scheduleDay) {
+			portal.getDayRotation(scheduleDate, (err, scheduleDay) => {
 				if(err) {
 					callback(err, null, null);
 					return;
@@ -262,8 +262,8 @@ function getSchedule(db, user, date, callback) {
 			// If user is logged in, but hasn't configured their Portal URL
 			// We would know their grade, and therefore their generic block schedule, as well as any classes they configured
 			asyncLib.parallel({
-				day: function(asyncCallback) {
-					portal.getDayRotation(scheduleDate, function(err, scheduleDay) {
+				day: asyncCallback => {
+					portal.getDayRotation(scheduleDate, (err, scheduleDay) => {
 						if(err) {
 							asyncCallback(err, null);
 						} else {
@@ -271,8 +271,8 @@ function getSchedule(db, user, date, callback) {
 						}
 					});
 				},
-				classes: function(asyncCallback) {
-					classes.get(db, user, function(err, classes) {
+				classes: asyncCallback => {
+					classes.get(db, user, (err, classes) => {
 						if(err) {
 							asyncCallback(err, null);
 						} else {
@@ -280,7 +280,7 @@ function getSchedule(db, user, date, callback) {
 						}
 					});
 				}
-			}, function(err, results) {
+			}, (err, results) => {
 				if(err) {
 					callback(err, null, null);
 					return;
@@ -294,7 +294,7 @@ function getSchedule(db, user, date, callback) {
 				}
 
 				// Include generic blocks in with the supplied blocks
-				_.each(genericBlocks, function(value, key) {
+				_.each(genericBlocks, (value, key) => {
 					if(typeof blocks[key] !== 'object') {
 						blocks[key] = value;
 					}
@@ -326,8 +326,8 @@ function getSchedule(db, user, date, callback) {
 			// We can therefore overlay their Portal classes ontop of their default block schedule for 100% coverage.
 			asyncLib.parallel({
 				// Get Portal calendar feed
-				portal: function(asyncCallback) {
-					portal.getCal(db, user, function(err, hasURL, cal) {
+				portal: asyncCallback => {
+					portal.getCal(db, user, (err, hasURL, cal) => {
 						if(err) {
 							asyncCallback(err, null);
 						} else {
@@ -339,10 +339,10 @@ function getSchedule(db, user, date, callback) {
 					});
 				},
 				// Get Portal aliases and their class objects
-				aliases: function(asyncCallback) {
+				aliases: asyncCallback => {
 					aliases.mapList(db, user, asyncCallback);
 				},
-			}, function(err, results) {
+			}, (err, results) => {
 				if(err) {
 					callback(err, null, null);
 					return;
@@ -711,14 +711,10 @@ function ordineSchedule(baseSchedule, addClasses) {
 	}
 
 	// Delete all classes that start and end at the same time, or end is before start
-	baseSchedule = baseSchedule.filter(function(value) {
-		return value.start.unix() < value.end.unix();
-	});
+	baseSchedule = baseSchedule.filter(value => value.start.unix() < value.end.unix());
 
 	// Reorder schedule because of deleted classes
-	baseSchedule.sort(function(a, b) {
-		return a.start - b.start;
-	});
+	baseSchedule.sort((a, b) => a.start - b.start);
 
 	return baseSchedule;
 }

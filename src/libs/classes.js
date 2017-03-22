@@ -77,7 +77,7 @@ var validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
 
 function upsertClass(db, user, scheduleClass, callback) {
 	// Input validation best validation
-	if(typeof callback !== 'function') callback = function() {};
+	if(typeof callback !== 'function') callback = () => {};
 	if(typeof db !== 'object') { callback(new Error('Invalid database connection!'), null); return; }
 	if(typeof scheduleClass._id !== 'string') scheduleClass._id = '';
 
@@ -98,7 +98,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 	}
 
 	// Make sure username is valid first
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(new Error('There was a problem connecting to the database!'), null);
 			return;
@@ -109,7 +109,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 		}
 
 		// Add teacher to database
-		teachers.add(db, scheduleClass.teacher, function(err, teacherDoc) {
+		teachers.add(db, scheduleClass.teacher, (err, teacherDoc) => {
 			if(err) {
 				callback(err, null);
 				return;
@@ -118,7 +118,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 			var classdata = db.collection('classes');
 
 			// Check for duplicate classes first
-			classdata.find({ user: userDoc['_id'] }).toArray(function(err, classes) {
+			classdata.find({ user: userDoc['_id'] }).toArray((err, classes) => {
 				if(err) {
 					callback(new Error('There was a problem querying the database!'), null);
 					return;
@@ -182,7 +182,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 				}
 
 				// Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
-				classdata.update({ _id: id }, insertClass, { upsert: true }, function(err, results) {
+				classdata.update({ _id: id }, insertClass, { upsert: true }, (err, results) => {
 					if(err) {
 						callback(new Error('There was a problem upserting the class into the database!'), null);
 						return;
@@ -228,7 +228,7 @@ function getClasses(db, user, callback) {
 	}
 
 	// Make sure valid user and get user id
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null);
 			return;
@@ -241,7 +241,7 @@ function getClasses(db, user, callback) {
 		var classdata = db.collection('classes');
 
 		// Get all classes under the specified user id
-		classdata.find({ user: userDoc['_id'] }).toArray(function(err, classes) {
+		classdata.find({ user: userDoc['_id'] }).toArray((err, classes) => {
 			if(err) {
 				callback(new Error('There was a problem querying the database!'), null);
 				return;
@@ -266,7 +266,7 @@ function getClasses(db, user, callback) {
 					var teacherId = classes[i]['teacher'];
 
 					if(typeof teachersList[teacherId] === 'undefined') {
-						teachers.get(db, teacherId, function(err, isTeacher, teacherDoc) {
+						teachers.get(db, teacherId, (err, isTeacher, teacherDoc) => {
 							if(err) {
 								callback(err, null);
 								return;
@@ -313,7 +313,7 @@ function getClasses(db, user, callback) {
 function deleteClass(db, user, classId, callback) {
 	// Validate inputs
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof db !== 'object') {
@@ -333,7 +333,7 @@ function deleteClass(db, user, classId, callback) {
 	}
 
 	// Make sure valid user
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err);
 			return;
@@ -344,7 +344,7 @@ function deleteClass(db, user, classId, callback) {
 		}
 
 		var classdata = db.collection('classes');
-		classdata.deleteMany({ _id: id, user: userDoc['_id'] }, function(err, results) {
+		classdata.deleteMany({ _id: id, user: userDoc['_id'] }, (err, results) => {
 			if(err) {
 				callback(new Error('There was a problem deleting the class from the database!'));
 				return;
@@ -353,7 +353,7 @@ function deleteClass(db, user, classId, callback) {
 			callback(null);
 			// @TODO: Error handling if these fail
 			teachers.deleteClasslessTeachers(db);
-			aliases.deleteClasslessAliases(db, function(err) {
+			aliases.deleteClasslessAliases(db, err => {
 				console.log('[' + new Date() + '] Error occured when deleting classless teachers! (' + err + ')');
 			});
 

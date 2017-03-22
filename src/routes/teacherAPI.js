@@ -6,10 +6,10 @@
 
 var teachers = require(__dirname + '/../libs/teachers.js');
 
-module.exports = function(app, db) {
+module.exports = (app, db) => {
 
-	app.post('/teachers/list', function(req, res) {
-		teachers.list(db, function(err, teachers) {
+	app.post('/teachers/list', (req, res) => {
+		teachers.list(db, (err, teachers) => {
 			if(err) {
 				var errorMessage = err.message;
 			} else {

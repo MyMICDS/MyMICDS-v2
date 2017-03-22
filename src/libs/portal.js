@@ -74,7 +74,7 @@ function verifyURL(portalURL, callback) {
 	var validURL = urlPrefix + queries.z;
 
 	// Not lets see if we can actually get any data from here
-	request(validURL, function(err, response, body) {
+	request(validURL, (err, response, body) => {
 		if(err) {
 			callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
 			return;
@@ -150,7 +150,7 @@ function verifyURL(portalURL, callback) {
 
 function setURL(db, user, url, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof db !== 'object') {
@@ -158,7 +158,7 @@ function setURL(db, user, url, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -168,7 +168,7 @@ function setURL(db, user, url, callback) {
 			return;
 		}
 
-		verifyURL(url, function(err, isValid, validURL) {
+		verifyURL(url, (err, isValid, validURL) => {
 			if(err) {
 				callback(err, null, null);
 				return;
@@ -179,7 +179,7 @@ function setURL(db, user, url, callback) {
 
 			var userdata = db.collection('users');
 
-			userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, function(err, result) {
+			userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, (err, result) => {
 				if(err) {
 					callback(new Error('There was a problem updating the URL to the database!'), null, null);
 					return;
@@ -222,7 +222,7 @@ function getCal(db, user, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -236,7 +236,7 @@ function getCal(db, user, callback) {
 			return;
 		}
 
-		request(userDoc['portalURL'], function(err, response, body) {
+		request(userDoc['portalURL'], (err, response, body) => {
 			if(err) {
 				callback(new Error('There was a problem fetching the day rotation!'), null);
 				return;
@@ -282,7 +282,7 @@ function getDayRotation(date, callback) {
 	var scheduleDate = new Date(date);
 	var scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
 
-	request(urlPrefix + config.portal.dayRotation, function(err, response, body) {
+	request(urlPrefix + config.portal.dayRotation, (err, response, body) => {
 		if(err || response.statusCode !== 200) {
 			callback(new Error('There was a problem fetching the day rotation!'), null);
 			return;
@@ -345,7 +345,7 @@ function getDayRotations(callback) {
 
 	var days = {};
 
-	request(urlPrefix + config.portal.dayRotation, function(err, response, body) {
+	request(urlPrefix + config.portal.dayRotation, (err, response, body) => {
 		if(err || response.statusCode !== 200) {
 			callback(new Error('There was a problem fetching the day rotation!'), null);
 			return;
@@ -423,7 +423,7 @@ function getClasses(db, user, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -438,7 +438,7 @@ function getClasses(db, user, callback) {
 			return;
 		}
 
-		request(userDoc['portalURL'], function(err, response, body) {
+		request(userDoc['portalURL'], (err, response, body) => {
 			if(err) {
 				callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
 				return;

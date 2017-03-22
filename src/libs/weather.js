@@ -38,7 +38,7 @@ var options = {
  function getWeather(callback) {
 	 if(typeof callback !== 'function') return;
 
-	 fs.readJSON(JSONPath, function(err, weatherJSON) {
+	 fs.readJSON(JSONPath, (err, weatherJSON) => {
 		 // If there's an error, most likely there's no existing JSON
 		 if(err) {
 			 updateWeather(callback);
@@ -68,19 +68,19 @@ var options = {
 function updateWeather(callback) {
 
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	// Create forecast object to query
 	var darksky = new DarkSky(options);
 
-	darksky.get(latitude, longitude, function(err, res, data) {
+	darksky.get(latitude, longitude, (err, res, data) => {
 		if(err) {
 			callback(new Error('There was a problem fetching the weather data!'), null);
 			return;
 		}
 
-		fs.outputJSON(JSONPath, data, function(err) {
+		fs.outputJSON(JSONPath, data, err => {
 			if(err) {
 				callback(new Error('There was a problem saving the weather data!'), null);
 				return;

@@ -6,9 +6,9 @@
 
 var lunch = require(__dirname + '/../libs/lunch.js');
 
-module.exports = function(app, db) {
+module.exports = (app, db) => {
 
-	app.post('/lunch/get', function(req, res) {
+	app.post('/lunch/get', (req, res) => {
 
 		var current = new Date();
 
@@ -18,7 +18,7 @@ module.exports = function(app, db) {
 
 		var date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
-		lunch.get(db, date, function(err, lunchJSON) {
+		lunch.get(db, date, (err, lunchJSON) => {
 
 			if(err) {
 				var errorMessage = err.message;
