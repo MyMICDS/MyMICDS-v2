@@ -5,16 +5,16 @@
  * @module modules
  */
 
-var _ = require('underscore');
-var users = require(__dirname + '/users.js');
+const _ = require('underscore');
+const users = require(__dirname + '/users.js');
 
 // All allowed modules
-var moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather'];
+const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather'];
 
-var columnsPerRow = 4;
+const columnsPerRow = 4;
 
 // Modules to give user if none found
-var defaultModules = [
+const defaultModules = [
 	{
 		type: 'progress',
 		row: 0,
@@ -74,7 +74,7 @@ function getModules(db, user, callback) {
 	}
 
 	// Check for user validity, get ID
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null);
 			return;
@@ -84,9 +84,9 @@ function getModules(db, user, callback) {
 			return;
 		}
 
-		var moduledata = db.collection('modules');
+		const moduledata = db.collection('modules');
 
-		moduledata.find({ user: userDoc['_id'] }).toArray(function(err, modules) {
+		moduledata.find({ user: userDoc['_id'] }).toArray((err, modules) => {
 			if(err) {
 				callback(err, null);
 				return;
@@ -128,7 +128,7 @@ function upsertModules(db, user, modules, callback) {
 	}
 
 	// Check for user validity, get ID
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err);
 			return;
@@ -137,23 +137,22 @@ function upsertModules(db, user, modules, callback) {
 			callback(new Error('User doesn\'t exist!'));
 			return;
 		}
-		if(!modules.every(function(m) { return _.contains(moduleList, m.type); })) {
+		if(!modules.every(m => _.contains(moduleList, m.type))) {
 			callback(new Error('Invalid module type!'));
 			return;
 		}
-		if(!modules.every(function(m) { return m.column + m.width <= columnsPerRow; })) {
-			callback(new Error('Module width exceeds row width of ' + columnsPerRow + ' columns!'));
+		if(!modules.every(m => m.column + m.width <= columnsPerRow)) {
+			callback(new Error(`Module width exceeds row width of ${columnsPerRow} columns!`));
 			return;
 		}
 
-		var moduleGrid = [];
+		const moduleGrid = [];
 
-		for(var i = 0; i < modules.length; i++) {
-			var mod = modules[i];
-			for(var j = mod.row; j <= mod.row + mod.height; j++) {
+		for(let mod of modules) {
+			for(let j = mod.row; j <= mod.row + mod.height; j++) {
 				if(typeof moduleGrid[j] !== 'object') moduleGrid[j] = [];
 
-				for(var k = mod.column; k <= mod.column + mod.width; k++) {
+				for(let k = mod.column; k <= mod.column + mod.width; k++) {
 					if(moduleGrid[j][k]) {
 						callback(new Error('Modules overlap!'));
 						return;
@@ -164,10 +163,9 @@ function upsertModules(db, user, modules, callback) {
 			}
 		}
 
-		var moduledata = db.collection('modules');
+		const moduledata = db.collection('modules');
 
-		// I really want to use an arrow function here, but Michael won't let me
-		moduledata.deleteMany({ _id: { $nin: modules.map(function(m) { return m['_id']; }) }, user: userDoc['user'] }, function(err) {
+		moduledata.deleteMany({ _id: { $nin: modules.map(m => m['_id']) }, user: userDoc['user'] }, err => {
 			if(err) {
 				callback(err);
 				return;
@@ -175,7 +173,7 @@ function upsertModules(db, user, modules, callback) {
 
 			function handleModule(i) {
 				if(i < module.length) {
-					moduledata.update({ _id: module['_id'], user: userDoc['user'] }, { $set: module }, { upsert: true }, function(err) {
+					moduledata.update({ _id: module['_id'], user: userDoc['user'] }, { $set: module }, { upsert: true }, err => {
 						if(err) {
 							callback(err);
 							return;
