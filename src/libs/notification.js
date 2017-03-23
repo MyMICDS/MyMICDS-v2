@@ -1,19 +1,20 @@
 'use strict';
 
-var planner = require(__dirname + '/planner.js');
-var announcements = require(__dirname + '/announcements.js');
+const planner = require(__dirname + '/planner.js');
+const announcements = require(__dirname + '/announcements.js');
 
 function getNotifications(db, user, includeCanvas, callback) {
     if(typeof callback !=='function') return;
 
-     var notifications = {upcoming: [], ending: []};
+     let notifications = {upcoming: [], ending: []};
      planner.getMonthEvents(db, user, includeCanvas, (err, events) => {
-         if (err) {
+         let i;
+	     if (err) {
              callback(err);
              return;
          }
          //reformat the events
-         for (var i=0;i<events.upcoming.length;i++) {
+         for (i = 0; i<events.upcoming.length; i++) {
              if (events.upcoming[i].class) {
                  notifications.upcoming.push({
                     type: 'Planner',
@@ -31,7 +32,7 @@ function getNotifications(db, user, includeCanvas, callback) {
                 })
              }
          }
-         for (var i=0;i<events.ending.length;i++) {
+         for (i = 0; i<events.ending.length; i++) {
              if (events.ending[i].class) {
                  notifications.ending.push({
                     type: 'Planner',

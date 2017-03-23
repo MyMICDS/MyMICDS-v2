@@ -4,17 +4,16 @@
  * @file User management functions
  * @module users
  */
-
-var _           = require('underscore');
-var auth        = require(__dirname + '/auth.js');
-var bcrypt      = require('bcrypt');
-var crypto      = require('crypto');
-var cryptoUtils = require(__dirname + '/cryptoUtils.js');
-var mail        = require(__dirname + '/mail.js');
-var users       = require(__dirname + '/users.js');
+const _ = require('underscore');
+const auth = require(__dirname + '/auth.js');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const cryptoUtils = require(__dirname + '/cryptoUtils.js');
+const mail = require(__dirname + '/mail.js');
+const users = require(__dirname + '/users.js');
 
 // Passwords not allowed
-var passwordBlacklist = [
+const passwordBlacklist = [
 	'', // Empty string
 	'Nick is not a nerd' // Because he is
 ];
@@ -61,7 +60,7 @@ function passwordMatches(db, user, password, callback) {
 			return;
 		}
 
-		var hash = userDoc['password'];
+		const hash = userDoc['password'];
 
 		bcrypt.compare(password, hash, (err, res) => {
 			if(err) {
@@ -140,7 +139,7 @@ function changePassword(db, user, oldPassword, newPassword, callback) {
 				}
 
 				// Update new password into database
-				var userdata = db.collection('users');
+				let userdata = db.collection('users');
 				userdata.update({ user: user }, { $set: { password: hash }, $currentDate: { lastPasswordChange: true }}, (err, results) => {
 					if(err) {
 						callback(new Error('There was a problem updating the password in the database!'));
@@ -199,11 +198,11 @@ function resetPasswordEmail(db, user, callback) {
 				return;
 			}
 
-			var hash = buf.toString('hex');
-			var hashedHash = cryptoUtils.shaHash(hash);
+			let hash = buf.toString('hex');
+			let hashedHash = cryptoUtils.shaHash(hash);
 
 			// Now let's insert the passwordChangeHash into the database
-			var userdata = db.collection('users');
+			let userdata = db.collection('users');
 			userdata.update({ _id: userDoc['_id'], user: userDoc['user'] }, { $set: { passwordChangeHash: hashedHash }}, { upsert: true }, (err, results) => {
 				if(err) {
 					callback(new Error('There was a problem inserting the confirmation hash into the database!'));
@@ -211,10 +210,10 @@ function resetPasswordEmail(db, user, callback) {
 				}
 
 				// Send confirmation email
-				var email = userDoc['user'] + '@micds.org';
-				var emailReplace = {
+				let email = userDoc['user'] + '@micds.org';
+				let emailReplace = {
 					firstName: userDoc['firstName'],
-					lastName : userDoc['lastName'],
+					lastName: userDoc['lastName'],
 					passwordLink: 'https://mymicds.net/reset-password/' + userDoc['user'] + '/' + hash
 				};
 
@@ -288,7 +287,7 @@ function resetPassword(db, user, password, hash, callback) {
 				return;
 			}
 
-			var userdata = db.collection('users');
+			let userdata = db.collection('users');
 			// Update password in the database
 			userdata.update({ _id: userDoc['_id'], user: userDoc['user'] }, { $set: { password: hashedPassword, passwordChangeHash: null}, $currentDate: { lastPasswordChange: true }}, (err, results) => {
 				if(err) {

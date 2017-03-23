@@ -1,15 +1,16 @@
 "use strict";
 
-var notifications = require(__dirname + '/../libs/notification.js');
+const notifications = require(__dirname + '/../libs/notification.js');
 
 module.exports = (app, db) => {
 
     app.post('/notification/get', (req, res) => {
         notifications.get(db, req.user.user, true, (err, events) => {
-            if(err) {
-				var errorMessage = err.message;
+            let errorMessage;
+	        if(err) {
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 			res.json({
 				error : errorMessage,

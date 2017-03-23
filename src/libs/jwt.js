@@ -4,13 +4,12 @@
  * @file Manages Json Web Token authentication for our API
  * @module jwt
  */
+const config = require(__dirname + '/config.js');
 
-var config = require(__dirname + '/config.js');
-
-var _          = require('underscore');
-var expressJWT = require('express-jwt');
-var jwt        = require('jsonwebtoken');
-var users      = require(__dirname + '/users.js');
+const _ = require('underscore');
+const expressJWT = require('express-jwt');
+const jwt = require('jsonwebtoken');
+const users = require(__dirname + '/users.js');
 
 /**
  * Express middleware to verify the JWT token (if any) and assigns it to req.user
@@ -62,13 +61,13 @@ function isRevoked(db) {
 		}
 
 		// Current date
-		var current = Date.now();
+		const current = Date.now();
 		// Expiration date
-		var expiration = payload.exp * 1000;
+		const expiration = payload.exp * 1000;
 		// Make sure token hasn't expired yet
-		var timeLeft = expiration - Date.now();
+		const timeLeft = expiration - Date.now();
 		// Make sure expiration is accurate within 30 seconds to account for time differences between computers.
-		var clockTolerance = 30;
+		const clockTolerance = 30;
 
 		if(timeLeft < (clockTolerance * -1000)) {
 			done(null, true);
@@ -96,7 +95,7 @@ function isRevoked(db) {
 			}*/
 
 			// Make sure token isn't blacklisted (usually if logged out)
-			var jwt = req.get('Authorization').slice(7);
+			let jwt = req.get('Authorization').slice(7);
 
 			isBlacklisted(db, jwt, (err, blacklisted) => {
 				if(err) {
@@ -105,7 +104,7 @@ function isRevoked(db) {
 				}
 
 				// Update 'lastVisited' field in user document
-				var userdata = db.collection('users');
+				let userdata = db.collection('users');
 				userdata.update(userDoc, { $currentDate: { lastVisited: true }});
 
 				done(null, blacklisted);
@@ -169,11 +168,8 @@ function generate(db, user, rememberMe, callback) {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
-	if(rememberMe) {
-		var expiration = '30 days';
-	} else {
-		var expiration = '12 hours';
-	}
+
+	let expiration = rememberMe ? '30 days' : '12 hours';
 
 	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
@@ -186,7 +182,7 @@ function generate(db, user, rememberMe, callback) {
 		}
 
 		// Default scope
-		var scopes = {
+		let scopes = {
 			'pleb': true
 		};
 
@@ -248,7 +244,7 @@ function isBlacklisted(db, jwt, callback) {
 		return;
 	}
 
-	var JWTdata = db.collection('JWTBlacklist');
+	let JWTdata = db.collection('JWTBlacklist');
 
 	JWTdata.find({ jwt: jwt }).toArray((err, docs) => {
 		if(err) {
@@ -296,8 +292,8 @@ function revoke(db, payload, jwt, callback) {
 		return;
 	}
 
-	var current = new Date();
-	var JWTdata = db.collection('JWTBlacklist');
+	let current = new Date();
+	let JWTdata = db.collection('JWTBlacklist');
 
 	JWTdata.insert({
 		user: payload.user,

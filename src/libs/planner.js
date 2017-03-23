@@ -4,15 +4,14 @@
  * @file Functions for dealing with planner data
  * @module planner
  */
-
-var _             = require('underscore');
-var asyncLib      = require('async');
-var canvas        = require(__dirname + '/canvas.js');
-var checkedEvents = require(__dirname + '/checkedEvents.js');
-var classes       = require(__dirname + '/classes.js');
-var htmlParser    = require(__dirname + '/htmlParser.js');
-var ObjectID      = require('mongodb').ObjectID;
-var users 	      = require(__dirname + '/users.js');
+const _ = require('underscore');
+const asyncLib = require('async');
+const canvas = require(__dirname + '/canvas.js');
+const checkedEvents = require(__dirname + '/checkedEvents.js');
+const classes = require(__dirname + '/classes.js');
+const htmlParser = require(__dirname + '/htmlParser.js');
+const ObjectID = require('mongodb').ObjectID;
+const users = require(__dirname + '/users.js');
 
 /**
  * Add/edit event to planner
@@ -80,10 +79,10 @@ function upsertEvent(db, user, plannerEvent, callback) {
 			}
 
 			// Check if class id is valid if it isn't null already
-			var validClassId = null;
+			let validClassId = null;
 			if(plannerEvent.classId !== null) {
 				for(let theClass of classes) {
-					var classId = theClass['_id'];
+					const classId = theClass['_id'];
 					if(plannerEvent.classId === classId.toHexString()) {
 						validClassId = classId;
 						break;
@@ -91,9 +90,9 @@ function upsertEvent(db, user, plannerEvent, callback) {
 				}
 			}
 
-			var plannerdata = db.collection('planner');
+			const plannerdata = db.collection('planner');
 
-			var validEditId = false;
+			let validEditId = false;
 			if(plannerEvent._id === '') {
 				// Just insert event if no id is provided
 				insertEvent();
@@ -107,7 +106,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 
 					// Look through all events if id is valid
 					for(let event of events) {
-						var eventId = event['_id'];
+						const eventId = event['_id'];
 						if(plannerEvent._id === eventId.toHexString()) {
 							validEditId = eventId;
 							break;
@@ -121,21 +120,17 @@ function upsertEvent(db, user, plannerEvent, callback) {
 			function insertEvent() {
 
 				// Generate an Object ID, or use the id that we are editting
-				if(validEditId) {
-					var id = validEditId;
-				} else {
-					var id = new ObjectID();
-				}
+				const id = validEditId ? validEditId : new ObjectID();
 
-				var insertEvent = {
-					_id  : id,
-					user : userDoc['_id'],
+				const insertEvent = {
+					_id: id,
+					user: userDoc['_id'],
 					class: validClassId,
 					title: plannerEvent.title,
-					desc : plannerEvent.desc,
+					desc: plannerEvent.desc,
 					start: plannerEvent.start,
-					end  : plannerEvent.end,
-					link : plannerEvent.link
+					end: plannerEvent.end,
+					link: plannerEvent.link
 				};
 
 				// Insert event into database
@@ -182,8 +177,9 @@ function deleteEvent(db, user, eventId, callback) {
 	}
 
 	// Try to create object id
+	let id;
 	try {
-		var id = new ObjectID(eventId);
+		id = new ObjectID(eventId);
 	} catch(e) {
 		callback(new Error('Invalid event id!'));
 		return;
@@ -200,7 +196,7 @@ function deleteEvent(db, user, eventId, callback) {
 			return;
 		}
 
-		var plannerdata = db.collection('planner');
+		const plannerdata = db.collection('planner');
 
 		// Delete all events with specified id
 		plannerdata.deleteMany({ _id: id, user: userDoc['_id'] }, (err, results) => {
@@ -247,7 +243,7 @@ function getMonthEvents(db, user, date, callback) {
 		return;
 	}
 	// Default month and year to current date
-	var current = new Date();
+	let current = new Date();
 
 	if(typeof date.month !== 'number' || Number.isNaN(date.month) || date.month < 1 || 12 < date.month || date.month % 1 !== 0) {
 		date.month = current.getMonth() + 1;
@@ -266,7 +262,7 @@ function getMonthEvents(db, user, date, callback) {
 			return;
 		}
 
-		var plannerdata = db.collection('planner');
+		const plannerdata = db.collection('planner');
 
 		asyncLib.parallel([
 				asyncCallback => {
@@ -288,32 +284,32 @@ function getMonthEvents(db, user, date, callback) {
 				return;
 			}
 
-			var events = data[0];
-			var checkedEventsList = data[1];
+			const events = data[0];
+			const checkedEventsList = data[1];
 
 			// Go through all events and add all events that are within the month
-			var validEvents = [];
-			var addedEventIds = [];
+			const validEvents = [];
+			const addedEventIds = [];
 			for(let possibleEvent of events) {
-				var start = possibleEvent.start;
-				var end   = possibleEvent.end;
+				const start = possibleEvent.start;
+				const end   = possibleEvent.end;
 
-				var startYear = start.getFullYear();
-				var endYear   = end.getFullYear();
+				const startYear = start.getFullYear();
+				const endYear = end.getFullYear();
 
 				// How many months forward and backward to also include events
-				var monthPadding = 1;
+				const monthPadding = 1;
 
 				// Determine if event should be checked
 				possibleEvent.checked = _.contains(checkedEventsList, possibleEvent._id.toHexString());
 
 				// Check previous and next months too
-				for(var j = monthPadding * -1; j <= monthPadding; j++) {
+				for(let j = monthPadding * -1; j <= monthPadding; j++) {
 					// Check if event was already added
 					if(_.contains(addedEventIds, possibleEvent._id)) break;
 
-					var startMonth = start.getMonth() + 1 + j;
-					var endMonth = end.getMonth() + 1 + j;
+					const startMonth = start.getMonth() + 1 + j;
+					const endMonth = end.getMonth() + 1 + j;
 
 					if((startMonth === date.month && startYear === date.year) || (endMonth === date.month && endYear === date.year)) {
 						// If event start or end is in month
@@ -343,11 +339,11 @@ function getMonthEvents(db, user, date, callback) {
 					// Set user to username
 					event['user'] = userDoc['user'];
 					// Default class to null
-					var classId = event['class'];
+					const classId = event['class'];
 					event['class'] = null;
 					// Go through each class to search for matching id
 					if(classId !== null) {
-						var classIdHex = classId.toHexString();
+						const classIdHex = classId.toHexString();
 						for(let theClass of classes) {
 							if(classIdHex === theClass['_id'].toHexString()) {
 								event['class'] = theClass;

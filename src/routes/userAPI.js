@@ -3,27 +3,26 @@
 /**
  * @file Manages user API endpoints
  */
-
-var users = require(__dirname + '/../libs/users.js');
+const users = require(__dirname + '/../libs/users.js');
 
 module.exports = (app, db, socketIO) => {
 
 	app.post('/user/grad-year-to-grade', (req, res) => {
-		var grade = users.gradYearToGrade(parseInt(req.body.year));
+		const grade = users.gradYearToGrade(parseInt(req.body.year));
 		res.json({ grade: grade });
 	});
 
 	app.post('/user/grade-to-grad-year', (req, res) => {
-		var gradYear = users.gradeToGradYear(parseInt(req.body.grade));
+		const gradYear = users.gradeToGradYear(parseInt(req.body.grade));
 		res.json({ year: gradYear });
 	});
 
 	app.post('/user/grade-range', (req, res) => {
-		var gradYears = [];
+		const gradYears = [];
 		// Set min (inclusive) and max (inclusive)
-		var min = -1; // JK
-		var max = 12; // Senior
-		for(var i = min; i <= max; i++) {
+		const min = -1; // JK
+		const max = 12; // Senior
+		for(let i = min; i <= max; i++) {
 			gradYears.push(users.gradeToGradYear(i));
 		}
 		// Put most recent years first
@@ -33,10 +32,11 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/user/get-info', (req, res) => {
 		users.getInfo(db, req.user.user, true, (err, userInfo) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 			res.json({
 				error: errorMessage,
@@ -46,7 +46,7 @@ module.exports = (app, db, socketIO) => {
 	});
 
 	app.post('/user/change-info', (req, res) => {
-		var info = {};
+		const info = {};
 
 		if(typeof req.body.firstName === 'string' && req.body.firstName !== '') {
 			info.firstName = req.body.firstName;
@@ -62,10 +62,11 @@ module.exports = (app, db, socketIO) => {
 		}
 
 		users.changeInfo(db, req.user.user, info, err => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 				socketIO.user(req.user.user, 'user', 'change-info', info);
 			}
 			res.json({ error: errorMessage });

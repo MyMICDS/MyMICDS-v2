@@ -3,8 +3,7 @@
 /**
  * @file Manages suggestion API endpoints
  */
-
-var admins = require(__dirname + "/../libs/admins.js");
+const admins = require(__dirname + "/../libs/admins.js");
 
 module.exports = (app, db) => {
 	app.post('/suggestion/send', (req, res) => {

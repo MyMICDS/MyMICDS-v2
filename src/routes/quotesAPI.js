@@ -1,20 +1,22 @@
 'use strict';
 
-var quotes = require(__dirname + '/../libs/quotes.js');
+const quotes = require(__dirname + '/../libs/quotes.js');
 
-var Random = require("random-js");
-var engine = Random.engines.mt19937().autoSeed();
+const Random = require("random-js");
+const engine = Random.engines.mt19937().autoSeed();
 
 module.exports = (app, db) => {
 
 	app.post('/quote/get', (req, res) => {
 		quotes.get(db, (err, quotes) => {
+			let quote;
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
-				var quote = null;
+				errorMessage = err.message;
+				quote = null;
 			} else {
-				var errorMessage = null;
-				var quote = Random.pick(engine, quotes);
+				errorMessage = null;
+				quote = Random.pick(engine, quotes);
 			}
 
 			res.json({
@@ -26,10 +28,11 @@ module.exports = (app, db) => {
 
 	app.post('/quote/insert', (req, res) => {
 		quotes.insert(db, req.body.author, req.body.quote, err => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 
 			res.json({ error: errorMessage });

@@ -24,7 +24,7 @@ module.exports = (io, socketIO) => {
 	 */
 
 	function calcProgressSpin() {
-		var anyPressing = false;
+		let anyPressing = false;
 
 		for(let socket of io.sockets.connected) {
 			if(socket.pressingProgressLabel) {

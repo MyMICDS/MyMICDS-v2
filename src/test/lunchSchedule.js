@@ -1,7 +1,8 @@
 'use strict';
 
+let config;
 try {
-	const config = require(__dirname + '/../libs/config.js');
+	config = require(__dirname + '/../libs/config.js');
 } catch(e) {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }

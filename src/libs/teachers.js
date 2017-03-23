@@ -4,10 +4,9 @@
  * @file Functions for managing teachers
  * @module teachers
  */
+const _ = require('underscore');
 
-var _ = require('underscore');
-
-var validTeacherPrefixes = [
+const validTeacherPrefixes = [
 	'Mr.',
 	'Ms.'
 ];
@@ -59,7 +58,7 @@ function addTeacher(db, teacher, callback) {
 		return;
 	}
 
-	var teacherdata = db.collection('teachers');
+	const teacherdata = db.collection('teachers');
 	// Upsert teacher into collection
 	teacherdata.update(teacher, teacher, { upsert: true }, (err, results) => {
 		if(err) {
@@ -110,7 +109,7 @@ function getTeacher(db, teacherId, callback) {
 		return;
 	}
 
-	var teacherdata = db.collection('teachers');
+	const teacherdata = db.collection('teachers');
 	// Query database to find possible teacher
 	teacherdata.find({ _id: teacherId }).toArray((err, docs) => {
 		if(err) {
@@ -151,7 +150,7 @@ function listTeachers(db, callback) {
 		return;
 	}
 
-	var teacherdata = db.collection('teachers');
+	const teacherdata = db.collection('teachers');
 
 	teacherdata.find({}).toArray((err, docs) => {
 		if(err) {
@@ -204,7 +203,7 @@ function deleteTeacher(db, teacherId, callback) {
 
 		if(classes.length === 0) {
 			// Teacher doesn't have any classes. Delete.
-			var teacherdata = db.collection('teachers');
+			const teacherdata = db.collection('teachers');
 			teacherdata.deleteMany({ _id: teacherId }, (err, results) => {
 				if(err) {
 					callback(new Error('There was a problem deleting the teacher from the database!'));
@@ -250,7 +249,7 @@ function teacherTeaches(db, teacherId, callback) {
 		return;
 	}
 
-	var classdata = db.collection('classes');
+	const classdata = db.collection('classes');
 
 	classdata.find({ teacher: teacherId }).toArray((err, docs) => {
 		if(err) {
@@ -287,7 +286,7 @@ function deleteClasslessTeachers(db, callback) {
 		return;
 	}
 
-	var teacherdata = db.collection('teachers');
+	const teacherdata = db.collection('teachers');
 	// Find all teachers
 	teacherdata.find({}).toArray((err, docs) => {
 		if(err) {
@@ -298,7 +297,7 @@ function deleteClasslessTeachers(db, callback) {
 		// This delete function uses the power recursion so we can asynchronously delete teachers and provide a callback in the end
 		function deleteTeachers(i) {
 			if(i < docs.length) {
-				var teacherId = docs[i]['_id'];
+				const teacherId = docs[i]['_id'];
 				deleteTeacher(db, teacherId, err => {
 					if(err) {
 						callback(err);

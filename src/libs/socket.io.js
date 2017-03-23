@@ -4,11 +4,10 @@
  * @file Manages the socket.io server
  * @module socket.io
  */
+const config = require(__dirname + '/config.js');
 
-var config = require(__dirname + '/config.js');
-
-var _   = require('underscore');
-var jwt = require('jsonwebtoken');
+const _ = require('underscore');
+const jwt = require('jsonwebtoken');
 
 module.exports = io => {
 
@@ -43,25 +42,23 @@ module.exports = io => {
 		});
 	});
 
-	var methods = {
+	return {
 		global: () => {
 			io.emit.apply(io, arguments);
 		},
 		user: () => {
-			var argumentsArray = Array.from(arguments);
-			var emitUser = argumentsArray[0];
-			var emitEvent = argumentsArray.slice(1);
+			const argumentsArray = Array.from(arguments);
+			const emitUser = argumentsArray[0];
+			const emitEvent = argumentsArray.slice(1);
 
 			_.each(io.sockets.connected, (value, key) => {
 				// Check if user is authorized
-				if(!value.decodedToken) return;
+				if (!value.decodedToken) return;
 				// If logged in user has same username as target user
-				if(emitUser === value.decodedToken.user) {
+				if (emitUser === value.decodedToken.user) {
 					value.emit.apply(value, emitEvent);
 				}
 			});
 		}
 	};
-
-	return methods;
 };

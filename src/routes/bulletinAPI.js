@@ -3,19 +3,19 @@
 /**
  * @file Manages Daily Bulletin API endpoints
  */
-
-var _             = require('underscore');
-var dailyBulletin = require(__dirname + '/../libs/dailyBulletin.js');
-var users         = require(__dirname + '/../libs/users.js');
+const _ = require('underscore');
+const dailyBulletin = require(__dirname + '/../libs/dailyBulletin.js');
+const users = require(__dirname + '/../libs/users.js');
 
 module.exports = (app, db, socketIO) => {
 
 	app.post('/daily-bulletin/list', (req, res) => {
 		dailyBulletin.getList((err, bulletins) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 			res.json({
 				error: errorMessage,
@@ -39,10 +39,11 @@ module.exports = (app, db, socketIO) => {
 
 			// Alright, username checks out.
 			dailyBulletin.queryLatest(err => {
+				let errorMessage;
 				if(err) {
-					var errorMessage = err.message;
+					errorMessage = err.message;
 				} else {
-					var errorMessage = null;
+					errorMessage = null;
 					socketIO.user(req.user.user, 'bulletin', 'query');
 				}
 				res.json({ error: errorMessage });
@@ -64,10 +65,11 @@ module.exports = (app, db, socketIO) => {
 
 			// Alright, username checks out
 			dailyBulletin.queryAll(err => {
+				let errorMessage;
 				if(err) {
-					var errorMessage = err.message;
+					errorMessage = err.message;
 				} else {
-					var errorMessage = null;
+					errorMessage = null;
 					socketIO.user(req.user.user, 'bulletin', 'query');
 				}
 				res.json({ error: errorMessage });

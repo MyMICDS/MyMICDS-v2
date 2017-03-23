@@ -61,7 +61,7 @@ function checkEvent(db, user, eventId, callback) {
 			}
 
 			// Insert check into database
-			var insertChecked = {
+			const insertChecked = {
 				user: userDoc['_id'],
 				eventId: eventId,
 				checkedTime: new Date()

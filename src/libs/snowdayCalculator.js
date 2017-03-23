@@ -2,15 +2,14 @@
  * @file Queries the Snowday Calculator
  * @module snowdayCalculator
  */
+const $ = require('cheerio');
+const admins = require(__dirname + '/admins.js');
+const moment = require('moment');
+const request = require('request');
 
-var $       = require('cheerio');
-var admins  = require(__dirname + '/admins.js');
-var moment  = require('moment');
-var request = require('request');
-
-var zipcode = 63124;
-var schoolId = 663;
-var snowdays = 0;
+const zipcode = 63124;
+const schoolId = 663;
+let snowdays = 0;
 
 /**
  * Queries the Snowday Calculator's API for a prediction at the location of MICDS
@@ -45,7 +44,7 @@ function calculate(db, callback) {
 		}
 
 		// Snowday Calculator is weird and transfers Javascript code, so we use RegEx to get the values
-		var variables = body.match(/[a-zA-Z]+\[\d+\] = .+;/g);
+		let variables = body.match(/[a-zA-Z]+\[\d+] = .+;/g);
 
 		// If for some reason there are no variables
 		if(!variables) {
@@ -67,7 +66,7 @@ function calculate(db, callback) {
 		}
 
 		// Map variable names to what they mean
-		var labels = {
+		const labels = {
 			s: 'start',
 			f: 'finish',
 			st: 'strength',
@@ -80,25 +79,25 @@ function calculate(db, callback) {
 		};
 
 		// Loop through all matches of Javascript variables and assign to data object
-		var data = {};
+		const data = {};
 		for(let variable of variables) {
 			// Split variable into the two parts on either side of equals
-			var parts = variable.split(' = ');
+			const parts = variable.split(' = ');
 
 			// Get variable name and date
-			var varName = parts[0];
-			var name = varName.match(/[a-zA-Z]+(?=\[)/);
-			var dateString = varName.match(/(?!\[)\d+(?=\])/);
+			const varName = parts[0];
+			const name = varName.match(/[a-zA-Z]+(?=\[)/);
+			const dateString = varName.match(/(?!\[)\d+(?=\])/);
 
 			// If variable name isn't mapped, we don't care about it
 			if(!labels[name]) continue;
 
 			// Get value of variable (we need `eval` in order to parse concatenated strings)
-			var value = eval(parts[1]);
+			let value = eval(parts[1]);
 
 			// Get date (which is index of array)
-			var date = moment(dateString, 'YYYYMMDD');
-			var formatDate = date.format('YYYY-MM-DD');
+			const date = moment(dateString, 'YYYYMMDD');
+			const formatDate = date.format('YYYY-MM-DD');
 
 			// If value is string, strip away HTML and remove redundant whitespaces
 			if(typeof value === 'string') {

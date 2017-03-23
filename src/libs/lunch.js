@@ -5,22 +5,23 @@
  * @module lunch
  */
 
+let config;
 try {
-	var config = require(__dirname + '/config.js');
+	config = require(__dirname + '/config.js');
 } catch(e) {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }
 
-var admins  = require(__dirname + '/admins.js');
-var fs      = require('fs-extra');
-var request = require('request');
-var cheerio = require('cheerio');
-var moment  = require('moment');
-var utils   = require(__dirname + '/utils.js');
+const admins = require(__dirname + '/admins.js');
+const fs = require('fs-extra');
+const request = require('request');
+const cheerio = require('cheerio');
+const moment = require('moment');
+const utils = require(__dirname + '/utils.js');
 
-var lunchURL = 'http://myschooldining.com/MICDS/calendarWeek';
-var schools  = ['Lower School', 'Middle School', 'Upper School'];
-var JSONPath = __dirname + '/../public/json/weather.json';
+const lunchURL = 'http://myschooldining.com/MICDS/calendarWeek';
+const schools = ['Lower School', 'Middle School', 'Upper School'];
+const JSONPath = __dirname + '/../public/json/weather.json';
 
 /**
  * Gets the lunch from /src/api/lunch.json. Will create one if it doesn't already exist.
@@ -47,7 +48,7 @@ function getLunch(db, date, callback) {
 		return;
 	}
 
-	var currentDay = moment(date).day('Wednesday');
+	const currentDay = moment(date).day('Wednesday');
 
 	// Send POST request to lunch website
 	request.post(lunchURL, { form: { 'current_day': currentDay.format() }}, (err, res, body) => {
@@ -73,9 +74,8 @@ function getLunch(db, date, callback) {
 			return;
 		}
 
-		var lunchJSON = parseLunch(body);
+		const lunchJSON = parseLunch(body);
 		callback(null, lunchJSON);
-
 	});
 }
 
@@ -92,36 +92,36 @@ function parseLunch(body) {
 	body.replace('<<', '&lt;&lt;');
 	body.replace('>>', '&gt;&gt;');
 
-	var $ = cheerio.load(body);
-	var json = {};
+	let $ = cheerio.load(body);
+	let json = {};
 
-	var table = $('table#table_calendar_week');
-	var weekColumns = table.find('td');
+	let table = $('table#table_calendar_week');
+	let weekColumns = table.find('td');
 
-	weekColumns.each(function(index) {
+	weekColumns.each((index) => {
 
-		var day  = $(this);
-		var date = day.attr('this_date');
-		var dateObject = new Date(date);
-		var dateString = dateObject.getFullYear()
+		let day = $(this);
+		let date = day.attr('this_date');
+		let dateObject = new Date(date);
+		let dateString = dateObject.getFullYear()
 			+ '-' + utils.leadingZeros(dateObject.getMonth() + 1)
 			+ '-' + utils.leadingZeros(dateObject.getDate());
 
 		for(let school of schools) {
-			var schoolLunch = day.find('div[location="' + school + '"]');
+			let schoolLunch = day.find('div[location="' + school + '"]');
 
 			// Make sure it's not the weekend
 			if(schoolLunch.length > 0) {
 
-				var lunchTitle = schoolLunch.find('span.period-value').text().trim();
-				var categories = schoolLunch.find('div.category-week');
+				let lunchTitle = schoolLunch.find('span.period-value').text().trim();
+				let categories = schoolLunch.find('div.category-week');
 
 				categories.each(function() {
 
-					var category      = $(this);
-					var food          = [];
-					var categoryTitle = category.find('span.category-value').text().trim();
-					var items         = category.find('div.item-week');
+					let category = $(this);
+					let food = [];
+					let categoryTitle = category.find('span.category-value').text().trim();
+					let items = category.find('div.item-week');
 
 					items.each(function() {
 						food.push($(this).text().trim());

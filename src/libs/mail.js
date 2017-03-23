@@ -4,11 +4,10 @@
  * @file Sends emails
  * @module mail
  */
+const config = require(__dirname + '/config.js');
 
-var config = require(__dirname + '/config.js');
-
-var fs         = require('fs');
-var nodemailer = require('nodemailer');
+const fs = require('fs');
+const nodemailer = require('nodemailer');
 
 /**
  * Sends mail to the desired user
@@ -54,13 +53,13 @@ function send(users, message, callback) {
 		return;
 	}
 
-	var transporter = nodemailer.createTransport(config.email.URI);
+	const transporter = nodemailer.createTransport(config.email.URI);
 
-	var mailOptions = {
-		from   : config.email.fromName + ' <' + config.email.fromEmail + '>',
-		to     : users.toString(),
+	const mailOptions = {
+		from: config.email.fromName + ' <' + config.email.fromEmail + '>',
+		to: users.toString(),
 		subject: message.subject,
-		html   : message.html,
+		html: message.html,
 	};
 
 	transporter.sendMail(mailOptions, (err, info) => {
@@ -119,9 +118,9 @@ function sendHTML(users, subject, file, data, callback) {
 			body = body.replace('{{' + key + '}}', data[key]);
 		}
 
-		var mesesage = {
+		const mesesage = {
 			subject: subject,
-			html   : body,
+			html: body,
 		};
 
 		send(users, mesesage, callback);

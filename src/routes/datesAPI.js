@@ -3,8 +3,7 @@
 /**
  * @file Manages user API endpoints
  */
-
-var dates = require(__dirname + '/../libs/dates.js');
+const dates = require(__dirname + '/../libs/dates.js');
 
 module.exports = app => {
 
@@ -14,10 +13,11 @@ module.exports = app => {
 
 	app.post('/dates/breaks', (req, res) => {
 		dates.getBreaks((err, breaks) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 
 			res.json({

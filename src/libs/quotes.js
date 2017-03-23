@@ -28,7 +28,7 @@ function getQuotes(db, callback) {
 		callback(new Error('Invalid database connection!'), null)
 	}
 
-	var quotesData = db.collection('quotes');
+	const quotesData = db.collection('quotes');
 
 	quotesData.find({}).toArray((err, quotes) => {
 		if(err) {
@@ -74,7 +74,7 @@ function insertQuote(db, author, quote, callback) {
 		return;
 	}
 
-	var quotesData = db.collection('quotes');
+	const quotesData = db.collection('quotes');
 
 	quotesData.insertOne({
 		author: author,

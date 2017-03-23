@@ -3,16 +3,16 @@
 /**
  * @file Manages Portal API endpoints
  */
-
-var portal = require(__dirname + '/../libs/portal.js');
+const portal = require(__dirname + '/../libs/portal.js');
 
 module.exports = (app, db, socketIO) => {
 	app.post('/portal/test-url', (req, res) => {
 		portal.verifyURL(req.body.url, (err, isValid, url) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 			res.json({
 				error: errorMessage,
@@ -24,10 +24,11 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/portal/set-url', (req, res) => {
 		portal.setURL(db, req.user.user, req.body.url, (err, isValid, validURL) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 				socketIO.user(req.user.user, 'portal', 'set-url', validURL);
 			}
 			res.json({
@@ -40,10 +41,11 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/portal/get-classes', (req, res) => {
 		portal.getClasses(db, req.user.user, (err, hasURL, classes) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 			res.json({
 				error: errorMessage,
@@ -55,10 +57,11 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/portal/day-rotation', (req, res) => {
 		portal.getDayRotations((err, days) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 			res.json({
 				error: errorMessage,

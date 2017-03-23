@@ -4,20 +4,18 @@
  * @file Uses Portal schedule feed and Configured Classes to format the user's schedule
  * @module schedule
  */
-
-var _             = require('underscore');
-var aliases       = require(__dirname + '/aliases.js');
-var asyncLib      = require('async');
-var classes       = require(__dirname + '/classes.js');
-var moment        = require('moment');
-var users         = require(__dirname + '/users.js');
-var prisma        = require('prisma');
-var portal        = require(__dirname + '/portal.js');
-var blockSchedule = require(__dirname + '/blockSchedule.js');
-var users         = require(__dirname + '/users.js');
+const _ = require('underscore');
+const aliases = require(__dirname + '/aliases.js');
+const asyncLib = require('async');
+const classes = require(__dirname + '/classes.js');
+const moment = require('moment');
+const users = require(__dirname + '/users.js');
+const prisma = require('prisma');
+const portal = require(__dirname + '/portal.js');
+const blockSchedule = require(__dirname + '/blockSchedule.js');
 
 // Mappings for default blocks
-var genericBlocks = {
+const genericBlocks = {
 	activities: {
 		name: 'Activities',
 		teacher: {
@@ -155,8 +153,8 @@ function getSchedule(db, user, date, callback) {
 	if(typeof callback !== 'function') return;
 	if(typeof db !== 'object') { new Error('Invalid database connection!'); return; }
 
-	var scheduleDate = moment(date).startOf('day');
-	var scheduleNextDay = scheduleDate.clone().add(1, 'day');
+	const scheduleDate = moment(date).startOf('day');
+	const scheduleNextDay = scheduleDate.clone().add(1, 'day');
 
 	users.get(db, user || '', (err, isUser, userDoc) => {
 		if(err) {
@@ -203,8 +201,8 @@ function getSchedule(db, user, date, callback) {
 		 */
 
 		// Determine when school should start and end for a default schedule
-		var lateStart = false;
-		var defaultStart = null;
+		let lateStart = false;
+		let defaultStart = null;
 		if(scheduleDate.day() !== 3) {
 			// Not Wednesday, school starts at 8
 			defaultStart = scheduleDate.clone().hour(8);
@@ -213,12 +211,12 @@ function getSchedule(db, user, date, callback) {
 			defaultStart = scheduleDate.clone().hour(9);
 			lateStart = true;
 		}
-		var defaultEnd = scheduleDate.clone().hour(15).minute(15);
+		const defaultEnd = scheduleDate.clone().hour(15).minute(15);
 
 		// Default color for class
-		var defaultColor = '#A5001E';
+		const defaultColor = '#A5001E';
 
-		var defaultClasses = [{
+		const defaultClasses = [{
 			class: {
 				name: 'School',
 				teacher: {
@@ -244,7 +242,7 @@ function getSchedule(db, user, date, callback) {
 					return;
 				}
 
-				var schedule = {
+				const schedule = {
 					day: scheduleDay,
 					special: false,
 					classes: [],
@@ -287,7 +285,6 @@ function getSchedule(db, user, date, callback) {
 				}
 
 				// Assign each class to it's block
-				var blocks = {};
 				for(let block of results.classes) {
 					blocks[block.block] = block; // Very descriptive
 				}
@@ -299,7 +296,7 @@ function getSchedule(db, user, date, callback) {
 					}
 				});
 
-				var schedule = {
+				const schedule = {
 					day: results.day,
 					special: false,
 					classes: [],
@@ -307,7 +304,7 @@ function getSchedule(db, user, date, callback) {
 				};
 
 				// Look up Block Schedule for user
-				var daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc['gradYear']), results.day, lateStart);
+				let daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc['gradYear']), results.day, lateStart);
 
 				// Only combine with block schedule if the block schedule exists
 				if(!daySchedule) {
@@ -342,29 +339,31 @@ function getSchedule(db, user, date, callback) {
 					aliases.mapList(db, user, asyncCallback);
 				},
 			}, (err, results) => {
+				let block;
+				let i;
 				if(err) {
 					callback(err, null, null);
 					return;
 				}
 
-				var portalSchedule = [];
-				var schedule = {
+				let portalSchedule = [];
+				const schedule = {
 					day: null,
 					special: false,
 					classes: [],
-					allDay : []
+					allDay: []
 				};
 
 				// Keep track of which classes we need to delete
-				var conflictIndexes = [];
+				const conflictIndexes = [];
 
 				// Go through all the events in the Portal calendar
 				for(let index of Object.keys(results.portal.cal)) {
-					var calEvent = results.portal.cal[index];
+					const calEvent = results.portal.cal[index];
 					if(typeof calEvent.summary !== 'string') continue;
 
-					var start = moment(calEvent['start']);
-					var end   = moment(calEvent['end']);
+					const start = moment(calEvent['start']);
+					const end = moment(calEvent['end']);
 
 					// Make sure the event isn't all whacky
 					if(end.isBefore(start)) continue;
@@ -374,13 +373,12 @@ function getSchedule(db, user, date, callback) {
 						// See if valid day
 						if(portal.validDayRotation.test(calEvent.summary)) {
 							// Get actual day
-							var day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
-							schedule.day = day;
+							schedule.day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
 							continue;
 						}
 
 						// Check if special schedule
-						var lowercaseSummary = calEvent.summary.toLowerCase();
+						const lowercaseSummary = calEvent.summary.toLowerCase();
 						if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
 							schedule.special = true;
 							continue;
@@ -396,15 +394,15 @@ function getSchedule(db, user, date, callback) {
 						if(typeof results.aliases.portal[calEvent.summary] !== 'object') {
 
 							// Determine block
-							var blockPart = _.last(calEvent.summary.match(portal.portalSummaryBlock));
-							var block = 'other';
+							const blockPart = _.last(calEvent.summary.match(portal.portalSummaryBlock));
+							let block = 'other';
 
 							if(blockPart) {
 								block = _.last(blockPart.match(/[A-G]/g)).toLowerCase();
 							}
 
 							// Generate random color
-							var color = prisma(calEvent.summary).hex;
+							let color = prisma(calEvent.summary).hex;
 
 							// RegEx for determining block and stuff is a bit intense; therefore, we should cache it. [sp1a]
 							results.aliases.portal[calEvent.summary] = {
@@ -440,7 +438,7 @@ function getSchedule(db, user, date, callback) {
 					return;
 				}
 
-				var daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc['gradYear']), schedule.day, lateStart);
+				const daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc['gradYear']), schedule.day, lateStart);
 
 				// If schedule is null for some reason, default back to portal schedule
 				if(daySchedule === null) {
@@ -448,7 +446,7 @@ function getSchedule(db, user, date, callback) {
 				} else {
 
 					// Keep track of original lunch start and end
-					var lunchSpan = [];
+					const lunchSpan = [];
 
 					for(let block of daySchedule) {
 						if(block.includeLunch) {
@@ -468,7 +466,7 @@ function getSchedule(db, user, date, callback) {
 					for(let scheduleClass of schedule.classes) {
 						// Check if it was an original 'includeLunch' period
 						if(scheduleClass.includeLunch && lunchSpan) {
-							var sharedBlock = scheduleClass.block;
+							const sharedBlock = scheduleClass.block;
 							// delete scheduleClass.block;
 							scheduleClass.class = genericBlocks.lunch;
 
@@ -481,14 +479,14 @@ function getSchedule(db, user, date, callback) {
 								}
 							}
 						} else if(scheduleClass.block) {
-							var block = scheduleClass.block;
+							block = scheduleClass.block;
 
 							// It's a class from the block schedule. Create a class object for it
 							if(typeof genericBlocks[block] === 'object') {
 								scheduleClass.class = genericBlocks[block];
 							} else {
-								var blockName = 'Block ' + block[0].toUpperCase() + block.slice(1);
-								var color = prisma(block).hex;
+								const blockName = 'Block ' + block[0].toUpperCase() + block.slice(1);
+								const color = prisma(block).hex;
 								scheduleClass.class = {
 									name: blockName,
 									teacher: {
@@ -534,16 +532,16 @@ function combineClassesSchedule(date, schedule, blocks) {
 	if(typeof blocks !== 'object') blocks = {};
 
 	// Loop through schedule
-	var combinedSchedule = [];
+	const combinedSchedule = [];
 
 	for(let blockObject of schedule) {
 		// Check if user has configured a class for this block
-		var block = blockObject.block;
-		var scheduleClass = blocks[block];
+		const block = blockObject.block;
+		let scheduleClass = blocks[block];
 
 		if(typeof scheduleClass !== 'object') {
-			var blockName = 'Block ' + block[0].toUpperCase() + block.slice(1);
-			var color = prisma(block).hex;
+			const blockName = 'Block ' + block[0].toUpperCase() + block.slice(1);
+			const color = prisma(block).hex;
 			scheduleClass = {
 				name: blockName,
 				teacher: {
@@ -589,19 +587,18 @@ function ordineSchedule(baseSchedule, addClasses) {
 
 	// Add each class to the base schedule
 	for(let addClass of addClasses) {
-		var start = moment(addClass.start);
-		var end   = moment(addClass.end);
+		const start = moment(addClass.start);
+		const end   = moment(addClass.end);
 
 		// Keep track of conflicting indexes
-		var conflictIndexes = [];
+		const conflictIndexes = [];
 
 		// Move other (if any) events with conflicting times
 		for(let scheduleClass of baseSchedule) {
-			var blockStart = moment(scheduleClass.start);
-			var blockEnd   = moment(scheduleClass.end);
-
+			const blockStart = moment(scheduleClass.start);
+			const blockEnd   = moment(scheduleClass.end);
 			// Determine start/end times relative to the class we're currently trying to add
-			var startRelation = null;
+			let startRelation = null;
 			if(start.isSame(blockStart)) {
 				startRelation = 'same start';
 
@@ -618,7 +615,7 @@ function ordineSchedule(baseSchedule, addClasses) {
 				startRelation = 'inside';
 			}
 
-			var endRelation = null;
+			let endRelation = null;
 			if(end.isSame(blockStart)) {
 				endRelation = 'same start';
 
@@ -660,8 +657,8 @@ function ordineSchedule(baseSchedule, addClasses) {
 				// If new event is inside block
 				if(endRelation === 'inside') {
 					// Split event into two
-					var newBlock = JSON.parse(JSON.stringify(scheduleClass));
-					var oldEnd   = scheduleClass.end.clone();
+					const newBlock = JSON.parse(JSON.stringify(scheduleClass));
+					let oldEnd = scheduleClass.end.clone();
 
 					// Set old block to beginning of next block
 					baseSchedule[j].end = start.clone();
@@ -689,9 +686,9 @@ function ordineSchedule(baseSchedule, addClasses) {
 
 		// Delete all conflicting classes
 		conflictIndexes.sort();
-		var deleteOffset = 0;
+		let deleteOffset = 0;
 		for(let conflictIndex of conflictIndexes) {
-			var index = conflictIndex - deleteOffset++;
+			const index = conflictIndex - deleteOffset++;
 			baseSchedule.splice(index, 1);
 		}
 

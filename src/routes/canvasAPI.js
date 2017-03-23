@@ -3,16 +3,16 @@
 /**
  * @file Manages Canvas API endpoints
  */
-
-var canvas = require(__dirname + '/../libs/canvas.js');
+const canvas = require(__dirname + '/../libs/canvas.js');
 
 module.exports = (app, db, socketIO) => {
 	app.post('/canvas/test-url', (req, res) => {
 		canvas.verifyURL(req.body.url, (err, isValid, url) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 			res.json({
 				error: errorMessage,
@@ -24,10 +24,11 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/canvas/set-url', (req, res) => {
 		canvas.setURL(db, req.user.user, req.body.url, (err, isValid, validURL) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 				socketIO.user(req.user.user, 'canvas', 'set-url', validURL);
 			}
 			res.json({
@@ -40,10 +41,11 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/canvas/get-events', (req, res) => {
 		canvas.getEvents(db, req.user.user, (err, hasURL, events) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 			res.json({
 				error : errorMessage,
@@ -55,10 +57,11 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/canvas/get-classes', (req, res) => {
 		canvas.getClasses(db, req.user.user, (err, hasURL, classes) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 			res.json({
 				error: errorMessage,

@@ -4,19 +4,18 @@
  * @file Gets weather from forecast.io
  * @module weather
  */
+const config = require(__dirname + '/config.js');
+const DarkSky = require('forecast.io');
+const fs = require('fs-extra');
 
-var config   = require(__dirname + '/config.js');
-var DarkSky  = require('forecast.io');
-var fs       = require('fs-extra');
-
-var JSONPath = __dirname + '/../api/weather.json';
+const JSONPath = __dirname + '/../api/weather.json';
 
 // Coordinates for MICDS
-var latitude  = 38.658241;
-var longitude = -90.3974471;
+const latitude = 38.658241;
+const longitude = -90.3974471;
 
 // Options for configuring the Forecast object
-var options = {
+const options = {
 	APIKey: config.forecast.APIKey
 };
 
@@ -72,7 +71,7 @@ function updateWeather(callback) {
 	}
 
 	// Create forecast object to query
-	var darksky = new DarkSky(options);
+	const darksky = new DarkSky(options);
 
 	darksky.get(latitude, longitude, (err, res, data) => {
 		if(err) {
