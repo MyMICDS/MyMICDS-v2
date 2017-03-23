@@ -9,10 +9,11 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/alias/add', (req, res) => {
 		aliases.add(db, req.user.user, req.body.type, req.body.classString, req.body.classId, (err, aliasId) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 				socketIO.user(req.user.user, 'alias', 'add', {
 					_id: aliasId,
 					type: req.body.type,

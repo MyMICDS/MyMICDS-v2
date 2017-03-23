@@ -492,7 +492,7 @@ function getSchedule(db, user, date, callback) {
 								scheduleClass.class = genericBlocks[block];
 							} else {
 								const blockName = 'Block ' + block[0].toUpperCase() + block.slice(1);
-								var color = prisma(block).hex;
+								const color = prisma(block).hex;
 								scheduleClass.class = {
 									name: blockName,
 									teacher: {
