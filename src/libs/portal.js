@@ -487,7 +487,7 @@ function parseIcalClasses(data, callback) {
 	const classes = {};
 
 	// Go through each event and add to classes object with a count of how many times they occur
-	for(let calEvent of data) {
+	for(let calEvent of Object.values(data)) {
 		if(typeof calEvent.summary !== 'string') continue;
 
 		const start = moment(calEvent['start']);
@@ -514,7 +514,7 @@ function parseIcalClasses(data, callback) {
 	const filteredClasses = [];
 
 	for(let uniqueClass of uniqueClasses) {
-		const occurences = classes[uniqueClass];
+		const occurrences = classes[uniqueClass];
 
 		// Remove all class names containing a certain keyword
 		const classKeywordBlacklist = [
