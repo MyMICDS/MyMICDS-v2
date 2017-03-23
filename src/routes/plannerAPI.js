@@ -99,4 +99,4 @@ module.exports = (app, db, socketIO) => {
 		});
 	});
 
-}
+};

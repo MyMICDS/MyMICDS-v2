@@ -10,7 +10,7 @@ var config = require(__dirname + '/config.js');
 var _       = require('underscore');
 var request = require('request');
 
-var schoolId = 231
+var schoolId = 231;
 
 /**
  * Logs in the Rams Army app with the configured credentials and returns a loginKey

@@ -136,7 +136,7 @@ function upsertEvent(db, user, plannerEvent, callback) {
 					start: plannerEvent.start,
 					end  : plannerEvent.end,
 					link : plannerEvent.link
-				}
+				};
 
 				// Insert event into database
 				plannerdata.update({ _id: id }, insertEvent, { upsert: true }, (err, results) => {

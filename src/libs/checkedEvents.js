@@ -4,8 +4,7 @@
  * @file Manages checked and unchecked events
  * @module checkedEvents
  */
-
-var users = require(__dirname + '/users.js');
+const users = require(__dirname + '/users.js');
 
 /**
  * Marks an event as complete
@@ -68,7 +67,7 @@ function checkEvent(db, user, eventId, callback) {
 				checkedTime: new Date()
 			};
 
-			var checkedEventsData = db.collection('checkedEvents');
+			let checkedEventsData = db.collection('checkedEvents');
 
 			checkedEventsData.insert(insertChecked, (err, results) => {
 				if(err) {
@@ -77,7 +76,6 @@ function checkEvent(db, user, eventId, callback) {
 				}
 
 				callback(null);
-
 			});
 		});
 	});
@@ -127,7 +125,7 @@ function getChecked(db, user, eventId, callback) {
 			return;
 		}
 
-		var checkedEventsData = db.collection('checkedEvents');
+		let checkedEventsData = db.collection('checkedEvents');
 
 		checkedEventsData.find({ user: userDoc['_id'], eventId: eventId }).toArray((err, checkedEvents) => {
 			if(err) {
@@ -180,7 +178,7 @@ function listChecked(db, user, callback) {
 			return;
 		}
 
-		var checkedEventsData = db.collection('checkedEvents');
+		let checkedEventsData = db.collection('checkedEvents');
 
 		checkedEventsData.find({ user: userDoc['_id'] }).toArray((err, checkedEvents) => {
 			if(err) {
@@ -189,13 +187,12 @@ function listChecked(db, user, callback) {
 			}
 
 			// Append all event ids to array
-			var checkedEventIds = [];
-			for(var i = 0; i < checkedEvents.length; i++) {
+			let checkedEventIds = [];
+			for(let i = 0; i < checkedEvents.length; i++) {
 				checkedEventIds.push(checkedEvents[i].eventId);
 			}
 
 			callback(null, checkedEventIds);
-
 		});
 	});
 }
@@ -243,7 +240,7 @@ function uncheckEvent(db, user, eventId, callback) {
 			return;
 		}
 
-		var checkedEventsData = db.collection('checkedEvents');
+		let checkedEventsData = db.collection('checkedEvents');
 
 		checkedEventsData.deleteMany({ user: userDoc['_id'], eventId: eventId }, (err, results) => {
 			if(err) {

@@ -37,4 +37,4 @@ module.exports = (io, socketIO) => {
 
 		io.emit('progress label spin', anyPressing);
 	}
-}
+};

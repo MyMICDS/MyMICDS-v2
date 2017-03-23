@@ -18,7 +18,7 @@ var longitude = -90.3974471;
 // Options for configuring the Forecast object
 var options = {
 	APIKey: config.forecast.APIKey
-}
+};
 
 /**
  * Get's weather from forecast.io and returns JSON

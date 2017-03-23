@@ -4,10 +4,9 @@
  * @file Wish I had one
  * @module dates
  */
-
-var _      = require('underscore');
-var moment = require('moment');
-var portal = require(__dirname + '/portal.js');
+const _ = require('underscore');
+const moment = require('moment');
+const portal = require(__dirname + '/portal.js');
 
 /**
  * Returns a Moment.js object the date and time school is going to end
@@ -18,28 +17,34 @@ var portal = require(__dirname + '/portal.js');
  */
 
 function lastFridayMay(year) {
-	var current = moment();
+	let current = moment();
 	if(typeof year !== 'number' || year % 1 !== 0) {
 		year = current.year();
 	}
 
-	var lastDayOfMay = moment().year(year).month('May').endOf('month').startOf('day').hours(11).minutes(30);
+	let lastDayOfMay = moment().year(year).month('May').endOf('month').startOf('day').hours(11).minutes(30);
 
 	/*
 	 * Fun fact: This is literally the only switch statement in the whole MyMICDS codebase.
 	 */
 
+	let lastDay;
 	switch(lastDayOfMay.day()) {
 		case 5:
 			// If day is already Friday
-			var lastDay = lastDayOfMay;
+			lastDay = lastDayOfMay;
+			break;
+
 		case 6:
 			// Last day is Sunday
-			var lastDay = lastDayOfMay.subtract(1, 'day');
+			lastDay = lastDayOfMay.subtract(1, 'day');
+			break;
+
 		default:
 			// Subtract day of week (which cancels it out) and start on Saturday.
 			// Then subtract to days to get from Saturday to Friday.
-			var lastDay = lastDayOfMay.subtract(lastDayOfMay.day() + 2, 'days');
+			lastDay = lastDayOfMay.subtract(lastDayOfMay.day() + 2, 'days');
+			break;
 	}
 
 	return lastDay;
@@ -53,8 +58,8 @@ function lastFridayMay(year) {
  */
 
 function schoolEnds() {
-	var current = moment();
-	var lastDayThisYear = lastFridayMay();
+	let current = moment();
+	let lastDayThisYear = lastFridayMay(current.year());
 
 	if(lastDayThisYear.isAfter(current)) {
 		return lastDayThisYear;
@@ -72,7 +77,7 @@ function schoolEnds() {
 
 function getSchoolYear(date) {
 	date = moment(date);
-	var lastDayThisYear = lastFridayMay(date.year());
+	let lastDayThisYear = lastFridayMay(date.year());
 
 	// If after summer, include next year. Otherwise, include last year
 	if(date.isAfter(lastDayThisYear)) {
@@ -107,11 +112,11 @@ function getDaysOff(callback) {
 			return;
 		}
 
-		var dayPointer = moment().startOf('day').subtract(portal.portalRange.previous, 'months');
-		var dayMax = moment().startOf('day').add(portal.portalRange.upcoming, 'months');
+		let dayPointer = moment().startOf('day').subtract(portal.portalRange.previous, 'months');
+		let dayMax = moment().startOf('day').add(portal.portalRange.upcoming, 'months');
 
 		// Array of moment.js objects which we have a day off
-		var daysOff = [];
+		let daysOff = [];
 
 		// Go through all days
 		while(dayPointer.isSameOrBefore(dayMax)) {
@@ -155,12 +160,12 @@ function getBreaks(callback) {
 		}
 
 		// Group days off into arrays
-		var i = 0;
-		var groupedDays = days.reduce((stack, b) => {
-			var cur = stack[i];
-			var a = cur ? cur[cur.length - 1] : 0;
+		let i = 0;
+		let groupedDays = days.reduce((stack, b) => {
+			let cur = stack[i];
+			let a = cur ? cur[cur.length - 1] : 0;
 
-			if(b - a > 86400000) {
+			if (b - a > 86400000) {
 				i++;
 			}
 
@@ -172,7 +177,7 @@ function getBreaks(callback) {
 
 			return stack;
 
-		}, [])
+		}, []);
 		// For some reason first element is always undefined or something
 		groupedDays.shift();
 
@@ -185,7 +190,7 @@ function getBreaks(callback) {
 		 * Other - For some reason if there's a day off in the middle of the week.
 		 */
 
-		var categorizedBreaks = {
+		let categorizedBreaks = {
 			weekends: [],
 			longWeekends: [],
 			vacations: [],
@@ -193,8 +198,8 @@ function getBreaks(callback) {
 		};
 
 		console.log('grouped ays', groupedDays);
-		for(var j = 0; j < groupedDays.length; j++) {
-			var group = groupedDays[j];
+		for(let j = 0; j < groupedDays.length; j++) {
+			let group = groupedDays[j];
 
 			// Check if weekend
 			if(group.length === 2 && group[0].day() === 6 && group[1].day() === 0) {
@@ -206,11 +211,10 @@ function getBreaks(callback) {
 			}
 
 			// Check if Saturday / Sunday are included in break
-			var weekendIncluded = false;
-			for(var k = 0; k < group.length; k++) {
+			let weekendIncluded = false;
+			for(let k = 0; k < group.length; k++) {
 				if(group[k].day() === 6 || group[k].day() === 0) {
 					weekendIncluded = true;
-					continue;
 				}
 			}
 

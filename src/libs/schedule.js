@@ -249,7 +249,7 @@ function getSchedule(db, user, date, callback) {
 					special: false,
 					classes: [],
 					allDay: []
-				}
+				};
 
 				if(scheduleDay) {
 					schedule.classes = defaultClasses;

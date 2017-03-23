@@ -64,4 +64,4 @@ module.exports = io => {
 	};
 
 	return methods;
-}
+};

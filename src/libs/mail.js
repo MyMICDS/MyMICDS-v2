@@ -61,7 +61,7 @@ function send(users, message, callback) {
 		to     : users.toString(),
 		subject: message.subject,
 		html   : message.html,
-	}
+	};
 
 	transporter.sendMail(mailOptions, (err, info) => {
 
@@ -122,7 +122,7 @@ function sendHTML(users, subject, file, data, callback) {
 		var mesesage = {
 			subject: subject,
 			html   : body,
-		}
+		};
 
 		send(users, mesesage, callback);
 	});

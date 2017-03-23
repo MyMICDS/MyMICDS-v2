@@ -4,9 +4,8 @@
  * @file Defines some general cryptography and authorization functions
  * @module cryptoUtils
  */
-
-var bcrypt = require('bcrypt');
-var crypto = require('crypto');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 /**
  * Hashes a given password
@@ -50,14 +49,14 @@ function safeCompare(a, b) {
 		return false;
 	}
 
-	var mismatch = (a.length === b.length ? 0 : 1);
+	let mismatch = (a.length === b.length ? 0 : 1);
 	if(mismatch) {
 		b = a;
 	}
 
-	for(var i = 0; i < a.length; ++i) {
-		var ac = a.charCodeAt(i);
-		var bc = b.charCodeAt(i);
+	for(let i = 0; i < a.length; ++i) {
+		const ac = a.charCodeAt(i);
+		const bc = b.charCodeAt(i);
 		mismatch |= (ac ^ bc);
 	}
 
@@ -87,7 +86,7 @@ function shaHash(str) {
  */
 
 function safeCompareSHA(str, hash) {
-	var hashedStr = shaHash(str);
+	const hashedStr = shaHash(str);
 	return safeCompare(hashedStr, hash);
 }
 

@@ -1,7 +1,7 @@
 'use strict';
 
 var planner = require(__dirname + '/planner.js');
-var announcements = require(__dirname + '/announcements.js')
+var announcements = require(__dirname + '/announcements.js');
 
 function getNotifications(db, user, includeCanvas, callback) {
     if(typeof callback !=='function') return;

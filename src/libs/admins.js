@@ -11,7 +11,7 @@ const mail = require(__dirname + "/mail.js");
  * @function getAdmins
  *
  * @param {Object} db - Database connection
- * @param {getAdminsCallback} callback - Callback
+ * @callback {getAdminsCallback} callback - Callback
  */
 
 /**
@@ -51,7 +51,7 @@ function getAdmins(db, callback) {
  * @param {Object} message - JSON containing details of message
  * @param {string} message.subject - Subject of email
  * @param {string} message.html - HTML message
- * @param {getAdminsCallback} callback - Callback
+ * @callback {getAdminsCallback} callback - Callback
  */
 
 /**

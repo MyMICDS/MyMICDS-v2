@@ -4,8 +4,7 @@
  * @file A bunch of utilities dealing with the parsing and manipulating of HTML strings
  * @module htmlParser
  */
-
-var htmlparser = require('htmlparser2');
+const htmlparser = require('htmlparser2');
 
 /**
  * Converts an HTML file to plaintext.
@@ -15,9 +14,9 @@ var htmlparser = require('htmlparser2');
  */
 
 function htmlToText(html) {
-	var plaintext = '';
+	let plaintext = '';
 
-	var parser = new htmlparser.Parser({
+	let parser = new htmlparser.Parser({
 		onopentag: (name, attribs) => {
 			// Do nothing
 		},
@@ -27,7 +26,7 @@ function htmlToText(html) {
 		onclosetag: tagname => {
 			// Do nothing
 		}
-	}, { decodeEntities: true });
+	}, {decodeEntities: true});
 
 	parser.parseComplete(html);
 	return plaintext;

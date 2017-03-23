@@ -4,19 +4,18 @@
  * @file Functions for inserting class data
  * @module classes
  */
+const _ = require('underscore');
+const aliases = require(__dirname + '/aliases.js');
+const asyncLib = require('async');
+const ObjectID = require('mongodb').ObjectID;
+const prisma = require('prisma');
+const teachers = require(__dirname + '/teachers.js');
+const users = require(__dirname + '/users.js');
 
-var _        = require('underscore');
-var aliases  = require(__dirname + '/aliases.js');
-var asyncLib = require('async');
-var ObjectID = require('mongodb').ObjectID;
-var prisma   = require('prisma');
-var teachers = require(__dirname + '/teachers.js');
-var users    = require(__dirname + '/users.js');
+const Random = require("random-js");
+const engine = Random.engines.mt19937().autoSeed();
 
-var Random = require("random-js");
-var engine = Random.engines.mt19937().autoSeed();
-
-var validBlocks = [
+const validBlocks = [
 	'a',
 	'b',
 	'c',
@@ -28,7 +27,7 @@ var validBlocks = [
 	'other'
 ];
 
-var validTypes = [
+const validTypes = [
 	'art',
 	'english',
 	'history',
@@ -43,7 +42,7 @@ var validTypes = [
 ];
 
 // RegEx to test if string is a valid hex color ('#XXX' or '#XXXXXX')
-var validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
+const validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
 
 /**
  * Inserts/updates a class to the database
@@ -64,7 +63,7 @@ var validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
  * @param {string} scheduleClass.teacher.firstName - First name of teacher
  * @param {string} scheduleClass.teacher.lastName - Last name of teacher
  *
- * @param {upsertClassCallback} callback - Callback
+ * @callback {upsertClassCallback} callback - Callback
  */
 
 /**
@@ -90,7 +89,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 	// If not valid color, generate random
 	if(!validColor.test(scheduleClass.color)) {
 		// You think we're playing around here? No. This is MyMICDS.
-		// We are going to crypographically generate a color as random as human intelligence can get us.
+		// We are going to cryptographically generate a color as random as human intelligence can get us.
 		scheduleClass.color = '#' + Random.hex(true)(engine, 6);
 	} else {
 		// Make sure hex is capitalized
@@ -115,20 +114,22 @@ function upsertClass(db, user, scheduleClass, callback) {
 				return;
 			}
 
-			var classdata = db.collection('classes');
+			let classdata = db.collection('classes');
 
 			// Check for duplicate classes first
 			classdata.find({ user: userDoc['_id'] }).toArray((err, classes) => {
+				let id;
+				let i;
 				if(err) {
 					callback(new Error('There was a problem querying the database!'), null);
 					return;
 				}
 
 				// Lets see if any of the classes are the one we are supposed to edit
-				var validEditId = false;
+				let validEditId = false;
 				if(scheduleClass._id !== '') {
-					for(var i = 0; i < classes.length; i++) {
-						var classId = classes[i]['_id'];
+					for(i = 0; i < classes.length; i++) {
+						let classId = classes[i]['_id'];
 						if(scheduleClass._id === classId.toHexString()) {
 							validEditId = classId;
 							break;
@@ -138,8 +139,8 @@ function upsertClass(db, user, scheduleClass, callback) {
 
 				// Now lets see if any of these classes are duplicate
 				var dupClassIds = [];
-				for(var i = 0; i < classes.length; i++) {
-					var classDoc = classes[i];
+				for(i = 0; i < classes.length; i++) {
+					let classDoc = classes[i];
 
 					// If duplicate class, push id to array
 					if(scheduleClass.name  === classDoc.name
@@ -166,20 +167,20 @@ function upsertClass(db, user, scheduleClass, callback) {
 
 				// Generate an Object ID, or use the id that we are editting
 				if(validEditId) {
-					var id = validEditId;
+					id = validEditId;
 				} else {
-					var id = new ObjectID();
+					id = new ObjectID();
 				}
 
-				var insertClass = {
+				let insertClass = {
 					_id: id,
 					user: userDoc['_id'],
 					name: scheduleClass.name,
 					teacher: teacherDoc['_id'],
-					type : scheduleClass.type,
+					type: scheduleClass.type,
 					block: scheduleClass.block,
 					color: scheduleClass.color,
-				}
+				};
 
 				// Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
 				classdata.update({ _id: id }, insertClass, { upsert: true }, (err, results) => {
@@ -238,7 +239,7 @@ function getClasses(db, user, callback) {
 			return;
 		}
 
-		var classdata = db.collection('classes');
+		let classdata = db.collection('classes');
 
 		// Get all classes under the specified user id
 		classdata.find({ user: userDoc['_id'] }).toArray((err, classes) => {
@@ -248,13 +249,13 @@ function getClasses(db, user, callback) {
 			}
 
 			// Add 'textDark' to all of the classes based on color
-			for(var i = 0; i < classes.length; i++) {
+			for(let i = 0; i < classes.length; i++) {
 				classes[i].textDark = prisma.shouldTextBeDark(classes[i].color);
 			}
 
 			// Go through all events and set user to actual username, and teacher to actual teacher
 			// Save teachers in object so we don't have to query database more than we need to
-			var teachersList = {};
+			let teachersList = {};
 
 			function injectValues(i) {
 
@@ -263,7 +264,7 @@ function getClasses(db, user, callback) {
 					classes[i]['user'] = userDoc['user'];
 
 					// Set teacher to actual teacher
-					var teacherId = classes[i]['teacher'];
+					let teacherId = classes[i]['teacher'];
 
 					if(typeof teachersList[teacherId] === 'undefined') {
 						teachers.get(db, teacherId, (err, isTeacher, teacherDoc) => {
@@ -325,8 +326,9 @@ function deleteClass(db, user, classId, callback) {
 		return;
 	}
 	// Try to create object id
+	let id;
 	try {
-		var id = new ObjectID(classId);
+		id = new ObjectID(classId);
 	} catch(e) {
 		callback(new Error('Invalid event id!'));
 		return;
@@ -343,7 +345,7 @@ function deleteClass(db, user, classId, callback) {
 			return;
 		}
 
-		var classdata = db.collection('classes');
+		let classdata = db.collection('classes');
 		classdata.deleteMany({ _id: id, user: userDoc['_id'] }, (err, results) => {
 			if(err) {
 				callback(new Error('There was a problem deleting the class from the database!'));
@@ -356,7 +358,6 @@ function deleteClass(db, user, classId, callback) {
 			aliases.deleteClasslessAliases(db, err => {
 				console.log('[' + new Date() + '] Error occured when deleting classless teachers! (' + err + ')');
 			});
-
 		});
 	});
 }
