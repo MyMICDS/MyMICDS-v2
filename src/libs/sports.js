@@ -4,13 +4,12 @@
  * @file Queries the Rams Army app API
  * @module sports
  */
+const config = require(__dirname + '/config.js');
 
-var config = require(__dirname + '/config.js');
+const _ = require('underscore');
+const request = require('request');
 
-var _       = require('underscore');
-var request = require('request');
-
-var schoolId = 231;
+const schoolId = 231;
 
 /**
  * Logs in the Rams Army app with the configured credentials and returns a loginKey
@@ -23,7 +22,7 @@ var schoolId = 231;
  * Returns a loginKey
  * @callback loginCallback
  *
- * @param {Object} err- Null if success, error object if failure.
+ * @param {Object} err - Null if success, error object if failure.
  * @param {string} loginKey - Login key to be passed in with all API requests to Rams Army app. Null if error.
  */
 
@@ -85,7 +84,7 @@ function getScores(callback) {
 				return;
 			}
 
-			var scores = {};
+			const scores = {};
 			scores.scores = [];
 			scores.events = [];
 

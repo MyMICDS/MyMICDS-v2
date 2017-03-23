@@ -3,17 +3,17 @@
 /**
  * @file Manages sports API endpoints
  */
-
-var sports = require(__dirname + '/../libs/sports.js');
+const sports = require(__dirname + '/../libs/sports.js');
 
 module.exports = app => {
 
 	app.post('/sports/scores', (req, res) => {
 		sports.scores((err, scores) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 
 			res.json({

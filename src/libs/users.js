@@ -4,10 +4,9 @@
  * @file User management functions
  * @module users
  */
-
-var _      = require('underscore');
-var dates  = require(__dirname + '/dates.js');
-var moment = require('moment');
+const _ = require('underscore');
+const dates = require(__dirname + '/dates.js');
+const moment = require('moment');
 
 /**
  * Get data about user
@@ -39,7 +38,7 @@ function getUser(db, user, callback) {
 		return;
 	}
 
-	var userdata = db.collection('users');
+	const userdata = db.collection('users');
 	// Query database to find possible user
 	userdata.find({ user: user }).toArray((err, docs) => {
 		if(err) {
@@ -96,7 +95,7 @@ function getInfo(db, user, privateInfo, callback) {
 
 		// Create userInfo object and manually move values from database.
 		// We don't want something accidentally being released to user.
-		var userInfo = {};
+		const userInfo = {};
 		userInfo.user      = userDoc['user'];
 		userInfo.password  = 'Hunter2'; /** @TODO: Fix glitch? Shows up as ******* for me. */
 		userInfo.firstName = userDoc['firstName'];
@@ -170,7 +169,7 @@ function changeInfo(db, user, info, callback) {
 		}
 
 		// See what information the user wants changed
-		var set = {};
+		const set = {};
 
 		if(typeof info.firstName === 'string') {
 			set.firstName = info.firstName;
@@ -190,7 +189,7 @@ function changeInfo(db, user, info, callback) {
 		}
 
 		// Update data
-		var userdata = db.collection('users');
+		const userdata = db.collection('users');
 		userdata.update({ _id: userDoc['_id'], user: user }, { $set: set }, { upsert: true }, (err, results) => {
 			if(err) {
 				callback(new Error('There was a problem updating the databse!'));
@@ -214,12 +213,12 @@ function changeInfo(db, user, info, callback) {
 function gradYearToGrade(gradYear) {
 	if(typeof gradYear !== 'number' || gradYear % 1 !== 0) return null;
 
-	var current = moment();
-	var differenceYears = current.year() - gradYear;
-	var grade = 12 + differenceYears;
+	const current = moment();
+	const differenceYears = current.year() - gradYear;
+	let grade = 12 + differenceYears;
 
 	// If last day of school has already passed, you completed a grade of school
-	var schoolEnd = dates.lastFridayMay();
+	const schoolEnd = dates.lastFridayMay();
 	if(current.isAfter(schoolEnd)) {
 		grade++;
 	}
@@ -238,18 +237,16 @@ function gradYearToGrade(gradYear) {
 function gradeToGradYear(grade) {
 	if(typeof grade !== 'number' || grade % 1 !== 0) return null;
 
-	var current = moment();
+	const current = moment();
 
 	// If last day of school has already passed, round year down
-	var schoolEnd = dates.lastFridayMay();
+	const schoolEnd = dates.lastFridayMay();
 	if(current.isAfter(schoolEnd)) {
 		grade--;
 	}
 
-	var differenceYears = grade - 12;
-	var gradYear = current.year() - differenceYears;
-
-	return gradYear;
+	const differenceYears = grade - 12;
+	return current.year() - differenceYears;
 }
 
 /**

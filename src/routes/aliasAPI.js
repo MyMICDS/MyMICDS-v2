@@ -3,8 +3,7 @@
 /**
  * @file Manages alias API endpoints
  */
-
-var aliases = require(__dirname + "/../libs/aliases.js");
+const aliases = require(__dirname + "/../libs/aliases.js");
 
 module.exports = (app, db, socketIO) => {
 
@@ -28,10 +27,11 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/alias/list', (req, res) => {
 		aliases.list(db, req.user.user, (err, aliases) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 
 			res.json({ error: errorMessage, aliases: aliases });
@@ -40,10 +40,11 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/alias/delete', (req, res) => {
 		aliases.delete(db, req.user.user, req.body.type, req.body.id, err => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 				socketIO.user(req.user.user, 'alias', 'delete', req.body.id);
 			}
 

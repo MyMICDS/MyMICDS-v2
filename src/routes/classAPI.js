@@ -3,17 +3,17 @@
 /**
  * @file Manages class API endpoints
  */
-
-var classes = require(__dirname + '/../libs/classes.js');
+const classes = require(__dirname + '/../libs/classes.js');
 
 module.exports = (app, db, socketIO) => {
 
 	app.post('/classes/get', (req, res) => {
 		classes.get(db, req.user.user, (err, classes) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 			res.json({
 				error: errorMessage,
@@ -23,25 +23,26 @@ module.exports = (app, db, socketIO) => {
 	});
 
 	app.post('/classes/add', (req, res) => {
-		var user = req.user.user;
-		var scheduleClass = {
-			_id  : req.body.id,
+		const user = req.user.user;
+		const scheduleClass = {
+			_id: req.body.id,
 			name: req.body.name,
 			color: req.body.color,
 			block: req.body.block,
-			type : req.body.type,
+			type: req.body.type,
 			teacher: {
 				prefix: req.body.teacherPrefix,
 				firstName: req.body.teacherFirstName,
-				lastName : req.body.teacherLastName
+				lastName: req.body.teacherLastName
 			}
 		};
 
 		classes.upsert(db, user, scheduleClass, (err, scheduleClass) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 				socketIO.user(req.user.user, 'classes', 'add', scheduleClass);
 			}
 			res.json({
@@ -53,10 +54,11 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/classes/delete', (req, res) => {
 		classes.delete(db, req.user.user, req.body.id, err => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 				socketIO.user(req.user.user, 'classes', 'delete', req.body.id);
 			}
 			res.json({ error: errorMessage });
@@ -64,6 +66,6 @@ module.exports = (app, db, socketIO) => {
 	});
 	
 	app.post('classes/students/get', (req, res) => {
-		var cls = req.body.class;
+		let cls = req.body.class;
 	});
 };

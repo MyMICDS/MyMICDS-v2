@@ -4,35 +4,36 @@
  * @file Main file of the whole project.
  */
 
+let config;
 try {
-	var config = require(__dirname + '/libs/config.js');
+	config = require(__dirname + '/libs/config.js');
 } catch(e) {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }
 
-var port = process.env.PORT || config.port;
+const port = process.env.PORT || config.port;
 
 /*
  * General Libraries
  */
 
-var bodyParser  = require('body-parser');
-var cors        = require('cors');
-var http        = require('http');
-var jwt         = require(__dirname + '/libs/jwt.js');
-var lunch       = require(__dirname + '/libs/lunch.js');
-var mail        = require(__dirname + '/libs/mail.js');
-var MongoClient = require('mongodb').MongoClient;
-var request     = require('request');
-var weather     = require(__dirname + '/libs/weather.js');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const http = require('http');
+const jwt = require(__dirname + '/libs/jwt.js');
+const lunch = require(__dirname + '/libs/lunch.js');
+const mail = require(__dirname + '/libs/mail.js');
+const MongoClient = require('mongodb').MongoClient;
+const request = require('request');
+const weather = require(__dirname + '/libs/weather.js');
 
 /*
  * Frameworks
  */
 
-var express = require('express');
-var app = express();
-var server = http.Server(app);
+const express = require('express');
+const app = express();
+const server = http.Server(app);
 
 /**
  * Express Middleware
@@ -52,8 +53,8 @@ app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
  */
 
 // Socket.io
-var io = require('socket.io')(server);
-var socketIO = require(__dirname + '/libs/socket.io.js')(io);
+const io = require('socket.io')(server);
+const socketIO = require(__dirname + '/libs/socket.io.js')(io);
 
 // Miscellaneous stuff
 require(__dirname + '/libs/realtime.js')(io, socketIO);

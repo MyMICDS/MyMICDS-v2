@@ -4,8 +4,7 @@
  * @file Calculates usage statistics from the database.
  * @module stats
  */
-
-var moment = require('moment');
+const moment = require('moment');
 
 /**
  * Get usage statistics
@@ -31,7 +30,7 @@ function getStats(db, callback) {
 		return;
 	}
 
-	var stats = {
+	const stats = {
 		registered: {
 			total: 0,
 			today: 0,
@@ -42,10 +41,11 @@ function getStats(db, callback) {
 			gradYears: {}
 		}
 	};
-	var userdata = db.collection('users');
+	const userdata = db.collection('users');
 
 	// Get all users
 	userdata.find({ confirmed: true }).toArray((err, userDocs) => {
+		let i;
 		if(err) {
 			callback(new Error('There was a problem querying the users from the database!'), null);
 			return;
@@ -55,9 +55,9 @@ function getStats(db, callback) {
 		stats.registered.total = userDocs.length;
 
 		// Get array of unique gradYears
-		var gradYears = [];
-		for(var i = 0; i < userDocs.length; i++) {
-			var gradYear = userDocs[i].gradYear;
+		const gradYears = [];
+		for(i = 0; i < userDocs.length; i++) {
+			let gradYear = userDocs[i].gradYear;
 
 			// If gradYear is null, it's a teacher
 			if(gradYear === null) {
@@ -71,27 +71,27 @@ function getStats(db, callback) {
 		}
 
 		// First off, set every graduation year to 0 or empty object
-		for(var i = 0; i < gradYears.length; i++) {
-			var gradYear = gradYears[i];
+		for(i = 0; i < gradYears.length; i++) {
+			let gradYear = gradYears[i];
 
 			stats.registered.gradYears[gradYear] = {};
 			stats.visitedToday.gradYears[gradYear] = 0;
 		}
 
 		// Loop through all the users for when they registered and last time they visited the site
-		var today = moment();
-		for(var i = 0; i < userDocs.length; i++) {
-			var userDoc = userDocs[i];
+		const today = moment();
+		for(i = 0; i < userDocs.length; i++) {
+			const userDoc = userDocs[i];
 
 			// If gradYear is null, it's a teacher
-			var gradYear = userDoc.gradYear;
+			let gradYear = userDoc.gradYear;
 			if(gradYear === null) {
 				gradYear = 'teacher'
 			}
 
 			// Get day user registered
-			var registered = moment(userDoc.registered);
-			var formatRegistered = registered.format('YYYY-MM-DD');
+			const registered = moment(userDoc.registered);
+			const formatRegistered = registered.format('YYYY-MM-DD');
 
 			// Check if user registered today
 			if(today.isSame(registered, 'day')) {

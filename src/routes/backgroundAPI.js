@@ -3,17 +3,17 @@
 /**
  * @file Manages Background API endpoints
  */
-
-var backgrounds = require(__dirname + '/../libs/backgrounds.js');
+const backgrounds = require(__dirname + '/../libs/backgrounds.js');
 
 module.exports = (app, db, socketIO) => {
 
 	app.post('/background/get', (req, res) => {
 		backgrounds.get(req.user.user, (err, variants, hasDefault) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 			res.json({
 				error: errorMessage,
@@ -33,10 +33,11 @@ module.exports = (app, db, socketIO) => {
 
 			// Add blurred version of image
 			backgrounds.blurUser(req.user.user, err => {
+				let errorMessage;
 				if(err) {
-					var errorMessage = err.message;
+					errorMessage = err.message;
 				} else {
-					var errorMessage = null;
+					errorMessage = null;
 					socketIO.user(req.user.user, 'background', 'upload');
 				}
 				res.json({ error: errorMessage });
@@ -46,10 +47,11 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/background/delete', (req, res) => {
 		backgrounds.delete(req.user.user, err => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 				socketIO.user(req.user.user, 'background', 'delete');
 			}
 			res.json({ error: errorMessage });

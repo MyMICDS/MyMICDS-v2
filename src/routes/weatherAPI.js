@@ -3,19 +3,19 @@
 /**
  * @file Manages weather API endpoints
  */
-
-var _       = require('underscore');
-var users   = require(__dirname + '/../libs/users.js');
-var weather = require(__dirname + '/../libs/weather.js');
+const _ = require('underscore');
+const users = require(__dirname + '/../libs/users.js');
+const weather = require(__dirname + '/../libs/weather.js');
 
 module.exports = (app, db, socketIO) => {
 
 	app.post('/weather/get', (req, res) => {
 		weather.get((err, weatherJSON) => {
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 			res.json({
 				error: errorMessage,
@@ -38,10 +38,11 @@ module.exports = (app, db, socketIO) => {
 
 			// Alright, username checks out
 			weather.update((err, weatherJSON) => {
+				let errorMessage;
 				if(err) {
-					var errorMessage = err.message;
+					errorMessage = err.message;
 				} else {
-					var errorMessage = null;
+					errorMessage = null;
 					socketIO.global('weather', weatherJSON);
 				}
 				res.json({ error: errorMessage });

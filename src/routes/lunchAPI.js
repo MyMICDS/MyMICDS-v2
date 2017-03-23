@@ -3,27 +3,27 @@
 /**
  * @file Manages lunch API endpoints
  */
-
-var lunch = require(__dirname + '/../libs/lunch.js');
+const lunch = require(__dirname + '/../libs/lunch.js');
 
 module.exports = (app, db) => {
 
 	app.post('/lunch/get', (req, res) => {
 
-		var current = new Date();
+		const current = new Date();
 
-		var year = req.body.year || current.getFullYear();
-		var month = req.body.month || current.getMonth() + 1;
-		var day = req.body.day || current.getDate();
+		const year = req.body.year || current.getFullYear();
+		const month = req.body.month || current.getMonth() + 1;
+		const day = req.body.day || current.getDate();
 
-		var date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+		const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
 		lunch.get(db, date, (err, lunchJSON) => {
 
+			let errorMessage;
 			if(err) {
-				var errorMessage = err.message;
+				errorMessage = err.message;
 			} else {
-				var errorMessage = null;
+				errorMessage = null;
 			}
 
 			res.json({

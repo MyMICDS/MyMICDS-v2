@@ -138,7 +138,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 				}
 
 				// Now lets see if any of these classes are duplicate
-				var dupClassIds = [];
+				const dupClassIds = [];
 				for(i = 0; i < classes.length; i++) {
 					let classDoc = classes[i];
 

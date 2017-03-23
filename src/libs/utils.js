@@ -4,23 +4,22 @@
  * @file General functions used throughout the project
  * @module utils
  */
+const _ = require('underscore');
 
-var _ = require('underscore');
+/**
+ * Returns a number with possible leading zero if under 10
+ * @function leadingZeros
+ * @param {Number} n - number
+ * @returns {Number|String}
+ */
 
- /**
-  * Returns a number with possible leading zero if under 10
-  * @function leadingZeros
-  * @param {Number} n - number
-  * @returns {Number|String}
-  */
-
- function leadingZeros(n) {
- 	if(n < 10) {
- 		return '0' + n;
- 	} else {
- 		return n;
- 	}
- }
+function leadingZeros(n) {
+	if (n < 10) {
+		return '0' + n;
+	} else {
+		return n;
+	}
+}
 
 /**
  * Tests whether string is valid filename to prevent users from accessing/deleting files outside a specified directory (Ex. '../../some/other/directory')
@@ -29,7 +28,7 @@ var _ = require('underscore');
  */
 
 function validFilename(username) {
-	var nonoChars = [
+	const nonoChars = [
 		'..',
 		'/',
 		'\\'
@@ -37,5 +36,5 @@ function validFilename(username) {
 	return !_.contains(nonoChars, username);
 }
 
-module.exports.leadingZeros  = leadingZeros;
+module.exports.leadingZeros = leadingZeros;
 module.exports.validFilename = validFilename;
