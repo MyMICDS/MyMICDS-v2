@@ -89,9 +89,7 @@ function addAlias(db, user, type, classString, classId, callback) {
 
 				// Loop through classes and search for class with id specified
 				let validClassObject = null;
-				for(let i = 0; i < classes.length; i++) {
-					let classObject = classes[i];
-
+				for(let classObject of classes) {
 					if(classObject._id.toHexString() === classId) {
 						validClassObject = classObject;
 						break;
@@ -180,14 +178,12 @@ function listAliases(db, user, callback) {
 			let aliasList = {};
 
 			// Add array for all alias types
-			for(i = 0; i < aliasTypes.length; i++) {
-				let aliasType = aliasTypes[i];
+			for(let aliasType of aliasTypes) {
 				aliasList[aliasType] = [];
 			}
 
 			// Loop through aliases and organize them by type
-			for(i = 0; i < aliases.length; i++) {
-				let alias = aliases[i];
+			for(let alias of aliases) {
 				// Make sure alias type exists
 				if(aliasList[alias.type]) {
 					aliasList[alias.type].push(alias);
@@ -246,20 +242,17 @@ function mapAliases(db, user, callback) {
 		let aliasMap = {};
 
 		// Organize classes by id
-		for(i = 0; i < results.classes.length; i++) {
-			let scheduleClass = results.classes[i];
+		for(let scheduleClass of results.classes) {
 			classMap[scheduleClass._id.toHexString()] = scheduleClass;
 		}
 
 		// Organize aliases by native class id
-		for(i = 0; i < aliasTypes.length; i++) {
-			let type = aliasTypes[i];
+		for(let type of aliasTypes) {
 			aliasMap[type] = {};
 
 			if(typeof results.aliases[type] !== 'object') continue;
 
-			for(let j = 0; j < results.aliases[type].length; j++) {
-				let aliasObject = results.aliases[type][j];
+			for(let aliasObject of results.aliases[type]) {
 				aliasMap[type][aliasObject.classRemote] = classMap[aliasObject.classNative.toHexString()];
 			}
 		}
@@ -307,8 +300,7 @@ function deleteAlias(db, user, type, aliasId, callback) {
 		}
 
 		let validAliasId = null;
-		for(let i = 0; i < aliases[type].length; i++) {
-			let alias = aliases[type][i];
+		for(let alias of aliases[type]) {
 			if(aliasId === alias._id.toHexString()) {
 				validAliasId = alias._id;
 				break;
@@ -403,9 +395,7 @@ function getAliasClass(db, user, type, classInput, callback) {
 				}
 
 				// Search user's classes for valid class id
-				for(let i = 0; i < classes.length; i++) {
-					let classObject = classes[i];
-
+				for(let classObject of classes) {
 					if(classId.toHexString() === classObject._id.toHexString()) {
 						callback(null, true, classObject);
 						return;
@@ -485,9 +475,7 @@ function deleteClasslessAliases(db, callback) {
 			let alias = results.aliases[i];
 
 			let validClass = false;
-			for(let j = 0; j < results.classes.length; j++) {
-				let dbClass = results.classes[j];
-
+			for(let dbClass of results.classes) {
 				// Check if alias has a corresponding class id with the same user
 				if(alias.classNative.toHexString() === dbClass._id.toHexString()) {
 					validClass = true;

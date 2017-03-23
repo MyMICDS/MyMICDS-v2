@@ -107,9 +107,7 @@ function parseLunch(body) {
 			+ '-' + utils.leadingZeros(dateObject.getMonth() + 1)
 			+ '-' + utils.leadingZeros(dateObject.getDate());
 
-		for(var i = 0; i < schools.length; i++) {
-			var school = schools[i];
-
+		for(let school of schools) {
 			var schoolLunch = day.find('div[location="' + school + '"]');
 
 			// Make sure it's not the weekend
@@ -137,8 +135,8 @@ function parseLunch(body) {
 					json[dateString][schoolFilter(school)]['categories'] = json[dateString][schoolFilter(school)]['categories'] || {};
 					json[dateString][schoolFilter(school)]['categories'][categoryTitle] = json[dateString][schoolFilter(school)]['categories'][categoryTitle] || [];
 
-					for(var j = 0; j < food.length; j++) {
-						json[dateString][schoolFilter(school)]['categories'][categoryTitle].push(food[j]);
+					for(let f of food) {
+						json[dateString][schoolFilter(school)]['categories'][categoryTitle].push(f);
 					}
 
 				});

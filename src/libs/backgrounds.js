@@ -136,8 +136,8 @@ function getCurrentFiles(user, callback) {
 
 		// Look through all the directories
 		let userDir = null;
-		for(let i = 0; i < userDirs.length; i++) {
-			let dir = path.parse(userDirs[i]);
+		for(let _dir of userDirs) {
+			let dir = path.parse(_dir);
 			let dirname = dir.name;
 			let dirnameSplit = dirname.split('-');
 
@@ -174,9 +174,8 @@ function getCurrentFiles(user, callback) {
 
 			// Loop through all valid files until there's either a .png or .jpg extention
 			let userExtension = null;
-			for(let i = 0; i < userImages.length; i++) {
-
-				let file = path.parse(userImages[i]);
+			for(let _file of userImages) {
+				let file = path.parse(_file);
 				let extension = file.ext;
 
 				// If valid extension, just break out of loop and return that

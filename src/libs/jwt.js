@@ -191,8 +191,7 @@ function generate(db, user, rememberMe, callback) {
 		};
 
 		if(_.isArray(userDoc['scopes'])) {
-			for(var i = 0; i < userDoc['scopes'].length; i++) {
-				var scope = userDoc['scopes'][i];
+			for(let scope of userDoc['scopes']) {
 				scopes[scope] = true;
 			}
 		}

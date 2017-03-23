@@ -56,8 +56,8 @@ function getStats(db, callback) {
 
 		// Get array of unique gradYears
 		var gradYears = [];
-		for(var i = 0; i < userDocs.length; i++) {
-			var gradYear = userDocs[i].gradYear;
+		for(let userDoc of userDocs) {
+			var gradYear = userDoc.gradYear;
 
 			// If gradYear is null, it's a teacher
 			if(gradYear === null) {
@@ -71,18 +71,14 @@ function getStats(db, callback) {
 		}
 
 		// First off, set every graduation year to 0 or empty object
-		for(var i = 0; i < gradYears.length; i++) {
-			var gradYear = gradYears[i];
-
+		for(let gradYear of gradYears) {
 			stats.registered.gradYears[gradYear] = {};
 			stats.visitedToday.gradYears[gradYear] = 0;
 		}
 
 		// Loop through all the users for when they registered and last time they visited the site
 		var today = moment();
-		for(var i = 0; i < userDocs.length; i++) {
-			var userDoc = userDocs[i];
-
+		for(let userDoc of userDocs) {
 			// If gradYear is null, it's a teacher
 			var gradYear = userDoc.gradYear;
 			if(gradYear === null) {

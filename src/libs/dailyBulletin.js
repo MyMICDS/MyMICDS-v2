@@ -76,9 +76,7 @@ function queryLatest(callback) {
 				let parts = recentMessage.payload.parts;
 				let attachmentId = null;
 				let originalFilename = null;
-				for(let i = 0; i < parts.length; i++) {
-					let part = parts[i];
-
+				for(let part of parts) {
 					// If part contains PDF attachment, we're done boys.
 					if(part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
 						attachmentId = part.body.attachmentId;
@@ -238,14 +236,11 @@ function queryAll(callback) {
 								let attachmentIdFilenames = [];
 
 								// Search through the emails for any PDF
-								for(let j = 0; j < getMessages.length; j++) {
-									let response = getMessages[j];
+								for(let response of getMessages) {
 									let parts = response.body.payload.parts;
 
 									// Loop through parts looking for a PDF attachment
-									for(let k = 0; k < parts.length; k++) {
-										let part = parts[k];
-
+									for(let part of parts) {
 										// If part contains PDF attachment, append attachment id and filename to arrays.
 										if(part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
 											let attachmentId = part.body.attachmentId;
@@ -396,8 +391,8 @@ function getList(callback) {
 
 			// Only return files that are a PDF
 			let bulletins = [];
-			for(let i = 0; i < files.length; i++) {
-				let file = path.parse(files[i]);
+			for(let _file of files) {
+				let file = path.parse(_file);
 				if(file.ext === '.pdf') {
 					bulletins.push(file.name);
 				}

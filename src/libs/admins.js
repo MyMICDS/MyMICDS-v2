@@ -77,14 +77,8 @@ function sendAdminEmail(db, message, callback) {
 			return;
 		}
 
-		let adminEmails = [];
-
-		for(let i = 0; i < admins.length; i++) {
-			adminEmails.push(admins[i].user + '@micds.org');
-		}
-
 		// Send email
-		mail.send(adminEmails, message, err => {
+		mail.send(admins.map(a => a.user + '@micds.org'), message, err => {
 			if(err) {
 				callback(err);
 			}

@@ -128,8 +128,8 @@ function upsertClass(db, user, scheduleClass, callback) {
 				// Lets see if any of the classes are the one we are supposed to edit
 				let validEditId = false;
 				if(scheduleClass._id !== '') {
-					for(i = 0; i < classes.length; i++) {
-						let classId = classes[i]['_id'];
+					for(let theClass of classes) {
+						let classId = theClass['_id'];
 						if(scheduleClass._id === classId.toHexString()) {
 							validEditId = classId;
 							break;
@@ -139,9 +139,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 
 				// Now lets see if any of these classes are duplicate
 				var dupClassIds = [];
-				for(i = 0; i < classes.length; i++) {
-					let classDoc = classes[i];
-
+				for(let classDoc of classes) {
 					// If duplicate class, push id to array
 					if(scheduleClass.name  === classDoc.name
 						&& teacherDoc['_id'].toHexString() === classDoc['teacher'].toHexString()
@@ -249,8 +247,8 @@ function getClasses(db, user, callback) {
 			}
 
 			// Add 'textDark' to all of the classes based on color
-			for(let i = 0; i < classes.length; i++) {
-				classes[i].textDark = prisma.shouldTextBeDark(classes[i].color);
+			for(let theClass of classes) {
+				theClass.textDark = prisma.shouldTextBeDark(theClass.color);
 			}
 
 			// Go through all events and set user to actual username, and teacher to actual teacher

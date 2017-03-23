@@ -186,13 +186,8 @@ function listChecked(db, user, callback) {
 				return;
 			}
 
-			// Append all event ids to array
-			let checkedEventIds = [];
-			for(let i = 0; i < checkedEvents.length; i++) {
-				checkedEventIds.push(checkedEvents[i].eventId);
-			}
-
-			callback(null, checkedEventIds);
+			// Append all event ids to array and return
+			callback(null, checkedEvents.map(c => c.eventId));
 		});
 	});
 }

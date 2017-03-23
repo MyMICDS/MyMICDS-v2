@@ -126,9 +126,7 @@ function getSchedule(date, grade, day, lateStart) {
 		// Loop through JSON and append classes to user schedule
 		let jsonSchedule = highschoolSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
 
-		for(i = 0; i < jsonSchedule.length; i++) {
-			let jsonBlock = jsonSchedule[i];
-
+		for(let jsonBlock of jsonSchedule) {
 			// Check for any restrictions on the schedule
 			if(typeof jsonBlock.sam !== 'undefined') {
 				if(jsonBlock.sam !== sam) continue;
@@ -161,13 +159,13 @@ function getSchedule(date, grade, day, lateStart) {
 
 	// If date isn't null, set times relative to date object
 	if(date && userSchedule) {
-		for(i = 0; i < userSchedule.length; i++) {
+		for(let schedule of userSchedule) {
 			// Get start and end moment objects
-			let startTime = userSchedule[i].start.split(':');
-			userSchedule[i].start = date.clone().hour(startTime[0]).minute(startTime[1]);
+			let startTime = schedule.start.split(':');
+			schedule.start = date.clone().hour(startTime[0]).minute(startTime[1]);
 
-			let endTime = userSchedule[i].end.split(':');
-			userSchedule[i].end = date.clone().hour(endTime[0]).minute(endTime[1]);
+			let endTime = schedule.end.split(':');
+			schedule.end = date.clone().hour(endTime[0]).minute(endTime[1]);
 		}
 	}
 

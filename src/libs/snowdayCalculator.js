@@ -81,9 +81,7 @@ function calculate(db, callback) {
 
 		// Loop through all matches of Javascript variables and assign to data object
 		var data = {};
-		for(var i = 0; i < variables.length; i++) {
-			var variable = variables[i];
-
+		for(let variable of variables) {
 			// Split variable into the two parts on either side of equals
 			var parts = variable.split(' = ');
 

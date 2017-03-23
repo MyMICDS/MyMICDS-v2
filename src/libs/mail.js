@@ -115,7 +115,7 @@ function sendHTML(users, subject, file, data, callback) {
 		}
 
 		// Replace JSON Key values with custom data
-		for(var key in data) {
+		for(let key of Object.keys(data)) {
 			body = body.replace('{{' + key + '}}', data[key]);
 		}
 

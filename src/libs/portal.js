@@ -95,8 +95,7 @@ function verifyURL(portalURL, callback) {
 
 		// Look through every 'Day # (US/MS)' andd see how many events there are
 		var dayDates = {};
-		for(var eventUid in data) {
-			var calEvent = data[eventUid];
+		for(let calEvent of data) {
 			// If event doesn't have a summary, skip
 			if(typeof calEvent.summary !== 'string') continue;
 
@@ -297,8 +296,7 @@ function getDayRotation(date, callback) {
 			return;
 		}
 
-		for(var eventUid in data) {
-			var calEvent = data[eventUid];
+		for(let calEvent of data) {
 			if(typeof calEvent.summary !== 'string') continue;
 
 			var start = new Date(calEvent['start']);
@@ -360,8 +358,7 @@ function getDayRotations(callback) {
 			return;
 		}
 
-		for(var eventUid in data) {
-			var calEvent = data[eventUid];
+		for(let calEvent of data) {
 			if(typeof calEvent.summary !== 'string') continue;
 
 			var start = new Date(calEvent['start']);
@@ -491,9 +488,7 @@ function parseIcalClasses(data, callback) {
 	var classes = {};
 
 	// Go through each event and add to classes object with a count of how many times they occur
-	for(var eventUid in data) {
-		var calEvent = data[eventUid];
-
+	for(let calEvent of data) {
 		if(typeof calEvent.summary !== 'string') continue;
 
 		var start = moment(calEvent['start']);
@@ -519,8 +514,7 @@ function parseIcalClasses(data, callback) {
 	var uniqueClasses = Object.keys(classes);
 	var filteredClasses = [];
 
-	for(var i = 0; i < uniqueClasses.length; i++) {
-		var uniqueClass = uniqueClasses[i];
+	for(let uniqueClass of uniqueClasses) {
 		var occurences = classes[uniqueClass];
 
 		// Remove all class names containing a certain keyword
@@ -532,8 +526,8 @@ function parseIcalClasses(data, callback) {
 
 			// Check if class contains any word blacklisted
 			var containsBlacklistedWord = false;
-			for(var j = 0; j < classKeywordBlacklist.length; j++) {
-				if(uniqueClass.includes(classKeywordBlacklist[j])) {
+			for(let keyword of classKeywordBlacklist) {
+				if(_.contains(uniqueClass, keyword)) {
 					containsBlacklistedWord = true;
 					break;
 				}

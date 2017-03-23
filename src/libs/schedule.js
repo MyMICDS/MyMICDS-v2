@@ -288,8 +288,7 @@ function getSchedule(db, user, date, callback) {
 
 				// Assign each class to it's block
 				var blocks = {};
-				for(var i = 0; i < results.classes.length; i++) {
-					var block = results.classes[i];
+				for(let block of results.classes) {
 					blocks[block.block] = block; // Very descriptive
 				}
 
@@ -360,9 +359,8 @@ function getSchedule(db, user, date, callback) {
 				var conflictIndexes = [];
 
 				// Go through all the events in the Portal calendar
-				var eventIndexes = Object.keys(results.portal.cal);
-				for(var i = 0; i < eventIndexes.length; i++) {
-					var calEvent = results.portal.cal[eventIndexes[i]];
+				for(let index of Object.keys(results.portal.cal)) {
+					var calEvent = results.portal.cal[index];
 					if(typeof calEvent.summary !== 'string') continue;
 
 					var start = moment(calEvent['start']);
@@ -452,8 +450,7 @@ function getSchedule(db, user, date, callback) {
 					// Keep track of original lunch start and end
 					var lunchSpan = [];
 
-					for(var i = 0; i < daySchedule.length; i++) {
-						var block = daySchedule[i];
+					for(let block of daySchedule) {
 						if(block.includeLunch) {
 							lunchSpan.push({
 								start: block.start,
@@ -468,9 +465,7 @@ function getSchedule(db, user, date, callback) {
 					// Go through lunch again and determine if half of lunch as been overlapped by another class.
 					// If so, change the incdeLunch period to just 'Lunch' if no period has overlapped, it probably means the user has a free period.
 					// Go through schedule classes again to add aliases to blocks from block schedule
-					for(var i = 0; i < schedule.classes.length; i++) {
-						var scheduleClass = schedule.classes[i];
-
+					for(let scheduleClass of schedule.classes) {
 						// Check if it was an original 'includeLunch' period
 						if(scheduleClass.includeLunch && lunchSpan) {
 							var sharedBlock = scheduleClass.block;
@@ -478,8 +473,8 @@ function getSchedule(db, user, date, callback) {
 							scheduleClass.class = genericBlocks.lunch;
 
 							// Check if the lunch period is the same as before overlap
-							for(var j = 0; j < lunchSpan.length; j++) {
-								if(scheduleClass.start === lunchSpan[j].start && scheduleClass.end === lunchSpan[j].end) {
+							for(let period of lunchSpan) {
+								if(scheduleClass.start === period.start && scheduleClass.end === period.end) {
 									// It's a free period + lunch
 									scheduleClass.class.name = 'Block ' + sharedBlock.toUpperCase() + ' + ' + scheduleClass.class.name;
 									break;
@@ -541,9 +536,7 @@ function combineClassesSchedule(date, schedule, blocks) {
 	// Loop through schedule
 	var combinedSchedule = [];
 
-	for(var i = 0; i < schedule.length; i++) {
-		var blockObject = schedule[i];
-
+	for(let blockObject of schedule) {
 		// Check if user has configured a class for this block
 		var block = blockObject.block;
 		var scheduleClass = blocks[block];
@@ -595,9 +588,7 @@ function ordineSchedule(baseSchedule, addClasses) {
 	if(!_.isArray(addClasses)) addClasses = [];
 
 	// Add each class to the base schedule
-	for(var i = 0; i < addClasses.length; i++) {
-		var addClass = addClasses[i];
-
+	for(let addClass of addClasses) {
 		var start = moment(addClass.start);
 		var end   = moment(addClass.end);
 
@@ -605,9 +596,7 @@ function ordineSchedule(baseSchedule, addClasses) {
 		var conflictIndexes = [];
 
 		// Move other (if any) events with conflicting times
-		for(var j = 0; j < baseSchedule.length; j++) {
-			var scheduleClass = baseSchedule[j];
-
+		for(let scheduleClass of baseSchedule) {
 			var blockStart = moment(scheduleClass.start);
 			var blockEnd   = moment(scheduleClass.end);
 
@@ -701,8 +690,8 @@ function ordineSchedule(baseSchedule, addClasses) {
 		// Delete all conflicting classes
 		conflictIndexes.sort();
 		var deleteOffset = 0;
-		for(var j = 0; j < conflictIndexes.length; j++) {
-			var index = conflictIndexes[j] - deleteOffset++;
+		for(let conflictIndex of conflictIndexes) {
+			var index = conflictIndex - deleteOffset++;
 			baseSchedule.splice(index, 1);
 		}
 

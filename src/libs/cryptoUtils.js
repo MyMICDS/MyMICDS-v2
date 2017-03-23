@@ -54,6 +54,7 @@ function safeCompare(a, b) {
 		b = a;
 	}
 
+	// NOTE: I don't think this can be converted to an ES6 for..of, so I'm keeping it as is.
 	for(let i = 0; i < a.length; ++i) {
 		const ac = a.charCodeAt(i);
 		const bc = b.charCodeAt(i);

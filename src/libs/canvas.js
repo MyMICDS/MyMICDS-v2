@@ -450,9 +450,7 @@ function getClasses(db, user, callback) {
 
 			let classes = [];
 
-			for(let eventUid in data) {
-				let calEvent = data[eventUid];
-
+			for(let calEvent of data) {
 				let parsedEvent = parseCanvasTitle(calEvent.summary);
 
 				// If not already in classes array, push to array

@@ -198,9 +198,7 @@ function getBreaks(callback) {
 		};
 
 		console.log('grouped ays', groupedDays);
-		for(let j = 0; j < groupedDays.length; j++) {
-			let group = groupedDays[j];
-
+		for(let group of groupedDays) {
 			// Check if weekend
 			if(group.length === 2 && group[0].day() === 6 && group[1].day() === 0) {
 				categorizedBreaks.weekends.push({
@@ -212,8 +210,8 @@ function getBreaks(callback) {
 
 			// Check if Saturday / Sunday are included in break
 			let weekendIncluded = false;
-			for(let k = 0; k < group.length; k++) {
-				if(group[k].day() === 6 || group[k].day() === 0) {
+			for(let dayObj of group) {
+				if(dayObj.day() === 6 || dayObj.day() === 0) {
 					weekendIncluded = true;
 				}
 			}

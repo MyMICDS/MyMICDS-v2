@@ -82,8 +82,8 @@ function upsertEvent(db, user, plannerEvent, callback) {
 			// Check if class id is valid if it isn't null already
 			var validClassId = null;
 			if(plannerEvent.classId !== null) {
-				for(var i = 0; i < classes.length; i++) {
-					var classId = classes[i]['_id'];
+				for(let theClass of classes) {
+					var classId = theClass['_id'];
 					if(plannerEvent.classId === classId.toHexString()) {
 						validClassId = classId;
 						break;
@@ -106,8 +106,8 @@ function upsertEvent(db, user, plannerEvent, callback) {
 					}
 
 					// Look through all events if id is valid
-					for(var i = 0; i < events.length; i++) {
-						var eventId = events[i]['_id'];
+					for(let event of events) {
+						var eventId = event['_id'];
 						if(plannerEvent._id === eventId.toHexString()) {
 							validEditId = eventId;
 							break;
@@ -294,9 +294,7 @@ function getMonthEvents(db, user, date, callback) {
 			// Go through all events and add all events that are within the month
 			var validEvents = [];
 			var addedEventIds = [];
-			for(var i = 0; i < events.length; i++) {
-				var possibleEvent = events[i];
-
+			for(let possibleEvent of events) {
 				var start = possibleEvent.start;
 				var end   = possibleEvent.end;
 
@@ -341,18 +339,18 @@ function getMonthEvents(db, user, date, callback) {
 				}
 
 				// Go through each event
-				for(var i = 0; i < validEvents.length; i++) {
+				for(let event of validEvents) {
 					// Set user to username
-					validEvents[i]['user'] = userDoc['user'];
+					event['user'] = userDoc['user'];
 					// Default class to null
-					var classId = validEvents[i]['class'];
-					validEvents[i]['class'] = null;
+					var classId = event['class'];
+					event['class'] = null;
 					// Go through each class to search for matching id
 					if(classId !== null) {
 						var classIdHex = classId.toHexString();
-						for(var j = 0; j < classes.length; j++) {
-							if(classIdHex === classes[j]['_id'].toHexString()) {
-								validEvents[i]['class'] = classes[j];
+						for(let theClass of classes) {
+							if(classIdHex === theClass['_id'].toHexString()) {
+								event['class'] = theClass;
 								break;
 							}
 						}
