@@ -94,7 +94,7 @@ function verifyURL(portalURL, callback) {
 
 		// Look through every 'Day # (US/MS)' andd see how many events there are
 		const dayDates = {};
-		for(let calEvent of data) {
+		for(let calEvent of Object.values(data)) {
 			// If event doesn't have a summary, skip
 			if(typeof calEvent.summary !== 'string') continue;
 
@@ -295,7 +295,7 @@ function getDayRotation(date, callback) {
 			return;
 		}
 
-		for(let calEvent of data) {
+		for(let calEvent of Object.values(data)) {
 			if(typeof calEvent.summary !== 'string') continue;
 
 			const start = new Date(calEvent['start']);
@@ -357,7 +357,7 @@ function getDayRotations(callback) {
 			return;
 		}
 
-		for(let calEvent of data) {
+		for(let calEvent of Object.values(data)) {
 			if(typeof calEvent.summary !== 'string') continue;
 
 			const start = new Date(calEvent['start']);
