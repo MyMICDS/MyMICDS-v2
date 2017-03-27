@@ -68,19 +68,16 @@ function getModules(db, user, callback) {
 		return;
 	}
 
-	if(typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null);
-		return;
-	}
-
 	// Check for user validity, get ID
-	users.get(db, user, (err, isUser, userDoc) => {
+	users.get(db, user || '', (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null);
 			return;
 		}
+
+		// If user doesn't exist, return default modules
 		if(!isUser) {
-			callback(new Error('User doesn\'t exist!'), null);
+			callback(null, defaultModules);
 			return;
 		}
 
