@@ -90,7 +90,7 @@ function getModules(db, user, callback) {
 			}
 
 			// Return default modules if none found, else return found documents
-			callback(null, modules.length === 0 ? defaultModules : modules)
+			callback(null, modules.length === 0 ? defaultModules : modules);
 		});
 	});
 }
