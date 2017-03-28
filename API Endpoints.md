@@ -42,6 +42,9 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/auth/reset-password`](#userreset-password)
 * [Lunch API](#lunch-api)
   * [`/lunch/get`](#lunchget)
+* [Modules API](#modules-api)
+  * [`/modules/get`](#modulesget)
+  * [`/modules/upsert`](#modulesupsert)
 * [Notifications API](#notification-api)
   * [`/notification/get`](#notificationget)
 * [Planner API](#planner-api)
@@ -326,6 +329,29 @@ Gets the lunch?
 #### Response
 - `error` - Null if success, string containing error if failure.
 - `lunch` - JSON object containing lunch for the week. **If there is no lunch for a specific day, then no object will be returned for that day. This means during breaks, this will be an empty object.**
+
+
+
+## Modules API
+This is the part of the API that relates to the homepage modules. Can be found in `src/routes/modulesAPI.js`. The associated modules module (heh) can be found in `src/libs/modules.js`.
+
+
+### `/modules/get`
+**Requires user to be logged in.** Returns a list of modules user has for their custom homepage.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+- `modules` - Array of modules.
+
+
+### `/modules/upsert`
+**Requires user to be logged in.** Update/insert (also known as upsert) all of a user's modules.
+
+#### Parameters
+- `modules` - Array of modules to set.
+
+#### Response
+- `err` - Null if success, string containing error if failure.
 
 
 
