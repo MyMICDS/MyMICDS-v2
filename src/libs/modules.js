@@ -148,7 +148,7 @@ function upsertModules(db, user, modules, callback) {
 			callback(new Error(`Module column exceeds range between ${columnStarts} - ${columnsPerRow}!`));
 			return;
 		}
-		if(!modules.every(m => (rowStarts <= m.row)) {
+		if(!modules.every(m => (rowStarts <= m.row))) {
 			callback(new Error(`Module row below minimum value of ${rowStarts}!`));
 			return;
 		}
