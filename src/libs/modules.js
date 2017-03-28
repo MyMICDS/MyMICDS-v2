@@ -11,14 +11,20 @@ const users = require(__dirname + '/users.js');
 // All allowed modules
 const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather'];
 
+// Range column indexes start at (inclusive)
+const columnStarts = 1;
+// Max number of columns
 const columnsPerRow = 4;
+
+// Range row indexes start at (inclusive)
+const rowStarts = 1;
 
 // Modules to give user if none found
 const defaultModules = [
 	{
 		type: 'progress',
-		row: 0,
-		column: 0,
+		row: 1,
+		column: 1,
 		width: columnsPerRow,
 		height: 1,
 		data: {
@@ -27,15 +33,15 @@ const defaultModules = [
 	},
 	{
 		type: 'schedule',
-		row: 1,
-		column: 0,
+		row: 2,
+		column: 1,
 		width: columnsPerRow / 2,
 		height: 1
 	},
 	{
 		type: 'weather',
-		row: 1,
-		column: 1,
+		row: 2,
+		column: (columnsPerRow / 2) + 1,
 		width: columnsPerRow / 2,
 		height: 1,
 		data: {
@@ -138,8 +144,12 @@ function upsertModules(db, user, modules, callback) {
 			callback(new Error('Invalid module type!'));
 			return;
 		}
-		if(!modules.every(m => m.column + m.width <= columnsPerRow)) {
-			callback(new Error(`Module width exceeds row width of ${columnsPerRow} columns!`));
+		if(!modules.every(m => (columnStarts <= m.column) && (m.column + m.width - columnStarts <= columnsPerRow))) {
+			callback(new Error(`Module column exceeds range between ${columnStarts} - ${columnsPerRow}!`));
+			return;
+		}
+		if(!modules.every(m => (rowStarts <= m.row)) {
+			callback(new Error(`Module row below minimum value of ${rowStarts}!`));
 			return;
 		}
 
