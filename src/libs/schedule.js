@@ -339,8 +339,6 @@ function getSchedule(db, user, date, callback) {
 					aliases.mapList(db, user, asyncCallback);
 				},
 			}, (err, results) => {
-				let block;
-				let i;
 				if(err) {
 					callback(err, null, null);
 					return;
@@ -463,7 +461,9 @@ function getSchedule(db, user, date, callback) {
 					// Go through lunch again and determine if half of lunch as been overlapped by another class.
 					// If so, change the incdeLunch period to just 'Lunch' if no period has overlapped, it probably means the user has a free period.
 					// Go through schedule classes again to add aliases to blocks from block schedule
-					for(let scheduleClass of schedule.classes) {
+					for(let i = 0; i < schedule.classes.length; i++) {
+						const scheduleClass = schedule.classes[i];
+
 						// Check if it was an original 'includeLunch' period
 						if(scheduleClass.includeLunch && lunchSpan) {
 							const sharedBlock = scheduleClass.block;
@@ -479,7 +479,7 @@ function getSchedule(db, user, date, callback) {
 								}
 							}
 						} else if(scheduleClass.block) {
-							block = scheduleClass.block;
+							const block = scheduleClass.block;
 
 							// It's a class from the block schedule. Create a class object for it
 							if(typeof genericBlocks[block] === 'object') {
@@ -495,8 +495,8 @@ function getSchedule(db, user, date, callback) {
 										lastName: ''
 									},
 									type: 'other',
-									block: block,
-									color: color,
+									block,
+									color,
 									textDark: prisma.shouldTextBeDark(color)
 								};
 							}
@@ -594,7 +594,9 @@ function ordineSchedule(baseSchedule, addClasses) {
 		const conflictIndexes = [];
 
 		// Move other (if any) events with conflicting times
-		for(let scheduleClass of baseSchedule) {
+		for(let i = 0; i < baseSchedule.length; i++) {
+			const scheduleClass = baseSchedule[i];
+
 			const blockStart = moment(scheduleClass.start);
 			const blockEnd   = moment(scheduleClass.end);
 			// Determine start/end times relative to the class we're currently trying to add
@@ -640,14 +642,14 @@ function ordineSchedule(baseSchedule, addClasses) {
 			if(startRelation === 'before' || startRelation === 'same start') {
 				// If end is inside, we can still keep half of the block
 				if(endRelation === 'inside') {
-					baseSchedule[j].start = end.clone();
+					baseSchedule[i].start = end.clone();
 				}
 
 				// If new class completely engulfs the block, delete
 				if(endRelation === 'same end' || endRelation === 'after') {
 					// Only push to array if index isn't already in array
-					if(!_.contains(conflictIndexes, j)) {
-						conflictIndexes.push(j);
+					if(!_.contains(conflictIndexes, i)) {
+						conflictIndexes.push(i);
 					}
 				}
 			}
@@ -661,7 +663,7 @@ function ordineSchedule(baseSchedule, addClasses) {
 					let oldEnd = scheduleClass.end.clone();
 
 					// Set old block to beginning of next block
-					baseSchedule[j].end = start.clone();
+					baseSchedule[i].end = start.clone();
 					// Set new block start where the next block left off
 					newBlock.start = end.clone();
 					// Also make sure end is a moment object because it goes through JSON.stringify
@@ -671,15 +673,15 @@ function ordineSchedule(baseSchedule, addClasses) {
 				}
 
 				if(endRelation === 'same end' || endRelation === 'after') {
-					baseSchedule[j].end = start.clone();
+					baseSchedule[i].end = start.clone();
 				}
 			}
 
 			// If same times, delete
 			if(startRelation === 'same start' && endRelation === 'same end') {
 				// Only push to array if index isn't already in array
-				if(!_.contains(conflictIndexes, j)) {
-					conflictIndexes.push(j);
+				if(!_.contains(conflictIndexes, i)) {
+					conflictIndexes.push(i);
 				}
 			}
 		}
