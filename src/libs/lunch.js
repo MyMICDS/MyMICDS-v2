@@ -98,7 +98,7 @@ function parseLunch(body) {
 	let table = $('table#table_calendar_week');
 	let weekColumns = table.find('td');
 
-	weekColumns.each((index) => {
+	weekColumns.each(function(index) {
 
 		let day = $(this);
 		let date = day.attr('this_date');
