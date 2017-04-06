@@ -285,16 +285,17 @@ function getSchedule(db, user, date, callback) {
 				}
 
 				// Assign each class to it's block
+				const blocks = {};
 				for(let block of results.classes) {
 					blocks[block.block] = block; // Very descriptive
 				}
 
 				// Include generic blocks in with the supplied blocks
-				_.each(genericBlocks, (value, key) => {
+				for(let key of Object.keys(genericBlocks)) {
 					if(typeof blocks[key] !== 'object') {
-						blocks[key] = value;
+						blocks[key] = genericBlocks[key];
 					}
-				});
+				}
 
 				const schedule = {
 					day: results.day,
@@ -327,10 +328,7 @@ function getSchedule(db, user, date, callback) {
 						if(err) {
 							asyncCallback(err, null);
 						} else {
-							asyncCallback(null, {
-								hasURL: hasURL,
-								cal: cal
-							});
+							asyncCallback(null, { hasURL, cal });
 						}
 					});
 				},
@@ -411,9 +409,9 @@ function getSchedule(db, user, date, callback) {
 									firstName: '',
 									lastName: ''
 								},
-								block: block,
+								block,
 								type: 'other',
-								color: color,
+								color,
 								textDark: prisma.shouldTextBeDark(color)
 							};
 						}
@@ -421,8 +419,8 @@ function getSchedule(db, user, date, callback) {
 						// Add block into Portal Schedule array
 						portalSchedule.push({
 							class: results.aliases.portal[calEvent.summary],
-							start: start,
-							end: end
+							start,
+							end
 						})
 					}
 				}
@@ -551,7 +549,7 @@ function combineClassesSchedule(date, schedule, blocks) {
 				},
 				type: 'other',
 				block: 'other',
-				color: color,
+				color,
 				textDark: prisma.shouldTextBeDark(color)
 			}
 		}
