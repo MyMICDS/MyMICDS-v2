@@ -84,8 +84,7 @@ function convertType(type) {
  */
 
 function getSchedule(date, grade, day, lateStart) {
-	let i;
-// Validate inputs
+	// Validate inputs
 	if(date) {
 		date = moment(date);
 	} else {
@@ -119,25 +118,11 @@ function getSchedule(date, grade, day, lateStart) {
 			upperclass = false;
 		}
 
-		let sam = false;
-		let wleh = false;
-		let other = true;
-
 		// Loop through JSON and append classes to user schedule
 		let jsonSchedule = highschoolSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
 
 		for(let jsonBlock of jsonSchedule) {
-			// Check for any restrictions on the schedule
-			if(typeof jsonBlock.sam !== 'undefined') {
-				if(jsonBlock.sam !== sam) continue;
-			}
-			if(typeof jsonBlock.wleh !== 'undefined') {
-				if(jsonBlock.wleh !== wleh) continue;
-			}
-			if(typeof jsonBlock.other !== 'undefined') {
-				if(jsonBlock.other !== other) continue;
-			}
-
+			// Check for any restrictions on the block
 			if(typeof jsonBlock.lowerclass !== 'undefined') {
 				if(jsonBlock.lowerclass !== lowerclass) continue;
 			}

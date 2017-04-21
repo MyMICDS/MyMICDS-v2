@@ -457,8 +457,8 @@ function getSchedule(db, user, date, callback) {
 					schedule.classes = ordineSchedule(daySchedule, portalSchedule);
 
 					// Go through lunch again and determine if half of lunch as been overlapped by another class.
-					// If so, change the incdeLunch period to just 'Lunch' if no period has overlapped, it probably means the user has a free period.
-					// Go through schedule classes again to add aliases to blocks from block schedule
+					// If so, change the includeLunch period to 'Block X + Lunch' because if no period has overlapped, it probably means the user has a free period.
+					// Also go through schedule classes again to add aliases to blocks from block schedule
 					for(let i = 0; i < schedule.classes.length; i++) {
 						const scheduleClass = schedule.classes[i];
 
