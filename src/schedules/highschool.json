@@ -25,33 +25,14 @@
 			{
 				"block": "lunch",
 				"start": "11:05",
-				"end"  : "11:50",
-				"sam": true
-			},
-			{
-				"block": "d",
-				"start": "11:50",
 				"end"  : "12:35",
-				"sam": true
-			},
-			{
-				"block": "d",
-				"start": "11:05",
-				"end"  : "11:50",
-				"wleh": true
-			},
-			{
-				"block": "lunch",
-				"start": "11:50",
-				"end"  : "12:35",
-				"wleh": true
-			},
-			{
-				"block": "d",
-				"start": "11:05",
-				"end"  : "12:35",
-				"other": true,
-				"includeLunch": true
+				"noOverlapAddBlocks": [
+					{
+						"block": "d",
+						"start": "11:50",
+						"end"  : "12:35"
+					}
+				]
 			},
 			{
 				"block": "e",
@@ -93,33 +74,14 @@
 			{
 				"block": "lunch",
 				"start": "11:40",
-				"end"  : "12:20",
-				"sam": true
-			},
-			{
-				"block": "d",
-				"start": "12:20",
 				"end"  : "13:00",
-				"sam": true
-			},
-			{
-				"block": "d",
-				"start": "11:40",
-				"end"  : "12:20",
-				"wleh": true
-			},
-			{
-				"block": "lunch",
-				"start": "12:20",
-				"end"  : "13:00",
-				"wleh": true
-			},
-			{
-				"block": "d",
-				"start": "11:40",
-				"end"  : "13:00",
-				"other": true,
-				"includeLunch": true
+				"noOverlapAddBlocks": [
+					{
+						"block": "d",
+						"start": "12:20",
+						"end"  : "13:00"
+					}
+				]
 			},
 			{
 				"block": "e",
@@ -154,33 +116,14 @@
 			{
 				"block": "lunch",
 				"start": "11:20",
-				"end"  : "11:50",
-				"wleh": true
-			},
-			{
-				"block": "e",
-				"start": "11:50",
 				"end"  : "13:20",
-				"wleh": true
-			},
-			{
-				"block": "e",
-				"start": "11:20",
-				"end"  : "12:50",
-				"sam": true
-			},
-			{
-				"block": "lunch",
-				"start": "12:50",
-				"end"  : "13:20",
-				"sam": true
-			},
-			{
-				"block": "e",
-				"start": "11:20",
-				"end"  : "13:20",
-				"other": true,
-				"includeLunch": true
+				"noOverlapAddBlocks": [
+					{
+						"block": "e",
+						"start": "11:50",
+						"end"  : "13:20"
+					}
+				]
 			},
 			{
 				"block": "advisory",
@@ -207,39 +150,14 @@
 			{
 				"block": "lunch",
 				"start": "11:55",
-				"end"  : "12:25",
-				"wleh": true
-			},
-			{
-				"block": "e",
-				"start": "12:30",
 				"end"  : "13:50",
-				"wleh": true
-			},
-			{
-				"block": "e",
-				"start": "11:55",
-				"end"  : "12:35",
-				"sam": true
-			},
-			{
-				"block": "lunch",
-				"start": "12:40",
-				"end"  : "13:10",
-				"sam": true
-			},
-			{
-				"block": "e",
-				"start": "13:10",
-				"end"  : "13:50",
-				"sam": true
-			},
-			{
-				"block": "e",
-				"start": "11:55",
-				"end"  : "13:50",
-				"other": true,
-				"includeLunch": true
+				"noOverlapAddBlocks": [
+					{
+						"block": "e",
+						"start": "12:30",
+						"end"  : "13:50"
+					}
+				]
 			},
 			{
 				"block": "c",
@@ -374,33 +292,14 @@
 			{
 				"block": "lunch",
 				"start": "11:05",
-				"end"  : "11:50",
-				"wleh": true
-			},
-			{
-				"block": "f",
-				"start": "11:50",
 				"end"  : "12:35",
-				"wleh": true
-			},
-			{
-				"block": "f",
-				"start": "11:05",
-				"end"  : "11:50",
-				"sam": true
-			},
-			{
-				"block": "lunch",
-				"start": "11:50",
-				"end"  : "12:35",
-				"sam": true
-			},
-			{
-				"block": "f",
-				"start": "11:05",
-				"end"  : "12:35",
-				"other": true,
-				"includeLunch": true
+				"noOverlapAddBlocks": [
+					{
+						"block": "f",
+						"start": "11:50",
+						"end"  : "12:35"
+					}
+				]
 			},
 			{
 				"block": "d",
@@ -442,33 +341,14 @@
 			{
 				"block": "lunch",
 				"start": "11:40",
-				"end"  : "12:20",
-				"wleh": true
-			},
-			{
-				"block": "f",
-				"start": "12:20",
 				"end"  : "13:00",
-				"wleh": true
-			},
-			{
-				"block": "f",
-				"start": "11:40",
-				"end"  : "12:20",
-				"sam": true
-			},
-			{
-				"block": "lunch",
-				"start": "12:20",
-				"end"  : "13:00",
-				"sam": true
-			},
-			{
-				"block": "f",
-				"start": "11:40",
-				"end"  : "13:00",
-				"other": true,
-				"includeLunch": true
+				"noOverlapAddBlocks": [
+					{
+						"block": "f",
+						"start": "12:20",
+						"end"  : "13:00"
+					}
+				]
 			},
 			{
 				"block": "d",
@@ -503,33 +383,14 @@
 			{
 				"block": "lunch",
 				"start": "11:20",
-				"end"  : "11:50",
-				"sam": true
-			},
-			{
-				"block": "g",
-				"start": "11:50",
 				"end"  : "13:20",
-				"sam": true
-			},
-			{
-				"block": "g",
-				"start": "11:20",
-				"end"  : "12:50",
-				"wleh": true
-			},
-			{
-				"block": "lunch",
-				"start": "12:50",
-				"end"  : "13:20",
-				"wleh": true
-			},
-			{
-				"block": "g",
-				"start": "11:20",
-				"end"  : "13:20",
-				"other": true,
-				"includeLunch": true
+				"noOverlapAddBlocks": [
+					{
+						"block": "g",
+						"start": "11:50",
+						"end"  : "13:20"
+					}
+				]
 			},
 			{
 				"block": "advisory",
@@ -556,39 +417,14 @@
 			{
 				"block": "lunch",
 				"start": "11:55",
-				"end"  : "12:25",
-				"sam": true
-			},
-			{
-				"block": "g",
-				"start": "12:30",
 				"end"  : "13:50",
-				"sam": true
-			},
-			{
-				"block": "g",
-				"start": "11:55",
-				"end"  : "12:35",
-				"wleh": true
-			},
-			{
-				"block": "lunch",
-				"start": "12:40",
-				"end"  : "13:10",
-				"wleh": true
-			},
-			{
-				"block": "g",
-				"start": "13:10",
-				"end"  : "13:50",
-				"wleh": true
-			},
-			{
-				"block": "g",
-				"start": "11:55",
-				"end"  : "13:50",
-				"other": true,
-				"includeLunch": true
+				"noOverlapAddBlocks": [
+					{
+						"block": "g",
+						"start": "12:30",
+						"end"  : "13:50"
+					}
+				]
 			},
 			{
 				"block": "e",

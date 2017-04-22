@@ -84,8 +84,7 @@ function convertType(type) {
  */
 
 function getSchedule(date, grade, day, lateStart) {
-	let i;
-// Validate inputs
+	// Validate inputs
 	if(date) {
 		date = moment(date);
 	} else {
@@ -112,32 +111,14 @@ function getSchedule(date, grade, day, lateStart) {
 	// Use highschool schedule if upperschool
 	if(schoolName === 'upperschool') {
 		// Determine if lowerclassman (9 - 10) or upperclassman (11 - 12)
-		let lowerclass = false;
-		let upperclass = true;
-		if(grade === 9 || grade === 10) {
-			lowerclass = true;
-			upperclass = false;
-		}
-
-		let sam = false;
-		let wleh = false;
-		let other = true;
+		const lowerclass = (grade === 9 || grade === 10);
+		const upperclass = (grade === 11 || grade === 12);
 
 		// Loop through JSON and append classes to user schedule
-		let jsonSchedule = highschoolSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
+		const jsonSchedule = highschoolSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
 
 		for(let jsonBlock of jsonSchedule) {
-			// Check for any restrictions on the schedule
-			if(typeof jsonBlock.sam !== 'undefined') {
-				if(jsonBlock.sam !== sam) continue;
-			}
-			if(typeof jsonBlock.wleh !== 'undefined') {
-				if(jsonBlock.wleh !== wleh) continue;
-			}
-			if(typeof jsonBlock.other !== 'undefined') {
-				if(jsonBlock.other !== other) continue;
-			}
-
+			// Check for any restrictions on the block
 			if(typeof jsonBlock.lowerclass !== 'undefined') {
 				if(jsonBlock.lowerclass !== lowerclass) continue;
 			}
@@ -161,10 +142,10 @@ function getSchedule(date, grade, day, lateStart) {
 	if(date && userSchedule) {
 		for(let schedule of userSchedule) {
 			// Get start and end moment objects
-			let startTime = schedule.start.split(':');
+			const startTime = schedule.start.split(':');
 			schedule.start = date.clone().hour(startTime[0]).minute(startTime[1]);
 
-			let endTime = schedule.end.split(':');
+			const endTime = schedule.end.split(':');
 			schedule.end = date.clone().hour(endTime[0]).minute(endTime[1]);
 		}
 	}
