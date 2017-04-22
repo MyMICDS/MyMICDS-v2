@@ -441,42 +441,58 @@ function getSchedule(db, user, date, callback) {
 					schedule.classes = portalSchedule;
 				} else {
 
-					// Keep track of original lunch start and end
-					const lunchSpan = [];
-
-					for(let block of daySchedule) {
-						if(block.includeLunch) {
-							lunchSpan.push({
-								start: block.start,
-								end: block.end
-							});
+					// Keep track of original start and end of blocks detecting overlap
+					for(let i = 0; i < daySchedule.length; i++) {
+						const block = daySchedule[i];
+						if(block.noOverlapAddBlocks) {
+							daySchedule[i].originalStart = block.start;
+							daySchedule[i].originalEnd = block.end;
 						}
 					}
 
 					// Overlap Portal classes over default
 					schedule.classes = ordineSchedule(daySchedule, portalSchedule);
 
-					// Go through lunch again and determine if half of lunch as been overlapped by another class.
-					// If so, change the includeLunch period to 'Block X + Lunch' because if no period has overlapped, it probably means the user has a free period.
-					// Also go through schedule classes again to add aliases to blocks from block schedule
+					// Loop through all the blocks. If a block has a `noOverlapAddBlocks` property
+					// and the current start and end times are the same as the original, add the
+					// block(s) specified. This is used for inserting the free period for people
+					// whose free period that determines their lunch.
+
+					// People with free period always have first lunch. Since free periods don't
+					// show up on the portal, there's no overlap from a portal class which
+					// determines if they have first or second lunch; therefore, we must add it
+					// ourselves.
+					for(let i = 0; i < schedule.classes.length; i++) {
+						const block = schedule.classes[i];
+						if(block.noOverlapAddBlocks) {
+							// If no overlap, add blocks
+							if(block.originalStart === block.start && block.originalEnd === block.end) {
+
+								// Before combining blocks to existing schedule, convert to moment objects
+								for(let i = 0; i < block.noOverlapAddBlocks.length; i++) {
+									const addBlock = block.noOverlapAddBlocks[i];
+
+									const startTime = addBlock.start.split(':');
+									block.noOverlapAddBlocks[i].start = scheduleDate.clone().hour(startTime[0]).minute(startTime[1]);
+
+									const endTime = addBlock.end.split(':');
+									block.noOverlapAddBlocks[i].end = scheduleDate.clone().hour(endTime[0]).minute(endTime[1]);
+								}
+
+								schedule.classes = ordineSchedule(schedule.classes, block.noOverlapAddBlocks);
+							}
+							delete schedule.classes[i].originalStart;
+							delete schedule.classes[i].originalEnd;
+						}
+					}
+
+					// Check for any blocks in the schedule that have the `block` property. This means it's directly from the
+					// schedule JSON. See if there's any pre-configured classes we should insert instead, otherwise do our best
+					// to make a formatted MyMICDS class object.
 					for(let i = 0; i < schedule.classes.length; i++) {
 						const scheduleClass = schedule.classes[i];
 
-						// Check if it was an original 'includeLunch' period
-						if(scheduleClass.includeLunch && lunchSpan) {
-							const sharedBlock = scheduleClass.block;
-							// delete scheduleClass.block;
-							scheduleClass.class = genericBlocks.lunch;
-
-							// Check if the lunch period is the same as before overlap
-							for(let period of lunchSpan) {
-								if(scheduleClass.start === period.start && scheduleClass.end === period.end) {
-									// It's a free period + lunch
-									scheduleClass.class.name = 'Block ' + sharedBlock.toUpperCase() + ' + ' + scheduleClass.class.name;
-									break;
-								}
-							}
-						} else if(scheduleClass.block) {
+						if(scheduleClass.block) {
 							const block = scheduleClass.block;
 
 							// It's a class from the block schedule. Create a class object for it
