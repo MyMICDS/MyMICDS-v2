@@ -151,7 +151,10 @@ const genericBlocks = {
 
 function getSchedule(db, user, date, callback) {
 	if(typeof callback !== 'function') return;
-	if(typeof db !== 'object') { new Error('Invalid database connection!'); return; }
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null, null);
+		return;
+	}
 
 	const scheduleDate = moment(date).startOf('day');
 	const scheduleNextDay = scheduleDate.clone().add(1, 'day');
