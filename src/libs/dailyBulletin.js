@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 'use strict';
 
 /**
@@ -73,10 +75,10 @@ function queryLatest(callback) {
 				}
 
 				// Search through the email for any PDF
-				let parts = recentMessage.payload.parts;
+				const parts = recentMessage.payload.parts;
 				let attachmentId = null;
 				let originalFilename = null;
-				for(let part of parts) {
+				for(const part of parts) {
 					// If part contains PDF attachment, we're done boys.
 					if(part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
 						attachmentId = part.body.attachmentId;
@@ -165,7 +167,7 @@ function queryAll(callback) {
 		let messageIds = [];
 
 		function getPage(nextPageToken) {
-			let listQuery = {
+			const listQuery = {
 				auth: jwtClient,
 				userId: 'me',
 				maxResults: 200,
@@ -192,18 +194,18 @@ function queryAll(callback) {
 					// We got all the pages!
 					// We start with the last so newer bulletins will override older ones if multiple emails were sent.
 					// Create a batch so we can send up to 100 requests at once
-					let batch = new GoogleBatch();
+					const batch = new GoogleBatch(); // eslint-disable-line
 					batch.setAuth(jwtClient);
 
 					// Array to store all the email information
 					let getMessages = [];
 
 					console.log('Get detailed information about messages...');
-					let addMessageToBatch = (i, inBatch) => {
+					const addMessageToBatch = (i, inBatch) => {
 						if(i >= 0) {
 							// Add to batch
-							let messageId = messageIds[i].id;
-							let params = {
+							const messageId = messageIds[i].id;
+							const params = {
 								googleBatch: true,
 								userId: 'me',
 								id: messageId
@@ -214,7 +216,7 @@ function queryAll(callback) {
 
 							// If there are 100 queries in Batch request, query it.
 							if(inBatch === 100) {
-								batch.exec((err, responses, errorDetails) => {
+								batch.exec((err, responses) => {
 									getMessages = getMessages.concat(responses);
 									batch.clear();
 									addMessageToBatch(--i, 0);
@@ -225,25 +227,25 @@ function queryAll(callback) {
 						} else {
 							// Finished making batch requests
 							// Execute the remaining of the API requests in the batch
-							batch.exec((err, responses, errorDetails) => {
+							batch.exec((err, responses) => {
 								getMessages = getMessages.concat(responses);
 								batch.clear();
 								console.log('Got ' + getMessages.length + ' emails containing Daily Bulletins');
 
 								// Now that we're all done getting information about the email, make an array of all the attachments.
-								let attachments = [];
+								const attachments = [];
 								// Array containing filenames matching the indexes of the attachments array
-								let attachmentIdFilenames = [];
+								const attachmentIdFilenames = [];
 
 								// Search through the emails for any PDF
-								for(let response of getMessages) {
-									let parts = response.body.payload.parts;
+								for(const response of getMessages) {
+									const parts = response.body.payload.parts;
 
 									// Loop through parts looking for a PDF attachment
-									for(let part of parts) {
+									for(const part of parts) {
 										// If part contains PDF attachment, append attachment id and filename to arrays.
 										if(part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
-											let attachmentId = part.body.attachmentId;
+											const attachmentId = part.body.attachmentId;
 											attachments.push({
 												emailId: response.body.id,
 												attachmentId: attachmentId
@@ -260,8 +262,8 @@ function queryAll(callback) {
 								function addAttachmentToBatch(l, inBatch) {
 									if(l < attachments.length) {
 										// Add attachment to batch
-										let attachment = attachments[l];
-										let params = {
+										const attachment = attachments[l];
+										const params = {
 											googleBatch: true,
 											userId: 'me',
 											messageId: attachment.emailId,
@@ -272,7 +274,7 @@ function queryAll(callback) {
 										inBatch++;
 
 										if(inBatch === 100) {
-											batch.exec((err, responses, errorDetails) => {
+											batch.exec((err, responses) => {
 												dailyBulletins = dailyBulletins.concat(responses);
 												batch.clear();
 												addAttachmentToBatch(++l, 0);
@@ -284,7 +286,7 @@ function queryAll(callback) {
 									} else {
 										// Finished getting attachments
 										// Execute the remaining of the API requests in the batch
-										batch.exec((err, responses, errorDetails) => {
+										batch.exec((err, responses) => {
 											dailyBulletins = dailyBulletins.concat(responses);
 											batch.clear();
 
@@ -300,14 +302,14 @@ function queryAll(callback) {
 
 												function writeBulletin(m) {
 													if(m < dailyBulletins.length) {
-														let dailyBulletin = dailyBulletins[m];
+														const dailyBulletin = dailyBulletins[m];
 
 														// PDF contents
-														let pdf = Buffer.from(dailyBulletin.body.data, 'base64');
+														const pdf = Buffer.from(dailyBulletin.body.data, 'base64');
 														// We must now get the filename of the Daily Bulletin
-														let originalFilename = path.parse(attachmentIdFilenames[m]);
+														const originalFilename = path.parse(attachmentIdFilenames[m]);
 														// Parse base filename to date
-														let bulletinDate = new Date(originalFilename.name);
+														const bulletinDate = new Date(originalFilename.name);
 
 														// If not valid date, it isn't the Daily Bulletin
 														if(_.isNaN(bulletinDate.getTime())) {
@@ -316,7 +318,7 @@ function queryAll(callback) {
 														}
 
 														// Get PDF name
-														let bulletinName = bulletinDate.getFullYear()
+														const bulletinName = bulletinDate.getFullYear()
 															+ '-' + utils.leadingZeros(bulletinDate.getMonth() + 1)
 															+ '-' + utils.leadingZeros(bulletinDate.getDate())
 															+ '.pdf';
@@ -390,9 +392,9 @@ function getList(callback) {
 			}
 
 			// Only return files that are a PDF
-			let bulletins = [];
-			for(let _file of files) {
-				let file = path.parse(_file);
+			const bulletins = [];
+			for(const _file of files) {
+				const file = path.parse(_file);
 				if(file.ext === '.pdf') {
 					bulletins.push(file.name);
 				}

@@ -45,7 +45,6 @@ function getStats(db, callback) {
 
 	// Get all users
 	userdata.find({ confirmed: true }).toArray((err, userDocs) => {
-		let i;
 		if(err) {
 			callback(new Error('There was a problem querying the users from the database!'), null);
 			return;
@@ -56,7 +55,7 @@ function getStats(db, callback) {
 
 		// Get array of unique gradYears
 		const gradYears = [];
-		for(let userDoc of userDocs) {
+		for(const userDoc of userDocs) {
 			let gradYear = userDoc.gradYear;
 
 			// If gradYear is null, it's a teacher
@@ -71,18 +70,18 @@ function getStats(db, callback) {
 		}
 
 		// First off, set every graduation year to 0 or empty object
-		for(let gradYear of gradYears) {
+		for(const gradYear of gradYears) {
 			stats.registered.gradYears[gradYear] = {};
 			stats.visitedToday.gradYears[gradYear] = 0;
 		}
 
 		// Loop through all the users for when they registered and last time they visited the site
 		const today = moment();
-		for(let userDoc of userDocs) {
+		for(const userDoc of userDocs) {
 			// If gradYear is null, it's a teacher
 			let gradYear = userDoc.gradYear;
 			if(gradYear === null) {
-				gradYear = 'teacher'
+				gradYear = 'teacher';
 			}
 
 			// Get day user registered

@@ -16,14 +16,14 @@ const htmlparser = require('htmlparser2');
 function htmlToText(html) {
 	let plaintext = '';
 
-	let parser = new htmlparser.Parser({
-		onopentag: (name, attribs) => {
+	const parser = new htmlparser.Parser({
+		onopentag: () => {
 			// Do nothing
 		},
 		ontext: text => {
 			plaintext += text;
 		},
-		onclosetag: tagname => {
+		onclosetag: () => {
 			// Do nothing
 		}
 	}, {decodeEntities: true});

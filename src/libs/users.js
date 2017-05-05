@@ -46,7 +46,7 @@ function getUser(db, user, callback) {
 			return;
 		}
 		if(docs.length === 0) {
-			callback(null, false, null)
+			callback(null, false, null);
 		} else {
 			callback(null, true, docs[0]);
 		}
@@ -190,7 +190,7 @@ function changeInfo(db, user, info, callback) {
 
 		// Update data
 		const userdata = db.collection('users');
-		userdata.update({ _id: userDoc['_id'], user: user }, { $set: set }, { upsert: true }, (err, results) => {
+		userdata.update({ _id: userDoc['_id'], user: user }, { $set: set }, { upsert: true }, err => {
 			if(err) {
 				callback(new Error('There was a problem updating the databse!'));
 				return;

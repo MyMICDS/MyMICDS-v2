@@ -1,15 +1,17 @@
+'use strict';
+
 /**
  * @file Queries the Snowday Calculator
  * @module snowdayCalculator
  */
+
 const $ = require('cheerio');
-const admins = require(__dirname + '/admins.js');
 const moment = require('moment');
 const request = require('request');
 
 const zipcode = 63124;
 const schoolId = 663;
-let snowdays = 0;
+const snowdays = 0;
 
 /**
  * Queries the Snowday Calculator's API for a prediction at the location of MICDS
@@ -44,7 +46,7 @@ function calculate(db, callback) {
 		}
 
 		// Snowday Calculator is weird and transfers Javascript code, so we use RegEx to get the values
-		let variables = body.match(/[a-zA-Z]+\[\d+] = .+;/g);
+		const variables = body.match(/[a-zA-Z]+\[\d+] = .+;/g);
 
 		// If for some reason there are no variables
 		if(!variables) {
@@ -80,7 +82,7 @@ function calculate(db, callback) {
 
 		// Loop through all matches of Javascript variables and assign to data object
 		const data = {};
-		for(let variable of variables) {
+		for(const variable of variables) {
 			// Split variable into the two parts on either side of equals
 			const parts = variable.split(' = ');
 
@@ -93,7 +95,7 @@ function calculate(db, callback) {
 			if(!labels[name]) continue;
 
 			// Get value of variable (we need `eval` in order to parse concatenated strings)
-			let value = eval(parts[1]);
+			let value = eval(parts[1]); // eslint-disable-line
 
 			// Get date (which is index of array)
 			const date = moment(dateString, 'YYYYMMDD');

@@ -17,9 +17,6 @@ const users = require(__dirname + '/users.js');
 
 // URL Calendars come from
 const urlPrefix = 'https://micds.instructure.com/feeds/calendars/';
-// RegEx to test if calendar summary is a valid Day Rotation
-const validDayRotation = /^Day [1-6] \((US|MS)\)$/;
-const validDayRotationPlain = /^Day [1-6]$/;
 
 /**
  * Makes sure a given url is valid and it points to a Canvas calendar feed
@@ -63,7 +60,7 @@ function verifyURL(canvasURL, callback) {
 	const validURL = urlPrefix + userCalendar;
 
 	// Not lets see if we can actually get any data from here
-	request(validURL, (err, response, body) => {
+	request(validURL, (err, response) => {
 		if(err) {
 			callback(new Error('There was a problem fetching calendar data from the URL!'), null, null);
 			return;
@@ -125,9 +122,9 @@ function setURL(db, user, url, callback) {
 				return;
 			}
 
-			let userdata = db.collection('users');
+			const userdata = db.collection('users');
 
-			userdata.update({ _id: userDoc['_id'] }, { $set: { canvasURL: validURL }}, { upsert: true }, (err, result) => {
+			userdata.update({ _id: userDoc['_id'] }, { $set: { canvasURL: validURL }}, { upsert: true }, err => {
 				if(err) {
 					callback(new Error('There was a problem updating the URL to the database!'), null, null);
 					return;
@@ -191,7 +188,7 @@ function getEvents(db, user, callback) {
 				return;
 			}
 
-			let data = ical.parseICS(body);
+			const data = ical.parseICS(body);
 
 			// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
 			// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
@@ -208,14 +205,14 @@ function getEvents(db, user, callback) {
 				}
 
 				// Loop through all of the events in the calendar feed and push events within month to validEvents
-				let eventKeys = Object.keys(data);
-				let validEvents = [];
+				const eventKeys = Object.keys(data);
+				const validEvents = [];
 				// Cache class aliases
-				let classAliases = {};
+				const classAliases = {};
 
 				// Function for getting class to insert according to canvas name
 				function getCanvasClass(parsedEvent, callback) {
-					let name = parsedEvent.class.raw;
+					const name = parsedEvent.class.raw;
 
 					// Check if alias is already cached
 					if(typeof classAliases[name] !== 'undefined') {
@@ -231,8 +228,8 @@ function getEvents(db, user, callback) {
 						}
 
 						// Backup object if Canvas class doesn't have alias
-						let defaultColor = '#34444F';
-						let canvasClass = {
+						const defaultColor = '#34444F';
+						const canvasClass = {
 							_id: null,
 							canvas: true,
 							user: user,
@@ -263,8 +260,8 @@ function getEvents(db, user, callback) {
 				// Function to iterate over classes asynchronously
 				function checkEvent(i) {
 
-					let canvasEvent = data[eventKeys[i]];
-					let parsedEvent = parseCanvasTitle(canvasEvent.summary);
+					const canvasEvent = data[eventKeys[i]];
+					const parsedEvent = parseCanvasTitle(canvasEvent.summary);
 
 					// Check if alias for class first
 					getCanvasClass(parsedEvent, (err, canvasClass) => {
@@ -273,11 +270,11 @@ function getEvents(db, user, callback) {
 							return;
 						}
 
-						let start = new Date(canvasEvent.start);
-						let end = new Date(canvasEvent.end);
+						const start = new Date(canvasEvent.start);
+						const end = new Date(canvasEvent.end);
 
 						// class will be null if error in getting class name.
-						let insertEvent = {
+						const insertEvent = {
 							_id: canvasEvent.uid,
 							canvas: true,
 							user: userDoc.user,
@@ -330,18 +327,18 @@ function parseCanvasTitle(title) {
 	const firstLastBrackets = /(^\[)|(]$)/g;
 
 	// Get what's in the square brackets, including square brackets
-	let classTeacher = _.last(title.match(classTeacherRegex)) || '';
-	let classTeacherNoBrackets = classTeacher.replace(firstLastBrackets, '');
+	const classTeacher = _.last(title.match(classTeacherRegex)) || '';
+	const classTeacherNoBrackets = classTeacher.replace(firstLastBrackets, '');
 	// Subtract the class/teacher from the Canvas title
-	let assignmentName = title.replace(classTeacherRegex, '').trim();
+	const assignmentName = title.replace(classTeacherRegex, '').trim();
 
 	// Also check if there's a teacher, typically separated by a colon
-	let teacher = (_.last(classTeacherNoBrackets.match(teacherRegex)) || '').replace(/^:/g, '');
-	let teacherFirstName = teacher[0] || '';
-	let teacherLastName = (teacher[1] || '') + teacher.substring(2).toLowerCase();
+	const teacher = (_.last(classTeacherNoBrackets.match(teacherRegex)) || '').replace(/^:/g, '');
+	const teacherFirstName = teacher[0] || '';
+	const teacherLastName = (teacher[1] || '') + teacher.substring(2).toLowerCase();
 
 	// Subtract teacher from classTeacher to get the class
-	let className = classTeacher.replace(teacher, '').replace(/\[|]/g, '').replace(/:$/g, '');
+	const className = classTeacher.replace(teacher, '').replace(/\[|]/g, '').replace(/:$/g, '');
 
 	return {
 		assignment: assignmentName,
@@ -439,7 +436,7 @@ function getClasses(db, user, callback) {
 				return;
 			}
 
-			let data = ical.parseICS(body);
+			const data = ical.parseICS(body);
 
 			// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
 			// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
@@ -448,10 +445,10 @@ function getClasses(db, user, callback) {
 				return;
 			}
 
-			let classes = [];
+			const classes = [];
 
-			for(let calEvent of Object.values(data)) {
-				let parsedEvent = parseCanvasTitle(calEvent.summary);
+			for(const calEvent of Object.values(data)) {
+				const parsedEvent = parseCanvasTitle(calEvent.summary);
 
 				// If not already in classes array, push to array
 				if(!_.contains(classes, parsedEvent.class.raw)) {

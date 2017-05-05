@@ -32,11 +32,6 @@ const userBackgroundsDir = __dirname + '/../public/user-backgrounds';
 // Default user background
 const defaultBackgroundUser = 'default';
 const defaultExtension = '.jpg';
-// Valid background variations
-const validVariations = [
-	'normal',
-	'blur'
-];
 
 // How many pixels to apply gaussian blur radius by default
 const defaultBlurRadius = 10;
@@ -50,9 +45,9 @@ const defaultBlurRadius = 10;
  * @returns {function}
  */
 
-function uploadBackground(db) {
+function uploadBackground() {
 
-	let storage = multer.diskStorage({
+	const storage = multer.diskStorage({
 		destination: (req, file, cb) => {
 			// Delete current background
 			deleteBackground(req.user.user, err => {
@@ -62,7 +57,7 @@ function uploadBackground(db) {
 				}
 
 				// Make sure directory is created for user backgrounds
-				let userDir = userBackgroundsDir + '/' + req.user.user + '-' + Date.now();
+				const userDir = userBackgroundsDir + '/' + req.user.user + '-' + Date.now();
 				fs.ensureDir(userDir, err => {
 					if (err) {
 						cb(new Error('There was a problem ensuring the image directory!'), null);
@@ -75,22 +70,22 @@ function uploadBackground(db) {
 
 		filename: (req, file, cb) => {
 			// Get valid extension
-			let extension = validMimeTypes[file.mimetype];
+			const extension = validMimeTypes[file.mimetype];
 			// Set base file name to username
-			let filename = 'normal.' + extension;
+			const filename = 'normal.' + extension;
 
 			cb(null, filename);
 		}
 	});
 
-	let upload = multer({
+	const upload = multer({
 		storage: storage,
 		fileFilter: (req, file, cb) => {
 			if (!req.user.user) {
 				cb(new Error('You must be logged in!'), null);
 				return;
 			}
-			let extension = validMimeTypes[file.mimetype];
+			const extension = validMimeTypes[file.mimetype];
 			if (typeof extension !== 'string') {
 				cb(new Error('Invalid file type!'), null);
 				return;
@@ -136,10 +131,10 @@ function getCurrentFiles(user, callback) {
 
 		// Look through all the directories
 		let userDir = null;
-		for(let _dir of userDirs) {
-			let dir = path.parse(_dir);
-			let dirname = dir.name;
-			let dirnameSplit = dirname.split('-');
+		for(const _dir of userDirs) {
+			const dir = path.parse(_dir);
+			const dirname = dir.name;
+			const dirnameSplit = dirname.split('-');
 
 			// Check directory isn't deleted
 			if(dirnameSplit[0] === 'deleted') {
@@ -150,7 +145,7 @@ function getCurrentFiles(user, callback) {
 			dirnameSplit.pop();
 
 			// Directory owner's username (which may have dashes in it)
-			let directoryOwner = dirnameSplit.join('-');
+			const directoryOwner = dirnameSplit.join('-');
 
 			// Check if background belongs to user
 			if(directoryOwner === user) {
@@ -174,9 +169,9 @@ function getCurrentFiles(user, callback) {
 
 			// Loop through all valid files until there's either a .png or .jpg extention
 			let userExtension = null;
-			for(let _file of userImages) {
-				let file = path.parse(_file);
-				let extension = file.ext;
+			for(const _file of userImages) {
+				const file = path.parse(_file);
+				const extension = file.ext;
 
 				// If valid extension, just break out of loop and return that
 				if(_.contains(validExtensions, extension)) {
@@ -228,8 +223,8 @@ function deleteBackground(user, callback) {
 			return;
 		}
 
-		let currentPath = userBackgroundsDir + '/' + dirname;
-		let deletedPath = userBackgroundsDir + '/deleted-' + dirname;
+		const currentPath = userBackgroundsDir + '/' + dirname;
+		const deletedPath = userBackgroundsDir + '/deleted-' + dirname;
 
 		fs.rename(currentPath, deletedPath, err => {
 			if(err) {
@@ -263,7 +258,7 @@ function deleteBackground(user, callback) {
 function getBackground(user, callback) {
 	if(typeof callback !== 'function') return;
 
-	let defaultBackground = {
+	const defaultBackground = {
 		normal: userBackgroundUrl + '/' + defaultBackgroundUser + '/normal' + defaultExtension,
 		blur: userBackgroundUrl + '/' + defaultBackgroundUser + '/blur' + defaultExtension
 	};
@@ -285,7 +280,7 @@ function getBackground(user, callback) {
 			return;
 		}
 
-		let backgroundURLs = {
+		const backgroundURLs = {
 			normal: userBackgroundUrl + '/' + dirname + '/normal' + extension,
 			blur: userBackgroundUrl + '/' + dirname + '/blur' + extension
 		};
@@ -380,9 +375,9 @@ function blurUser(user, callback) {
 			return;
 		}
 
-		let userDir = userBackgroundsDir + '/' + dirname;
-		let fromPath = userDir + '/normal' + extension;
-		let toPath = userDir + '/blur' + extension;
+		const userDir = userBackgroundsDir + '/' + dirname;
+		const fromPath = userDir + '/normal' + extension;
+		const toPath = userDir + '/blur' + extension;
 
 		addBlur(fromPath, toPath, defaultBlurRadius, err => {
 			if(err) {

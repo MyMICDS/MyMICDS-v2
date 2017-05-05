@@ -25,7 +25,7 @@ function getQuotes(db, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null)
+		callback(new Error('Invalid database connection!'), null);
 	}
 
 	const quotesData = db.collection('quotes');
@@ -79,7 +79,7 @@ function insertQuote(db, author, quote, callback) {
 	quotesData.insertOne({
 		author: author,
 		quote: quote
-	}, (err, result) => {
+	}, err => {
 		if(err) {
 			callback(new Error('There was a problem inserting the quote into the database!'));
 			return;

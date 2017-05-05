@@ -38,7 +38,7 @@ function login(callback) {
 	}, (err, res, body) => {
 		body = JSON.parse(body);
 		if(err || res.statusCode !== 200 || body.response !== 'ok') {
-			let error = body.error ? body.error : 'Unknown';
+			const error = body.error ? body.error : 'Unknown';
 			callback(new Error('There was a problem logging in the Rams Army app! Error: ' + error), null);
 			return;
 		}
@@ -89,10 +89,10 @@ function getScores(callback) {
 			scores.events = [];
 
 			// Push all events to scores object
-			_.each(body.scores, (value, key) => {
+			_.each(body.scores, value => {
 				scores.scores.push(value);
 			});
-			_.each(body.events, (value, key) => {
+			_.each(body.events, value => {
 				scores.events.push(value);
 			});
 

@@ -289,12 +289,12 @@ function getSchedule(db, user, date, callback) {
 
 				// Assign each class to it's block
 				const blocks = {};
-				for(let block of results.classes) {
+				for(const block of results.classes) {
 					blocks[block.block] = block; // Very descriptive
 				}
 
 				// Include generic blocks in with the supplied blocks
-				for(let key of Object.keys(genericBlocks)) {
+				for(const key of Object.keys(genericBlocks)) {
 					if(typeof blocks[key] !== 'object') {
 						blocks[key] = genericBlocks[key];
 					}
@@ -308,7 +308,7 @@ function getSchedule(db, user, date, callback) {
 				};
 
 				// Look up Block Schedule for user
-				let daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc['gradYear']), results.day, lateStart);
+				const daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc['gradYear']), results.day, lateStart);
 
 				// Only combine with block schedule if the block schedule exists
 				if(!daySchedule) {
@@ -353,11 +353,8 @@ function getSchedule(db, user, date, callback) {
 					allDay: []
 				};
 
-				// Keep track of which classes we need to delete
-				const conflictIndexes = [];
-
 				// Go through all the events in the Portal calendar
-				for(let index of Object.keys(results.portal.cal)) {
+				for(const index of Object.keys(results.portal.cal)) {
 					const calEvent = results.portal.cal[index];
 					if(typeof calEvent.summary !== 'string') continue;
 
@@ -401,7 +398,7 @@ function getSchedule(db, user, date, callback) {
 							}
 
 							// Generate random color
-							let color = prisma(calEvent.summary).hex;
+							const color = prisma(calEvent.summary).hex;
 
 							// RegEx for determining block and stuff is a bit intense; therefore, we should cache it. [sp1a]
 							results.aliases.portal[calEvent.summary] = {
@@ -424,7 +421,7 @@ function getSchedule(db, user, date, callback) {
 							class: results.aliases.portal[calEvent.summary],
 							start,
 							end
-						})
+						});
 					}
 				}
 
@@ -551,7 +548,7 @@ function combineClassesSchedule(date, schedule, blocks) {
 	// Loop through schedule
 	const combinedSchedule = [];
 
-	for(let blockObject of schedule) {
+	for(const blockObject of schedule) {
 		// Check if user has configured a class for this block
 		const block = blockObject.block;
 		let scheduleClass = blocks[block];
@@ -570,7 +567,7 @@ function combineClassesSchedule(date, schedule, blocks) {
 				block: 'other',
 				color,
 				textDark: prisma.shouldTextBeDark(color)
-			}
+			};
 		}
 
 		// Check if we should also be adding lunch
@@ -603,7 +600,7 @@ function ordineSchedule(baseSchedule, addClasses) {
 	if(!_.isArray(addClasses)) addClasses = [];
 
 	// Add each class to the base schedule
-	for(let addClass of addClasses) {
+	for(const addClass of addClasses) {
 		const start = moment(addClass.start);
 		const end   = moment(addClass.end);
 
@@ -677,7 +674,6 @@ function ordineSchedule(baseSchedule, addClasses) {
 				if(endRelation === 'inside') {
 					// Split event into two
 					const newBlock = JSON.parse(JSON.stringify(scheduleClass));
-					let oldEnd = scheduleClass.end.clone();
 
 					// Set old block to beginning of next block
 					baseSchedule[i].end = start.clone();
@@ -706,7 +702,7 @@ function ordineSchedule(baseSchedule, addClasses) {
 		// Delete all conflicting classes
 		conflictIndexes.sort();
 		let deleteOffset = 0;
-		for(let conflictIndex of conflictIndexes) {
+		for(const conflictIndex of conflictIndexes) {
 			const index = conflictIndex - deleteOffset++;
 			baseSchedule.splice(index, 1);
 		}

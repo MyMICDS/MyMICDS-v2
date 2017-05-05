@@ -4,7 +4,7 @@
  * @file Wish I had one
  * @module dates
  */
-const _ = require('underscore');
+
 const moment = require('moment');
 const portal = require(__dirname + '/portal.js');
 
@@ -17,12 +17,12 @@ const portal = require(__dirname + '/portal.js');
  */
 
 function lastFridayMay(year) {
-	let current = moment();
+	const current = moment();
 	if(typeof year !== 'number' || year % 1 !== 0) {
 		year = current.year();
 	}
 
-	let lastDayOfMay = moment().year(year).month('May').endOf('month').startOf('day').hours(11).minutes(30);
+	const lastDayOfMay = moment().year(year).month('May').endOf('month').startOf('day').hours(11).minutes(30);
 
 	/*
 	 * Fun fact: This is literally the only switch statement in the whole MyMICDS codebase.
@@ -30,21 +30,21 @@ function lastFridayMay(year) {
 
 	let lastDay;
 	switch(lastDayOfMay.day()) {
-		case 5:
+	case 5:
 			// If day is already Friday
-			lastDay = lastDayOfMay;
-			break;
+		lastDay = lastDayOfMay;
+		break;
 
-		case 6:
+	case 6:
 			// Last day is Sunday
-			lastDay = lastDayOfMay.subtract(1, 'day');
-			break;
+		lastDay = lastDayOfMay.subtract(1, 'day');
+		break;
 
-		default:
+	default:
 			// Subtract day of week (which cancels it out) and start on Saturday.
 			// Then subtract to days to get from Saturday to Friday.
-			lastDay = lastDayOfMay.subtract(lastDayOfMay.day() + 2, 'days');
-			break;
+		lastDay = lastDayOfMay.subtract(lastDayOfMay.day() + 2, 'days');
+		break;
 	}
 
 	return lastDay;
@@ -58,8 +58,8 @@ function lastFridayMay(year) {
  */
 
 function schoolEnds() {
-	let current = moment();
-	let lastDayThisYear = lastFridayMay(current.year());
+	const current = moment();
+	const lastDayThisYear = lastFridayMay(current.year());
 
 	if(lastDayThisYear.isAfter(current)) {
 		return lastDayThisYear;
@@ -77,7 +77,7 @@ function schoolEnds() {
 
 function getSchoolYear(date) {
 	date = moment(date);
-	let lastDayThisYear = lastFridayMay(date.year());
+	const lastDayThisYear = lastFridayMay(date.year());
 
 	// If after summer, include next year. Otherwise, include last year
 	if(date.isAfter(lastDayThisYear)) {
@@ -112,11 +112,11 @@ function getDaysOff(callback) {
 			return;
 		}
 
-		let dayPointer = moment().startOf('day').subtract(portal.portalRange.previous, 'months');
-		let dayMax = moment().startOf('day').add(portal.portalRange.upcoming, 'months');
+		const dayPointer = moment().startOf('day').subtract(portal.portalRange.previous, 'months');
+		const dayMax = moment().startOf('day').add(portal.portalRange.upcoming, 'months');
 
 		// Array of moment.js objects which we have a day off
-		let daysOff = [];
+		const daysOff = [];
 
 		// Go through all days
 		while(dayPointer.isSameOrBefore(dayMax)) {
@@ -161,9 +161,9 @@ function getBreaks(callback) {
 
 		// Group days off into arrays
 		let i = 0;
-		let groupedDays = days.reduce((stack, b) => {
-			let cur = stack[i];
-			let a = cur ? cur[cur.length - 1] : 0;
+		const groupedDays = days.reduce((stack, b) => {
+			const cur = stack[i];
+			const a = cur ? cur[cur.length - 1] : 0;
 
 			if (b - a > 86400000) {
 				i++;
@@ -190,15 +190,15 @@ function getBreaks(callback) {
 		 * Other - For some reason if there's a day off in the middle of the week.
 		 */
 
-		let categorizedBreaks = {
+		const categorizedBreaks = {
 			weekends: [],
 			longWeekends: [],
 			vacations: [],
 			other: []
 		};
 
-		console.log('grouped ays', groupedDays);
-		for(let group of groupedDays) {
+		console.log('grouped ays', groupedDays); // eslint-disable-line
+		for(const group of groupedDays) {
 			// Check if weekend
 			if(group.length === 2 && group[0].day() === 6 && group[1].day() === 0) {
 				categorizedBreaks.weekends.push({
@@ -210,7 +210,7 @@ function getBreaks(callback) {
 
 			// Check if Saturday / Sunday are included in break
 			let weekendIncluded = false;
-			for(let dayObj of group) {
+			for(const dayObj of group) {
 				if(dayObj.day() === 6 || dayObj.day() === 0) {
 					weekendIncluded = true;
 				}

@@ -71,7 +71,7 @@ function login(db, user, password, rememberMe, callback) {
 		}
 
 		// Update lastLogin in database
-		let userdata = db.collection('users');
+		const userdata = db.collection('users');
 		userdata.update({ user: user }, { $currentDate: { lastLogin: true }});
 
 		// Login successful!
@@ -143,7 +143,7 @@ function register(db, user, callback) {
 			return;
 		}
 
-		let userdata = db.collection('users');
+		const userdata = db.collection('users');
 
 		// Generate confirmation email hash
 		crypto.randomBytes(16, (err, buf) => {
@@ -152,7 +152,7 @@ function register(db, user, callback) {
 				return;
 			}
 
-			let hash = buf.toString('hex');
+			const hash = buf.toString('hex');
 
 			// Hash Password
 			cryptoUtils.hashPassword(user.password, (err, hashedPassword) => {
@@ -161,7 +161,7 @@ function register(db, user, callback) {
 					return;
 				}
 
-				let newUser = {
+				const newUser = {
 					user: user.user,
 					password: hashedPassword,
 					firstName: user.firstName,
@@ -173,14 +173,14 @@ function register(db, user, callback) {
 					scopes: []
 				};
 
-				userdata.update({ user: newUser.user }, newUser, { upsert: true }, (err, data) => {
+				userdata.update({ user: newUser.user }, newUser, { upsert: true }, err => {
 					if(err) {
 						callback(new Error('There was a problem inserting the account into the database!'));
 						return;
 					}
 
-					let email = newUser.user + '@micds.org';
-					let emailReplace = {
+					const email = newUser.user + '@micds.org';
+					const emailReplace = {
 						firstName: newUser.firstName,
 						lastName: newUser.lastName,
 						confirmLink: 'https://mymicds.net/confirm/' + newUser.user + '/' + hash,
@@ -195,7 +195,7 @@ function register(db, user, callback) {
 						html: newUser.firstName + ' ' + newUser.lastName + ' (' + newUser.gradYear + ') just created an account with the username ' + newUser.user
 					}, err => {
 						if(err) {
-							console.log('[' + new Date() + '] Error occured when sending admin notification! (' + err + ')');
+							console.log('[' + new Date() + '] Error occured when sending admin notification! (' + err + ')'); // eslint-disable-line
 						}
 					});
 				});
@@ -250,12 +250,12 @@ function confirm(db, user, hash, callback) {
 			return;
 		}
 
-		let dbHash = userDoc['confirmationHash'];
+		const dbHash = userDoc['confirmationHash'];
 
 		if(cryptoUtils.safeCompare(hash, dbHash)) {
 			// Hash matches, confirm account!
-			let userdata = db.collection('users');
-			userdata.update({ user: user }, {$set: { confirmed: true }}, (err, results) => {
+			const userdata = db.collection('users');
+			userdata.update({ user: user }, {$set: { confirmed: true }}, err => {
 				if(err) {
 					callback(new Error('There was a problem updating the database!'));
 					return;

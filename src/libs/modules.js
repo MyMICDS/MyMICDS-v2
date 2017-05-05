@@ -155,7 +155,7 @@ function upsertModules(db, user, modules, callback) {
 
 		const moduleGrid = [];
 
-		for(let mod of modules) {
+		for(const mod of modules) {
 			for(let j = mod.row; j <= mod.row + mod.height; j++) {
 				if(typeof moduleGrid[j] !== 'object') moduleGrid[j] = [];
 

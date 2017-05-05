@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 'use strict';
 
 /**
@@ -5,15 +7,7 @@
  * @module lunch
  */
 
-let config;
-try {
-	config = require(__dirname + '/config.js');
-} catch(e) {
-	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
-}
-
 const admins = require(__dirname + '/admins.js');
-const fs = require('fs-extra');
 const request = require('request');
 const cheerio = require('cheerio');
 const moment = require('moment');
@@ -21,7 +15,6 @@ const utils = require(__dirname + '/utils.js');
 
 const lunchURL = 'http://myschooldining.com/MICDS/calendarWeek';
 const schools = ['Lower School', 'Middle School', 'Upper School'];
-const JSONPath = __dirname + '/../public/json/weather.json';
 
 /**
  * Gets the lunch from /src/api/lunch.json. Will create one if it doesn't already exist.
@@ -92,36 +85,36 @@ function parseLunch(body) {
 	body.replace('<<', '&lt;&lt;');
 	body.replace('>>', '&gt;&gt;');
 
-	let $ = cheerio.load(body);
-	let json = {};
+	const $ = cheerio.load(body);
+	const json = {};
 
-	let table = $('table#table_calendar_week');
-	let weekColumns = table.find('td');
+	const table = $('table#table_calendar_week');
+	const weekColumns = table.find('td');
 
-	weekColumns.each(function(index) {
+	weekColumns.each(function() {
 
-		let day = $(this);
-		let date = day.attr('this_date');
-		let dateObject = new Date(date);
-		let dateString = dateObject.getFullYear()
+		const day = $(this);
+		const date = day.attr('this_date');
+		const dateObject = new Date(date);
+		const dateString = dateObject.getFullYear()
 			+ '-' + utils.leadingZeros(dateObject.getMonth() + 1)
 			+ '-' + utils.leadingZeros(dateObject.getDate());
 
-		for(let school of schools) {
-			let schoolLunch = day.find('div[location="' + school + '"]');
+		for(const school of schools) {
+			const schoolLunch = day.find('div[location="' + school + '"]');
 
 			// Make sure it's not the weekend
 			if(schoolLunch.length > 0) {
 
-				let lunchTitle = schoolLunch.find('span.period-value').text().trim();
-				let categories = schoolLunch.find('div.category-week');
+				const lunchTitle = schoolLunch.find('span.period-value').text().trim();
+				const categories = schoolLunch.find('div.category-week');
 
 				categories.each(function() {
 
-					let category = $(this);
-					let food = [];
-					let categoryTitle = category.find('span.category-value').text().trim();
-					let items = category.find('div.item-week');
+					const category = $(this);
+					const food = [];
+					const categoryTitle = category.find('span.category-value').text().trim();
+					const items = category.find('div.item-week');
 
 					items.each(function() {
 						food.push($(this).text().trim());
@@ -135,7 +128,7 @@ function parseLunch(body) {
 					json[dateString][schoolFilter(school)]['categories'] = json[dateString][schoolFilter(school)]['categories'] || {};
 					json[dateString][schoolFilter(school)]['categories'][categoryTitle] = json[dateString][schoolFilter(school)]['categories'][categoryTitle] || [];
 
-					for(let f of food) {
+					for(const f of food) {
 						json[dateString][schoolFilter(school)]['categories'][categoryTitle].push(f);
 					}
 

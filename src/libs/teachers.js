@@ -60,7 +60,7 @@ function addTeacher(db, teacher, callback) {
 
 	const teacherdata = db.collection('teachers');
 	// Upsert teacher into collection
-	teacherdata.update(teacher, teacher, { upsert: true }, (err, results) => {
+	teacherdata.update(teacher, teacher, { upsert: true }, err => {
 		if(err) {
 			callback(new Error('There was a problem inserting the teacher into the database!'), null);
 			return;
@@ -118,7 +118,7 @@ function getTeacher(db, teacherId, callback) {
 		}
 
 		if(docs.length === 0) {
-			callback(null, false, null)
+			callback(null, false, null);
 		} else {
 			callback(null, true, docs[0]);
 		}
@@ -204,7 +204,7 @@ function deleteTeacher(db, teacherId, callback) {
 		if(classes.length === 0) {
 			// Teacher doesn't have any classes. Delete.
 			const teacherdata = db.collection('teachers');
-			teacherdata.deleteMany({ _id: teacherId }, (err, results) => {
+			teacherdata.deleteMany({ _id: teacherId }, err => {
 				if(err) {
 					callback(new Error('There was a problem deleting the teacher from the database!'));
 					return;

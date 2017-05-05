@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 'use strict';
 
 /**
@@ -31,7 +32,7 @@ if(config.production) {
 		 * Get Daily Bulletin every 5 minutes
 		 */
 
-		const updateBulletin = later.setInterval(() => {
+		later.setInterval(() => {
 			console.log('[' + new Date() + '] Check for latest Daily Bulletin');
 
 			dailyBulletin.queryLatest(err => {
@@ -60,10 +61,10 @@ if(config.production) {
 		 * Get new weather info every 5 minutes
 		 */
 
-		const updateWeather = later.setInterval(() => {
+		later.setInterval(() => {
 			console.log('[' + new Date() + '] Update Weather');
 
-			weather.update((err, weatherJSON) => {
+			weather.update(err => {
 				if (err) {
 					console.log('[' + new Date() + '] Error occured for weather! (' + err + ')');
 

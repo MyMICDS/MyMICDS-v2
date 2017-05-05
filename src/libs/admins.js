@@ -4,7 +4,7 @@
  * @file Manages information and functions regarding the MyMICDS admins
  * @module admins
  */
-const mail = require(__dirname + "/mail.js");
+const mail = require(__dirname + '/mail.js');
 
 /**
  * Gets usernames of admins from database
@@ -31,7 +31,7 @@ function getAdmins(db, callback) {
 		return;
 	}
 
-	let userdata = db.collection('users');
+	const userdata = db.collection('users');
 
 	userdata.find({scopes: ['admin']}).toArray((err, docs) => {
 		if(err) {

@@ -21,11 +21,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const http = require('http');
 const jwt = require(__dirname + '/libs/jwt.js');
-const lunch = require(__dirname + '/libs/lunch.js');
-const mail = require(__dirname + '/libs/mail.js');
 const MongoClient = require('mongodb').MongoClient;
-const request = require('request');
-const weather = require(__dirname + '/libs/weather.js');
 
 /*
  * Frameworks
@@ -114,5 +110,5 @@ app.get('/spin', (req, res) => {
  */
 
 server.listen(port, () => {
-	console.log('Server listening on *:' + port);
+	console.log('Server listening on *:' + port); // eslint-disable-line
 });

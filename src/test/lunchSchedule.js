@@ -11,7 +11,6 @@ const moment = require('moment');
 const MongoClient = require('mongodb').MongoClient;
 const schedule = require(__dirname + '/../libs/schedule.js');
 
-let user = process.argv[2];
 
 let times = 7;
 
@@ -26,12 +25,12 @@ MongoClient.connect(config.mongodb.uri, (err, db) => {
 				if(err) throw err;
 				// console.log(schedule);
 
-				let names = [];
+				const names = [];
 				schedule.classes.forEach(block => {
 					names.push(block.class.name);
 				});
 
-				console.log(names);
+				console.log(names); // eslint-disable-line
 
 				// testSchedule(date.add(1, 'day'));
 				testSchedule(date, 'mgira');

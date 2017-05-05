@@ -60,8 +60,6 @@ function isRevoked(db) {
 			return;
 		}
 
-		// Current date
-		const current = Date.now();
 		// Expiration date
 		const expiration = payload.exp * 1000;
 		// Make sure token hasn't expired yet
@@ -89,28 +87,28 @@ function isRevoked(db) {
 			 * @TODO Automatically log user out in front-end on password change
 			 * or prevent session that changed password from expiring.
 			 */
-			/*if(typeof userDoc['lastPasswordChange'] === 'object' && (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
+			/* if(typeof userDoc['lastPasswordChange'] === 'object' && (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
 				done(null, true);
 				return;
 			}*/
 
 			// Make sure token isn't blacklisted (usually if logged out)
-			let jwt = req.get('Authorization').slice(7);
+			const jwt = req.get('Authorization').slice(7);
 
 			isBlacklisted(db, jwt, (err, blacklisted) => {
 				if(err) {
-					callback(err, true);
+					done(err, true);
 					return;
 				}
 
 				// Update 'lastVisited' field in user document
-				let userdata = db.collection('users');
+				const userdata = db.collection('users');
 				userdata.update(userDoc, { $currentDate: { lastVisited: true }});
 
 				done(null, blacklisted);
 			});
 		});
-	}
+	};
 }
 
 /**
@@ -169,7 +167,7 @@ function generate(db, user, rememberMe, callback) {
 		return;
 	}
 
-	let expiration = rememberMe ? '30 days' : '12 hours';
+	const expiration = rememberMe ? '30 days' : '12 hours';
 
 	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
@@ -182,12 +180,12 @@ function generate(db, user, rememberMe, callback) {
 		}
 
 		// Default scope
-		let scopes = {
+		const scopes = {
 			'pleb': true
 		};
 
 		if(_.isArray(userDoc['scopes'])) {
-			for(let scope of userDoc['scopes']) {
+			for(const scope of userDoc['scopes']) {
 				scopes[scope] = true;
 			}
 		}
@@ -244,7 +242,7 @@ function isBlacklisted(db, jwt, callback) {
 		return;
 	}
 
-	let JWTdata = db.collection('JWTBlacklist');
+	const JWTdata = db.collection('JWTBlacklist');
 
 	JWTdata.find({ jwt: jwt }).toArray((err, docs) => {
 		if(err) {
@@ -292,8 +290,8 @@ function revoke(db, payload, jwt, callback) {
 		return;
 	}
 
-	let current = new Date();
-	let JWTdata = db.collection('JWTBlacklist');
+	const current = new Date();
+	const JWTdata = db.collection('JWTBlacklist');
 
 	JWTdata.insert({
 		user: payload.user,

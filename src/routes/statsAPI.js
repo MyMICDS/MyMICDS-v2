@@ -3,7 +3,7 @@
 /**
  * @file Manages stats API endpoints
  */
-const stats = require(__dirname + "/../libs/stats.js");
+const stats = require(__dirname + '/../libs/stats.js');
 
 module.exports = (app, db) => {
 

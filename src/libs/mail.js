@@ -62,7 +62,7 @@ function send(users, message, callback) {
 		html: message.html,
 	};
 
-	transporter.sendMail(mailOptions, (err, info) => {
+	transporter.sendMail(mailOptions, err => {
 
 		if(err) {
 			callback(new Error('There was a problem sending the mail!'));
@@ -114,7 +114,7 @@ function sendHTML(users, subject, file, data, callback) {
 		}
 
 		// Replace JSON Key values with custom data
-		for(let key of Object.keys(data)) {
+		for(const key of Object.keys(data)) {
 			body = body.replace('{{' + key + '}}', data[key]);
 		}
 

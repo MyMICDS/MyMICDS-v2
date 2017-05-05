@@ -67,9 +67,9 @@ function checkEvent(db, user, eventId, callback) {
 				checkedTime: new Date()
 			};
 
-			let checkedEventsData = db.collection('checkedEvents');
+			const checkedEventsData = db.collection('checkedEvents');
 
-			checkedEventsData.insert(insertChecked, (err, results) => {
+			checkedEventsData.insert(insertChecked, err => {
 				if(err) {
 					callback(new Error('There was a problem crossing out the event in the database!'));
 					return;
@@ -125,7 +125,7 @@ function getChecked(db, user, eventId, callback) {
 			return;
 		}
 
-		let checkedEventsData = db.collection('checkedEvents');
+		const checkedEventsData = db.collection('checkedEvents');
 
 		checkedEventsData.find({ user: userDoc['_id'], eventId: eventId }).toArray((err, checkedEvents) => {
 			if(err) {
@@ -178,7 +178,7 @@ function listChecked(db, user, callback) {
 			return;
 		}
 
-		let checkedEventsData = db.collection('checkedEvents');
+		const checkedEventsData = db.collection('checkedEvents');
 
 		checkedEventsData.find({ user: userDoc['_id'] }).toArray((err, checkedEvents) => {
 			if(err) {
@@ -235,9 +235,9 @@ function uncheckEvent(db, user, eventId, callback) {
 			return;
 		}
 
-		let checkedEventsData = db.collection('checkedEvents');
+		const checkedEventsData = db.collection('checkedEvents');
 
-		checkedEventsData.deleteMany({ user: userDoc['_id'], eventId: eventId }, (err, results) => {
+		checkedEventsData.deleteMany({ user: userDoc['_id'], eventId: eventId }, err => {
 			if(err) {
 				callback(new Error('There was a problem uncrossing the event in the database!'));
 				return;

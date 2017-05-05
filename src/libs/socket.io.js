@@ -51,7 +51,7 @@ module.exports = io => {
 			const emitUser = argumentsArray[0];
 			const emitEvent = argumentsArray.slice(1);
 
-			_.each(io.sockets.connected, (value, key) => {
+			_.each(io.sockets.connected, value => {
 				// Check if user is authorized
 				if (!value.decodedToken) return;
 				// If logged in user has same username as target user

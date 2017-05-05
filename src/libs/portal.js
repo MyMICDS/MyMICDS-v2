@@ -7,15 +7,10 @@
 const config = require(__dirname + '/config.js');
 
 const _ = require('underscore');
-const aliases = require(__dirname + '/aliases.js');
-const asyncLib = require('async');
-const classes = require(__dirname + '/classes.js');
 const ical = require('ical');
 const moment = require('moment');
-const prisma = require('prisma');
 const querystring = require('querystring');
 const request = require('request');
-const blockSchedule = require(__dirname + '/blockSchedule.js');
 const url = require('url');
 const users = require(__dirname + '/users.js');
 
@@ -94,7 +89,7 @@ function verifyURL(portalURL, callback) {
 
 		// Look through every 'Day # (US/MS)' andd see how many events there are
 		const dayDates = {};
-		for(let calEvent of Object.values(data)) {
+		for(const calEvent of Object.values(data)) {
 			// If event doesn't have a summary, skip
 			if(typeof calEvent.summary !== 'string') continue;
 
@@ -177,7 +172,7 @@ function setURL(db, user, url, callback) {
 
 			const userdata = db.collection('users');
 
-			userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, (err, result) => {
+			userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, err => {
 				if(err) {
 					callback(new Error('There was a problem updating the URL to the database!'), null, null);
 					return;
@@ -295,7 +290,7 @@ function getDayRotation(date, callback) {
 			return;
 		}
 
-		for(let calEvent of Object.values(data)) {
+		for(const calEvent of Object.values(data)) {
 			if(typeof calEvent.summary !== 'string') continue;
 
 			const start = new Date(calEvent['start']);
@@ -357,11 +352,10 @@ function getDayRotations(callback) {
 			return;
 		}
 
-		for(let calEvent of Object.values(data)) {
+		for(const calEvent of Object.values(data)) {
 			if(typeof calEvent.summary !== 'string') continue;
 
 			const start = new Date(calEvent['start']);
-			const end = new Date(calEvent['end']);
 
 			const year = start.getFullYear();
 			const month = start.getMonth() + 1;
@@ -487,7 +481,7 @@ function parseIcalClasses(data, callback) {
 	const classes = {};
 
 	// Go through each event and add to classes object with a count of how many times they occur
-	for(let calEvent of Object.values(data)) {
+	for(const calEvent of Object.values(data)) {
 		if(typeof calEvent.summary !== 'string') continue;
 
 		const start = moment(calEvent['start']);
@@ -513,7 +507,7 @@ function parseIcalClasses(data, callback) {
 	const uniqueClasses = Object.keys(classes);
 	const filteredClasses = [];
 
-	for(let uniqueClass of uniqueClasses) {
+	for(const uniqueClass of uniqueClasses) {
 		const occurrences = classes[uniqueClass];
 
 		// Remove all class names containing a certain keyword
@@ -525,7 +519,7 @@ function parseIcalClasses(data, callback) {
 
 			// Check if class contains any word blacklisted
 			let containsBlacklistedWord = false;
-			for(let keyword of classKeywordBlacklist) {
+			for(const keyword of classKeywordBlacklist) {
 				if(_.contains(uniqueClass, keyword)) {
 					containsBlacklistedWord = true;
 					break;

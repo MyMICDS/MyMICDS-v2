@@ -3,7 +3,7 @@
 /**
  * @file Manages alias API endpoints
  */
-const aliases = require(__dirname + "/../libs/aliases.js");
+const aliases = require(__dirname + '/../libs/aliases.js');
 
 module.exports = (app, db, socketIO) => {
 

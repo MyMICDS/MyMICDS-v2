@@ -33,20 +33,19 @@ const options = {
  * @param {Object} err - Null if success, error object if failure.
  * @param {Object} weatherJSON - JSON of current weather. Null if error.
  */
+function getWeather(callback) {
+	if(typeof callback !== 'function') return;
 
- function getWeather(callback) {
-	 if(typeof callback !== 'function') return;
+	fs.readJSON(JSONPath, (err, weatherJSON) => {
+		// If there's an error, most likely there's no existing JSON
+		if(err) {
+			updateWeather(callback);
+			return;
+		}
 
-	 fs.readJSON(JSONPath, (err, weatherJSON) => {
-		 // If there's an error, most likely there's no existing JSON
-		 if(err) {
-			 updateWeather(callback);
-			 return;
-		 }
-
-		 callback(null, weatherJSON);
-	 });
- }
+		callback(null, weatherJSON);
+	});
+}
 
 
 /**
@@ -63,7 +62,6 @@ const options = {
  * @param {Object} err - Null if success, error object if failure.
  * @param {Object} weatherJSON - JSON of current weather. Null if error.
  */
-
 function updateWeather(callback) {
 
 	if(typeof callback !== 'function') {

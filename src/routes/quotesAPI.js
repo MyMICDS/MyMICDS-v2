@@ -2,7 +2,7 @@
 
 const quotes = require(__dirname + '/../libs/quotes.js');
 
-const Random = require("random-js");
+const Random = require('random-js');
 const engine = Random.engines.mt19937().autoSeed();
 
 module.exports = (app, db) => {

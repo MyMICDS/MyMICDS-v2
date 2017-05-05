@@ -6,7 +6,6 @@
  */
 const _ = require('underscore');
 const moment = require('moment');
-const prisma = require('prisma');
 const users = require(__dirname + '/users.js');
 
 // Schedules
@@ -34,42 +33,6 @@ const validBlocks = [
 	'lunch',
 	'pe'
 ];
-
-const validTypes = [
-	'sam',  // Science, Art, Math
-	'wleh', // World Language, English, History
-	'other' // Free Period or something else
-];
-
-const samTypes = [
-	'art',
-	'math',
-	'science'
-];
-
-const wlehTypes = [
-	'english',
-	'history',
-	'spanish',
-	'latin',
-	'mandarin',
-	'german',
-	'french'
-];
-
-/**
- * Converts a classes.js type into a valid schedule type
- * @function convertType
- *
- * @param {string} type - Type of class
- * @returns {string}
- */
-
-function convertType(type) {
-	if(_.contains(samTypes, type)) return 'sam';
-	if(_.contains(wlehTypes, type)) return 'wleh';
-	return 'other';
-}
 
 /**
  * Returns a user's generic schedule according to their grade and their class names for each corresponding block. Returns null if something's invalid.
@@ -117,7 +80,7 @@ function getSchedule(date, grade, day, lateStart) {
 		// Loop through JSON and append classes to user schedule
 		const jsonSchedule = highschoolSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
 
-		for(let jsonBlock of jsonSchedule) {
+		for(const jsonBlock of jsonSchedule) {
 			// Check for any restrictions on the block
 			if(typeof jsonBlock.lowerclass !== 'undefined') {
 				if(jsonBlock.lowerclass !== lowerclass) continue;
@@ -140,7 +103,7 @@ function getSchedule(date, grade, day, lateStart) {
 
 	// If date isn't null, set times relative to date object
 	if(date && userSchedule) {
-		for(let schedule of userSchedule) {
+		for(const schedule of userSchedule) {
 			// Get start and end moment objects
 			const startTime = schedule.start.split(':');
 			schedule.start = date.clone().hour(startTime[0]).minute(startTime[1]);

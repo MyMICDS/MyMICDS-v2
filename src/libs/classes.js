@@ -6,13 +6,12 @@
  */
 const _ = require('underscore');
 const aliases = require(__dirname + '/aliases.js');
-const asyncLib = require('async');
 const ObjectID = require('mongodb').ObjectID;
 const prisma = require('prisma');
 const teachers = require(__dirname + '/teachers.js');
 const users = require(__dirname + '/users.js');
 
-const Random = require("random-js");
+const Random = require('random-js');
 const engine = Random.engines.mt19937().autoSeed();
 
 const validBlocks = [
@@ -114,12 +113,11 @@ function upsertClass(db, user, scheduleClass, callback) {
 				return;
 			}
 
-			let classdata = db.collection('classes');
+			const classdata = db.collection('classes');
 
 			// Check for duplicate classes first
 			classdata.find({ user: userDoc['_id'] }).toArray((err, classes) => {
 				let id;
-				let i;
 				if(err) {
 					callback(new Error('There was a problem querying the database!'), null);
 					return;
@@ -128,8 +126,8 @@ function upsertClass(db, user, scheduleClass, callback) {
 				// Lets see if any of the classes are the one we are supposed to edit
 				let validEditId = false;
 				if(scheduleClass._id !== '') {
-					for(let theClass of classes) {
-						let classId = theClass['_id'];
+					for(const theClass of classes) {
+						const classId = theClass['_id'];
 						if(scheduleClass._id === classId.toHexString()) {
 							validEditId = classId;
 							break;
@@ -139,7 +137,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 
 				// Now lets see if any of these classes are duplicate
 				const dupClassIds = [];
-				for(let classDoc of classes) {
+				for(const classDoc of classes) {
 					// If duplicate class, push id to array
 					if(scheduleClass.name  === classDoc.name
 						&& teacherDoc['_id'].toHexString() === classDoc['teacher'].toHexString()
@@ -170,7 +168,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 					id = new ObjectID();
 				}
 
-				let insertClass = {
+				const insertClass = {
 					_id: id,
 					user: userDoc['_id'],
 					name: scheduleClass.name,
@@ -181,7 +179,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 				};
 
 				// Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
-				classdata.update({ _id: id }, insertClass, { upsert: true }, (err, results) => {
+				classdata.update({ _id: id }, insertClass, { upsert: true }, err => {
 					if(err) {
 						callback(new Error('There was a problem upserting the class into the database!'), null);
 						return;
@@ -237,7 +235,7 @@ function getClasses(db, user, callback) {
 			return;
 		}
 
-		let classdata = db.collection('classes');
+		const classdata = db.collection('classes');
 
 		// Get all classes under the specified user id
 		classdata.find({ user: userDoc['_id'] }).toArray((err, classes) => {
@@ -247,13 +245,13 @@ function getClasses(db, user, callback) {
 			}
 
 			// Add 'textDark' to all of the classes based on color
-			for(let theClass of classes) {
+			for(const theClass of classes) {
 				theClass.textDark = prisma.shouldTextBeDark(theClass.color);
 			}
 
 			// Go through all events and set user to actual username, and teacher to actual teacher
 			// Save teachers in object so we don't have to query database more than we need to
-			let teachersList = {};
+			const teachersList = {};
 
 			function injectValues(i) {
 
@@ -262,7 +260,7 @@ function getClasses(db, user, callback) {
 					classes[i]['user'] = userDoc['user'];
 
 					// Set teacher to actual teacher
-					let teacherId = classes[i]['teacher'];
+					const teacherId = classes[i]['teacher'];
 
 					if(typeof teachersList[teacherId] === 'undefined') {
 						teachers.get(db, teacherId, (err, isTeacher, teacherDoc) => {
@@ -343,8 +341,8 @@ function deleteClass(db, user, classId, callback) {
 			return;
 		}
 
-		let classdata = db.collection('classes');
-		classdata.deleteMany({ _id: id, user: userDoc['_id'] }, (err, results) => {
+		const classdata = db.collection('classes');
+		classdata.deleteMany({ _id: id, user: userDoc['_id'] }, err => {
 			if(err) {
 				callback(new Error('There was a problem deleting the class from the database!'));
 				return;
@@ -354,7 +352,7 @@ function deleteClass(db, user, classId, callback) {
 			// @TODO: Error handling if these fail
 			teachers.deleteClasslessTeachers(db);
 			aliases.deleteClasslessAliases(db, err => {
-				console.log('[' + new Date() + '] Error occured when deleting classless teachers! (' + err + ')');
+				console.log('[' + new Date() + '] Error occured when deleting classless teachers! (' + err + ')'); // eslint-disable-line
 			});
 		});
 	});

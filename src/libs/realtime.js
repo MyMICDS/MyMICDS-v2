@@ -1,9 +1,11 @@
+'use strict';
+
 /**
  * @file Manages a bunch of miscellaneous realtime events
  * @module realtime
  */
 
-module.exports = (io, socketIO) => {
+module.exports = io => {
 	io.on('connection', socket => {
 		socket.pressingProgressLabel = false;
 
@@ -15,7 +17,7 @@ module.exports = (io, socketIO) => {
 		socket.on('disconnect', () => {
 			socket.pressingProgressLabel = false;
 			calcProgressSpin();
-		})
+		});
 	});
 
 	/**
@@ -26,7 +28,7 @@ module.exports = (io, socketIO) => {
 	function calcProgressSpin() {
 		let anyPressing = false;
 
-		for(let socket of io.sockets.connected) {
+		for(const socket of io.sockets.connected) {
 			if(socket.pressingProgressLabel) {
 				anyPressing = true;
 				break;

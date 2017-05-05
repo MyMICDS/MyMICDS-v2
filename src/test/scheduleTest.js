@@ -71,11 +71,11 @@ const tests = [
 	}
 ];
 
-for(let test of tests) {
+for(const test of tests) {
 	const results = schedule.ordine(test.base, test.add);
 
 	// Convert moment.js objects to readable strings
-	for(let result of results) {
+	for(const result of results) {
 		if(moment.isMoment(result.start)) {
 			result.start = result.start.format('LT');
 		}
@@ -84,5 +84,5 @@ for(let test of tests) {
 		}
 	}
 
-	console.log('Test ' + i + ' = ', results);
+	console.log('Test ' + i + ' = ', results); // eslint-disable-line
 }
