@@ -53,4 +53,4 @@ Wanna become a developer on the MyMICDS.net team? Shoot us an email at [support@
 
 For any other questions, comments, concerns, or suggestions, you can also contact support@mymicds.net.
 
-Join programming Club. (please)
+Join programming Club. (please) <!-- please -->
