@@ -197,7 +197,6 @@ function getBreaks(callback) {
 			other: []
 		};
 
-		console.log('grouped ays', groupedDays); // eslint-disable-line
 		for(const group of groupedDays) {
 			// Check if weekend
 			if(group.length === 2 && group[0].day() === 6 && group[1].day() === 0) {
