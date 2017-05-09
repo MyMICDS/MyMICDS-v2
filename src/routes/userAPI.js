@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages user API endpoints
  */
@@ -9,7 +7,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/user/grad-year-to-grade', (req, res) => {
 		const grade = users.gradYearToGrade(parseInt(req.body.year));
-		res.json({ grade: grade });
+		res.json({ grade });
 	});
 
 	app.post('/user/grade-to-grad-year', (req, res) => {
@@ -32,14 +30,12 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/user/get-info', (req, res) => {
 		users.getInfo(db, req.user.user, true, (err, userInfo) => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
 			res.json({
-				error: errorMessage,
+				error,
 				user: userInfo
 			});
 		});
@@ -62,14 +58,13 @@ module.exports = (app, db, socketIO) => {
 		}
 
 		users.changeInfo(db, req.user.user, info, err => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
+				error = err.message;
 			} else {
-				errorMessage = null;
 				socketIO.user(req.user.user, 'user', 'change-info', info);
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 

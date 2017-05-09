@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages user API endpoints
  */
@@ -13,17 +11,11 @@ module.exports = app => {
 
 	app.post('/dates/breaks', (req, res) => {
 		dates.getBreaks((err, breaks) => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-
-			res.json({
-				error: errorMessage,
-				breaks: breaks
-			});
+			res.json({ error, breaks });
 		});
 	});
 

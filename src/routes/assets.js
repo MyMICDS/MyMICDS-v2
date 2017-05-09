@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Enables static file routes in the /public directory
  */

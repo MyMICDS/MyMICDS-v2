@@ -11,14 +11,12 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/weather/get', (req, res) => {
 		weather.get((err, weatherJSON) => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
 			res.json({
-				error: errorMessage,
+				error,
 				weather: weatherJSON
 			});
 		});
@@ -38,14 +36,13 @@ module.exports = (app, db, socketIO) => {
 
 			// Alright, username checks out
 			weather.update((err, weatherJSON) => {
-				let errorMessage;
+				let error = null;
 				if(err) {
-					errorMessage = err.message;
+					error = err.message;
 				} else {
-					errorMessage = null;
 					socketIO.global('weather', weatherJSON);
 				}
-				res.json({ error: errorMessage });
+				res.json({ error });
 			});
 		});
 	});

@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages checked and unchecked events
  * @module checkedEvents
@@ -63,7 +61,7 @@ function checkEvent(db, user, eventId, callback) {
 			// Insert check into database
 			const insertChecked = {
 				user: userDoc['_id'],
-				eventId: eventId,
+				eventId,
 				checkedTime: new Date()
 			};
 
@@ -127,7 +125,7 @@ function getChecked(db, user, eventId, callback) {
 
 		const checkedEventsData = db.collection('checkedEvents');
 
-		checkedEventsData.find({ user: userDoc['_id'], eventId: eventId }).toArray((err, checkedEvents) => {
+		checkedEventsData.find({ user: userDoc['_id'], eventId }).toArray((err, checkedEvents) => {
 			if(err) {
 				callback(new Error('There was a problem querying the database!'), null);
 				return;
@@ -237,7 +235,7 @@ function uncheckEvent(db, user, eventId, callback) {
 
 		const checkedEventsData = db.collection('checkedEvents');
 
-		checkedEventsData.deleteMany({ user: userDoc['_id'], eventId: eventId }, err => {
+		checkedEventsData.deleteMany({ user: userDoc['_id'], eventId }, err => {
 			if(err) {
 				callback(new Error('There was a problem uncrossing the event in the database!'));
 				return;

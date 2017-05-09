@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages login API endpoints
  */
@@ -23,18 +21,18 @@ module.exports = (app, db) => {
 		const rememberMe = typeof req.body.remember !== 'undefined';
 
 		auth.login(db, req.body.user, req.body.password, rememberMe, (err, response, message, jwt) => {
-			let errorMessage;
+			let error;
 			if(err) {
-				errorMessage = err.message;
+				error = err.message;
 			} else {
-				errorMessage = null;
+				error = null;
 			}
 
 			res.json({
-				error  : errorMessage,
+				error,
 				success: response,
-				message: message,
-				jwt    : jwt
+				message,
+				jwt
 			});
 		});
 	});
@@ -47,13 +45,11 @@ module.exports = (app, db) => {
 		}
 
 		jwt.revoke(db, req.user, token, err => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
@@ -72,37 +68,31 @@ module.exports = (app, db) => {
 		}
 
 		auth.register(db, user, err => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
 	app.post('/auth/confirm', (req, res) => {
 		auth.confirm(db, req.body.user, req.body.hash, err => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
 	app.post('/auth/change-password', (req, res) => {
 		passwords.changePassword(db, req.user.user, req.body.oldPassword, req.body.newPassword, err => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
@@ -112,13 +102,11 @@ module.exports = (app, db) => {
 			return;
 		}
 		passwords.resetPasswordEmail(db, req.body.user, err => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
@@ -128,13 +116,11 @@ module.exports = (app, db) => {
 			return;
 		}
 		passwords.resetPassword(db, req.body.user, req.body.password, req.body.hash, err => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 

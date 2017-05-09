@@ -103,7 +103,7 @@ function addAlias(db, user, type, classString, classId, callback) {
 				// Class is valid! Insert into database
 				const insertAlias = {
 					user: userDoc['_id'],
-					type: type,
+					type,
 					classNative: validClassObject._id,
 					classRemote: classString
 				};
@@ -372,7 +372,7 @@ function getAliasClass(db, user, type, classInput, callback) {
 
 		const aliasdata = db.collection('aliases');
 
-		aliasdata.find({ user: userDoc['_id'], type: type, classRemote: classInput }).toArray((err, aliases) => {
+		aliasdata.find({ user: userDoc['_id'], type, classRemote: classInput }).toArray((err, aliases) => {
 			if(err) {
 				callback(new Error('There was a problem querying the database!'), null, null);
 				return;

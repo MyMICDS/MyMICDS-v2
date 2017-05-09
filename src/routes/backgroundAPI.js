@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages Background API endpoints
  */
@@ -9,17 +7,11 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/background/get', (req, res) => {
 		backgrounds.get(req.user.user, (err, variants, hasDefault) => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-			res.json({
-				error: errorMessage,
-				variants: variants,
-				hasDefault: hasDefault
-			});
+			res.json({ error, variants, hasDefault });
 		});
 	});
 
@@ -33,28 +25,26 @@ module.exports = (app, db, socketIO) => {
 
 			// Add blurred version of image
 			backgrounds.blurUser(req.user.user, err => {
-				let errorMessage;
+				let error = null;
 				if(err) {
-					errorMessage = err.message;
+					error = err.message;
 				} else {
-					errorMessage = null;
 					socketIO.user(req.user.user, 'background', 'upload');
 				}
-				res.json({ error: errorMessage });
+				res.json({ error });
 			});
 		});
 	});
 
 	app.post('/background/delete', (req, res) => {
 		backgrounds.delete(req.user.user, err => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
+				error = err.message;
 			} else {
-				errorMessage = null;
 				socketIO.user(req.user.user, 'background', 'delete');
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 

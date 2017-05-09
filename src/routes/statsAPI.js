@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages stats API endpoints
  */
@@ -9,14 +7,11 @@ module.exports = (app, db) => {
 
 	app.post('/stats/get', (req, res) => {
 		stats.get(db, (err, statsObj) => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-
-			res.json({ error: errorMessage, stats: statsObj });
+			res.json({ error, stats: statsObj });
 		});
 	});
 

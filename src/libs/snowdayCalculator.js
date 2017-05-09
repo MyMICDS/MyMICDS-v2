@@ -34,8 +34,8 @@ function calculate(db, callback) {
 	request.get({
 		url: 'http://www.snowdaycalculator.com/Apps/jsPred.php',
 		qs: {
-			zipcode: zipcode,
-			snowdays: snowdays,
+			zipcode,
+			snowdays,
 			school: schoolId
 		},
 		gzip: true

@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages schedule API endpoints
  */
@@ -16,18 +14,11 @@ module.exports = (app, db) => {
 		const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
 		schedule.get(db, req.user.user, date, (err, hasURL, schedule) => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-
-			res.json({
-				error: errorMessage,
-				hasURL: hasURL,
-				schedule: schedule
-			});
+			res.json({ error, hasURL, schedule });
 		});
 	});
 

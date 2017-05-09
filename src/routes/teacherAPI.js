@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages class API endpoints
  */
@@ -9,16 +7,11 @@ module.exports = (app, db) => {
 
 	app.post('/teachers/list', (req, res) => {
 		teachers.list(db, (err, teachers) => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-			res.json({
-				error: errorMessage,
-				teachers: teachers
-			});
+			res.json({ error, teachers });
 		});
 	});
 

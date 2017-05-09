@@ -9,33 +9,26 @@ module.exports = (app, db) => {
 
 	app.post('/quote/get', (req, res) => {
 		quotes.get(db, (err, quotes) => {
-			let quote;
-			let errorMessage;
+			let error = null;
+			let quote = null;
+
 			if(err) {
-				errorMessage = err.message;
-				quote = null;
+				error = err.message;
 			} else {
-				errorMessage = null;
 				quote = Random.pick(engine, quotes);
 			}
 
-			res.json({
-				error: errorMessage,
-				quote: quote
-			});
+			res.json({ error, quote });
 		});
 	});
 
 	app.post('/quote/insert', (req, res) => {
 		quotes.insert(db, req.body.author, req.body.quote, err => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 

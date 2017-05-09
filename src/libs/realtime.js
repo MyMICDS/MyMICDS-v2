@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages a bunch of miscellaneous realtime events
  * @module realtime

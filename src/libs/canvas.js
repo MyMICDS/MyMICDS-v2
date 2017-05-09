@@ -232,7 +232,7 @@ function getEvents(db, user, callback) {
 						const canvasClass = {
 							_id: null,
 							canvas: true,
-							user: user,
+							user,
 							name: parsedEvent.class.name,
 							teacher: {
 								_id: null,
@@ -280,8 +280,8 @@ function getEvents(db, user, callback) {
 							user: userDoc.user,
 							class: canvasClass,
 							title: parsedEvent.assignment,
-							start: start,
-							end: end,
+							start,
+							end,
 							link: calendarToEvent(canvasEvent.url) || '',
 							checked: _.contains(checkedEventsList, canvasEvent.uid)
 						};

@@ -119,7 +119,7 @@ function sendHTML(users, subject, file, data, callback) {
 		}
 
 		const mesesage = {
-			subject: subject,
+			subject,
 			html: body,
 		};
 

@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Functions for distributing our wisdom throughout the world. One API call at a time.
  * @module quotes
@@ -77,8 +75,8 @@ function insertQuote(db, author, quote, callback) {
 	const quotesData = db.collection('quotes');
 
 	quotesData.insertOne({
-		author: author,
-		quote: quote
+		author,
+		quote
 	}, err => {
 		if(err) {
 			callback(new Error('There was a problem inserting the quote into the database!'));

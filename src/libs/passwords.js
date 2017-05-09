@@ -139,7 +139,7 @@ function changePassword(db, user, oldPassword, newPassword, callback) {
 
 				// Update new password into database
 				const userdata = db.collection('users');
-				userdata.update({ user: user }, { $set: { password: hash }, $currentDate: { lastPasswordChange: true }}, err => {
+				userdata.update({ user }, { $set: { password: hash }, $currentDate: { lastPasswordChange: true }}, err => {
 					if(err) {
 						callback(new Error('There was a problem updating the password in the database!'));
 						return;

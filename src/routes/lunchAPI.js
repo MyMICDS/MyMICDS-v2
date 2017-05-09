@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages lunch API endpoints
  */
@@ -18,16 +16,12 @@ module.exports = (app, db) => {
 		const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
 		lunch.get(db, date, (err, lunchJSON) => {
-
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-
 			res.json({
-				error: errorMessage,
+				error,
 				lunch: lunchJSON
 			});
 		});

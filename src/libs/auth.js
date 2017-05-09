@@ -72,7 +72,7 @@ function login(db, user, password, rememberMe, callback) {
 
 		// Update lastLogin in database
 		const userdata = db.collection('users');
-		userdata.update({ user: user }, { $currentDate: { lastLogin: true }});
+		userdata.update({ user }, { $currentDate: { lastLogin: true }});
 
 		// Login successful!
 		// Now we need to create a JWT
@@ -255,7 +255,7 @@ function confirm(db, user, hash, callback) {
 		if(cryptoUtils.safeCompare(hash, dbHash)) {
 			// Hash matches, confirm account!
 			const userdata = db.collection('users');
-			userdata.update({ user: user }, {$set: { confirmed: true }}, err => {
+			userdata.update({ user }, {$set: { confirmed: true }}, err => {
 				if(err) {
 					callback(new Error('There was a problem updating the database!'));
 					return;

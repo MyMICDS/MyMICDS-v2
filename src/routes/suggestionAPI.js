@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages suggestion API endpoints
  */
@@ -11,10 +9,11 @@ module.exports = (app, db) => {
 			subject: 'Suggestion From: ' + req.user.user,
 			html: 'Suggestion From ' + req.user.user + '\n' + 'Type: ' + req.body.type + '\n' + 'Submission: ' + req.body.submission
 		}, err => {
+			let error = null;
 			if(err) {
-				res.json({error: err.message});
+				error = err.message;
 			}
-			res.json(null);
+			res.json({ error });
 		});
 	});
 };

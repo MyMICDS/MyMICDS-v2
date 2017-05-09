@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages information and functions regarding the MyMICDS admins
  * @module admins

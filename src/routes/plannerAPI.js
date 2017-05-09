@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages planner API endpoints
  */
@@ -15,16 +13,11 @@ module.exports = (app, db, socketIO) => {
 		};
 
 		planner.getMonthEvents(db, req.user.user, date, (err, events) => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-			res.json({
-				error : errorMessage,
-				events: events
-			});
+			res.json({ error, events });
 		});
 	});
 
@@ -41,24 +34,23 @@ module.exports = (app, db, socketIO) => {
 		}
 
 		const insertEvent = {
-			_id: req.body.id,
-			title: req.body.title,
-			desc: req.body.desc,
+			_id    : req.body.id,
+			title  : req.body.title,
+			desc   : req.body.desc,
 			classId: req.body.classId,
-			start: start,
-			end: end
+			start,
+			end
 		};
 
 		planner.upsertEvent(db, req.user.user, insertEvent, (err, plannerEvent) => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
+				error = err.message;
 			} else {
-				errorMessage = null;
 				socketIO.user(req.user.user, 'planner', 'add', plannerEvent);
 			}
 			res.json({
-				error: errorMessage,
+				error,
 				id: plannerEvent._id
 			});
 		});
@@ -66,40 +58,37 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/planner/delete', (req, res) => {
 		planner.deleteEvent(db, req.user.user, req.body.id, err => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
+				error = err.message;
 			} else {
-				errorMessage = null;
 				socketIO.user(req.user.user, 'planner', 'delete', req.body.id);
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
 	app.post('/planner/check', (req, res) => {
 		checkedEvents.check(db, req.user.user, req.body.id, err => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
+				error = err.message;
 			} else {
-				errorMessage = null;
 				socketIO.user(req.user.user, 'planner', 'check', req.body.id);
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
 	app.post('/planner/uncheck', (req, res) => {
 		checkedEvents.uncheck(db, req.user.user, req.body.id, err => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
+				error = err.message;
 			} else {
-				errorMessage = null;
 				socketIO.user(req.user.user, 'planner', 'uncheck', req.body.id);
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 

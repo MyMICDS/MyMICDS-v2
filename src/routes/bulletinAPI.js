@@ -11,16 +11,14 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/daily-bulletin/list', (req, res) => {
 		dailyBulletin.getList((err, bulletins) => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
 			res.json({
-				error: errorMessage,
+				error,
 				baseURL: dailyBulletin.baseURL,
-				bulletins: bulletins
+				bulletins
 			});
 		});
 	});
@@ -39,14 +37,13 @@ module.exports = (app, db, socketIO) => {
 
 			// Alright, username checks out.
 			dailyBulletin.queryLatest(err => {
-				let errorMessage;
+				let error = null;
 				if(err) {
-					errorMessage = err.message;
+					error = err.message;
 				} else {
-					errorMessage = null;
 					socketIO.user(req.user.user, 'bulletin', 'query');
 				}
-				res.json({ error: errorMessage });
+				res.json({ error });
 			});
 		});
 	});
@@ -65,14 +62,13 @@ module.exports = (app, db, socketIO) => {
 
 			// Alright, username checks out
 			dailyBulletin.queryAll(err => {
-				let errorMessage;
+				let error = null;
 				if(err) {
-					errorMessage = err.message;
+					error = err.message;
 				} else {
-					errorMessage = null;
 					socketIO.user(req.user.user, 'bulletin', 'query');
 				}
-				res.json({ error: errorMessage });
+				res.json({ error });
 			});
 		});
 	});

@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages Snowday Calculator API endpoints
  */
@@ -9,17 +7,11 @@ module.exports = (app, db) => {
 
 	app.post('/snowday/calculate', (req, res) => {
 		snowdayCalculator.calculate(db, (err, data) => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-
-			res.json({
-				error: errorMessage,
-				data: data
-			});
+			res.json({ error, data });
 		});
 	});
 

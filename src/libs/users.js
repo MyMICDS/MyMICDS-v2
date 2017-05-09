@@ -40,7 +40,7 @@ function getUser(db, user, callback) {
 
 	const userdata = db.collection('users');
 	// Query database to find possible user
-	userdata.find({ user: user }).toArray((err, docs) => {
+	userdata.find({ user }).toArray((err, docs) => {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'), null, null);
 			return;
@@ -190,7 +190,7 @@ function changeInfo(db, user, info, callback) {
 
 		// Update data
 		const userdata = db.collection('users');
-		userdata.update({ _id: userDoc['_id'], user: user }, { $set: set }, { upsert: true }, err => {
+		userdata.update({ _id: userDoc['_id'], user }, { $set: set }, { upsert: true }, err => {
 			if(err) {
 				callback(new Error('There was a problem updating the databse!'));
 				return;

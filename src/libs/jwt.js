@@ -191,9 +191,7 @@ function generate(db, user, rememberMe, callback) {
 		}
 
 		jwt.sign({
-			user  : user,
-			scopes: scopes
-
+			user, scopes
 		}, config.jwt.secret, {
 			subject  : 'MyMICDS API',
 			algorithm: 'HS256',
@@ -244,7 +242,7 @@ function isBlacklisted(db, jwt, callback) {
 
 	const JWTdata = db.collection('JWTBlacklist');
 
-	JWTdata.find({ jwt: jwt }).toArray((err, docs) => {
+	JWTdata.find({ jwt }).toArray((err, docs) => {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'), null);
 			return;
@@ -295,7 +293,7 @@ function revoke(db, payload, jwt, callback) {
 
 	JWTdata.insert({
 		user: payload.user,
-		jwt: jwt,
+		jwt,
 		expires: new Date(payload.exp * 1000),
 		revoked: current
 	}, err => {

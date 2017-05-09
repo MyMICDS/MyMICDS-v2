@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages sports API endpoints
  */
@@ -9,17 +7,11 @@ module.exports = app => {
 
 	app.post('/sports/scores', (req, res) => {
 		sports.scores((err, scores) => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-
-			res.json({
-				error: errorMessage,
-				scores: scores
-			});
+			res.json({ error, scores });
 		});
 	});
 

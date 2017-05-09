@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages class API endpoints
  */
@@ -9,16 +7,11 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/classes/get', (req, res) => {
 		classes.get(db, req.user.user, (err, classes) => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
-			} else {
-				errorMessage = null;
+				error = err.message;
 			}
-			res.json({
-				error: errorMessage,
-				classes: classes
-			});
+			res.json({ error, classes });
 		});
 	});
 
@@ -38,15 +31,14 @@ module.exports = (app, db, socketIO) => {
 		};
 
 		classes.upsert(db, user, scheduleClass, (err, scheduleClass) => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
+				error = err.message;
 			} else {
-				errorMessage = null;
 				socketIO.user(req.user.user, 'classes', 'add', scheduleClass);
 			}
 			res.json({
-				error: errorMessage,
+				error,
 				id: scheduleClass ? scheduleClass._id : null
 			});
 		});
@@ -54,14 +46,13 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/classes/delete', (req, res) => {
 		classes.delete(db, req.user.user, req.body.id, err => {
-			let errorMessage;
+			let error = null;
 			if(err) {
-				errorMessage = err.message;
+				error = err.message;
 			} else {
-				errorMessage = null;
 				socketIO.user(req.user.user, 'classes', 'delete', req.body.id);
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 

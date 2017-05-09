@@ -1,7 +1,5 @@
 /* eslint-disable I'm sorry Jack but this is too much for me to fix in one night */
 
-'use strict';
-
 const planner = require(__dirname + '/planner.js');
 const announcements = require(__dirname + '/announcements.js');
 

@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Manages modules API endpoints
  */
@@ -14,8 +12,7 @@ module.exports = (app, db) => {
 			if(err) {
 				error = err.message;
 			}
-
-			res.json({error, modules});
+			res.json({ error, modules });
 		});
 	});
 
@@ -25,8 +22,7 @@ module.exports = (app, db) => {
 			if(err) {
 				error = err.message;
 			}
-
-			res.json({error});
+			res.json({ error });
 		});
 	});
 

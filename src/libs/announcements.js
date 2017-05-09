@@ -1,5 +1,3 @@
-'use strict';
-
 module.exports = [
 	{
 		title: 'this is a test announcement',

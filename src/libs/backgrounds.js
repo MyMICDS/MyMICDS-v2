@@ -79,7 +79,7 @@ function uploadBackground() {
 	});
 
 	const upload = multer({
-		storage: storage,
+		storage,
 		fileFilter: (req, file, cb) => {
 			if (!req.user.user) {
 				cb(new Error('You must be logged in!'), null);
