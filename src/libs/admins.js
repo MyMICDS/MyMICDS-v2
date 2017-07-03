@@ -74,6 +74,10 @@ function sendAdminEmail(db, message, callback) {
 			callback(new Error('Error getting list of admins!'));
 			return;
 		}
+		if (admins.length < 1) {
+			callback(null);
+			return;
+		}
 
 		// Send email
 		mail.send(admins.map(a => a.user + '@micds.org'), message, err => {
