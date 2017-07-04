@@ -12,36 +12,36 @@ const users = require(__dirname + '/users.js');
 const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather'];
 
 // Range column indexes start at (inclusive)
-const columnStarts = 1;
+const columnStarts = 0;
 // Max number of columns
 const columnsPerRow = 4;
 
 // Range row indexes start at (inclusive)
-const rowStarts = 1;
+const rowStarts = 0;
 
 // Modules to give user if none found
 const defaultModules = [
 	{
 		type: 'progress',
-		row: 1,
-		column: 1,
+		row: 0,
+		column: 0,
 		width: columnsPerRow,
-		height: 1,
+		height: 3,
 		data: {
 			date: true
 		}
 	},
 	{
 		type: 'schedule',
-		row: 2,
-		column: 1,
+		row: 3,
+		column: 0,
 		width: columnsPerRow / 2,
 		height: 1
 	},
 	{
 		type: 'weather',
-		row: 2,
-		column: (columnsPerRow / 2) + 1,
+		row: 3,
+		column: columnsPerRow / 2,
 		width: columnsPerRow / 2,
 		height: 1,
 		data: {
@@ -142,6 +142,14 @@ function upsertModules(db, user, modules, callback) {
 		}
 		if(!modules.every(m => _.contains(moduleList, m.type))) {
 			callback(new Error('Invalid module type!'));
+			return;
+		}
+		if(!modules.every(m => m.width > 0)) {
+			callback(new Error('Modules must be at least 1 cell wide!'));
+			return;
+		}
+		if(!modules.every(m => m.height > 0)) {
+			callback(new Error('Modules must be at least 1 cell tall!'));
 			return;
 		}
 		if(!modules.every(m => (columnStarts <= m.column) && (m.column + m.width - columnStarts <= columnsPerRow))) {
