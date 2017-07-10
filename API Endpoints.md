@@ -68,6 +68,9 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/user/grade-range`](#usergrade-range)
   * [`/user/get-info`](#userget-info)
   * [`/user/change-info`](#userchange-info)
+* [Quotes API](#quotes-api)
+  * [`/quote/get`](#quote-get)
+  * [`/quote/insert`](#quote-insert)
 * [Weather API](#weather-api)
   * [`/weather/get`](#weatherget)
 
@@ -607,6 +610,23 @@ Get the list of notifications.
 
 #### Response
 - `events` - List of notifications
+
+## Quotes API
+The part of the API that relates to the quotes page. Can be found under `src/routes/quotesAPI.js`.
+
+### `/quote/get`
+Get a random quote
+
+#### Response
+- `error` - Null if successful, string containing error if failure.
+- `quote` - A random quote
+
+### `/quote/insert`
+Inserts a quote into the database
+
+#### Paramaters
+- `author` - the author of the quote
+- `quote` - the quote
 
 ## Weather API
 This is the part of the API that relates to the weather at MICDS. Can be found under `src/routes/weatherAPI.js`. The associated weather module can be found under `src/libs/weather.js`.
