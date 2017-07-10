@@ -69,8 +69,8 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/user/get-info`](#userget-info)
   * [`/user/change-info`](#userchange-info)
 * [Quotes API](#quotes-api)
-  * [`/quote/get`](#quote-get)
-  * [`/quote/insert`](#quote-insert)
+  * [`/quote/get`](#quoteget)
+  * [`/quote/insert`](#quoteinsert)
 * [Weather API](#weather-api)
   * [`/weather/get`](#weatherget)
 
