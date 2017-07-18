@@ -21,8 +21,17 @@ module.exports = (app, db) => {
 			let error = null;
 			if(err) {
 				error = err.message;
+				res.json({ error });
 			}
-			res.json({ error });
+
+			// Return new modules + ids
+			modules.get(db, req.user.user, (err, modules) => {
+				let error = null;
+				if(err) {
+					error = err.message;
+				}
+				res.json({ error, modules });
+			});
 		});
 	});
 
