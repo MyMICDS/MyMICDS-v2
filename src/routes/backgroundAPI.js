@@ -17,7 +17,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/background/upload', (req, res) => {
 		// Write image to user-backgrounds
-		backgrounds.upload(req, res, err => {
+		backgrounds.upload()(req, res, err => {
 			if(err) {
 				res.json({ error: err.message });
 				return;
