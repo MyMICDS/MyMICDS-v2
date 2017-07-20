@@ -25,26 +25,41 @@ module.exports = (app, db, socketIO) => {
 
 			// Add blurred version of image
 			backgrounds.blurUser(req.user.user, err => {
-				let error = null;
 				if(err) {
-					error = err.message;
-				} else {
-					socketIO.user(req.user.user, 'background', 'upload');
+					res.json({ error: err.message });
+					return;
 				}
-				res.json({ error });
+
+				backgrounds.get(req.user.user, (err, variants, hasDefault) => {
+					let error = null;
+					if(err) {
+						error = err.message;
+					} else {
+						socketIO.user(req.user.user, 'background', 'upload');
+					}
+					res.json({ error, variants, hasDefault });
+				});
+
 			});
 		});
 	});
 
 	app.post('/background/delete', (req, res) => {
 		backgrounds.delete(req.user.user, err => {
-			let error = null;
 			if(err) {
-				error = err.message;
-			} else {
-				socketIO.user(req.user.user, 'background', 'delete');
+				res.json({ error: err.message });
+				return;
 			}
-			res.json({ error });
+
+			backgrounds.get(req.user.user, (err, variants, hasDefault) => {
+				let error = null;
+				if(err) {
+					error = err.message;
+				} else {
+					socketIO.user(req.user.user, 'background', 'delete');
+				}
+				res.json({ error, variants, hasDefault });
+			});
 		});
 	});
 
