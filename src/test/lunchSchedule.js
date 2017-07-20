@@ -30,7 +30,7 @@ MongoClient.connect(config.mongodb.uri, (err, db) => {
 					names.push(block.class.name);
 				});
 
-				console.log(names); // eslint-disable-line
+				console.log(names);
 
 				// testSchedule(date.add(1, 'day'));
 				testSchedule(date, 'mgira');

@@ -352,7 +352,7 @@ function deleteClass(db, user, classId, callback) {
 			// @TODO: Error handling if these fail
 			teachers.deleteClasslessTeachers(db);
 			aliases.deleteClasslessAliases(db, err => {
-				console.log('[' + new Date() + '] Error occured when deleting classless teachers! (' + err + ')'); // eslint-disable-line
+				console.log('[' + new Date() + '] Error occured when deleting classless teachers! (' + err + ')');
 			});
 		});
 	});

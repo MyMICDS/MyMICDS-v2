@@ -110,5 +110,5 @@ app.get('/spin', (req, res) => {
  */
 
 server.listen(port, () => {
-	console.log('Server listening on *:' + port); // eslint-disable-line
+	console.log('Server listening on *:' + port);
 });

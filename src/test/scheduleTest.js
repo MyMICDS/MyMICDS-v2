@@ -84,5 +84,5 @@ for(const test of tests) {
 		}
 	}
 
-	console.log('Test ' + i + ' = ', results); // eslint-disable-line
+	console.log('Test ' + i + ' = ', results);
 }

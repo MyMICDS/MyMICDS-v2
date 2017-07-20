@@ -195,7 +195,7 @@ function register(db, user, callback) {
 						html: newUser.firstName + ' ' + newUser.lastName + ' (' + newUser.gradYear + ') just created an account with the username ' + newUser.user
 					}, err => {
 						if(err) {
-							console.log('[' + new Date() + '] Error occured when sending admin notification! (' + err + ')'); // eslint-disable-line
+							console.log('[' + new Date() + '] Error occured when sending admin notification! (' + err + ')');
 						}
 					});
 				});

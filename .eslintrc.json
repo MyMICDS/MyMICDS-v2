@@ -51,6 +51,9 @@
 		],
 		"prefer-const": [
 			"warn"
+		],
+		"no-console": [
+			"off"
 		]
 	}
 }
