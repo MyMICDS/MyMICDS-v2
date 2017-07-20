@@ -6,6 +6,7 @@
  */
 
 const _ = require('underscore');
+const { ObjectID } = require('mongodb');
 const users = require(__dirname + '/users.js');
 
 // All allowed modules
@@ -164,10 +165,10 @@ function upsertModules(db, user, modules, callback) {
 		const moduleGrid = [];
 
 		for(const mod of modules) {
-			for(let j = mod.row; j <= mod.row + mod.height; j++) {
+			for(let j = mod.row; j <= mod.row + mod.height - 1; j++) {
 				if(typeof moduleGrid[j] !== 'object') moduleGrid[j] = [];
 
-				for(let k = mod.column; k <= mod.column + mod.width; k++) {
+				for(let k = mod.column; k <= mod.column + mod.width - 1; k++) {
 					if(moduleGrid[j][k]) {
 						callback(new Error('Modules overlap!'));
 						return;
@@ -180,28 +181,52 @@ function upsertModules(db, user, modules, callback) {
 
 		const moduledata = db.collection('modules');
 
-		moduledata.deleteMany({ _id: { $nin: modules.map(m => m['_id']) }, user: userDoc['user'] }, err => {
+		// Delete all modules not included in new upsert request
+		moduledata.deleteMany({ _id: { $nin: modules.map(m => new ObjectID(m['_id'])) }, user: userDoc['_id'] }, err => {
 			if(err) {
 				callback(err);
 				return;
 			}
 
-			function handleModule(i) {
-				if(i < module.length) {
-					moduledata.update({ _id: module['_id'], user: userDoc['user'] }, { $set: module }, { upsert: true }, err => {
-						if(err) {
-							callback(err);
-							return;
+			// Find all remaining modules so we know which id's are real or not
+			moduledata.find({ user: userDoc['_id'] }).toArray((err, dbModules) => {
+
+				const dbModuleIds = [];
+
+				for(const mod of dbModules) {
+					dbModuleIds.push(mod['_id'].toHexString());
+				}
+
+				function handleModule(i) {
+					if(i < modules.length) {
+						const mod = modules[i];
+
+						// If _id doesn't exist or is invalid, create a new one
+						if (!mod['_id'] || !dbModuleIds.includes(mod['_id'])) {
+							mod['_id'] = new ObjectID();
+						} else {
+							// Current id is valid. All we need to do is convert it to a Mongo id object
+							mod['_id'] = new ObjectID(mod['_id']);
 						}
 
-						handleModule(++i);
-					});
-				} else {
-					callback(null);
-				}
-			}
+						// Make sure user is an ObjectID and not a string
+						mod['user'] = userDoc['_id'];
 
-			handleModule(0);
+						moduledata.update({ _id: mod['_id'], user: userDoc['_id'] }, { $set: mod }, { upsert: true }, err => {
+							if(err) {
+								callback(err);
+								return;
+							}
+
+							handleModule(++i);
+						});
+					} else {
+						callback(null);
+					}
+				}
+
+				handleModule(0);
+			});
 		});
 	});
 }
