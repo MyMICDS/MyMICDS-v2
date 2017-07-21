@@ -30,12 +30,12 @@ module.exports = (app, db, socketIO) => {
 					return;
 				}
 
+				socketIO.user(req.user.user, 'background', 'upload');
+
 				backgrounds.get(req.user.user, (err, variants, hasDefault) => {
 					let error = null;
 					if(err) {
 						error = err.message;
-					} else {
-						socketIO.user(req.user.user, 'background', 'upload');
 					}
 					res.json({ error, variants, hasDefault });
 				});
@@ -51,12 +51,12 @@ module.exports = (app, db, socketIO) => {
 				return;
 			}
 
+			socketIO.user(req.user.user, 'background', 'delete');
+
 			backgrounds.get(req.user.user, (err, variants, hasDefault) => {
 				let error = null;
 				if(err) {
 					error = err.message;
-				} else {
-					socketIO.user(req.user.user, 'background', 'delete');
 				}
 				res.json({ error, variants, hasDefault });
 			});

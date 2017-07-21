@@ -211,44 +211,28 @@ function deleteEvent(db, user, eventId, callback) {
 }
 
 /**
- * Gets a list of all the events for the month (also gets events for previous month and next month)
- * @function getMonthEvents
+ * Gets all the events of a user
+ * @function getEvents
  *
  * @param {Object} db - Database connection
  * @param {string} user - Username of events to get
- * @param {Object} date - Object containing month/year to get date. (Inputting an empty object will default to current date)
- * @param {Number} [date.year] - What year to get events in (Optional, defaults to current year)
- * @param {Number} [date.month] - What month to get events. Starts at one. (1 - 12) (Optional, defaults to current month)
- * @param {getMonthEventsCallback} callback - Callback
+ * @param {getEventsCallback} callback - Callback
  */
 
 /**
  * Callback after getting events
- * @callback getMonthEventsCallback
+ * @callback getEventsCallback
  *
  * @param {Object} err - Null if success, error object if failure
  * @param {Array} events - Array of documents of events, with teacher documents injected. Null if error.
  */
 
-function getMonthEvents(db, user, date, callback) {
+function getEvents(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
-	}
-	if(typeof date !== 'object') {
-		callback(new Error('Invalid date object!'), null);
-		return;
-	}
-	// Default month and year to current date
-	const current = new Date();
-
-	if(typeof date.month !== 'number' || Number.isNaN(date.month) || date.month < 1 || 12 < date.month || date.month % 1 !== 0) {
-		date.month = current.getMonth() + 1;
-	}
-	if(typeof date.year !== 'number' || Number.isNaN(date.month) || date.year % 1 !== 0) {
-		date.year = current.getFullYear();
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
@@ -275,6 +259,9 @@ function getMonthEvents(db, user, date, callback) {
 			},
 			asyncCallback => {
 				checkedEvents.list(db, user, asyncCallback);
+			},
+			asyncCallback => {
+				classes.get(db, user, asyncCallback);
 			}
 		],
 		(err, data) => {
@@ -285,81 +272,39 @@ function getMonthEvents(db, user, date, callback) {
 
 			const events = data[0];
 			const checkedEventsList = data[1];
+			const classes = data[2];
 
-			// Go through all events and add all events that are within the month
-			const validEvents = [];
-			const addedEventIds = [];
-			for(const possibleEvent of events) {
-				const start = possibleEvent.start;
-				const end   = possibleEvent.end;
+			// Format all events
+			for (const event of events) {
+				// Determine if event should be checked or not
+				event.checked = _.contains(checkedEventsList, event._id.toHexString());
 
-				const startYear = start.getFullYear();
-				const endYear = end.getFullYear();
+				// Set user to username
+				event['user'] = userDoc['user'];
 
-				// How many months forward and backward to also include events
-				const monthPadding = 1;
+				// Have a plaintext description too
+				event.descPlaintext = htmlParser.htmlToText(event.desc);
 
-				// Determine if event should be checked
-				possibleEvent.checked = _.contains(checkedEventsList, possibleEvent._id.toHexString());
-
-				// Check previous and next months too
-				for(let j = monthPadding * -1; j <= monthPadding; j++) {
-					// Check if event was already added
-					if(_.contains(addedEventIds, possibleEvent._id)) break;
-
-					const startMonth = start.getMonth() + 1 + j;
-					const endMonth = end.getMonth() + 1 + j;
-
-					if((startMonth === date.month && startYear === date.year) || (endMonth === date.month && endYear === date.year)) {
-						// If event start or end is in month
-						possibleEvent.descPlaintext = htmlParser.htmlToText(possibleEvent.desc);
-						validEvents.push(possibleEvent);
-						addedEventIds.push(possibleEvent._id);
-
-					} else if ((startMonth < date.month && startYear <= date.year) && (endMonth > date.month && endYear >= date.year)) {
-						// If event spans before and after month
-						possibleEvent.descPlaintext = htmlParser.htmlToText(possibleEvent.desc);
-						validEvents.push(possibleEvent);
-						addedEventIds.push(possibleEvent._id);
-
+				// Default class to null
+				const classId = event['class'];
+				event['class'] = null;
+				// Go through each class to search for matching id
+				if(classId !== null) {
+					const classIdHex = classId.toHexString();
+					for(const theClass of classes) {
+						if(classIdHex === theClass['_id'].toHexString()) {
+							event['class'] = theClass;
+							break;
+						}
 					}
 				}
 			}
 
-			// Insert classes in place of class id's
-			classes.get(db, user, (err, classes) => {
-				if(err) {
-					callback(err, null);
-					return;
-				}
-
-				// Go through each event
-				for(const event of validEvents) {
-					// Set user to username
-					event['user'] = userDoc['user'];
-					// Default class to null
-					const classId = event['class'];
-					event['class'] = null;
-					// Go through each class to search for matching id
-					if(classId !== null) {
-						const classIdHex = classId.toHexString();
-						for(const theClass of classes) {
-							if(classIdHex === theClass['_id'].toHexString()) {
-								event['class'] = theClass;
-								break;
-							}
-						}
-					}
-				}
-
-				callback(null, validEvents);
-
-			});
-
+			callback(null, events);
 		});
 	});
 }
 
-module.exports.upsertEvent    = upsertEvent;
-module.exports.deleteEvent    = deleteEvent;
-module.exports.getMonthEvents = getMonthEvents;
+module.exports.upsert = upsertEvent;
+module.exports.delete = deleteEvent;
+module.exports.get    = getEvents;

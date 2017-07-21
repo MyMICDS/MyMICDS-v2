@@ -367,15 +367,11 @@ This is the part of the API that relates to the planner. Can be found in `src/ro
 
 
 ### `/planner/get`
-**Requires user to be logged in.** Returns a list of events user has for a given month. **This also returns events from the previous and next month!** Refer to /canvas/get for retrieving Canvas-related events.
-
-#### Parameters
-- `year` - Year to get events from. _(Optional, defaults to current year.)_
-- `month` - Month to get events from. _(Optional, defaults to current month.)_
+**Requires user to be logged in.** Returns a list of the user's events. Refer to /canvas/get for retrieving Canvas-related events.
 
 #### Response
 - `error` - Null if success, string containing error if failure.
-- `events` - Array of events from a given month.
+- `events` - Array of events.
 
 
 ### `/planner/add`
@@ -391,7 +387,7 @@ This is the part of the API that relates to the planner. Can be found in `src/ro
 
 #### Response
 - `error` - Null if success, string containing error if failure.
-- `id` - Id of event inserted.
+- `events` - Array of events (same as `/planner/get`).
 
 
 ### `/planner/delete`

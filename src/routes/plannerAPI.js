@@ -7,12 +7,7 @@ const planner = require(__dirname + '/../libs/planner.js');
 module.exports = (app, db, socketIO) => {
 
 	app.post('/planner/get', (req, res) => {
-		const date = {
-			year: parseInt(req.body.year),
-			month: parseInt(req.body.month)
-		};
-
-		planner.getMonthEvents(db, req.user.user, date, (err, events) => {
+		planner.get(db, req.user.user, (err, events) => {
 			let error = null;
 			if(err) {
 				error = err.message;
@@ -42,22 +37,26 @@ module.exports = (app, db, socketIO) => {
 			end
 		};
 
-		planner.upsertEvent(db, req.user.user, insertEvent, (err, plannerEvent) => {
-			let error = null;
+		planner.upsert(db, req.user.user, insertEvent, (err, plannerEvent) => {
 			if(err) {
-				error = err.message;
-			} else {
-				socketIO.user(req.user.user, 'planner', 'add', plannerEvent);
+				res.json({ error: err.message });
+				return;
 			}
-			res.json({
-				error,
-				id: plannerEvent._id
+
+			socketIO.user(req.user.user, 'planner', 'add', plannerEvent);
+
+			planner.get(db, req.user.user, (err, events) => {
+				let error = null;
+				if(err) {
+					error = err.message;
+				}
+				res.json({ error, events });
 			});
 		});
 	});
 
 	app.post('/planner/delete', (req, res) => {
-		planner.deleteEvent(db, req.user.user, req.body.id, err => {
+		planner.delete(db, req.user.user, req.body.id, err => {
 			let error = null;
 			if(err) {
 				error = err.message;
