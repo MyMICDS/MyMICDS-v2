@@ -11,6 +11,15 @@ const users = require(__dirname + '/users.js');
 
 // All allowed modules
 const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather'];
+// Module options. Can be either `boolean`, `number`, or `string`
+const moduleOptions = {
+	progress: {
+		date: 'boolean'
+	},
+	weather: {
+		metric: 'boolean'
+	}
+};
 
 // Range column indexes start at (inclusive)
 const columnStarts = 0;
@@ -28,7 +37,7 @@ const defaultModules = [
 		column: 0,
 		width: columnsPerRow,
 		height: 3,
-		data: {
+		options: {
 			date: true
 		}
 	},
@@ -45,7 +54,7 @@ const defaultModules = [
 		column: columnsPerRow / 2,
 		width: columnsPerRow / 2,
 		height: 1,
-		data: {
+		options: {
 			metric: false
 		}
 	}
@@ -122,12 +131,59 @@ function upsertModules(db, user, modules, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
+		callback(new Error('Invalid database connection!'));
 		return;
 	}
 
-	if(typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null);
+	if(!_.isArray(modules)) {
+		callback(new Error('Modules is not an array!'));
+		return;
+	}
+	if(!modules.every(m => _.contains(moduleList, m.type))) {
+		callback(new Error('Invalid module type!'));
+		return;
+	}
+	for(const mod of modules) {
+		const options = moduleOptions[mod.type];
+		if (!options) {
+			delete mod.options;
+			continue;
+		}
+		if (!mod.options) {
+			mod.options = {};
+		}
+		const optionKeys = Object.keys(options);
+
+		// Check if there's any extra options
+		for(const modOptionKey of Object.keys(mod.options)) {
+			if (!optionKeys.includes(modOptionKey)) {
+				callback(new Error(`Unknown option "${modOptionKey}" for module type "${mod.type}"!`));
+				return;
+			}
+		}
+
+		// Check that options are the right types
+		for(const optionKey of optionKeys) {
+			if (typeof mod.options[optionKey] !== options[optionKey]) {
+				callback(new Error(`Option "${optionKey}" is of type "${typeof mod.options[optionKey]}" when it\'s supposed to be "${options[optionKey]}" for module type "${mod.type}"!`));
+				return;
+			}
+		}
+	}
+	if(!modules.every(m => m.width > 0)) {
+		callback(new Error('Modules must be at least 1 cell wide!'));
+		return;
+	}
+	if(!modules.every(m => m.height > 0)) {
+		callback(new Error('Modules must be at least 1 cell tall!'));
+		return;
+	}
+	if(!modules.every(m => (columnStarts <= m.column) && (m.column + m.width - columnStarts <= columnsPerRow))) {
+		callback(new Error(`Module column exceeds range between ${columnStarts} - ${columnsPerRow}!`));
+		return;
+	}
+	if(!modules.every(m => (rowStarts <= m.row))) {
+		callback(new Error(`Module row below minimum value of ${rowStarts}!`));
 		return;
 	}
 
@@ -139,26 +195,6 @@ function upsertModules(db, user, modules, callback) {
 		}
 		if(!isUser) {
 			callback(new Error('User doesn\'t exist!'));
-			return;
-		}
-		if(!modules.every(m => _.contains(moduleList, m.type))) {
-			callback(new Error('Invalid module type!'));
-			return;
-		}
-		if(!modules.every(m => m.width > 0)) {
-			callback(new Error('Modules must be at least 1 cell wide!'));
-			return;
-		}
-		if(!modules.every(m => m.height > 0)) {
-			callback(new Error('Modules must be at least 1 cell tall!'));
-			return;
-		}
-		if(!modules.every(m => (columnStarts <= m.column) && (m.column + m.width - columnStarts <= columnsPerRow))) {
-			callback(new Error(`Module column exceeds range between ${columnStarts} - ${columnsPerRow}!`));
-			return;
-		}
-		if(!modules.every(m => (rowStarts <= m.row))) {
-			callback(new Error(`Module row below minimum value of ${rowStarts}!`));
 			return;
 		}
 

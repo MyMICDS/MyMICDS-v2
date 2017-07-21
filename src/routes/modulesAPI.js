@@ -18,10 +18,9 @@ module.exports = (app, db) => {
 
 	app.post('/modules/upsert', (req, res) => {
 		modules.upsert(db, req.user.user, req.body.modules, err => {
-			let error = null;
 			if(err) {
-				error = err.message;
-				res.json({ error });
+				res.json({ error: err.message });
+				return;
 			}
 
 			// Return new modules + ids

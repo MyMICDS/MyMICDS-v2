@@ -30,7 +30,7 @@ function getUser(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
-		callback(new Error('Invalid databse connection!'), null, null);
+		callback(new Error('Invalid database connection!'), null, null);
 		return;
 	}
 	if(typeof user !== 'string') {
