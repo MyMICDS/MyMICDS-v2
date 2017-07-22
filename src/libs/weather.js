@@ -77,7 +77,7 @@ function updateWeather(callback) {
 			return;
 		}
 
-		fs.outputJSON(JSONPath, data, err => {
+		fs.outputJSON(JSONPath, data, { spaces: '\t' }, err => {
 			if(err) {
 				callback(new Error('There was a problem saving the weather data!'), null);
 				return;
