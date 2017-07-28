@@ -12,7 +12,7 @@ const users = require(__dirname + '/users.js');
 // All allowed modules
 const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather'];
 // Module options. Can be either `boolean`, `number`, or `string`
-const moduleOptions = {
+const modulesConfig = {
 	progress: {
 		date: {
 			type: 'boolean',
@@ -51,9 +51,7 @@ const defaultModules = [
 		column: 0,
 		width: columnsPerRow,
 		height: 3,
-		options: {
-			date: true
-		}
+		options: getDefaultOptions('progress')
 	},
 	{
 		type: 'schedule',
@@ -68,11 +66,28 @@ const defaultModules = [
 		column: columnsPerRow / 2,
 		width: columnsPerRow / 2,
 		height: 1,
-		options: {
-			metric: false
-		}
+		options: getDefaultOptions('weather')
 	}
 ];
+
+/**
+ * Get default options of a module name
+ * @param {string} type - Module type
+ * @returns {Object}
+ */
+
+function getDefaultOptions(type) {
+	const moduleConfig = modulesConfig[type];
+	if (typeof moduleConfig === 'undefined') {
+		return {};
+	}
+
+	const defaults = {};
+	for (const optionKey of Object.keys(moduleConfig)) {
+		defaults[optionKey] = moduleConfig[optionKey].default;
+	}
+	return defaults;
+}
 
 /**
  * Gets an array of all active modules for a user
@@ -158,7 +173,7 @@ function upsertModules(db, user, modules, callback) {
 		return;
 	}
 	for(const mod of modules) {
-		const optionsConfig = moduleOptions[mod.type];
+		const optionsConfig = modulesConfig[mod.type];
 
 		// If no options config, delete any recieved module's options
 		if (!optionsConfig) {
