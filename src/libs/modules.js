@@ -14,10 +14,24 @@ const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday'
 // Module options. Can be either `boolean`, `number`, or `string`
 const moduleOptions = {
 	progress: {
-		date: 'boolean'
+		date: {
+			type: 'boolean',
+			default: true
+		}
 	},
 	weather: {
-		metric: 'boolean'
+		metric: {
+			type: 'boolean',
+			default: false
+		},
+		location: {
+			type: 'string',
+			default: 'MICDS'
+		},
+		decimalPrecision: {
+			type: 'number',
+			default: 2
+		}
 	}
 };
 
@@ -144,29 +158,34 @@ function upsertModules(db, user, modules, callback) {
 		return;
 	}
 	for(const mod of modules) {
-		const options = moduleOptions[mod.type];
-		if (!options) {
+		const optionsConfig = moduleOptions[mod.type];
+
+		// If no options config, delete any recieved module's options
+		if (!optionsConfig) {
 			delete mod.options;
 			continue;
 		}
+
+		// If no options config (server-side), default to empty object
 		if (!mod.options) {
 			mod.options = {};
 		}
-		const optionKeys = Object.keys(options);
 
-		// Check if there's any extra options
+		// Get list of all options configured
+		const optionKeys = Object.keys(optionsConfig);
+
+		// Remove any extra options
 		for(const modOptionKey of Object.keys(mod.options)) {
 			if (!optionKeys.includes(modOptionKey)) {
-				callback(new Error(`Unknown option "${modOptionKey}" for module type "${mod.type}"!`));
-				return;
+				delete mod.options[modOptionKey];
 			}
 		}
 
-		// Check that options are the right types
+		// Check that options are the right types. If not, use default value.
 		for(const optionKey of optionKeys) {
-			if (typeof mod.options[optionKey] !== options[optionKey]) {
-				callback(new Error(`Option "${optionKey}" is of type "${typeof mod.options[optionKey]}" when it\'s supposed to be "${options[optionKey]}" for module type "${mod.type}"!`));
-				return;
+			if (typeof mod.options[optionKey] !== optionsConfig[optionKey].type) {
+				mod.options[optionKey] = optionsConfig[optionKey].default;
+
 			}
 		}
 	}
