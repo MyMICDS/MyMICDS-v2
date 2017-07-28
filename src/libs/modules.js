@@ -12,12 +12,26 @@ const users = require(__dirname + '/users.js');
 // All allowed modules
 const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather'];
 // Module options. Can be either `boolean`, `number`, or `string`
-const moduleOptions = {
+const modulesConfig = {
 	progress: {
-		date: 'boolean'
+		date: {
+			type: 'boolean',
+			default: true
+		}
 	},
 	weather: {
-		metric: 'boolean'
+		metric: {
+			type: 'boolean',
+			default: false
+		},
+		location: {
+			type: 'string',
+			default: 'MICDS'
+		},
+		decimalPrecision: {
+			type: 'number',
+			default: 2
+		}
 	}
 };
 
@@ -37,9 +51,7 @@ const defaultModules = [
 		column: 0,
 		width: columnsPerRow,
 		height: 3,
-		options: {
-			date: true
-		}
+		options: getDefaultOptions('progress')
 	},
 	{
 		type: 'schedule',
@@ -54,11 +66,28 @@ const defaultModules = [
 		column: columnsPerRow / 2,
 		width: columnsPerRow / 2,
 		height: 1,
-		options: {
-			metric: false
-		}
+		options: getDefaultOptions('weather')
 	}
 ];
+
+/**
+ * Get default options of a module name
+ * @param {string} type - Module type
+ * @returns {Object}
+ */
+
+function getDefaultOptions(type) {
+	const moduleConfig = modulesConfig[type];
+	if (typeof moduleConfig === 'undefined') {
+		return {};
+	}
+
+	const defaults = {};
+	for (const optionKey of Object.keys(moduleConfig)) {
+		defaults[optionKey] = moduleConfig[optionKey].default;
+	}
+	return defaults;
+}
 
 /**
  * Gets an array of all active modules for a user
@@ -144,29 +173,34 @@ function upsertModules(db, user, modules, callback) {
 		return;
 	}
 	for(const mod of modules) {
-		const options = moduleOptions[mod.type];
-		if (!options) {
+		const optionsConfig = modulesConfig[mod.type];
+
+		// If no options config, delete any recieved module's options
+		if (!optionsConfig) {
 			delete mod.options;
 			continue;
 		}
+
+		// If no options config (server-side), default to empty object
 		if (!mod.options) {
 			mod.options = {};
 		}
-		const optionKeys = Object.keys(options);
 
-		// Check if there's any extra options
+		// Get list of all options configured
+		const optionKeys = Object.keys(optionsConfig);
+
+		// Remove any extra options
 		for(const modOptionKey of Object.keys(mod.options)) {
 			if (!optionKeys.includes(modOptionKey)) {
-				callback(new Error(`Unknown option "${modOptionKey}" for module type "${mod.type}"!`));
-				return;
+				delete mod.options[modOptionKey];
 			}
 		}
 
-		// Check that options are the right types
+		// Check that options are the right types. If not, use default value.
 		for(const optionKey of optionKeys) {
-			if (typeof mod.options[optionKey] !== options[optionKey]) {
-				callback(new Error(`Option "${optionKey}" is of type "${typeof mod.options[optionKey]}" when it\'s supposed to be "${options[optionKey]}" for module type "${mod.type}"!`));
-				return;
+			if (typeof mod.options[optionKey] !== optionsConfig[optionKey].type) {
+				mod.options[optionKey] = optionsConfig[optionKey].default;
+
 			}
 		}
 	}
