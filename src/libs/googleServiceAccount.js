@@ -4,18 +4,17 @@
  * @file Creates and authenticates a Google Service Account that you can use
  * @module googleServiceAccount
  */
+const config = require(__dirname + '/config.js');
+const key = config.googleServiceAccount;
 
-var config = require(__dirname + '/config.js');
-var key = config.googleServiceAccount;
-
-var google = require('googleapis');
+const google = require('googleapis');
 
 // Any Google scopes the Service Account uses
-var scopes = [
+const scopes = [
 	'https://www.googleapis.com/auth/gmail.readonly'
 ];
 // Which user to sign in as under the MyMICDS.net domain
-var impersonate = 'support@mymicds.net';
+const impersonate = 'support@mymicds.net';
 
 /**
  * Creates and authenticates a Google Service account that you can use for various Google API's
@@ -34,16 +33,15 @@ var impersonate = 'support@mymicds.net';
 function createServiceAccount(callback) {
 	if(typeof callback !== 'function') return;
 
-	var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, scopes, impersonate);
+	const jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, scopes, impersonate);
 
-	jwtClient.authorize(function(err, tokens) {
+	jwtClient.authorize(err => {
 		if(err) {
 			callback(new Error('There was a problem authorizing the Google Service Account!'), null);
 			return;
 		}
 
 		callback(null, jwtClient);
-
 	});
 }
 

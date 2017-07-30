@@ -52,3 +52,5 @@ MyMICDS-Mobile is for our hybrid mobile app. That means it runs on both iOS and 
 Wanna become a developer on the MyMICDS.net team? Shoot us an email at [support@mymicds.net](mailto:support@mymicds.net)! We'll pretty much accept anyone and everyone so don't be shy!
 
 For any other questions, comments, concerns, or suggestions, you can also contact support@mymicds.net.
+
+Join programming Club. (please) <!-- please -->

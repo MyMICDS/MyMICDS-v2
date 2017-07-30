@@ -4,22 +4,20 @@
  * @file Determines what a user's schedule should be according to the generic block schedule
  * @module blockSchedule
  */
-
-var _      = require('underscore');
-var moment = require('moment');
-var prisma = require('prisma');
-var users  = require(__dirname + '/users.js');
+const _ = require('underscore');
+const moment = require('moment');
+const users = require(__dirname + '/users.js');
 
 // Schedules
-var highschoolSchedule   = require(__dirname + '/../schedules/highschool.json');
-var middleschoolSchedule = {
+const highschoolSchedule = require(__dirname + '/../schedules/highschool.json');
+const middleschoolSchedule = {
 	8: require(__dirname + '/../schedules/grade8.json'),
 	7: require(__dirname + '/../schedules/grade7.json'),
 	6: require(__dirname + '/../schedules/grade6.json'),
 	5: require(__dirname + '/../schedules/grade5.json'),
 };
 
-var validBlocks = [
+const validBlocks = [
 	'a',
 	'b',
 	'c',
@@ -35,42 +33,6 @@ var validBlocks = [
 	'lunch',
 	'pe'
 ];
-
-var validTypes = [
-	'sam',  // Science, Art, Math
-	'wleh', // World Language, English, History
-	'other' // Free Period or something else
-];
-
-var samTypes = [
-	'art',
-	'math',
-	'science'
-];
-
-var wlehTypes = [
-	'english',
-	'history',
-	'spanish',
-	'latin',
-	'mandarin',
-	'german',
-	'french'
-];
-
-/**
- * Converts a classes.js type into a valid schedule type
- * @function convertType
- *
- * @param {string} type - Type of class
- * @returns {string}
- */
-
-function convertType(type) {
-	if(_.contains(samTypes, type)) return 'sam';
-	if(_.contains(wlehTypes, type)) return 'wleh';
-	return 'other';
-}
 
 /**
  * Returns a user's generic schedule according to their grade and their class names for each corresponding block. Returns null if something's invalid.
@@ -101,45 +63,25 @@ function getSchedule(date, grade, day, lateStart) {
 	}
 	lateStart = !!lateStart;
 
-	var schoolName = users.gradeToSchool(grade);
+	const schoolName = users.gradeToSchool(grade);
 
 	// We don't have lowerschool schedules
 	if(schoolName === 'lowerschool') return null;
 
 	// User's final schedule
-	var userSchedule = [];
+	let userSchedule = [];
 
 	// Use highschool schedule if upperschool
 	if(schoolName === 'upperschool') {
 		// Determine if lowerclassman (9 - 10) or upperclassman (11 - 12)
-		var lowerclass = false;
-		var upperclass = true;
-		if(grade === 9 || grade === 10) {
-			lowerclass = true;
-			upperclass = false;
-		}
-
-		var sam = false;
-		var wleh = false;
-		var other = true;
+		const lowerclass = (grade === 9 || grade === 10);
+		const upperclass = (grade === 11 || grade === 12);
 
 		// Loop through JSON and append classes to user schedule
-		var jsonSchedule = highschoolSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
+		const jsonSchedule = highschoolSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
 
-		for(var i = 0; i < jsonSchedule.length; i++) {
-			var jsonBlock = jsonSchedule[i];
-
-			// Check for any restrictions on the schedule
-			if(typeof jsonBlock.sam !== 'undefined') {
-				if(jsonBlock.sam !== sam) continue;
-			}
-			if(typeof jsonBlock.wleh !== 'undefined') {
-				if(jsonBlock.wleh !== wleh) continue;
-			}
-			if(typeof jsonBlock.other !== 'undefined') {
-				if(jsonBlock.other !== other) continue;
-			}
-
+		for(const jsonBlock of jsonSchedule) {
+			// Check for any restrictions on the block
 			if(typeof jsonBlock.lowerclass !== 'undefined') {
 				if(jsonBlock.lowerclass !== lowerclass) continue;
 			}
@@ -161,13 +103,13 @@ function getSchedule(date, grade, day, lateStart) {
 
 	// If date isn't null, set times relative to date object
 	if(date && userSchedule) {
-		for(var i = 0; i < userSchedule.length; i++) {
+		for(const schedule of userSchedule) {
 			// Get start and end moment objects
-			var startTime = userSchedule[i].start.split(':');
-			userSchedule[i].start = date.clone().hour(startTime[0]).minute(startTime[1]);
+			const startTime = schedule.start.split(':');
+			schedule.start = date.clone().hour(startTime[0]).minute(startTime[1]);
 
-			var endTime = userSchedule[i].end.split(':');
-			userSchedule[i].end = date.clone().hour(endTime[0]).minute(endTime[1]);
+			const endTime = schedule.end.split(':');
+			schedule.end = date.clone().hour(endTime[0]).minute(endTime[1]);
 		}
 	}
 

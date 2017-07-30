@@ -1,102 +1,94 @@
-'use strict';
-
 /**
  * @file Manages planner API endpoints
  */
+const checkedEvents = require(__dirname + '/../libs/checkedEvents.js');
+const planner = require(__dirname + '/../libs/planner.js');
 
-var checkedEvents = require(__dirname + '/../libs/checkedEvents.js');
-var planner = require(__dirname + '/../libs/planner.js');
+module.exports = (app, db, socketIO) => {
 
-module.exports = function(app, db, socketIO) {
-
-	app.post('/planner/get', function(req, res) {
-		var date = {
-			year : parseInt(req.body.year),
-			month: parseInt(req.body.month)
-		};
-
-		planner.getMonthEvents(db, req.user.user, date, function(err, events) {
+	app.post('/planner/get', (req, res) => {
+		planner.get(db, req.user.user, (err, events) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-			res.json({
-				error : errorMessage,
-				events: events
-			});
+			res.json({ error, events });
 		});
 	});
 
-	app.post('/planner/add', function(req, res) {
+	app.post('/planner/add', (req, res) => {
 
-		var start = new Date();
+		let start = new Date();
 		if(req.body.start) {
 			start = new Date(req.body.start);
 		}
 
-		var end = new Date();
+		let end = new Date();
 		if(req.body.end) {
 			end = new Date(req.body.end);
 		}
 
-		var insertEvent = {
+		const insertEvent = {
 			_id    : req.body.id,
 			title  : req.body.title,
 			desc   : req.body.desc,
 			classId: req.body.classId,
-			start  : start,
-			end    : end
+			start,
+			end
 		};
 
-		planner.upsertEvent(db, req.user.user, insertEvent, function(err, plannerEvent) {
+		planner.upsert(db, req.user.user, insertEvent, (err, plannerEvent) => {
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
-				socketIO.user(req.user.user, 'planner', 'add', plannerEvent);
+				res.json({ error: err.message });
+				return;
 			}
-			res.json({
-				error: errorMessage,
-				id: plannerEvent._id
+
+			socketIO.user(req.user.user, 'planner', 'add', plannerEvent);
+
+			planner.get(db, req.user.user, (err, events) => {
+				let error = null;
+				if(err) {
+					error = err.message;
+				}
+				res.json({ error, events });
 			});
 		});
 	});
 
-	app.post('/planner/delete', function(req, res) {
-		planner.deleteEvent(db, req.user.user, req.body.id, function(err) {
+	app.post('/planner/delete', (req, res) => {
+		planner.delete(db, req.user.user, req.body.id, err => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
+				error = err.message;
 			} else {
-				var errorMessage = null;
 				socketIO.user(req.user.user, 'planner', 'delete', req.body.id);
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
-	app.post('/planner/check', function(req, res) {
-		checkedEvents.check(db, req.user.user, req.body.id, function(err) {
+	app.post('/planner/check', (req, res) => {
+		checkedEvents.check(db, req.user.user, req.body.id, err => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
+				error = err.message;
 			} else {
-				var errorMessage = null;
 				socketIO.user(req.user.user, 'planner', 'check', req.body.id);
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
-	app.post('/planner/uncheck', function(req, res) {
-		checkedEvents.uncheck(db, req.user.user, req.body.id, function(err) {
+	app.post('/planner/uncheck', (req, res) => {
+		checkedEvents.uncheck(db, req.user.user, req.body.id, err => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
+				error = err.message;
 			} else {
-				var errorMessage = null;
 				socketIO.user(req.user.user, 'planner', 'uncheck', req.body.id);
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
-}
+};

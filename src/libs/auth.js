@@ -4,16 +4,14 @@
  * @file Defines authorization-related functions.
  * @module auth
  */
-
-var _           = require('underscore');
-var admins      = require(__dirname + '/admins.js');
-var crypto      = require('crypto');
-var cryptoUtils = require(__dirname + '/cryptoUtils.js');
-var jwt         = require(__dirname + '/jwt.js');
-var mail        = require(__dirname + '/mail.js');
-var passwords   = require(__dirname + '/passwords.js');
-var users       = require(__dirname + '/users.js');
-var admins 		= require(__dirname + '/admins.js');
+const _ = require('underscore');
+const admins = require(__dirname + '/admins.js');
+const crypto = require('crypto');
+const cryptoUtils = require(__dirname + '/cryptoUtils.js');
+const jwt = require(__dirname + '/jwt.js');
+const mail = require(__dirname + '/mail.js');
+const passwords = require(__dirname + '/passwords.js');
+const users = require(__dirname + '/users.js');
 
 /**
  * Validates a user's credentials and updates the 'lastLogin' field.
@@ -57,7 +55,7 @@ function login(db, user, password, rememberMe, callback) {
 		rememberMe = true;
 	}
 
-	passwords.passwordMatches(db, user, password, function(err, passwordMatches, confirmed) {
+	passwords.passwordMatches(db, user, password, (err, passwordMatches, confirmed) => {
 		if(err) {
 			callback(err, null, null, null);
 			return;
@@ -73,19 +71,18 @@ function login(db, user, password, rememberMe, callback) {
 		}
 
 		// Update lastLogin in database
-		var userdata = db.collection('users');
-		userdata.update({ user: user }, { $currentDate: { lastLogin: true }});
+		const userdata = db.collection('users');
+		userdata.update({ user }, { $currentDate: { lastLogin: true }});
 
 		// Login successful!
 		// Now we need to create a JWT
-		jwt.generate(db, user, rememberMe, function(err, jwt) {
+		jwt.generate(db, user, rememberMe, (err, jwt) => {
 			if(err) {
 				callback(err, null, null, null);
 				return;
 			}
 
 			callback(null, true, 'Success!', jwt);
-
 		});
 	});
 }
@@ -114,9 +111,8 @@ function login(db, user, password, rememberMe, callback) {
  */
 
 function register(db, user, callback) {
-
 	// Validate inputs
-	if(typeof callback !== 'function') callback = function() {};
+	if(typeof callback !== 'function') callback = () => {};
 	if(typeof db   !== 'object') { callback(new Error('Invalid database connection!')); return; }
 	if(typeof user !== 'object') { callback(new Error('Invalid user object!'));         return; }
 	if(typeof user.user !== 'string') {
@@ -141,54 +137,54 @@ function register(db, user, callback) {
 	}
 
 	// Check if it's an already existing user
-	users.get(db, user.user, function(err, isUser, data) {
+	users.get(db, user.user, (err, isUser, data) => {
 		if(isUser && data.confirmed) {
 			callback(new Error('An account is already registered under the email ' + user.user + '@micds.org!'));
 			return;
 		}
 
-		var userdata = db.collection('users');
+		const userdata = db.collection('users');
 
 		// Generate confirmation email hash
-		crypto.randomBytes(16, function(err, buf) {
+		crypto.randomBytes(16, (err, buf) => {
 			if(err) {
 				callback(new Error('There was a problem generating a random confirmation hash!'));
 				return;
 			}
 
-			var hash = buf.toString('hex');
+			const hash = buf.toString('hex');
 
 			// Hash Password
-			cryptoUtils.hashPassword(user.password, function(err, hashedPassword) {
+			cryptoUtils.hashPassword(user.password, (err, hashedPassword) => {
 				if(err) {
 					callback(err);
 					return;
 				}
 
-				var newUser = {
-					user      : user.user,
-					password  : hashedPassword,
-					firstName : user.firstName,
-					lastName  : user.lastName,
-					gradYear  : user.gradYear,
-					confirmed : false,
+				const newUser = {
+					user: user.user,
+					password: hashedPassword,
+					firstName: user.firstName,
+					lastName: user.lastName,
+					gradYear: user.gradYear,
+					confirmed: false,
 					registered: new Date(),
 					confirmationHash: hash,
 					scopes: []
-				}
+				};
 
-				userdata.update({ user: newUser.user }, newUser, { upsert: true }, function(err, data) {
+				userdata.update({ user: newUser.user }, newUser, { upsert: true }, err => {
 					if(err) {
 						callback(new Error('There was a problem inserting the account into the database!'));
 						return;
 					}
 
-					var email = newUser.user + '@micds.org';
-					var emailReplace = {
-						firstName  : newUser.firstName,
-						lastName   : newUser.lastName,
+					const email = newUser.user + '@micds.org';
+					const emailReplace = {
+						firstName: newUser.firstName,
+						lastName: newUser.lastName,
 						confirmLink: 'https://mymicds.net/confirm/' + newUser.user + '/' + hash,
-					}
+					};
 
 					// Send confirmation email
 					mail.sendHTML(email, 'Confirm your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
@@ -197,7 +193,7 @@ function register(db, user, callback) {
 					admins.sendEmail(db, {
 						subject: newUser.user + ' just created a 2.0 account!',
 						html: newUser.firstName + ' ' + newUser.lastName + ' (' + newUser.gradYear + ') just created an account with the username ' + newUser.user
-					}, function(err) {
+					}, err => {
 						if(err) {
 							console.log('[' + new Date() + '] Error occured when sending admin notification! (' + err + ')');
 						}
@@ -228,7 +224,7 @@ function register(db, user, callback) {
 function confirm(db, user, hash, callback) {
 
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof db !== 'object') {
@@ -244,7 +240,7 @@ function confirm(db, user, hash, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err);
 			return;
@@ -254,15 +250,15 @@ function confirm(db, user, hash, callback) {
 			return;
 		}
 
-		var dbHash = userDoc['confirmationHash'];
+		const dbHash = userDoc['confirmationHash'];
 
 		if(cryptoUtils.safeCompare(hash, dbHash)) {
 			// Hash matches, confirm account!
-			var userdata = db.collection('users');
-			userdata.update({ user: user }, {$set: { confirmed: true }}, function(err, results) {
+			const userdata = db.collection('users');
+			userdata.update({ user }, {$set: { confirmed: true }}, err => {
 				if(err) {
 					callback(new Error('There was a problem updating the database!'));
-					reutrn;
+					return;
 				}
 				callback(null);
 			});

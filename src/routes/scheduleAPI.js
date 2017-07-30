@@ -1,34 +1,25 @@
-'use strict';
-
 /**
  * @file Manages schedule API endpoints
  */
+const schedule = require(__dirname + '/../libs/schedule.js');
 
-var schedule = require(__dirname + '/../libs/schedule.js');
+module.exports = (app, db) => {
+	app.post('/schedule/get', (req, res) => {
+		const current = new Date();
 
-module.exports = function(app, db) {
-	app.post('/schedule/get', function(req, res) {
-		var current = new Date();
+		const year = req.body.year || current.getFullYear();
+		const month = req.body.month || current.getMonth() + 1;
+		const day = req.body.day || current.getDate();
 
-		var year = req.body.year || current.getFullYear();
-		var month = req.body.month || current.getMonth() + 1;
-		var day = req.body.day || current.getDate();
+		const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
-		var date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-
-		schedule.get(db, req.user.user, date, function(err, hasURL, schedule) {
+		schedule.get(db, req.user.user, date, (err, hasURL, schedule) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-
-			res.json({
-				error: errorMessage,
-				hasURL: hasURL,
-				schedule: schedule
-			});
+			res.json({ error, hasURL, schedule });
 		});
 	});
 
-}
+};

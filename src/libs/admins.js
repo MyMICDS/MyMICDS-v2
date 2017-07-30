@@ -1,18 +1,15 @@
-'use strict';
-
 /**
  * @file Manages information and functions regarding the MyMICDS admins
  * @module admins
  */
-
-var mail = require(__dirname + "/mail.js");
+const mail = require(__dirname + '/mail.js');
 
 /**
  * Gets usernames of admins from database
  * @function getAdmins
  *
  * @param {Object} db - Database connection
- * @param {getAdminsCallback} callback - Callback
+ * @callback {getAdminsCallback} callback - Callback
  */
 
 /**
@@ -25,16 +22,16 @@ var mail = require(__dirname + "/mail.js");
 
 function getAdmins(db, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 	if(typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
 
-	var userdata = db.collection('users');
+	const userdata = db.collection('users');
 
-	userdata.find({scopes: ['admin']}).toArray(function(err, docs) {
+	userdata.find({scopes: ['admin']}).toArray((err, docs) => {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'), null);
 			return;
@@ -52,7 +49,7 @@ function getAdmins(db, callback) {
  * @param {Object} message - JSON containing details of message
  * @param {string} message.subject - Subject of email
  * @param {string} message.html - HTML message
- * @param {getAdminsCallback} callback - Callback
+ * @callback {getAdminsCallback} callback - Callback
  */
 
 /**
@@ -64,7 +61,7 @@ function getAdmins(db, callback) {
 
 function sendAdminEmail(db, message, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 	if(typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
@@ -72,20 +69,18 @@ function sendAdminEmail(db, message, callback) {
 	}
 
 	// Get admin objects
-	getAdmins(db, function(err, admins) {
+	getAdmins(db, (err, admins) => {
 		if(err) {
 			callback(new Error('Error getting list of admins!'));
 			return;
 		}
-
-		var adminEmails = [];
-
-		for(var i = 0; i < admins.length; i++) {
-			adminEmails.push(admins[i].user + '@micds.org');
+		if (admins.length < 1) {
+			callback(null);
+			return;
 		}
 
 		// Send email
-		mail.send(adminEmails, message, function(err) {
+		mail.send(admins.map(a => a.user + '@micds.org'), message, err => {
 			if(err) {
 				callback(err);
 			}

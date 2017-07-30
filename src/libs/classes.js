@@ -4,19 +4,17 @@
  * @file Functions for inserting class data
  * @module classes
  */
+const _ = require('underscore');
+const aliases = require(__dirname + '/aliases.js');
+const ObjectID = require('mongodb').ObjectID;
+const prisma = require('prisma');
+const teachers = require(__dirname + '/teachers.js');
+const users = require(__dirname + '/users.js');
 
-var _        = require('underscore');
-var aliases  = require(__dirname + '/aliases.js');
-var asyncLib = require('async');
-var ObjectID = require('mongodb').ObjectID;
-var prisma   = require('prisma');
-var teachers = require(__dirname + '/teachers.js');
-var users    = require(__dirname + '/users.js');
+const Random = require('random-js');
+const engine = Random.engines.mt19937().autoSeed();
 
-var Random = require("random-js");
-var engine = Random.engines.mt19937().autoSeed();
-
-var validBlocks = [
+const validBlocks = [
 	'a',
 	'b',
 	'c',
@@ -28,7 +26,7 @@ var validBlocks = [
 	'other'
 ];
 
-var validTypes = [
+const validTypes = [
 	'art',
 	'english',
 	'history',
@@ -43,7 +41,7 @@ var validTypes = [
 ];
 
 // RegEx to test if string is a valid hex color ('#XXX' or '#XXXXXX')
-var validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
+const validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
 
 /**
  * Inserts/updates a class to the database
@@ -64,7 +62,7 @@ var validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
  * @param {string} scheduleClass.teacher.firstName - First name of teacher
  * @param {string} scheduleClass.teacher.lastName - Last name of teacher
  *
- * @param {upsertClassCallback} callback - Callback
+ * @callback {upsertClassCallback} callback - Callback
  */
 
 /**
@@ -77,7 +75,7 @@ var validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
 
 function upsertClass(db, user, scheduleClass, callback) {
 	// Input validation best validation
-	if(typeof callback !== 'function') callback = function() {};
+	if(typeof callback !== 'function') callback = () => {};
 	if(typeof db !== 'object') { callback(new Error('Invalid database connection!'), null); return; }
 	if(typeof scheduleClass._id !== 'string') scheduleClass._id = '';
 
@@ -90,7 +88,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 	// If not valid color, generate random
 	if(!validColor.test(scheduleClass.color)) {
 		// You think we're playing around here? No. This is MyMICDS.
-		// We are going to crypographically generate a color as random as human intelligence can get us.
+		// We are going to cryptographically generate a color as random as human intelligence can get us.
 		scheduleClass.color = '#' + Random.hex(true)(engine, 6);
 	} else {
 		// Make sure hex is capitalized
@@ -98,7 +96,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 	}
 
 	// Make sure username is valid first
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(new Error('There was a problem connecting to the database!'), null);
 			return;
@@ -109,26 +107,27 @@ function upsertClass(db, user, scheduleClass, callback) {
 		}
 
 		// Add teacher to database
-		teachers.add(db, scheduleClass.teacher, function(err, teacherDoc) {
+		teachers.add(db, scheduleClass.teacher, (err, teacherDoc) => {
 			if(err) {
 				callback(err, null);
 				return;
 			}
 
-			var classdata = db.collection('classes');
+			const classdata = db.collection('classes');
 
 			// Check for duplicate classes first
-			classdata.find({ user: userDoc['_id'] }).toArray(function(err, classes) {
+			classdata.find({ user: userDoc['_id'] }).toArray((err, classes) => {
+				let id;
 				if(err) {
 					callback(new Error('There was a problem querying the database!'), null);
 					return;
 				}
 
 				// Lets see if any of the classes are the one we are supposed to edit
-				var validEditId = false;
+				let validEditId = false;
 				if(scheduleClass._id !== '') {
-					for(var i = 0; i < classes.length; i++) {
-						var classId = classes[i]['_id'];
+					for(const theClass of classes) {
+						const classId = theClass['_id'];
 						if(scheduleClass._id === classId.toHexString()) {
 							validEditId = classId;
 							break;
@@ -137,10 +136,8 @@ function upsertClass(db, user, scheduleClass, callback) {
 				}
 
 				// Now lets see if any of these classes are duplicate
-				var dupClassIds = [];
-				for(var i = 0; i < classes.length; i++) {
-					var classDoc = classes[i];
-
+				const dupClassIds = [];
+				for(const classDoc of classes) {
 					// If duplicate class, push id to array
 					if(scheduleClass.name  === classDoc.name
 						&& teacherDoc['_id'].toHexString() === classDoc['teacher'].toHexString()
@@ -166,23 +163,23 @@ function upsertClass(db, user, scheduleClass, callback) {
 
 				// Generate an Object ID, or use the id that we are editting
 				if(validEditId) {
-					var id = validEditId;
+					id = validEditId;
 				} else {
-					var id = new ObjectID();
+					id = new ObjectID();
 				}
 
-				var insertClass = {
+				const insertClass = {
 					_id: id,
 					user: userDoc['_id'],
 					name: scheduleClass.name,
 					teacher: teacherDoc['_id'],
-					type : scheduleClass.type,
+					type: scheduleClass.type,
 					block: scheduleClass.block,
 					color: scheduleClass.color,
-				}
+				};
 
 				// Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
-				classdata.update({ _id: id }, insertClass, { upsert: true }, function(err, results) {
+				classdata.update({ _id: id }, insertClass, { upsert: true }, err => {
 					if(err) {
 						callback(new Error('There was a problem upserting the class into the database!'), null);
 						return;
@@ -228,7 +225,7 @@ function getClasses(db, user, callback) {
 	}
 
 	// Make sure valid user and get user id
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null);
 			return;
@@ -238,23 +235,23 @@ function getClasses(db, user, callback) {
 			return;
 		}
 
-		var classdata = db.collection('classes');
+		const classdata = db.collection('classes');
 
 		// Get all classes under the specified user id
-		classdata.find({ user: userDoc['_id'] }).toArray(function(err, classes) {
+		classdata.find({ user: userDoc['_id'] }).toArray((err, classes) => {
 			if(err) {
 				callback(new Error('There was a problem querying the database!'), null);
 				return;
 			}
 
 			// Add 'textDark' to all of the classes based on color
-			for(var i = 0; i < classes.length; i++) {
-				classes[i].textDark = prisma.shouldTextBeDark(classes[i].color);
+			for(const theClass of classes) {
+				theClass.textDark = prisma.shouldTextBeDark(theClass.color);
 			}
 
 			// Go through all events and set user to actual username, and teacher to actual teacher
 			// Save teachers in object so we don't have to query database more than we need to
-			var teachersList = {};
+			const teachersList = {};
 
 			function injectValues(i) {
 
@@ -263,10 +260,10 @@ function getClasses(db, user, callback) {
 					classes[i]['user'] = userDoc['user'];
 
 					// Set teacher to actual teacher
-					var teacherId = classes[i]['teacher'];
+					const teacherId = classes[i]['teacher'];
 
 					if(typeof teachersList[teacherId] === 'undefined') {
-						teachers.get(db, teacherId, function(err, isTeacher, teacherDoc) {
+						teachers.get(db, teacherId, (err, isTeacher, teacherDoc) => {
 							if(err) {
 								callback(err, null);
 								return;
@@ -313,7 +310,7 @@ function getClasses(db, user, callback) {
 function deleteClass(db, user, classId, callback) {
 	// Validate inputs
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof db !== 'object') {
@@ -325,15 +322,16 @@ function deleteClass(db, user, classId, callback) {
 		return;
 	}
 	// Try to create object id
+	let id;
 	try {
-		var id = new ObjectID(classId);
+		id = new ObjectID(classId);
 	} catch(e) {
 		callback(new Error('Invalid class id!'));
 		return;
 	}
 
 	// Make sure valid user
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err);
 			return;
@@ -343,8 +341,8 @@ function deleteClass(db, user, classId, callback) {
 			return;
 		}
 
-		var classdata = db.collection('classes');
-		classdata.deleteMany({ _id: id, user: userDoc['_id'] }, function(err, results) {
+		const classdata = db.collection('classes');
+		classdata.deleteMany({ _id: id, user: userDoc['_id'] }, err => {
 			if(err) {
 				callback(new Error('There was a problem deleting the class from the database!'));
 				return;
@@ -353,10 +351,9 @@ function deleteClass(db, user, classId, callback) {
 			callback(null);
 			// @TODO: Error handling if these fail
 			teachers.deleteClasslessTeachers(db);
-			aliases.deleteClasslessAliases(db, function(err) {
+			aliases.deleteClasslessAliases(db, err => {
 				console.log('[' + new Date() + '] Error occured when deleting classless teachers! (' + err + ')');
 			});
-
 		});
 	});
 }

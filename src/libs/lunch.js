@@ -5,22 +5,14 @@
  * @module lunch
  */
 
-try {
-	var config = require(__dirname + '/config.js');
-} catch(e) {
-	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
-}
+const admins = require(__dirname + '/admins.js');
+const request = require('request');
+const cheerio = require('cheerio');
+const moment = require('moment');
+const utils = require(__dirname + '/utils.js');
 
-var admins  = require(__dirname + '/admins.js');
-var fs      = require('fs-extra');
-var request = require('request');
-var cheerio = require('cheerio');
-var moment  = require('moment');
-var utils   = require(__dirname + '/utils.js');
-
-var lunchURL = 'http://myschooldining.com/MICDS/calendarWeek';
-var schools  = ['Lower School', 'Middle School', 'Upper School'];
-var JSONPath = __dirname + '/../public/json/weather.json';
+const lunchURL = 'http://myschooldining.com/MICDS/calendarWeek';
+const schools = ['Lower School', 'Middle School', 'Upper School'];
 
 /**
  * Gets the lunch from /src/api/lunch.json. Will create one if it doesn't already exist.
@@ -47,10 +39,10 @@ function getLunch(db, date, callback) {
 		return;
 	}
 
-	var currentDay = moment(date).day('Wednesday');
+	const currentDay = moment(date).day('Wednesday');
 
 	// Send POST request to lunch website
-	request.post(lunchURL, { form: { 'current_day': currentDay.format() }}, function(err, res, body) {
+	request.post(lunchURL, { form: { 'current_day': currentDay.format() }}, (err, res, body) => {
 		if(err) {
 			callback(new Error('There was a problem fetching the lunch data!'), null);
 			return;
@@ -61,7 +53,7 @@ function getLunch(db, date, callback) {
 			admins.sendEmail(db, {
 				subject: 'Error Notification - Lunch Retrieval',
 				html: 'There was a problem with the lunch URL.<br>Error message: ' + err
-			}, function(err) {
+			}, err => {
 				if(err) {
 					console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
 					return;
@@ -73,9 +65,8 @@ function getLunch(db, date, callback) {
 			return;
 		}
 
-		var lunchJSON = parseLunch(body);
+		const lunchJSON = parseLunch(body);
 		callback(null, lunchJSON);
-
 	});
 }
 
@@ -92,38 +83,36 @@ function parseLunch(body) {
 	body.replace('<<', '&lt;&lt;');
 	body.replace('>>', '&gt;&gt;');
 
-	var $ = cheerio.load(body);
-	var json = {};
+	const $ = cheerio.load(body);
+	const json = {};
 
-	var table = $('table#table_calendar_week');
-	var weekColumns = table.find('td');
+	const table = $('table#table_calendar_week');
+	const weekColumns = table.find('td');
 
-	weekColumns.each(function(index) {
+	weekColumns.each(function() {
 
-		var day  = $(this);
-		var date = day.attr('this_date');
-		var dateObject = new Date(date);
-		var dateString = dateObject.getFullYear()
+		const day = $(this);
+		const date = day.attr('this_date');
+		const dateObject = new Date(date);
+		const dateString = dateObject.getFullYear()
 			+ '-' + utils.leadingZeros(dateObject.getMonth() + 1)
 			+ '-' + utils.leadingZeros(dateObject.getDate());
 
-		for(var i = 0; i < schools.length; i++) {
-			var school = schools[i];
-
-			var schoolLunch = day.find('div[location="' + school + '"]');
+		for(const school of schools) {
+			const schoolLunch = day.find('div[location="' + school + '"]');
 
 			// Make sure it's not the weekend
 			if(schoolLunch.length > 0) {
 
-				var lunchTitle = schoolLunch.find('span.period-value').text().trim();
-				var categories = schoolLunch.find('div.category-week');
+				const lunchTitle = schoolLunch.find('span.period-value').text().trim();
+				const categories = schoolLunch.find('div.category-week');
 
 				categories.each(function() {
 
-					var category      = $(this);
-					var food          = [];
-					var categoryTitle = category.find('span.category-value').text().trim();
-					var items         = category.find('div.item-week');
+					const category = $(this);
+					const food = [];
+					const categoryTitle = category.find('span.category-value').text().trim();
+					const items = category.find('div.item-week');
 
 					items.each(function() {
 						food.push($(this).text().trim());
@@ -137,8 +126,8 @@ function parseLunch(body) {
 					json[dateString][schoolFilter(school)]['categories'] = json[dateString][schoolFilter(school)]['categories'] || {};
 					json[dateString][schoolFilter(school)]['categories'][categoryTitle] = json[dateString][schoolFilter(school)]['categories'][categoryTitle] || [];
 
-					for(var j = 0; j < food.length; j++) {
-						json[dateString][schoolFilter(school)]['categories'][categoryTitle].push(food[j]);
+					for(const f of food) {
+						json[dateString][schoolFilter(school)]['categories'][categoryTitle].push(f);
 					}
 
 				});

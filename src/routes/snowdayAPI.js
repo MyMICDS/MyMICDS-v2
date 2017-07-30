@@ -1,26 +1,18 @@
-'use strict';
-
 /**
  * @file Manages Snowday Calculator API endpoints
  */
+const snowdayCalculator = require(__dirname + '/../libs/snowdayCalculator.js');
 
-var snowdayCalculator = require(__dirname + '/../libs/snowdayCalculator.js');
+module.exports = (app, db) => {
 
-module.exports = function(app, db) {
-
-	app.post('/snowday/calculate', function(req, res) {
-		snowdayCalculator.calculate(db, function(err, data) {
+	app.post('/snowday/calculate', (req, res) => {
+		snowdayCalculator.calculate(db, (err, data) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-
-			res.json({
-				error: errorMessage,
-				data: data
-			});
+			res.json({ error, data });
 		});
 	});
 
-}
+};

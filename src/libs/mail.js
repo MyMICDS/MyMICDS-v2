@@ -4,11 +4,10 @@
  * @file Sends emails
  * @module mail
  */
+const config = require(__dirname + '/config.js');
 
-var config = require(__dirname + '/config.js');
-
-var fs         = require('fs');
-var nodemailer = require('nodemailer');
+const fs = require('fs');
+const nodemailer = require('nodemailer');
 
 /**
  * Sends mail to the desired user
@@ -34,7 +33,7 @@ function send(users, message, callback) {
 
 	// Validate inputs
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof users !== 'string' && typeof users !== 'object') {
@@ -54,16 +53,16 @@ function send(users, message, callback) {
 		return;
 	}
 
-	var transporter = nodemailer.createTransport(config.email.URI);
+	const transporter = nodemailer.createTransport(config.email.URI);
 
-	var mailOptions = {
-		from   : config.email.fromName + ' <' + config.email.fromEmail + '>',
-		to     : users.toString(),
+	const mailOptions = {
+		from: config.email.fromName + ' <' + config.email.fromEmail + '>',
+		to: users.toString(),
 		subject: message.subject,
-		html   : message.html,
-	}
+		html: message.html,
+	};
 
-	transporter.sendMail(mailOptions, function(err, info) {
+	transporter.sendMail(mailOptions, err => {
 
 		if(err) {
 			callback(new Error('There was a problem sending the mail!'));
@@ -97,7 +96,7 @@ function sendHTML(users, subject, file, data, callback) {
 
 	// Validate inputs
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof file !== 'string') {
@@ -108,21 +107,21 @@ function sendHTML(users, subject, file, data, callback) {
 		data = {};
 	}
 
-	fs.readFile(file, 'utf8', function(err, body) {
+	fs.readFile(file, 'utf8', (err, body) => {
 		if(err) {
 			callback(new Error('There was a problem reading the HTML path for the mail!'));
 			return;
 		}
 
 		// Replace JSON Key values with custom data
-		for(var key in data) {
+		for(const key of Object.keys(data)) {
 			body = body.replace('{{' + key + '}}', data[key]);
 		}
 
-		var mesesage = {
-			subject: subject,
-			html   : body,
-		}
+		const mesesage = {
+			subject,
+			html: body,
+		};
 
 		send(users, mesesage, callback);
 	});

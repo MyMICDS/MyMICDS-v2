@@ -1,21 +1,19 @@
-'use strict';
-
 /**
  * @file Manages suggestion API endpoints
  */
+const admins = require(__dirname + '/../libs/admins.js');
 
-var admins = require(__dirname + "/../libs/admins.js");
-
-module.exports = function(app, db) {
-    app.post('/suggestion/send', function(req, res) {
-        admins.sendEmail(db, {
+module.exports = (app, db) => {
+	app.post('/suggestion/send', (req, res) => {
+		admins.sendEmail(db, {
 			subject: 'Suggestion From: ' + req.user.user,
-			html: 'Suggestion From ' + req.user.user + "\n" + "Type: " + req.body.type + "\n" + "Submission: " + req.body.submission
-		}, function(err) {
+			html: 'Suggestion From ' + req.user.user + '\n' + 'Type: ' + req.body.type + '\n' + 'Submission: ' + req.body.submission
+		}, err => {
+			let error = null;
 			if(err) {
-				res.json({error: err.message});
+				error = err.message;
 			}
-			res.json(null);
+			res.json({ error });
 		});
 	});
-}
+};

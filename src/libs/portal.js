@@ -4,29 +4,31 @@
  * @file Reads calendar feed to determine schedule / day and other important events
  * @module portal
  */
+const config = require(__dirname + '/config.js');
 
-var config = require(__dirname + '/config.js');
-
-var _             = require('underscore');
-var aliases       = require(__dirname + '/aliases.js');
-var asyncLib      = require('async');
-var classes       = require(__dirname + '/classes.js');
-var ical          = require('ical');
-var moment        = require('moment');
-var prisma        = require('prisma');
-var querystring   = require('querystring');
-var request       = require('request');
-var blockSchedule = require(__dirname + '/blockSchedule.js');
-var url           = require('url');
-var users         = require(__dirname + '/users.js');
+const _ = require('underscore');
+const ical = require('ical');
+const moment = require('moment');
+const querystring = require('querystring');
+const request = require('request');
+const url = require('url');
+const users = require(__dirname + '/users.js');
 
 // URL Calendars come from
-var urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?q=';
+const urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?z=';
 // RegEx to test if calendar summary is a valid Day Rotation
-var validDayRotation = /^Day [1-6] \((US|MS)\)$/;
-var validDayRotationPlain = /^Day [1-6]$/;
+const validDayRotation = /^Day [1-6] \((US|MS)\)$/;
+const validDayRotationPlain = /^Day [1-6]$/;
 
-var portalSummaryBlock = / - [0-9]{1,2} \([A-G][0-9]\)$/g;
+const portalSummaryBlock = / - [0-9]{1,2} \([A-G][0-9]\)$/g;
+// Modified portal summary block to clean up everythiing for displaying
+const cleanUpBlockSuffix = / -( )?([0-9]{1,2} \(.+\))?$/g;
+
+// Range of Portal calendars in months
+const portalRange = {
+	previous: 2,
+	upcoming: 12
+};
 
 /**
  * Makes sure a given url is valid and it points to a Portal calendar feed
@@ -55,18 +57,18 @@ function verifyURL(portalURL, callback) {
 	}
 
 	// Parse URL first
-	var parsedURL = url.parse(portalURL);
-	var queries = querystring.parse(parsedURL.query);
+	const parsedURL = url.parse(portalURL);
+	const queries = querystring.parse(parsedURL.query);
 
-	if(typeof queries.q !== 'string') {
+	if(typeof queries.z !== 'string') {
 		callback(null, 'URL does not contain calendar ID!', null);
 		return;
 	}
 
-	var validURL = urlPrefix + queries.q;
+	const validURL = urlPrefix + queries.z;
 
 	// Not lets see if we can actually get any data from here
-	request(validURL, function(err, response, body) {
+	request(validURL, (err, response, body) => {
 		if(err) {
 			callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
 			return;
@@ -76,7 +78,7 @@ function verifyURL(portalURL, callback) {
 			return;
 		}
 
-		var data = ical.parseICS(body);
+		const data = ical.parseICS(body);
 
 		// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
 		// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
@@ -86,18 +88,17 @@ function verifyURL(portalURL, callback) {
 		}
 
 		// Look through every 'Day # (US/MS)' andd see how many events there are
-		var dayDates = {};
-		for(var eventUid in data) {
-			var calEvent = data[eventUid];
+		const dayDates = {};
+		for(const calEvent of Object.values(data)) {
 			// If event doesn't have a summary, skip
 			if(typeof calEvent.summary !== 'string') continue;
 
 			// See if valid day
 			if(validDayRotation.test(calEvent.summary)) {
 				// Get actual day
-				var day = calEvent.summary.match(/[1-6]/)[0];
+				const day = calEvent.summary.match(/[1-6]/)[0];
 				// Get date
-				var start = new Date(calEvent.start);
+				const start = new Date(calEvent.start);
 
 				// Add to dayDates object
 				if(typeof dayDates[day] === 'undefined') {
@@ -142,7 +143,7 @@ function verifyURL(portalURL, callback) {
 
 function setURL(db, user, url, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof db !== 'object') {
@@ -150,7 +151,7 @@ function setURL(db, user, url, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -160,7 +161,7 @@ function setURL(db, user, url, callback) {
 			return;
 		}
 
-		verifyURL(url, function(err, isValid, validURL) {
+		verifyURL(url, (err, isValid, validURL) => {
 			if(err) {
 				callback(err, null, null);
 				return;
@@ -169,9 +170,9 @@ function setURL(db, user, url, callback) {
 				return;
 			}
 
-			var userdata = db.collection('users');
+			const userdata = db.collection('users');
 
-			userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, function(err, result) {
+			userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, err => {
 				if(err) {
 					callback(new Error('There was a problem updating the URL to the database!'), null, null);
 					return;
@@ -214,7 +215,7 @@ function getCal(db, user, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -228,7 +229,7 @@ function getCal(db, user, callback) {
 			return;
 		}
 
-		request(userDoc['portalURL'], function(err, response, body) {
+		request(userDoc['portalURL'], (err, response, body) => {
 			if(err) {
 				callback(new Error('There was a problem fetching the day rotation!'), null);
 				return;
@@ -238,7 +239,7 @@ function getCal(db, user, callback) {
 				return;
 			}
 
-			var data = ical.parseICS(body);
+			const data = ical.parseICS(body);
 
 			// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
 			// Unlike Canvas, the Portal is guaranteed to contain some sort of data within a span of a year.
@@ -271,16 +272,16 @@ function getCal(db, user, callback) {
 function getDayRotation(date, callback) {
 	if(typeof callback !== 'function') return;
 
-	var scheduleDate = new Date(date);
-	var scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
+	const scheduleDate = new Date(date);
+	const scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
 
-	request(urlPrefix + config.portal.dayRotation, function(err, response, body) {
+	request(urlPrefix + config.portal.dayRotation, (err, response, body) => {
 		if(err || response.statusCode !== 200) {
 			callback(new Error('There was a problem fetching the day rotation!'), null);
 			return;
 		}
 
-		var data = ical.parseICS(body);
+		const data = ical.parseICS(body);
 
 		// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
 		// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
@@ -289,22 +290,21 @@ function getDayRotation(date, callback) {
 			return;
 		}
 
-		for(var eventUid in data) {
-			var calEvent = data[eventUid];
+		for(const calEvent of Object.values(data)) {
 			if(typeof calEvent.summary !== 'string') continue;
 
-			var start = new Date(calEvent['start']);
-			var end   = new Date(calEvent['end']);
+			const start = new Date(calEvent['start']);
+			const end = new Date(calEvent['end']);
 
-			var startTime = start.getTime();
-			var endTime   = end.getTime();
+			const startTime = start.getTime();
+			const endTime = end.getTime();
 
 			// Check if it's an all-day event
 			if(startTime <= scheduleDate.getTime() && scheduleNextDay.getTime() <= endTime) {
 				// See if valid day
 				if(validDayRotationPlain.test(calEvent.summary)) {
 					// Get actual day
-					var day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
+					const day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
 					callback(null, day);
 					return;
 				}
@@ -312,6 +312,73 @@ function getDayRotation(date, callback) {
 		}
 
 		callback(null, null);
+
+	});
+}
+
+
+/**
+ * Get all of the schedule day rotations we can get
+ * @function getDayRotations
+ *
+ * @param {getDayRotationCallback} callback - Callback
+ */
+
+/**
+  * Returns an integer between 1 and 6 for what day it is
+  * @callback getDayRotationsCallback
+  *
+  * @param {Object} err - Null if success, error object if failure.
+  * @param {scheduleDay} days - Object containing integers 1-6 organized by year, month, and date (Ex. January 3rd, 2017 would be `day.2017.1.3`)
+  */
+
+function getDayRotations(callback) {
+	if(typeof callback !== 'function') return;
+
+	const days = {};
+
+	request(urlPrefix + config.portal.dayRotation, (err, response, body) => {
+		if(err || response.statusCode !== 200) {
+			callback(new Error('There was a problem fetching the day rotation!'), null);
+			return;
+		}
+
+		const data = ical.parseICS(body);
+
+		// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+		// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+		if(_.isEmpty(data)) {
+			callback(new Error('There was a problem fetching the day rotation!'), null);
+			return;
+		}
+
+		for(const calEvent of Object.values(data)) {
+			if(typeof calEvent.summary !== 'string') continue;
+
+			const start = new Date(calEvent['start']);
+
+			const year = start.getFullYear();
+			const month = start.getMonth() + 1;
+			const date = start.getDate();
+
+			// See if valid day
+			if(validDayRotationPlain.test(calEvent.summary)) {
+				// Get actual day
+				const day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
+
+				if (typeof days[year] !== 'object') {
+					days[year] = {};
+				}
+
+				if (typeof days[year][month] !== 'object') {
+					days[year][month] = {};
+				}
+
+				days[year][month][date] = day;
+			}
+		}
+
+		callback(null, days);
 
 	});
 }
@@ -346,7 +413,7 @@ function getClasses(db, user, callback) {
 		return;
 	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -361,7 +428,7 @@ function getClasses(db, user, callback) {
 			return;
 		}
 
-		request(userDoc['portalURL'], function(err, response, body) {
+		request(userDoc['portalURL'], (err, response, body) => {
 			if(err) {
 				callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
 				return;
@@ -371,7 +438,7 @@ function getClasses(db, user, callback) {
 				return;
 			}
 
-			var data = ical.parseICS(body);
+			const data = ical.parseICS(body);
 
 			// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
 			// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
@@ -411,26 +478,24 @@ function parseIcalClasses(data, callback) {
 		return;
 	}
 
-	var classes = {};
+	const classes = {};
 
 	// Go through each event and add to classes object with a count of how many times they occur
-	for(var eventUid in data) {
-		var calEvent = data[eventUid];
-
+	for(const calEvent of Object.values(data)) {
 		if(typeof calEvent.summary !== 'string') continue;
 
-		var start = moment(calEvent['start']);
-		var end   = moment(calEvent['end']);
+		const start = moment(calEvent['start']);
+		const end = moment(calEvent['end']);
 
-		var startDay = start.clone().startOf('day');
-		var endDay = end.clone().startOf('day');
+		const startDay = start.clone().startOf('day');
+		const endDay = end.clone().startOf('day');
 
 		// Check if it's an all-day event
 		if(start.isSame(startDay) && end.isSame(endDay)) {
 			continue;
 		}
 
-		var className = calEvent.summary.trim();
+		const className = calEvent.summary.trim();
 
 		if(typeof classes[className] !== 'undefined') {
 			classes[className]++;
@@ -439,24 +504,23 @@ function parseIcalClasses(data, callback) {
 		}
 	}
 
-	var uniqueClasses = Object.keys(classes);
-	var filteredClasses = [];
+	const uniqueClasses = Object.keys(classes);
+	const filteredClasses = [];
 
-	for(var i = 0; i < uniqueClasses.length; i++) {
-		var uniqueClass = uniqueClasses[i];
-		var occurences = classes[uniqueClass];
+	for(const uniqueClass of uniqueClasses) {
+		const occurrences = classes[uniqueClass];
 
 		// Remove all class names containing a certain keyword
-		var classKeywordBlacklist = [
+		const classKeywordBlacklist = [
 			'US'
 		];
 
-		if(occurences >= 10) {
+		if(occurrences >= 10) {
 
 			// Check if class contains any word blacklisted
-			var containsBlacklistedWord = false;
-			for(var j = 0; j < classKeywordBlacklist.length; j++) {
-				if(uniqueClass.includes(classKeywordBlacklist[j])) {
+			let containsBlacklistedWord = false;
+			for(const keyword of classKeywordBlacklist) {
+				if(_.contains(uniqueClass, keyword)) {
 					containsBlacklistedWord = true;
 					break;
 				}
@@ -482,51 +546,7 @@ function parseIcalClasses(data, callback) {
 
 function cleanUp(str) {
 	if(typeof str !== 'string') return str;
-
-	// Split string between hyphens and trim each part
-	var parts = str.split(' - ').map(function(value) { return value.trim(); });
-
-	// Get rid of empty strings
-	for(var i = 0; i < parts.length; i++) {
-		if(parts[i] === '') {
-			parts.splice(i, 1);
-		}
-	}
-
-	// Sort array using very special algorithm I thought of in the shower.
-	parts.sort(function(a, b) {
-		// Get length of strings
-		var aLength = a.length;
-		var bLength = b.length;
-
-		// Get count of alphabetic characters in strings
-		var alphabetic = /[A-Z]/ig;
-		var aAlphabeticMatches = a.match(alphabetic);
-		var bAlphabeticMatches = b.match(alphabetic);
-
-		// .match actually returns an array. If it isn't null, assign length.
-		var aAlphabeticCount = 0;
-		if(aAlphabeticMatches) {
-			aAlphabeticCount = aAlphabeticMatches.length;
-		}
-
-		var bAlphabeticCount = 0;
-		if(bAlphabeticMatches) {
-			bAlphabeticCount = bAlphabeticMatches.length;
-		}
-
-		// Get ratio of alphabetic / total characters
-		var aRatio = aAlphabeticCount / aLength;
-		var bRatio = bAlphabeticCount / bLength;
-
-		// Final score is length multiplied by ratio
-		var aGoodBoyPoints = aLength * aRatio;
-		var bGoodBoyPoints = bLength * bRatio;
-
-		return bGoodBoyPoints - aGoodBoyPoints;
-	});
-
-	return parts[0] || '';
+	return str.replace(cleanUpBlockSuffix, '');
 }
 
 /**
@@ -564,8 +584,8 @@ function getClassmates(db, classStr, callback) {
 	}
 
 	// Find class
-	var portalData = db.collection('portalClasses');
-	portalData.find({ classStr: classStr }, { userId: 1 }).toArray(function(err, results) {
+	const portalData = db.collection('portalClasses');
+	portalData.find({ classStr: classStr }, { userId: 1 }).toArray((err, results) => {
 		if (err) {
 			callback(new Error(err), null);
 			return;
@@ -580,11 +600,15 @@ function getClassmates(db, classStr, callback) {
 module.exports.validDayRotation   = validDayRotation;
 module.exports.portalSummaryBlock = portalSummaryBlock;
 
+// Constants
+module.exports.portalRange = portalRange;
+
 // Functions
-module.exports.verifyURL      = verifyURL;
-module.exports.setURL         = setURL;
-module.exports.getCal         = getCal;
-module.exports.getDayRotation = getDayRotation;
-module.exports.getClasses	  = getClasses;
-module.exports.cleanUp        = cleanUp;
-module.exports.getClassmates  = getClassmates;
+module.exports.verifyURL       = verifyURL;
+module.exports.setURL          = setURL;
+module.exports.getCal          = getCal;
+module.exports.getDayRotation  = getDayRotation;
+module.exports.getDayRotations = getDayRotations;
+module.exports.getClasses      = getClasses;
+module.exports.cleanUp         = cleanUp;
+module.exports.getClassmates   = getClassmates;

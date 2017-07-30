@@ -4,43 +4,37 @@
  * @file Background management functions
  * @module backgrounds
  */
+const config = require(__dirname + '/config.js');
 
-var config = require(__dirname + '/config.js');
-
-var _      = require('underscore');
-var fs     = require('fs-extra');
-var Jimp   = require('jimp');
-var multer = require('multer');
-var path   = require('path');
-var utils  = require(__dirname + '/utils.js');
+const _ = require('underscore');
+const fs = require('fs-extra');
+const Jimp = require('jimp');
+const multer = require('multer');
+const path = require('path');
+const utils = require(__dirname + '/utils.js');
 
 // Valid MIME Types for image backgrounds
-var validMimeTypes = {
-	'image/png' : 'png',
+const validMimeTypes = {
+	'image/png': 'png',
 	'image/jpeg': 'jpg'
 };
 // These are only for finding what kind of image the user has saved.
 // This DOES NOT check whether an uploaded image is valid! Configure that via MIME Types!
-var validExtensions = [
+const validExtensions = [
 	'.png',
 	'.jpg'
 ];
 
 // Where public accesses backgrounds
-var userBackgroundUrl = config.hostedOn + '/user-backgrounds';
+const userBackgroundUrl = config.hostedOn + '/user-backgrounds';
 // Where to store user backgrounds
-var userBackgroundsDir = __dirname + '/../public/user-backgrounds';
+const userBackgroundsDir = __dirname + '/../public/user-backgrounds';
 // Default user background
-var defaultBackgroundUser = 'default';
-var defaultExtension = '.jpg';
-// Valid background variations
-var validVariations = [
-	'normal',
-	'blur'
-];
+const defaultBackgroundUser = 'default';
+const defaultExtension = '.jpg';
 
 // How many pixels to apply gaussian blur radius by default
-var defaultBlurRadius = 10;
+const defaultBlurRadius = 10;
 
 /**
  * Returns a function to upload a user background. Can be used as Express middleware, or by itself.
@@ -51,21 +45,21 @@ var defaultBlurRadius = 10;
  * @returns {function}
  */
 
-function uploadBackground(db) {
+function uploadBackground() {
 
-	var storage = multer.diskStorage({
-		destination: function(req, file, cb) {
+	const storage = multer.diskStorage({
+		destination: (req, file, cb) => {
 			// Delete current background
-			deleteBackground(req.user.user, function(err) {
-				if(err) {
+			deleteBackground(req.user.user, err => {
+				if (err) {
 					cb(err, null);
 					return;
 				}
 
 				// Make sure directory is created for user backgrounds
-				var userDir = userBackgroundsDir + '/' + req.user.user + '-' + Date.now();
-				fs.ensureDir(userDir, function(err) {
-					if(err) {
+				const userDir = userBackgroundsDir + '/' + req.user.user + '-' + Date.now();
+				fs.ensureDir(userDir, err => {
+					if (err) {
 						cb(new Error('There was a problem ensuring the image directory!'), null);
 						return;
 					}
@@ -74,25 +68,25 @@ function uploadBackground(db) {
 			});
 		},
 
-		filename: function(req, file, cb) {
+		filename: (req, file, cb) => {
 			// Get valid extension
-			var extension = validMimeTypes[file.mimetype];
+			const extension = validMimeTypes[file.mimetype];
 			// Set base file name to username
-			var filename = 'normal.' + extension;
+			const filename = 'normal.' + extension;
 
 			cb(null, filename);
 		}
 	});
 
-	var upload = multer({
-		storage: storage,
-		fileFilter: function(req, file, cb) {
-			if(!req.user.user) {
+	const upload = multer({
+		storage,
+		fileFilter: (req, file, cb) => {
+			if (!req.user.user) {
 				cb(new Error('You must be logged in!'), null);
 				return;
 			}
-			var extension = validMimeTypes[file.mimetype];
-			if(typeof extension !== 'string') {
+			const extension = validMimeTypes[file.mimetype];
+			if (typeof extension !== 'string') {
 				cb(new Error('Invalid file type!'), null);
 				return;
 			}
@@ -129,21 +123,32 @@ function getCurrentFiles(user, callback) {
 		return;
 	}
 
-	fs.readdir(userBackgroundsDir, function(err, userDirs) {
+	fs.readdir(userBackgroundsDir, (err, userDirs) => {
 		if(err) {
 			callback(new Error('There was a problem reading the user backgrounds directory!'), null, null);
 			return;
 		}
 
-		// Look for any user directories that aren't deleted
-		var userDir = null;
-		for(var i = 0; i < userDirs.length; i++) {
-			var dir = path.parse(userDirs[i]);
-			var dirname = dir.name;
-			var dirnameSplit = dirname.split('-');
+		// Look through all the directories
+		let userDir = null;
+		for(const _dir of userDirs) {
+			const dir = path.parse(_dir);
+			const dirname = dir.name;
+			const dirnameSplit = dirname.split('-');
+
+			// Check directory isn't deleted
+			if(dirnameSplit[0] === 'deleted') {
+				continue;
+			}
+
+			// Get rid of timestamp and get name
+			dirnameSplit.pop();
+
+			// Directory owner's username (which may have dashes in it)
+			const directoryOwner = dirnameSplit.join('-');
 
 			// Check if background belongs to user
-			if(dirnameSplit.length === 2 && dirnameSplit[0] === user) {
+			if(directoryOwner === user) {
 				userDir = dirname;
 				break;
 			}
@@ -156,18 +161,17 @@ function getCurrentFiles(user, callback) {
 		}
 
 		// Read user's background file
-		fs.readdir(userBackgroundsDir + '/' + userDir, function(err, userImages) {
+		fs.readdir(userBackgroundsDir + '/' + userDir, (err, userImages) => {
 			if(err) {
 				callback(new Error('There was a problem reading the user\'s background directory!'), null, null);
 				return;
 			}
 
 			// Loop through all valid files until there's either a .png or .jpg extention
-			var userExtension = null;
-			for(var i = 0; i < userImages.length; i++) {
-
-				var file = path.parse(userImages[i]);
-				var extension = file.ext;
+			let userExtension = null;
+			for(const _file of userImages) {
+				const file = path.parse(_file);
+				const extension = file.ext;
 
 				// If valid extension, just break out of loop and return that
 				if(_.contains(validExtensions, extension)) {
@@ -199,7 +203,7 @@ function getCurrentFiles(user, callback) {
 
 function deleteBackground(user, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof user !== 'string' || !utils.validFilename(user)) {
@@ -208,7 +212,7 @@ function deleteBackground(user, callback) {
 	}
 
 	// Find out user's current directory
-	getCurrentFiles(user, function(err, dirname, extension) {
+	getCurrentFiles(user, (err, dirname, extension) => {
 		if(err) {
 			callback(err);
 			return;
@@ -219,10 +223,10 @@ function deleteBackground(user, callback) {
 			return;
 		}
 
-		var currentPath = userBackgroundsDir + '/' + dirname;
-		var deletedPath = userBackgroundsDir + '/deleted-' + dirname;
+		const currentPath = userBackgroundsDir + '/' + dirname;
+		const deletedPath = userBackgroundsDir + '/deleted-' + dirname;
 
-		fs.rename(currentPath, deletedPath, function(err) {
+		fs.rename(currentPath, deletedPath, err => {
 			if(err) {
 				callback(new Error('There was a problem deleting the directory!'));
 				return;
@@ -254,9 +258,9 @@ function deleteBackground(user, callback) {
 function getBackground(user, callback) {
 	if(typeof callback !== 'function') return;
 
-	var defaultBackground =  {
+	const defaultBackground = {
 		normal: userBackgroundUrl + '/' + defaultBackgroundUser + '/normal' + defaultExtension,
-		blur  : userBackgroundUrl + '/' + defaultBackgroundUser + '/blur' + defaultExtension
+		blur: userBackgroundUrl + '/' + defaultBackgroundUser + '/blur' + defaultExtension
 	};
 
 	if(typeof user !== 'string' || !utils.validFilename(user)) {
@@ -265,7 +269,7 @@ function getBackground(user, callback) {
 	}
 
 	// Get user's extension
-	getCurrentFiles(user, function(err, dirname, extension) {
+	getCurrentFiles(user, (err, dirname, extension) => {
 		if(err) {
 			callback(err, defaultBackground, true);
 			return;
@@ -276,13 +280,12 @@ function getBackground(user, callback) {
 			return;
 		}
 
-		var backgroundURLs = {
+		const backgroundURLs = {
 			normal: userBackgroundUrl + '/' + dirname + '/normal' + extension,
-			blur  : userBackgroundUrl + '/' + dirname + '/blur' + extension
+			blur: userBackgroundUrl + '/' + dirname + '/blur' + extension
 		};
 
 		callback(null, backgroundURLs, false);
-
 	});
 }
 
@@ -305,7 +308,7 @@ function getBackground(user, callback) {
 
 function addBlur(fromPath, toPath, blurRadius, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof fromPath !== 'string') {
@@ -320,20 +323,19 @@ function addBlur(fromPath, toPath, blurRadius, callback) {
 		blurRadius = defaultBlurRadius;
 	}
 
-	Jimp.read(fromPath, function(err, image) {
+	Jimp.read(fromPath, (err, image) => {
 		if(err) {
 			callback(new Error('There was a problem reading the image!'));
 			return;
 		}
 
-		image.blur(blurRadius).write(toPath, function(err) {
+		image.blur(blurRadius).write(toPath, err => {
 			if(err) {
 				callback(new Error('There was a problem saving the image!'));
 				return;
 			}
 
 			callback(null);
-
 		});
 	});
 }
@@ -355,7 +357,7 @@ function addBlur(fromPath, toPath, blurRadius, callback) {
 
 function blurUser(user, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof user !== 'string' || !utils.validFilename(user)) {
@@ -363,7 +365,7 @@ function blurUser(user, callback) {
 		return;
 	}
 
-	getCurrentFiles(user, function(err, dirname, extension) {
+	getCurrentFiles(user, (err, dirname, extension) => {
 		if(err) {
 			callback(err);
 			return;
@@ -373,18 +375,17 @@ function blurUser(user, callback) {
 			return;
 		}
 
-		var userDir = userBackgroundsDir + '/' + dirname;
-		var fromPath = userDir + '/normal' + extension;
-		var toPath = userDir + '/blur' + extension;
+		const userDir = userBackgroundsDir + '/' + dirname;
+		const fromPath = userDir + '/normal' + extension;
+		const toPath = userDir + '/blur' + extension;
 
-		addBlur(fromPath, toPath, defaultBlurRadius, function(err) {
+		addBlur(fromPath, toPath, defaultBlurRadius, err => {
 			if(err) {
 				callback(err);
 				return;
 			}
 
 			callback(null);
-
 		});
 	});
 }

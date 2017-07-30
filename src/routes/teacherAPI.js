@@ -1,24 +1,17 @@
-'use strict';
-
 /**
  * @file Manages class API endpoints
  */
+const teachers = require(__dirname + '/../libs/teachers.js');
 
-var teachers = require(__dirname + '/../libs/teachers.js');
+module.exports = (app, db) => {
 
-module.exports = function(app, db) {
-
-	app.post('/teachers/list', function(req, res) {
-		teachers.list(db, function(err, teachers) {
+	app.post('/teachers/list', (req, res) => {
+		teachers.list(db, (err, teachers) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-			res.json({
-				error: errorMessage,
-				teachers: teachers
-			});
+			res.json({ error, teachers });
 		});
 	});
 

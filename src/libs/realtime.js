@@ -3,19 +3,19 @@
  * @module realtime
  */
 
-module.exports = function(io, socketIO) {
-	io.on('connection', function(socket) {
+module.exports = io => {
+	io.on('connection', socket => {
 		socket.pressingProgressLabel = false;
 
-		socket.on('progress label click', function(pressed) {
+		socket.on('progress label click', pressed => {
 			socket.pressingProgressLabel = pressed;
 			calcProgressSpin();
 		});
 
-		socket.on('disconnect', function() {
+		socket.on('disconnect', () => {
 			socket.pressingProgressLabel = false;
 			calcProgressSpin();
-		})
+		});
 	});
 
 	/**
@@ -24,11 +24,9 @@ module.exports = function(io, socketIO) {
 	 */
 
 	function calcProgressSpin() {
-		var anyPressing = false;
+		let anyPressing = false;
 
-		for(var index in io.sockets.connected) {
-			var socket = io.sockets.connected[index];
-
+		for(const socket of io.sockets.connected) {
 			if(socket.pressingProgressLabel) {
 				anyPressing = true;
 				break;
@@ -37,4 +35,4 @@ module.exports = function(io, socketIO) {
 
 		io.emit('progress label spin', anyPressing);
 	}
-}
+};

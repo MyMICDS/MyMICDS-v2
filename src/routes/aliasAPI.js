@@ -1,19 +1,16 @@
-'use strict';
-
 /**
  * @file Manages alias API endpoints
  */
+const aliases = require(__dirname + '/../libs/aliases.js');
 
-var aliases = require(__dirname + "/../libs/aliases.js");
+module.exports = (app, db, socketIO) => {
 
-module.exports = function(app, db, socketIO) {
-
-	app.post('/alias/add', function(req, res) {
-		aliases.add(db, req.user.user, req.body.type, req.body.classString, req.body.classId, function(err, aliasId) {
+	app.post('/alias/add', (req, res) => {
+		aliases.add(db, req.user.user, req.body.type, req.body.classString, req.body.classId, (err, aliasId) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
+				error = err.message;
 			} else {
-				var errorMessage = null;
 				socketIO.user(req.user.user, 'alias', 'add', {
 					_id: aliasId,
 					type: req.body.type,
@@ -22,33 +19,32 @@ module.exports = function(app, db, socketIO) {
 				});
 			}
 
-			res.json({ error: errorMessage, id: aliasId });
+			res.json({ error, id: aliasId });
 		});
 	});
 
-	app.post('/alias/list', function(req, res) {
-		aliases.list(db, req.user.user, function(err, aliases) {
+	app.post('/alias/list', (req, res) => {
+		aliases.list(db, req.user.user, (err, aliases) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
 
-			res.json({ error: errorMessage, aliases: aliases });
+			res.json({ error, aliases });
 		});
 	});
 
-	app.post('/alias/delete', function(req, res) {
-		aliases.delete(db, req.user.user, req.body.type, req.body.id, function(err) {
+	app.post('/alias/delete', (req, res) => {
+		aliases.delete(db, req.user.user, req.body.type, req.body.id, err => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
+				error = err.message;
 			} else {
-				var errorMessage = null;
 				socketIO.user(req.user.user, 'alias', 'delete', req.body.id);
 			}
 
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
-}
+};

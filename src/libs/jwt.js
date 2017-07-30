@@ -4,13 +4,12 @@
  * @file Manages Json Web Token authentication for our API
  * @module jwt
  */
+const config = require(__dirname + '/config.js');
 
-var config = require(__dirname + '/config.js');
-
-var _          = require('underscore');
-var expressJWT = require('express-jwt');
-var jwt        = require('jsonwebtoken');
-var users      = require(__dirname + '/users.js');
+const _ = require('underscore');
+const expressJWT = require('express-jwt');
+const jwt = require('jsonwebtoken');
+const users = require(__dirname + '/users.js');
 
 /**
  * Express middleware to verify the JWT token (if any) and assigns it to req.user
@@ -55,27 +54,25 @@ function authorize(db) {
  */
 
 function isRevoked(db) {
-	return function(req, payload, done) {
+	return (req, payload, done) => {
 		if(typeof payload !== 'object') {
 			done(null, true);
 			return;
 		}
 
-		// Current date
-		var current = Date.now();
 		// Expiration date
-		var expiration = payload.exp * 1000;
+		const expiration = payload.exp * 1000;
 		// Make sure token hasn't expired yet
-		var timeLeft = expiration - Date.now();
+		const timeLeft = expiration - Date.now();
 		// Make sure expiration is accurate within 30 seconds to account for time differences between computers.
-		var clockTolerance = 30;
+		const clockTolerance = 30;
 
 		if(timeLeft < (clockTolerance * -1000)) {
 			done(null, true);
 			return;
 		}
 
-		users.get(db, payload.user, function(err, isUser, userDoc) {
+		users.get(db, payload.user, (err, isUser, userDoc) => {
 			if(err) {
 				done(err, true);
 				return;
@@ -90,28 +87,28 @@ function isRevoked(db) {
 			 * @TODO Automatically log user out in front-end on password change
 			 * or prevent session that changed password from expiring.
 			 */
-			/*if(typeof userDoc['lastPasswordChange'] === 'object' && (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
+			/* if(typeof userDoc['lastPasswordChange'] === 'object' && (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
 				done(null, true);
 				return;
 			}*/
 
 			// Make sure token isn't blacklisted (usually if logged out)
-			var jwt = req.get('Authorization').slice(7);
+			const jwt = req.get('Authorization').slice(7);
 
-			isBlacklisted(db, jwt, function(err, blacklisted) {
+			isBlacklisted(db, jwt, (err, blacklisted) => {
 				if(err) {
-					callback(err, true);
+					done(err, true);
 					return;
 				}
 
 				// Update 'lastVisited' field in user document
-				var userdata = db.collection('users');
+				const userdata = db.collection('users');
 				userdata.update(userDoc, { $currentDate: { lastVisited: true }});
 
 				done(null, blacklisted);
 			});
 		});
-	}
+	};
 }
 
 /**
@@ -169,13 +166,10 @@ function generate(db, user, rememberMe, callback) {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
-	if(rememberMe) {
-		var expiration = '30 days';
-	} else {
-		var expiration = '12 hours';
-	}
 
-	users.get(db, user, function(err, isUser, userDoc) {
+	const expiration = rememberMe ? '30 days' : '12 hours';
+
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null);
 			return;
@@ -186,21 +180,18 @@ function generate(db, user, rememberMe, callback) {
 		}
 
 		// Default scope
-		var scopes = {
+		const scopes = {
 			'pleb': true
 		};
 
 		if(_.isArray(userDoc['scopes'])) {
-			for(var i = 0; i < userDoc['scopes'].length; i++) {
-				var scope = userDoc['scopes'][i];
+			for(const scope of userDoc['scopes']) {
 				scopes[scope] = true;
 			}
 		}
 
 		jwt.sign({
-			user  : user,
-			scopes: scopes
-
+			user, scopes
 		}, config.jwt.secret, {
 			subject  : 'MyMICDS API',
 			algorithm: 'HS256',
@@ -208,7 +199,7 @@ function generate(db, user, rememberMe, callback) {
 			audience : config.hostedOn,
 			issuer   : config.hostedOn
 
-		}, function(err, token) {
+		}, (err, token) => {
 			if(err) {
 				callback(new Error('There was a problem generating a JWT!'), null);
 				return;
@@ -249,9 +240,9 @@ function isBlacklisted(db, jwt, callback) {
 		return;
 	}
 
-	var JWTdata = db.collection('JWTBlacklist');
+	const JWTdata = db.collection('JWTBlacklist');
 
-	JWTdata.find({ jwt: jwt }).toArray(function(err, docs) {
+	JWTdata.find({ jwt }).toArray((err, docs) => {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'), null);
 			return;
@@ -281,7 +272,7 @@ function isBlacklisted(db, jwt, callback) {
 
 function revoke(db, payload, jwt, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof db !== 'object') {
@@ -297,15 +288,15 @@ function revoke(db, payload, jwt, callback) {
 		return;
 	}
 
-	var current = new Date();
-	var JWTdata = db.collection('JWTBlacklist');
+	const current = new Date();
+	const JWTdata = db.collection('JWTBlacklist');
 
 	JWTdata.insert({
 		user: payload.user,
-		jwt: jwt,
+		jwt,
 		expires: new Date(payload.exp * 1000),
 		revoked: current
-	}, function(err) {
+	}, err => {
 		if(err) {
 			callback(new Error('There was a problem revoking the JWT in the database!'));
 			return;

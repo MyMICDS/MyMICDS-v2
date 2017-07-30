@@ -4,9 +4,9 @@
  * @file User management functions
  * @module users
  */
-
-var _      = require('underscore');
-var moment = require('moment');
+const _ = require('underscore');
+const dates = require(__dirname + '/dates.js');
+const moment = require('moment');
 
 /**
  * Get data about user
@@ -30,7 +30,7 @@ function getUser(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
-		callback(new Error('Invalid databse connection!'), null, null);
+		callback(new Error('Invalid database connection!'), null, null);
 		return;
 	}
 	if(typeof user !== 'string') {
@@ -38,15 +38,15 @@ function getUser(db, user, callback) {
 		return;
 	}
 
-	var userdata = db.collection('users');
+	const userdata = db.collection('users');
 	// Query database to find possible user
-	userdata.find({ user: user }).toArray(function(err, docs) {
+	userdata.find({ user }).toArray((err, docs) => {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'), null, null);
 			return;
 		}
 		if(docs.length === 0) {
-			callback(null, false, null)
+			callback(null, false, null);
 		} else {
 			callback(null, true, docs[0]);
 		}
@@ -83,7 +83,7 @@ function getInfo(db, user, privateInfo, callback) {
 		privateInfo = false;
 	}
 
-	getUser(db, user, function(err, isUser, userDoc) {
+	getUser(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err, null);
 			return;
@@ -95,7 +95,7 @@ function getInfo(db, user, privateInfo, callback) {
 
 		// Create userInfo object and manually move values from database.
 		// We don't want something accidentally being released to user.
-		var userInfo = {};
+		const userInfo = {};
 		userInfo.user      = userDoc['user'];
 		userInfo.password  = 'Hunter2'; /** @TODO: Fix glitch? Shows up as ******* for me. */
 		userInfo.firstName = userDoc['firstName'];
@@ -145,7 +145,7 @@ function getInfo(db, user, privateInfo, callback) {
 
 function changeInfo(db, user, info, callback) {
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	if(typeof info !== 'object') {
@@ -158,7 +158,7 @@ function changeInfo(db, user, info, callback) {
 		return;
 	}
 
-	getUser(db, user, function(err, isUser, userDoc) {
+	getUser(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err);
 			return;
@@ -169,7 +169,7 @@ function changeInfo(db, user, info, callback) {
 		}
 
 		// See what information the user wants changed
-		var set = {};
+		const set = {};
 
 		if(typeof info.firstName === 'string') {
 			set.firstName = info.firstName;
@@ -189,8 +189,8 @@ function changeInfo(db, user, info, callback) {
 		}
 
 		// Update data
-		var userdata = db.collection('users');
-		userdata.update({ _id: userDoc['_id'], user: user }, { $set: set }, { upsert: true }, function(err, results) {
+		const userdata = db.collection('users');
+		userdata.update({ _id: userDoc['_id'], user }, { $set: set }, { upsert: true }, err => {
 			if(err) {
 				callback(new Error('There was a problem updating the databse!'));
 				return;
@@ -200,60 +200,6 @@ function changeInfo(db, user, info, callback) {
 
 		});
 	});
-}
-
-/**
- * Returns a Moment.js object the date and time school is going to end
- * Based on two consecutive years, we have gather enough data and deeply analyzed that the last day of school is _probably_ the last Friday of May.
- * @function lastFridayMay
- * @param {Number} year - Which May to get last Friday from
- * @returns {Object}
- */
-
-function lastFridayMay(year) {
-	var current = moment();
-	if(typeof year !== 'number' || year % 1 !== 0) {
-		year = current.year();
-	}
-
-	var lastDayOfMay = moment().year(year).month('May').endOf('month').startOf('day').hours(11).minutes(30);
-
-	/*
-	 * Fun fact: This is literally the only switch statement in the whole MyMICDS codebase.
-	 */
-
-	switch(lastDayOfMay.day()) {
-		case 5:
-			// If day is already Friday
-			var lastDay = lastDayOfMay;
-		case 6:
-			// Last day is Sunday
-			var lastDay = lastDayOfMay.subtract(1, 'day');
-		default:
-			// Subtract day of week (which cancels it out) and start on Saturday.
-			// Then subtract to days to get from Saturday to Friday.
-			var lastDay = lastDayOfMay.subtract(lastDayOfMay.day() + 2, 'days');
-	}
-
-	return lastDay;
-}
-
-/**
- * Returns a Moment.js object when the next last day of school is.
- * Based on two consecutive years, we have gather enough data and deeply analyzed that the last day of school is _probably_ the last Friday of May.
- * @function schoolEnds
- * @returns {Object}
- */
-
-function schoolEnds() {
-	var current = moment();
-	var lastDayThisYear = lastFridayMay();
-
-	if(lastDayThisYear.isAfter(current)) {
-		return lastDayThisYear;
-	} else {
-		return lastFridayMay(current.year() + 1);
-	}
 }
 
 /**
@@ -267,12 +213,12 @@ function schoolEnds() {
 function gradYearToGrade(gradYear) {
 	if(typeof gradYear !== 'number' || gradYear % 1 !== 0) return null;
 
-	var current = moment();
-	var differenceYears = current.year() - gradYear;
-	var grade = 12 + differenceYears;
+	const current = moment();
+	const differenceYears = current.year() - gradYear;
+	let grade = 12 + differenceYears;
 
 	// If last day of school has already passed, you completed a grade of school
-	var schoolEnd = lastFridayMay();
+	const schoolEnd = dates.lastFridayMay();
 	if(current.isAfter(schoolEnd)) {
 		grade++;
 	}
@@ -291,18 +237,16 @@ function gradYearToGrade(gradYear) {
 function gradeToGradYear(grade) {
 	if(typeof grade !== 'number' || grade % 1 !== 0) return null;
 
-	var current = moment();
+	const current = moment();
 
 	// If last day of school has already passed, round year down
-	var schoolEnd = lastFridayMay();
+	const schoolEnd = dates.lastFridayMay();
 	if(current.isAfter(schoolEnd)) {
 		grade--;
 	}
 
-	var differenceYears = grade - 12;
-	var gradYear = current.year() - differenceYears;
-
-	return gradYear;
+	const differenceYears = grade - 12;
+	return current.year() - differenceYears;
 }
 
 /**
@@ -322,7 +266,6 @@ function gradeToSchool(grade) {
 module.exports.get        	   = getUser;
 module.exports.getInfo         = getInfo;
 module.exports.changeInfo      = changeInfo;
-module.exports.schoolEnds      = schoolEnds;
 module.exports.gradYearToGrade = gradYearToGrade;
 module.exports.gradeToGradYear = gradeToGradYear;
 module.exports.gradeToSchool   = gradeToSchool;

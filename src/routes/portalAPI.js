@@ -1,56 +1,57 @@
-'use strict';
-
 /**
  * @file Manages Portal API endpoints
  */
+const portal = require(__dirname + '/../libs/portal.js');
 
-var portal = require(__dirname + '/../libs/portal.js');
-
-module.exports = function(app, db, socketIO) {
-	app.post('/portal/test-url', function(req, res) {
-		portal.verifyURL(req.body.url, function(err, isValid, url) {
+module.exports = (app, db, socketIO) => {
+	app.post('/portal/test-url', (req, res) => {
+		portal.verifyURL(req.body.url, (err, isValid, url) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
 			res.json({
-				error: errorMessage,
+				error,
 				valid: isValid,
-				url  : url
+				url
 			});
 		});
 	});
 
-	app.post('/portal/set-url', function(req, res) {
-		portal.setURL(db, req.user.user, req.body.url, function(err, isValid, validURL) {
+	app.post('/portal/set-url', (req, res) => {
+		portal.setURL(db, req.user.user, req.body.url, (err, isValid, validURL) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
+				error = err.message;
 			} else {
-				var errorMessage = null;
 				socketIO.user(req.user.user, 'portal', 'set-url', validURL);
 			}
 			res.json({
-				error: errorMessage,
+				error,
 				valid: isValid,
 				url  : validURL
 			});
 		});
 	});
 
-	app.post('/portal/get-classes', function(req, res) {
-		portal.getClasses(db, req.user.user, function(err, hasURL, classes) {
+	app.post('/portal/get-classes', (req, res) => {
+		portal.getClasses(db, req.user.user, (err, hasURL, classes) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-			res.json({
-				error: errorMessage,
-				hasURL: hasURL,
-				classes: classes
-			});
+			res.json({ error, hasURL, classes });
 		});
 	});
 
-}
+	app.post('/portal/day-rotation', (req, res) => {
+		portal.getDayRotations((err, days) => {
+			let error = null;
+			if(err) {
+				error = err.message;
+			}
+			res.json({ error, days });
+		});
+	});
+
+};

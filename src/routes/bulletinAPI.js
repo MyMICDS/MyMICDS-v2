@@ -3,31 +3,29 @@
 /**
  * @file Manages Daily Bulletin API endpoints
  */
+const _ = require('underscore');
+const dailyBulletin = require(__dirname + '/../libs/dailyBulletin.js');
+const users = require(__dirname + '/../libs/users.js');
 
-var _             = require('underscore');
-var dailyBulletin = require(__dirname + '/../libs/dailyBulletin.js');
-var users         = require(__dirname + '/../libs/users.js');
+module.exports = (app, db, socketIO) => {
 
-module.exports = function(app, db, socketIO) {
-
-	app.post('/daily-bulletin/list', function(req, res) {
-		dailyBulletin.getList(function(err, bulletins) {
+	app.post('/daily-bulletin/list', (req, res) => {
+		dailyBulletin.getList((err, bulletins) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
 			res.json({
-				error: errorMessage,
+				error,
 				baseURL: dailyBulletin.baseURL,
-				bulletins: bulletins
+				bulletins
 			});
 		});
 	});
 
-	app.post('/daily-bulletin/query', function(req, res) {
+	app.post('/daily-bulletin/query', (req, res) => {
 		// Check if admin
-		users.get(db, req.user.user, function(err, isUser, userDoc) {
+		users.get(db, req.user.user, (err, isUser, userDoc) => {
 			if(err) {
 				res.json({ error: err.message });
 				return;
@@ -38,21 +36,21 @@ module.exports = function(app, db, socketIO) {
 			}
 
 			// Alright, username checks out.
-			dailyBulletin.queryLatest(function(err) {
+			dailyBulletin.queryLatest(err => {
+				let error = null;
 				if(err) {
-					var errorMessage = err.message;
+					error = err.message;
 				} else {
-					var errorMessage = null;
 					socketIO.user(req.user.user, 'bulletin', 'query');
 				}
-				res.json({ error: errorMessage });
+				res.json({ error });
 			});
 		});
 	});
 
-	app.post('/daily-bulletin/query-all', function(req, res) {
+	app.post('/daily-bulletin/query-all', (req, res) => {
 		// Check if admin
-		users.get(db, req.user.user, function(err, isUser, userDoc) {
+		users.get(db, req.user.user, (err, isUser, userDoc) => {
 			if(err) {
 				res.json({ error: err.message });
 				return;
@@ -63,16 +61,16 @@ module.exports = function(app, db, socketIO) {
 			}
 
 			// Alright, username checks out
-			dailyBulletin.queryAll(function(err) {
+			dailyBulletin.queryAll(err => {
+				let error = null;
 				if(err) {
-					var errorMessage = err.message;
+					error = err.message;
 				} else {
-					var errorMessage = null;
 					socketIO.user(req.user.user, 'bulletin', 'query');
 				}
-				res.json({ error: errorMessage });
+				res.json({ error });
 			});
 		});
 	});
 
-}
+};

@@ -1,22 +1,17 @@
-'use strict';
-
 /**
  * @file Manages stats API endpoints
  */
+const stats = require(__dirname + '/../libs/stats.js');
 
-var stats = require(__dirname + "/../libs/stats.js");
+module.exports = (app, db) => {
 
-module.exports = function(app, db) {
-
-	app.post('/stats/get', function(req, res) {
-		stats.get(db, function(err, statsObj) {
+	app.post('/stats/get', (req, res) => {
+		stats.get(db, (err, statsObj) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-
-			res.json({ error: errorMessage, stats: statsObj });
+			res.json({ error, stats: statsObj });
 		});
 	});
 

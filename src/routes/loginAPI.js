@@ -1,16 +1,13 @@
-'use strict';
-
 /**
  * @file Manages login API endpoints
  */
+const auth = require(__dirname + '/../libs/auth.js');
+const jwt = require(__dirname + '/../libs/jwt.js');
+const passwords = require(__dirname + '/../libs/passwords.js');
 
-var auth      = require(__dirname + '/../libs/auth.js');
-var jwt       = require(__dirname + '/../libs/jwt.js');
-var passwords = require(__dirname + '/../libs/passwords.js');
+module.exports = (app, db) => {
 
-module.exports = function(app, db) {
-
-	app.post('/auth/login', function(req, res) {
+	app.post('/auth/login', (req, res) => {
 		if(req.user) {
 			res.json({
 				error  : null,
@@ -21,115 +18,110 @@ module.exports = function(app, db) {
 			return;
 		}
 
-		var rememberMe = typeof req.body.remember !== 'undefined';
+		const rememberMe = typeof req.body.remember !== 'undefined';
 
-		auth.login(db, req.body.user, req.body.password, rememberMe, function(err, response, message, jwt) {
+		auth.login(db, req.body.user, req.body.password, rememberMe, (err, response, message, jwt) => {
+			let error;
 			if(err) {
-				var errorMessage = err.message;
+				error = err.message;
 			} else {
-				var errorMessage = null;
+				error = null;
 			}
 
 			res.json({
-				error  : errorMessage,
+				error,
 				success: response,
-				message: message,
-				jwt    : jwt
+				message,
+				jwt
 			});
 		});
 	});
 
-	app.post('/auth/logout', function(req, res) {
-		var token = req.get('Authorization');
+	app.post('/auth/logout', (req, res) => {
+		let token = req.get('Authorization');
 		// If there's a token, we need to get rid of the 'Bearer ' at the beginning
 		if(token) {
 			token = token.slice(7);
 		}
 
-		jwt.revoke(db, req.user, token, function(err) {
+		jwt.revoke(db, req.user, token, err => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
-	app.post('/auth/register', function(req, res) {
+	app.post('/auth/register', (req, res) => {
 
-		var user = {
-			user     : req.body.user,
-			password : req.body.password,
+		const user = {
+			user: req.body.user,
+			password: req.body.password,
 			firstName: req.body.firstName,
-			lastName : req.body.lastName,
-			gradYear : parseInt(req.body.gradYear)
+			lastName: req.body.lastName,
+			gradYear: parseInt(req.body.gradYear)
 		};
 
 		if(typeof req.body.teacher !== 'undefined' && req.body.teacher !== false) {
 			user.gradYear = null;
 		}
 
-		auth.register(db, user, function(err) {
+		auth.register(db, user, err => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
-	app.post('/auth/confirm', function(req, res) {
-		auth.confirm(db, req.body.user, req.body.hash, function(err) {
+	app.post('/auth/confirm', (req, res) => {
+		auth.confirm(db, req.body.user, req.body.hash, err => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
-	app.post('/auth/change-password', function(req, res) {
-		passwords.changePassword(db, req.user.user, req.body.oldPassword, req.body.newPassword, function(err) {
+	app.post('/auth/change-password', (req, res) => {
+		passwords.changePassword(db, req.user.user, req.body.oldPassword, req.body.newPassword, err => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
-	app.post('/auth/forgot-password', function(req, res) {
+	app.post('/auth/forgot-password', (req, res) => {
 		if(req.user.user) {
 			res.json({ error: 'You are already logged in, silly!' });
 			return;
 		}
-		passwords.resetPasswordEmail(db, req.body.user, function(err) {
+		passwords.resetPasswordEmail(db, req.body.user, err => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
-	app.post('/auth/reset-password', function(req, res) {
+	app.post('/auth/reset-password', (req, res) => {
 		if(req.user.user) {
 			res.json({ error: 'You are already logged in, silly!' });
 			return;
 		}
-		passwords.resetPassword(db, req.body.user, req.body.password, req.body.hash, function(err) {
+		passwords.resetPassword(db, req.body.user, req.body.password, req.body.hash, err => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
-}
+};

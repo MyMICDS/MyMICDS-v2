@@ -29,6 +29,9 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/classes/delete`](#classesdelete)
 * [Daily Bulletin API](#daily-bulletin-api)
   * [`/daily-bulletin/list`](#daily-bulletinlist)
+* [Dates API](#dates-api)
+  * [`/dates/school-ends`](#datesschool-ends)
+  * [`/dates/breaks`](#datesbreaks)
 * [Login API](#login-api)
   * [`/auth/login`](#authlogin)
   * [`/auth/logout`](#authlogout)
@@ -39,6 +42,9 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/auth/reset-password`](#userreset-password)
 * [Lunch API](#lunch-api)
   * [`/lunch/get`](#lunchget)
+* [Modules API](#modules-api)
+  * [`/modules/get`](#modulesget)
+  * [`/modules/upsert`](#modulesupsert)
 * [Notifications API](#notification-api)
   * [`/notification/get`](#notificationget)
 * [Planner API](#planner-api)
@@ -52,6 +58,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/portal/set-url`](#portalset-url)
   * [`/portal/get-schedule`](#portalget-schedule)
   * [`/portal/get-classes`](#portalget-classes)
+  * [`/portal/day-rotation`](#portalday-rotation)
 * [Statistics API](#stats-api)
   * [`/stats/get`](#statsget)
 * [User API](#user-api)
@@ -61,6 +68,9 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/user/grade-range`](#usergrade-range)
   * [`/user/get-info`](#userget-info)
   * [`/user/change-info`](#userchange-info)
+* [Quotes API](#quotes-api)
+  * [`/quote/get`](#quoteget)
+  * [`/quote/insert`](#quoteinsert)
 * [Weather API](#weather-api)
   * [`/weather/get`](#weatherget)
 
@@ -122,6 +132,8 @@ Retrieve the URL of the background to display to the user.
 
 #### Response
 - `error` - Null if success, string containing error if failure.
+- `variants` - Object of background variations and their URL (Ex. 'normal' or 'blur')
+- `hasDefault` - True if using default background, false if using upload background image.
 
 
 ### `/background/delete`
@@ -129,6 +141,8 @@ Retrieve the URL of the background to display to the user.
 
 #### Response
 - `error` - Null if success, string containing error if failure.
+- `variants` - Object of background variations and their URL (Ex. 'normal' or 'blur')
+- `hasDefault` - True if using default background, false if using upload background image.
 
 
 
@@ -224,7 +238,7 @@ The part of the API relates to the classes. Can be found under `src/routes/class
 
 
 ## Daily Bulletin API
-The part of the API that relates to the Daily Bulletin. Can be found in `src/routes/bulletinAPI.js`. This associated dailyBulletin module can be found under `src/libs/dailyBulletin.js`.
+The part of the API that relates to the Daily Bulletin. Can be found in `src/routes/bulletinAPI.js`. The associated dailyBulletin module can be found under `src/libs/dailyBulletin.js`.
 
 
 ### `/daily-bulletin/list`
@@ -234,6 +248,27 @@ Gets an array of bulletin filenames from newest to oldest.
 - `error` - Null if success, string containing error if failure.
 - `baseURL` - Base URL all Daily Bulletins are stored in.
 - `bulletins` - Array of bulletins names from newest to oldest. Null if error.
+
+
+
+## Dates API
+The part of the API that realtes to dates and time. Can be found in `src/routes/datesAPI.js`. The associated dates module can be found under `src/libs/dates.js`.
+
+
+### `/dates/school-ends`
+Returns the date when school ends. During Summer, returns the date next school year ends.
+
+#### Response
+- `date` - Date when school ends. Last Friday of may at 11:30.
+
+
+### `/dates/breaks`
+Returns an object containing days we have off of school. Includes weekends, long weekends, vacations, and other.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+- `breaks` - An object containing a `weekends`, `longWeekends`, `vacations`, and `other` which are arrays containing a `start` and an `end` date.
+
 
 
 ## Login API
@@ -304,20 +339,39 @@ Gets the lunch?
 
 
 
+## Modules API
+This is the part of the API that relates to the homepage modules. Can be found in `src/routes/modulesAPI.js`. The associated modules module (heh) can be found in `src/libs/modules.js`.
+
+
+### `/modules/get`
+**Requires user to be logged in.** Returns a list of modules user has for their custom homepage.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+- `modules` - Array of modules.
+
+
+### `/modules/upsert`
+**Requires user to be logged in.** Update/insert (also known as upsert) all of a user's modules.
+
+#### Parameters
+- `modules` - Array of modules to set.
+
+#### Response
+- `err` - Null if success, string containing error if failure.
+
+
+
 ## Planner API
 This is the part of the API that relates to the planner. Can be found in `src/routes/plannerAPI.js`. The associated planner and checkedEvents modules can be found in `src/libs/planner.js` and `src/libs/checkedEvents.js`.
 
 
 ### `/planner/get`
-**Requires user to be logged in.** Returns a list of events user has for a given month. **This also returns events from the previous and next month!** Refer to /canvas/get for retrieving Canvas-related events.
-
-#### Parameters
-- `year` - Year to get events from. _(Optional, defaults to current year.)_
-- `month` - Month to get events from. _(Optional, defaults to current month.)_
+**Requires user to be logged in.** Returns a list of the user's events. Refer to /canvas/get for retrieving Canvas-related events.
 
 #### Response
 - `error` - Null if success, string containing error if failure.
-- `events` - Array of events from a given month.
+- `events` - Array of events.
 
 
 ### `/planner/add`
@@ -333,7 +387,7 @@ This is the part of the API that relates to the planner. Can be found in `src/ro
 
 #### Response
 - `error` - Null if success, string containing error if failure.
-- `id` - Id of event inserted.
+- `events` - Array of events (same as `/planner/get`).
 
 
 ### `/planner/delete`
@@ -418,6 +472,16 @@ This will test any given URL to see if it is a valid Portal calendar feed.
 - `error` - Null if successful, string containing error if failure.
 - `classes` - Array of classes the user has.
 
+
+### `/portal/day-rotation`
+Returns an object of all the schedule day rotations we can get.
+
+#### Response
+- `error` - Null if successful, string containing error if failure.
+- `days` - Object containing integers 1-6 organized by year, month, and date (Ex. January 3rd, 2017 would be `day.2017.1.3`).
+
+
+
 ## Statistics API
 This is the part of the API that relates to MyMICDS usage statistics. Can be found under `src/routes/statsAPI.js`. The associated stats module can be found under `src/libs/stats.js`.
 
@@ -474,13 +538,6 @@ A little utility that converts a grade into a high school graduation year.
 
 #### Response
 - `year` - Class graduation year.
-
-
-### `/user/school-ends`
-Returns the date when school ends. During Summer, returns the date next school year ends.
-
-#### Response
-- `date` - Date when school ends. Last Friday of may at 11:30.
 
 
 ### `/user/grade-range`
@@ -553,6 +610,23 @@ Get the list of notifications.
 
 #### Response
 - `events` - List of notifications
+
+## Quotes API
+The part of the API that relates to the quotes page. Can be found under `src/routes/quotesAPI.js`.
+
+### `/quote/get`
+Get a random quote
+
+#### Response
+- `error` - Null if successful, string containing error if failure.
+- `quote` - A random quote
+
+### `/quote/insert`
+Inserts a quote into the database
+
+#### Paramaters
+- `author` - the author of the quote
+- `quote` - the quote
 
 ## Weather API
 This is the part of the API that relates to the weather at MICDS. Can be found under `src/routes/weatherAPI.js`. The associated weather module can be found under `src/libs/weather.js`.

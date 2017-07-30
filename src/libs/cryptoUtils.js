@@ -4,9 +4,8 @@
  * @file Defines some general cryptography and authorization functions
  * @module cryptoUtils
  */
-
-var bcrypt = require('bcrypt');
-var crypto = require('crypto');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 /**
  * Hashes a given password
@@ -25,7 +24,7 @@ var crypto = require('crypto');
  */
 
 function hashPassword(password, callback) {
-	bcrypt.hash(password, 10, function(err, hash) {
+	bcrypt.hash(password, 10, (err, hash) => {
 		if(err) {
 			callback(new Error('There was a problem hashing the password!'), null);
 			return;
@@ -50,14 +49,15 @@ function safeCompare(a, b) {
 		return false;
 	}
 
-	var mismatch = (a.length === b.length ? 0 : 1);
+	let mismatch = (a.length === b.length ? 0 : 1);
 	if(mismatch) {
 		b = a;
 	}
 
-	for(var i = 0; i < a.length; ++i) {
-		var ac = a.charCodeAt(i);
-		var bc = b.charCodeAt(i);
+	// NOTE: I don't think this can be converted to an ES6 for..of, so I'm keeping it as is.
+	for(let i = 0; i < a.length; ++i) {
+		const ac = a.charCodeAt(i);
+		const bc = b.charCodeAt(i);
 		mismatch |= (ac ^ bc);
 	}
 
@@ -87,7 +87,7 @@ function shaHash(str) {
  */
 
 function safeCompareSHA(str, hash) {
-	var hashedStr = shaHash(str);
+	const hashedStr = shaHash(str);
 	return safeCompare(hashedStr, hash);
 }
 

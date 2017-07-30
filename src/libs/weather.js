@@ -4,21 +4,20 @@
  * @file Gets weather from forecast.io
  * @module weather
  */
+const config = require(__dirname + '/config.js');
+const DarkSky = require('forecast.io');
+const fs = require('fs-extra');
 
-var config   = require(__dirname + '/config.js');
-var DarkSky  = require('forecast.io');
-var fs       = require('fs-extra');
-
-var JSONPath = __dirname + '/../api/weather.json';
+const JSONPath = __dirname + '/../api/weather.json';
 
 // Coordinates for MICDS
-var latitude  = 38.658241;
-var longitude = -90.3974471;
+const latitude = 38.658241;
+const longitude = -90.3974471;
 
 // Options for configuring the Forecast object
-var options = {
+const options = {
 	APIKey: config.forecast.APIKey
-}
+};
 
 /**
  * Get's weather from forecast.io and returns JSON
@@ -34,20 +33,19 @@ var options = {
  * @param {Object} err - Null if success, error object if failure.
  * @param {Object} weatherJSON - JSON of current weather. Null if error.
  */
+function getWeather(callback) {
+	if(typeof callback !== 'function') return;
 
- function getWeather(callback) {
-	 if(typeof callback !== 'function') return;
+	fs.readJSON(JSONPath, (err, weatherJSON) => {
+		// If there's an error, most likely there's no existing JSON
+		if(err) {
+			updateWeather(callback);
+			return;
+		}
 
-	 fs.readJSON(JSONPath, function(err, weatherJSON) {
-		 // If there's an error, most likely there's no existing JSON
-		 if(err) {
-			 updateWeather(callback);
-			 return;
-		 }
-
-		 callback(null, weatherJSON);
-	 });
- }
+		callback(null, weatherJSON);
+	});
+}
 
 
 /**
@@ -64,23 +62,22 @@ var options = {
  * @param {Object} err - Null if success, error object if failure.
  * @param {Object} weatherJSON - JSON of current weather. Null if error.
  */
-
 function updateWeather(callback) {
 
 	if(typeof callback !== 'function') {
-		callback = function() {};
+		callback = () => {};
 	}
 
 	// Create forecast object to query
-	var darksky = new DarkSky(options);
+	const darksky = new DarkSky(options);
 
-	darksky.get(latitude, longitude, function(err, res, data) {
+	darksky.get(latitude, longitude, (err, res, data) => {
 		if(err) {
 			callback(new Error('There was a problem fetching the weather data!'), null);
 			return;
 		}
 
-		fs.outputJSON(JSONPath, data, function(err) {
+		fs.outputJSON(JSONPath, data, { spaces: '\t' }, err => {
 			if(err) {
 				callback(new Error('There was a problem saving the weather data!'), null);
 				return;

@@ -1,59 +1,66 @@
-'use strict';
-
 /**
  * @file Manages Background API endpoints
  */
+const backgrounds = require(__dirname + '/../libs/backgrounds.js');
 
-var backgrounds = require(__dirname + '/../libs/backgrounds.js');
+module.exports = (app, db, socketIO) => {
 
-module.exports = function(app, db, socketIO) {
-
-	app.post('/background/get', function(req, res) {
-		backgrounds.get(req.user.user, function(err, variants, hasDefault) {
+	app.post('/background/get', (req, res) => {
+		backgrounds.get(req.user.user, (err, variants, hasDefault) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-			res.json({
-				error: errorMessage,
-				variants: variants,
-				hasDefault: hasDefault
-			});
+			res.json({ error, variants, hasDefault });
 		});
 	});
 
-	app.post('/background/upload', function(req, res) {
+	app.post('/background/upload', (req, res) => {
 		// Write image to user-backgrounds
-		backgrounds.upload(db)(req, res, function(err) {
+		backgrounds.upload()(req, res, err => {
 			if(err) {
 				res.json({ error: err.message });
 				return;
 			}
 
 			// Add blurred version of image
-			backgrounds.blurUser(req.user.user, function(err) {
+			backgrounds.blurUser(req.user.user, err => {
 				if(err) {
-					var errorMessage = err.message;
-				} else {
-					var errorMessage = null;
-					socketIO.user(req.user.user, 'background', 'upload');
+					res.json({ error: err.message });
+					return;
 				}
-				res.json({ error: errorMessage });
+
+				socketIO.user(req.user.user, 'background', 'upload');
+
+				backgrounds.get(req.user.user, (err, variants, hasDefault) => {
+					let error = null;
+					if(err) {
+						error = err.message;
+					}
+					res.json({ error, variants, hasDefault });
+				});
+
 			});
 		});
 	});
 
-	app.post('/background/delete', function(req, res) {
-		backgrounds.delete(req.user.user, function(err) {
+	app.post('/background/delete', (req, res) => {
+		backgrounds.delete(req.user.user, err => {
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
-				socketIO.user(req.user.user, 'background', 'delete');
+				res.json({ error: err.message });
+				return;
 			}
-			res.json({ error: errorMessage });
+
+			socketIO.user(req.user.user, 'background', 'delete');
+
+			backgrounds.get(req.user.user, (err, variants, hasDefault) => {
+				let error = null;
+				if(err) {
+					error = err.message;
+				}
+				res.json({ error, variants, hasDefault });
+			});
 		});
 	});
 
-}
+};

@@ -1,36 +1,30 @@
-'use strict';
-
 /**
  * @file Manages lunch API endpoints
  */
+const lunch = require(__dirname + '/../libs/lunch.js');
 
-var lunch = require(__dirname + '/../libs/lunch.js');
+module.exports = (app, db) => {
 
-module.exports = function(app, db) {
+	app.post('/lunch/get', (req, res) => {
 
-	app.post('/lunch/get', function(req, res) {
+		const current = new Date();
 
-		var current = new Date();
+		const year = req.body.year || current.getFullYear();
+		const month = req.body.month || current.getMonth() + 1;
+		const day = req.body.day || current.getDate();
 
-		var year = req.body.year || current.getFullYear();
-		var month = req.body.month || current.getMonth() + 1;
-		var day = req.body.day || current.getDate();
+		const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
-		var date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-
-		lunch.get(db, date, function(err, lunchJSON) {
-
+		lunch.get(db, date, (err, lunchJSON) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-
 			res.json({
-				error: errorMessage,
+				error,
 				lunch: lunchJSON
 			});
 		});
 	});
 
-}
+};

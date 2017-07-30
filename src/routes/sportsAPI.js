@@ -1,26 +1,18 @@
-'use strict';
-
 /**
  * @file Manages sports API endpoints
  */
+const sports = require(__dirname + '/../libs/sports.js');
 
-var sports = require(__dirname + '/../libs/sports.js');
+module.exports = app => {
 
-module.exports = function(app) {
-
-	app.post('/sports/scores', function(req, res) {
-		sports.scores(function(err, scores) {
+	app.post('/sports/scores', (req, res) => {
+		sports.scores((err, scores) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
-
-			res.json({
-				error: errorMessage,
-				scores: scores
-			});
+			res.json({ error, scores });
 		});
 	});
 
-}
+};

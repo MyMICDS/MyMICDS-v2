@@ -1,34 +1,26 @@
-'use strict';
-
 /**
  * @file Manages user API endpoints
  */
+const users = require(__dirname + '/../libs/users.js');
 
-var users = require(__dirname + '/../libs/users.js');
+module.exports = (app, db, socketIO) => {
 
-module.exports = function(app, db, socketIO) {
-
-	app.post('/user/grad-year-to-grade', function(req, res) {
-		var grade = users.gradYearToGrade(parseInt(req.body.year));
-		res.json({ grade: grade });
+	app.post('/user/grad-year-to-grade', (req, res) => {
+		const grade = users.gradYearToGrade(parseInt(req.body.year));
+		res.json({ grade });
 	});
 
-	app.post('/user/grade-to-grad-year', function(req, res) {
-		var gradYear = users.gradeToGradYear(parseInt(req.body.grade));
+	app.post('/user/grade-to-grad-year', (req, res) => {
+		const gradYear = users.gradeToGradYear(parseInt(req.body.grade));
 		res.json({ year: gradYear });
 	});
 
-	app.post('/user/school-ends', function(req, res) {
-		var ends = users.schoolEnds();
-		res.json({ ends: ends });
-	});
-
-	app.post('/user/grade-range', function(req, res) {
-		var gradYears = [];
+	app.post('/user/grade-range', (req, res) => {
+		const gradYears = [];
 		// Set min (inclusive) and max (inclusive)
-		var min = -1; // JK
-		var max = 12; // Senior
-		for(var i = min; i <= max; i++) {
+		const min = -1; // JK
+		const max = 12; // Senior
+		for(let i = min; i <= max; i++) {
 			gradYears.push(users.gradeToGradYear(i));
 		}
 		// Put most recent years first
@@ -36,22 +28,21 @@ module.exports = function(app, db, socketIO) {
 		res.json({ gradYears });
 	});
 
-	app.post('/user/get-info', function(req, res) {
-		users.getInfo(db, req.user.user, true, function(err, userInfo) {
+	app.post('/user/get-info', (req, res) => {
+		users.getInfo(db, req.user.user, true, (err, userInfo) => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
-			} else {
-				var errorMessage = null;
+				error = err.message;
 			}
 			res.json({
-				error: errorMessage,
+				error,
 				user: userInfo
 			});
 		});
 	});
 
-	app.post('/user/change-info', function(req, res) {
-		var info = {};
+	app.post('/user/change-info', (req, res) => {
+		const info = {};
 
 		if(typeof req.body.firstName === 'string' && req.body.firstName !== '') {
 			info.firstName = req.body.firstName;
@@ -66,15 +57,15 @@ module.exports = function(app, db, socketIO) {
 			info.gradYear = parseInt(req.body.gradYear);
 		}
 
-		users.changeInfo(db, req.user.user, info, function(err) {
+		users.changeInfo(db, req.user.user, info, err => {
+			let error = null;
 			if(err) {
-				var errorMessage = err.message;
+				error = err.message;
 			} else {
-				var errorMessage = null;
 				socketIO.user(req.user.user, 'user', 'change-info', info);
 			}
-			res.json({ error: errorMessage });
+			res.json({ error });
 		});
 	});
 
-}
+};
