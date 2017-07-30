@@ -131,7 +131,7 @@ function verifyURL(portalURL, callback) {
  * @param {setUrlCallback} callback - Callback
  */
 
- /**
+/**
   * Returns the valid url that was inserted into database
   * @callback setUrlCallback
   *
@@ -260,7 +260,7 @@ function getCal(db, user, callback) {
  * @param {getDayRotationCallback} callback - Callback
  */
 
- /**
+/**
   * Returns an integer between 1 and 6 for what day it is
   * @callback getDayRotationCallback
   *
@@ -394,7 +394,7 @@ function getClasses(db, user, callback) {
  * @param {parseIcalClassesCallback} callback - Callback
  */
 
- /**
+/**
   * Returns array of classes from portal
   * @callback parseIcalClassesCallback
   *
@@ -484,7 +484,7 @@ function cleanUp(str) {
 	if(typeof str !== 'string') return str;
 
 	// Split string between hyphens and trim each part
-	var parts = str.split(' - ').map(function(value) { return value.trim() });
+	var parts = str.split(' - ').map(function(value) { return value.trim(); });
 
 	// Get rid of empty strings
 	for(var i = 0; i < parts.length; i++) {
@@ -529,6 +529,53 @@ function cleanUp(str) {
 	return parts[0] || '';
 }
 
+/**
+ * Return userIds of the users in the same class
+ * @function getClassmates
+ *
+ * @param {Object} db - Database connection
+ * @param {string} teacherId - Teacher id
+ * @param {string} block - block A-F
+ * @param {getClassmatesCallback} callback - Callback
+ */
+
+/**
+ * Callback after find classmates
+ * @callback getUsersInClassCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Object} users - Array of classmates
+ */
+
+function getClassmates(db, classStr, callback) {
+	// Validate inputs
+	if(typeof callback !== 'function') {
+		callback = function() {};
+	}
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'));
+		return;
+	}
+
+	if(typeof classStr !== 'string') {
+		callback(new Error('Invalid class name!'));
+		return;
+	}
+
+	// Find class
+	var portalData = db.collection('portalClasses');
+	portalData.find({ classStr: classStr }, { userId: 1 }).toArray(function(err, results) {
+		if (err) {
+			callback(new Error(err), null);
+			return;
+		}
+		callback(null, results);
+	});
+}
+
+
+
 // RegEx
 module.exports.validDayRotation   = validDayRotation;
 module.exports.portalSummaryBlock = portalSummaryBlock;
@@ -540,3 +587,4 @@ module.exports.getCal         = getCal;
 module.exports.getDayRotation = getDayRotation;
 module.exports.getClasses	  = getClasses;
 module.exports.cleanUp        = cleanUp;
+module.exports.getClassmates  = getClassmates;

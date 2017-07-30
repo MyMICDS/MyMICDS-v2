@@ -328,7 +328,7 @@ function deleteClass(db, user, classId, callback) {
 	try {
 		var id = new ObjectID(classId);
 	} catch(e) {
-		callback(new Error('Invalid event id!'));
+		callback(new Error('Invalid class id!'));
 		return;
 	}
 
@@ -364,6 +364,6 @@ function deleteClass(db, user, classId, callback) {
 module.exports.validBlocks = validBlocks;
 module.exports.validTypes  = validTypes;
 
-module.exports.upsert = upsertClass;
-module.exports.get    = getClasses;
-module.exports.delete = deleteClass;
+module.exports.upsert   = upsertClass;
+module.exports.get      = getClasses;
+module.exports.delete   = deleteClass;
