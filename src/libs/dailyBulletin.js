@@ -192,7 +192,7 @@ function queryAll(callback) {
 					// We got all the pages!
 					// We start with the last so newer bulletins will override older ones if multiple emails were sent.
 					// Create a batch so we can send up to 100 requests at once
-					const batch = new GoogleBatch(); // eslint-disable-line
+					const batch = new googleBatch();
 					batch.setAuth(jwtClient);
 
 					// Array to store all the email information
