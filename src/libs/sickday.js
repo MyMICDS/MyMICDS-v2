@@ -61,8 +61,69 @@ function postRequest(db, user, classStr, request, callback) {
 	});
 }
 
-function cancelRequest() {
+function getRequest(db, user, callback) {
+	if (typeof callback !== 'function') return;
+
+	if (typeof db !== 'object') {
+		callback(new Error('Invalid databse connection!'), null);
+		return;
+	}
+	if (typeof user !== 'string') {
+		callback(new Error('Invalid username!'), null);
+		return;
+	}
+
+	users.get(db, user, (err, isUser, userDoc) => {
+		if(err) {
+			callback(err, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null);
+			return;
+		}
+
+		const sickdayReq = db.collection('sickdayRequests');
+
+		sickdayReq.aggregate([
+			{ $match: { to: userDoc._id } },
+			{ $lookup: { from: 'users', localField: 'to', foreignField: '_id', as: 'to' } },
+			{ $unwind: '$to' }
+		]).toArray((err, requests) => {
+			callback(null, requests);
+		});
+	});
+}
+
+function cancelRequest(db, user, classStr, callback) {
+	// if (typeof callback !== 'function') return;
+
+	// if (typeof db !== 'object') {
+	// 	callback(new Error('Invalid databse connection!'), false);
+	// 	return;
+	// }
+	// if (typeof user !== 'string') {
+	// 	callback(new Error('Invalid username!'), false);
+	// 	return;
+	// }
+
+	// // Make sure valid user
+	// users.get(db, user, (err, isUser, userDoc) => {
+	// 	if(err) {
+	// 		callback(err, false);
+	// 		return;
+	// 	}
+	// 	if(!isUser) {
+	// 		callback(new Error('User doesn\'t exist!'), false);
+	// 		return;
+	// 	}
+
+	// 	const sickdayReq = db.collection('sickdayRequests');
+
+	// 	sickdayReq()
+	// });
 }
 
 module.exports.postRequest   = postRequest;
+module.exports.getRequest    = getRequest;
 module.exports.cancelRequest = cancelRequest;

@@ -18,7 +18,20 @@ module.exports = function(app, db) {
 		});
 	});
 
-	// app.post('/sickday/get-request', (req, res) => {});
+	app.post('/sickday/get-request', (req, res) => {
+		sickday.getRequest(db, 'azhao', (err, requests) => {
+			if (err) {
+				res.json({
+					error: err.message,
+					requests
+				});
+			}
+			res.json({
+				error: null,
+				requests
+			});
+		});
+	});
 
 	// app.post('/sickday/post-response', (req, res) => {});
 
