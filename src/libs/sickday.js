@@ -2,6 +2,7 @@
 
 const portal = require(__dirname + '/portal');
 const users   = require(__dirname + '/users.js');
+const ObjectID = require('mongodb').ObjectID;
 
 function postRequest(db, user, classStr, request, callback) {
 	if (typeof callback !== 'function') return;
@@ -47,7 +48,8 @@ function postRequest(db, user, classStr, request, callback) {
 						from: userDoc._id,
 						to: classmate.userId,
 						class: classStr,
-						request: request
+						request: request,
+						responses: []
 					};
 				}), (err) => {
 					if (err) {
@@ -96,34 +98,85 @@ function getRequest(db, user, callback) {
 }
 
 function cancelRequest(db, user, classStr, callback) {
-	// if (typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	// if (typeof db !== 'object') {
-	// 	callback(new Error('Invalid databse connection!'), false);
-	// 	return;
-	// }
-	// if (typeof user !== 'string') {
-	// 	callback(new Error('Invalid username!'), false);
-	// 	return;
-	// }
+	if (typeof db !== 'object') {
+		callback(new Error('Invalid databse connection!'), false);
+		return;
+	}
+	if (typeof user !== 'string') {
+		callback(new Error('Invalid username!'), false);
+		return;
+	}
 
-	// // Make sure valid user
-	// users.get(db, user, (err, isUser, userDoc) => {
-	// 	if(err) {
-	// 		callback(err, false);
-	// 		return;
-	// 	}
-	// 	if(!isUser) {
-	// 		callback(new Error('User doesn\'t exist!'), false);
-	// 		return;
-	// 	}
+	// Make sure valid user
+	users.get(db, user, (err, isUser, userDoc) => {
+		if(err) {
+			callback(err, false);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), false);
+			return;
+		}
 
-	// 	const sickdayReq = db.collection('sickdayRequests');
+		const sickdayReq = db.collection('sickdayRequests');
 
-	// 	sickdayReq()
-	// });
+		sickdayReq.deleteMany({ from: userDoc._id, classStr }, (err) => {
+			if (err) {
+				callback(new Error(err), false);
+			}
+			callback(null, true);
+		});
+	});
+}
+
+function postResponse(db, user, reqId, response, callback) {
+	if (typeof callback !== 'function') return;
+
+	if (typeof db !== 'object') {
+		callback(new Error('Invalid databse connection!'), false);
+		return;
+	}
+	if (typeof user !== 'string') {
+		callback(new Error('Invalid username!'), false);
+		return;
+	}
+	let requestId;
+	try {
+		requestId = new ObjectID(reqId);
+	} catch (err) {
+		callback(new Error('Invalid request ID!'), false);
+		return;
+	}
+	if (typeof reponse !== 'string') {
+		callback(new Error('Invalid response string!'), false);
+		return;
+	}
+
+	// Make sure valid user
+	users.get(db, user, (err, isUser, userDoc) => {
+		if(err) {
+			callback(err, false);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), false);
+			return;
+		}
+
+		const sickdayReq = db.collection('sickdayRequests');
+
+		sickdayReq.update({ _id: requestId }, { $push: { responses: { from: userDoc, response } } }, (err) => {
+			if (err) {
+				callback(new Error(err), false);
+			}
+			callback(null, true);
+		});
+	});
 }
 
 module.exports.postRequest   = postRequest;
+module.exports.postResponse  = postResponse;
 module.exports.getRequest    = getRequest;
 module.exports.cancelRequest = cancelRequest;
