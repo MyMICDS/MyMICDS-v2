@@ -327,7 +327,7 @@ function getSchedule(db, user, date, callback) {
 			asyncLib.parallel({
 				// Get Portal calendar feed
 				portal: asyncCallback => {
-					portal.getCal(db, user, (err, hasURL, cal) => {
+					portal.getFromCal(db, user, (err, hasURL, cal) => {
 						if(err) {
 							asyncCallback(err, null);
 						} else {

@@ -186,24 +186,74 @@ function setURL(db, user, url, callback) {
 }
 
 /**
+ * Get Portal events from the cache
+ * @param {Object} db - Database object
+ * @param {string} user - Username
+ * @param {getFromCacheCallback} callback - Callback
+ */
+
+/**
+ * Returns array containing Portal events
+ * @callback getFromCacheCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Array} events - Array of events if success, null if failure.
+ */
+
+function getFromCache(db, user, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid username!'), null);
+		return;
+	}
+
+	users.get(db, user, (err, isUser, userDoc) => {
+		if(err) {
+			callback(err, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null);
+			return;
+		}
+
+		const portaldata = db.collection('portalFeeds');
+
+		portaldata.find({ user: userDoc._id }).toArray((err, events) => {
+			if(err) {
+				callback(new Error('There was an error retrieving Portal events!'), null);
+				return;
+			}
+
+			callback(null, events);
+		});
+	});
+}
+
+/**
  * Retrieves the calendar feed of a specific user
- * @function getCal
+ * @function getFromCal
  *
  * @param {db} db - Database connection
  * @param {string} user - Username
- * @param {getCalCallback} callback - Callback
+ * @param {getFromCalCallback} callback - Callback
  */
 
 /**
  * Returns the parsed iCal feed of the user
- * @callback getCalCallback
+ * @callback getFromCalCallback
  *
  * @param {Object} err - Null if success, error object if failure.
  * @param {Boolean} hasURL - Whether or not the user has a Portal URL set. Null if error.
  * @param {Object} cal - Parsed iCal feed. Null if error.
  */
 
-function getCal(db, user, callback) {
+function getFromCal(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
@@ -242,7 +292,7 @@ function getCal(db, user, callback) {
 			const data = ical.parseICS(body);
 
 			// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-			// Unlike Canvas, the Portal is guaranteed to contain some sort of data within a span of a year.
+			// Unlike Portal, the Portal is guaranteed to contain some sort of data within a span of a year.
 			if(_.isEmpty(data)) {
 				callback(new Error('Invalid URL!'), null, null);
 				return;
@@ -559,7 +609,8 @@ module.exports.portalRange = portalRange;
 // Functions
 module.exports.verifyURL       = verifyURL;
 module.exports.setURL          = setURL;
-module.exports.getCal          = getCal;
+module.exports.getFromCache    = getFromCache;
+module.exports.getFromCal      = getFromCal;
 module.exports.getDayRotation  = getDayRotation;
 module.exports.getDayRotations = getDayRotations;
 module.exports.getClasses      = getClasses;

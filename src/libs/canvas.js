@@ -501,7 +501,7 @@ function getFromCache(db, user, callback) {
 
 		const canvasdata = db.collection('canvasFeeds');
 
-		canvasdata.find({user: userDoc._id}).toArray((err, events) => {
+		canvasdata.find({ user: userDoc._id }).toArray((err, events) => {
 			if(err) {
 				callback(new Error('There was an error retrieving Canvas events!'), null);
 				return;

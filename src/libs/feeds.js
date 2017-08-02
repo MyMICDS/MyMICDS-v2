@@ -97,7 +97,7 @@ function processPortalQueue(db, callback) {
 
 			const userDoc = queue[i];
 
-			portal.getCal(db, userDoc.user, (err, hasURL, events) => {
+			portal.getFromCal(db, userDoc.user, (err, hasURL, events) => {
 				if(err) {
 					callback(err);
 					return;
