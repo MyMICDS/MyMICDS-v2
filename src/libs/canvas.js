@@ -138,24 +138,24 @@ function setURL(db, user, url, callback) {
 }
 
 /**
- * Retrieves a user's events on Canvas
- * @function getEvents
+ * Retrieves a user's events on Canvas from their URL
+ * @function getFromURL
  *
  * @param {Object} db - Database connection
  * @param {string} user - Username to get schedule
- * @param {getEventsCallback} callback - Callback
+ * @param {getFromURLCallback} callback - Callback
  */
 
 /**
  * Returns a user's schedule for that day
- * @callback getEventsCallback
+ * @callback getFromURLCallback
  *
  * @param {Object} err - Null if success, error object if failure.
  * @param {Boolean} hasURL - Whether user has set a valid portal URL. Null if failure.
  * @param {Object} events - Array of all the events in the month. Null if failure.
  */
 
-function getEvents(db, user, callback) {
+function getFromURL(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
@@ -462,7 +462,58 @@ function getClasses(db, user, callback) {
 	});
 }
 
-module.exports.verifyURL  = verifyURL;
-module.exports.setURL     = setURL;
-module.exports.getEvents  = getEvents;
-module.exports.getClasses = getClasses;
+/**
+ * Get Canvas events from the cache
+ * @param {Object} db - Database object
+ * @param {string} user - Username
+ * @param {getFromCacheCallback} callback - Callback
+ */
+
+/**
+ * Returns array containing Canvas events
+ * @callback getFromCacheCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Array} events - Array of events if success, null if failure.
+ */
+
+function getFromCache(db, user, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid username!'), null);
+		return;
+	}
+
+	users.get(db, user, (err, isUser, userDoc) => {
+		if(err) {
+			callback(err, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null);
+			return;
+		}
+
+		const canvasdata = db.collection('canvasFeeds');
+
+		canvasdata.find({user: userDoc._id}).toArray((err, events) => {
+			if(err) {
+				callback(new Error('There was an error retrieving Canvas events!'), null);
+				return;
+			}
+
+			callback(null, events);
+		});
+	});
+}
+
+module.exports.verifyURL    = verifyURL;
+module.exports.setURL       = setURL;
+module.exports.getFromCache = getFromCache;
+module.exports.getFromURL   = getFromURL;
+module.exports.getClasses   = getClasses;

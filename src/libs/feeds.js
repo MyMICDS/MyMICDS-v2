@@ -5,21 +5,23 @@
 
 const canvas = require(__dirname + '/canvas.js');
 const portal = require(__dirname + '/portal.js');
+const users  = require(__dirname + '/users.js');
 
 /**
- * Process the queue for updating cached Canvas feeds
+ * Update cached Canvas feed for a user
  * @param {Object} db - Database object
- * @param {processCanvasQueueCallback} callback - Callback
+ * @param {string} user - Username
+ * @param {updateCanvasCacheCallback} callback - Callback
  */
 
 /**
  * Returns an error if any
- * @callback processCanvasQueueCallback
+ * @callback updateCanvasCacheCallback
  *
  * @param {Object} err - Null if success, error object if failure
  */
 
-function processCanvasQueue(db, callback) {
+function updateCanvasCache(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
@@ -28,40 +30,35 @@ function processCanvasQueue(db, callback) {
 	}
 
 	const canvasdata = db.collection('canvasFeeds');
-	const userdata = db.collection('users');
 
-	userdata.find({ inCanvasQueue: true }).toArray((err, queue) => {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
-			callback(new Error('There was a problem querying the database!'));
+			callback(err);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'));
 			return;
 		}
 
-		function handleQueue(i) {
-			if(i >= queue.length) return;
+		canvas.getFromURL(db, userDoc.user, (err, hasURL, events) => {
+			if(err) {
+				callback(err);
+				return;
+			}
 
-			const userDoc = queue[i];
+			events.forEach(e => e.user = userDoc._id);
+			// console.log(events);
 
-			canvas.getEvents(db, userDoc.user, (err, hasURL, events) => {
+			canvasdata.insertMany(events, err => {
 				if(err) {
-					callback(err);
+					callback('There was an error inserting events into the database!');
 					return;
 				}
 
-				events.forEach(e => e.user = userDoc._id);
-				console.log(events);
-
-				canvasdata.insertMany(events, err => {
-					if(err) {
-						callback('There was an error inserting events into the database!');
-						return;
-					}
-				});
+				callback(null);
 			});
-
-			handleQueue(++i);
-		}
-
-		handleQueue(0);
+		});
 	});
 }
 
@@ -107,13 +104,15 @@ function processPortalQueue(db, callback) {
 				}
 
 				events.forEach(e => e.user = userDoc._id);
-				console.log(events);
+				// console.log(events);
 
 				portaldata.insertMany(events, err => {
 					if(err) {
 						callback('There was an error inserting events into the database!');
 						return;
 					}
+
+					callback(null);
 				});
 			});
 
@@ -124,5 +123,5 @@ function processPortalQueue(db, callback) {
 	});
 }
 
-module.exports.processCanvasQueue = processCanvasQueue;
+module.exports.updateCanvasCache  = updateCanvasCache;
 module.exports.processPortalQueue = processPortalQueue;
