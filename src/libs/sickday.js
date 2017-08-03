@@ -3,6 +3,7 @@
 const portal = require(__dirname + '/portal');
 const users   = require(__dirname + '/users.js');
 const ObjectID = require('mongodb').ObjectID;
+const async = require('async');
 
 function postRequest(db, user, classStr, request, callback) {
 	if (typeof callback !== 'function') return;
@@ -63,34 +64,72 @@ function postRequest(db, user, classStr, request, callback) {
 	});
 }
 
-function getRequest(db, user, callback) {
+// options object: {
+// 	from: string,
+// 	to: string
+// }
+
+function getRequest(db, options, callback) {
 	if (typeof callback !== 'function') return;
 
 	if (typeof db !== 'object') {
 		callback(new Error('Invalid databse connection!'), null);
 		return;
 	}
-	if (typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null);
+	if (typeof options !== 'object' || (typeof options.from !== 'string' && typeof options.to !== 'string')) {
+		callback(new Error('Invalid user options!'), null);
 		return;
 	}
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+	async.parallel({
+		from: (err, userCB) => {
+			if (options.from) {
+				users.get(db, options.from, (err, isUser, userDoc) => {
+					if(err) {
+						userCB(err, null);
+						return;
+					}
+					if(!isUser) {
+						userCB(new Error('User doesn\'t exist!'), null);
+						return;
+					}
+
+					userCB(null, userDoc);
+				});
+			}
+			userCB(null, null);
+		},
+		to: (err, userCB) => {
+			if (options.to) {
+				users.get(db, options.to, (err, isUser, userDoc) => {
+					if(err) {
+						userCB(err, null);
+						return;
+					}
+					if(!isUser) {
+						userCB(new Error('User doesn\'t exist!'), null);
+						return;
+					}
+
+					userCB(null, userDoc);
+				});
+			}
+			userCB(null, null);
+		}
+	}, (err, results) => {
+		if (err) {
 			callback(err, null);
 			return;
 		}
-		if(!isUser) {
-			callback(new Error('User doesn\'t exist!'), null);
-			return;
-		}
-
 		const sickdayReq = db.collection('sickdayRequests');
 
 		sickdayReq.aggregate([
-			{ $match: { to: userDoc._id } },
-			{ $lookup: { from: 'users', localField: 'to', foreignField: '_id', as: 'to' } },
-			{ $unwind: '$to' }
+			{ $match: {
+				to: results.to ? results.to._id : null,
+				from: results.from ? results.from._id : null
+			} },
+			{ $lookup: { from: 'users', localField: 'from', foreignField: '_id', as: 'from' } },
+			{ $unwind: '$from' }
 		]).toArray((err, requests) => {
 			callback(null, requests);
 		});

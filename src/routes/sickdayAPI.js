@@ -18,8 +18,23 @@ module.exports = function(app, db) {
 		});
 	});
 
-	app.post('/sickday/get-request', (req, res) => {
-		sickday.getRequest(db, 'azhao', (err, requests) => {
+	app.post('/sickday/get/incoming', (req, res) => {
+		sickday.getRequest(db, { from: null, to: req.user.user }, (err, requests) => {
+			if (err) {
+				res.json({
+					error: err.message,
+					requests
+				});
+			}
+			res.json({
+				error: null,
+				requests
+			});
+		});
+	});
+
+	app.post('/sickday/get/outgoing', (req, res) => {
+		sickday.getRequest(db, { from: req.user.user, to: null }, (err, requests) => {
 			if (err) {
 				res.json({
 					error: err.message,
