@@ -63,6 +63,51 @@ function updateCanvasCache(db, user, callback) {
 }
 
 /**
+ * Add a user to the Portal queue
+ * @param {Object} db - Database object
+ * @param {string} user - Username
+ * @param {addPortalQueueCallback} callback - Callback
+ */
+
+/**
+ * Returns an error if any
+ * @callback addPortalQueueCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ */
+
+function addPortalQueue(db, user, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'));
+		return;
+	}
+
+	users.get(db, user, (err, isUser) => {
+		if(err) {
+			callback(err);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'));
+			return;
+		}
+
+		const userdata = db.collection('users');
+
+		userdata.update({ user }, { $set: { inPortalQueue: true } }, err => {
+			if(err) {
+				callback(new Error('There was an error adding the user to the queue!'));
+				return;
+			}
+
+			callback(null);
+		});
+	});
+}
+
+/**
  * Process the queue for updating cached Portal feeds
  * @param {Object} db - Database object
  * @param {processPortalQueueCallback} callback - Callback
@@ -124,4 +169,5 @@ function processPortalQueue(db, callback) {
 }
 
 module.exports.updateCanvasCache  = updateCanvasCache;
+module.exports.addPortalQueue     = addPortalQueue;
 module.exports.processPortalQueue = processPortalQueue;

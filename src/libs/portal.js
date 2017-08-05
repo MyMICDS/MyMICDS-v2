@@ -197,6 +197,7 @@ function setURL(db, user, url, callback) {
  * @callback getFromCacheCallback
  *
  * @param {Object} err - Null if success, error object if failure
+ * @param {Boolean} hasURL - Whether or not the user has a Portal URL set. Null if error.
  * @param {Array} events - Array of events if success, null if failure.
  */
 
@@ -204,21 +205,25 @@ function getFromCache(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
+		callback(new Error('Invalid database connection!'), null, null);
 		return;
 	}
 	if(typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null);
+		callback(new Error('Invalid username!'), null, null);
 		return;
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
-			callback(err, null);
+			callback(err, null, null);
 			return;
 		}
 		if(!isUser) {
-			callback(new Error('User doesn\'t exist!'), null);
+			callback(new Error('User doesn\'t exist!'), null, null);
+			return;
+		}
+		if(typeof userDoc['portalURL'] !== 'string') {
+			callback(null, false, null);
 			return;
 		}
 
@@ -226,11 +231,11 @@ function getFromCache(db, user, callback) {
 
 		portaldata.find({ user: userDoc._id }).toArray((err, events) => {
 			if(err) {
-				callback(new Error('There was an error retrieving Portal events!'), null);
+				callback(new Error('There was an error retrieving Portal events!'), null, null);
 				return;
 			}
 
-			callback(null, events);
+			callback(null, true, events);
 		});
 	});
 }
@@ -463,75 +468,49 @@ function getClasses(db, user, callback) {
 		return;
 	}
 
-	users.get(db, user, (err, isUser, userDoc) => {
+	getFromCache(db, user, (err, hasURL, events) => {
 		if(err) {
 			callback(err, null, null);
 			return;
 		}
-		if(!isUser) {
-			callback(new Error('User doesn\'t exist!'), null, null);
-			return;
-		}
-
-		if(typeof userDoc['portalURL'] !== 'string') {
+		if(!hasURL) {
 			callback(null, false, null);
 			return;
 		}
 
-		request(userDoc['portalURL'], (err, response, body) => {
-			if(err) {
-				callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
-				return;
-			}
-			if(response.statusCode !== 200) {
-				callback(new Error('Invalid URL!'), null, null);
-				return;
-			}
-
-			const data = ical.parseICS(body);
-
-			// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-			// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-			if(_.isEmpty(data)) {
-				callback(new Error('Invalid URL!'), null, null);
-				return;
-			}
-
-			parseIcalClasses(data, callback);
-
-		});
+		parsePortalClasses(events, callback);
 	});
 }
 
 /**
- * Retrieves all the classes in a parsed iCal object
- * @function parseIcalClasses
+ * Retrieves all the classes in an array of Portal events
+ * @function parsePortalClasses
  *
- * @param {Object} data - Parsed iCal object
- * @param {parseIcalClassesCallback} callback - Callback
+ * @param {Array} events - Array of portal events
+ * @param {parsePortalClassesCallback} callback - Callback
  */
 
  /**
   * Returns array of classes from portal
-  * @callback parseIcalClassesCallback
+  * @callback parsePortalClassesCallback
   *
   * @param {Object} err - Null if success, error object if failure.
   * @param {Boolean} hasURL - Whether or not the user has a Portal URL set. Null if error.
   * @param {Array} classes - Array of classes from portal. Null if error.
   */
 
-function parseIcalClasses(data, callback) {
+function parsePortalClasses(events, callback) {
 	if(typeof callback !== 'function') return;
 
-	if(typeof data !== 'object') {
-		callback(new Error('Invalid iCal object!'), null, null);
+	if(typeof events !== 'object') {
+		callback(new Error('Invalid events array!'), null, null);
 		return;
 	}
 
 	const classes = {};
 
 	// Go through each event and add to classes object with a count of how many times they occur
-	for(const calEvent of Object.values(data)) {
+	for(const calEvent of events) {
 		if(typeof calEvent.summary !== 'string') continue;
 
 		const start = moment(calEvent['start']);

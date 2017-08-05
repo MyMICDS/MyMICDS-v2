@@ -35,7 +35,7 @@ module.exports = (app, db, socketIO) => {
 	});
 
 	app.post('/canvas/get-events', (req, res) => {
-		canvas.getEvents(db, req.user.user, (err, hasURL, events) => {
+		canvas.getFromCache(db, req.user.user, (err, hasURL, events) => {
 			let error = null;
 			if(err) {
 				error = err.message;
