@@ -190,13 +190,6 @@ function getFromURL(db, user, callback) {
 
 			const data = ical.parseICS(body);
 
-			// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-			// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-			if(_.isEmpty(data)) {
-				callback(new Error('Invalid URL!'), null, null);
-				return;
-			}
-
 			// Get which events are checked
 			checkedEvents.list(db, user, (err, checkedEventsList) => {
 				if(err) {
