@@ -138,7 +138,10 @@ function processPortalQueue(db, callback) {
 		}
 
 		function handleQueue(i) {
-			if(i >= queue.length) return;
+			if(i >= queue.length) {
+				callback(null);
+				return;
+			};
 
 			const userDoc = queue[i];
 
@@ -156,8 +159,6 @@ function processPortalQueue(db, callback) {
 						callback('There was an error inserting events into the database!');
 						return;
 					}
-
-					callback(null);
 				});
 			});
 
