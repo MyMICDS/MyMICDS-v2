@@ -47,16 +47,22 @@ function updateCanvasCache(db, user, callback) {
 				return;
 			}
 
-			events.forEach(e => e.user = userDoc._id);
-			// console.log(events);
-
-			canvasdata.insertMany(events, err => {
+			canvasdata.deleteMany({ user: userDoc._id }, err => {
 				if(err) {
-					callback('There was an error inserting events into the database!');
+					callback('There was an error removing the old events from the database!');
 					return;
 				}
 
-				callback(null);
+				events.forEach(e => e.user = userDoc._id);
+
+				canvasdata.insertMany(events, err => {
+					if(err) {
+						callback('There was an error inserting events into the database!');
+						return;
+					}
+
+					callback(null);
+				});
 			});
 		});
 	});
@@ -151,14 +157,20 @@ function processPortalQueue(db, callback) {
 					return;
 				}
 
-				events.forEach(e => e.user = userDoc._id);
-				// console.log(events);
-
-				portaldata.insertMany(events, err => {
+				portaldata.deleteMany({ user: userDoc._id }, err => {
 					if(err) {
-						callback('There was an error inserting events into the database!');
+						callback('There was an error removing the old events from the database!');
 						return;
 					}
+
+					events.forEach(e => e.user = userDoc._id);
+
+					portaldata.insertMany(events, err => {
+						if(err) {
+							callback('There was an error inserting events into the database!');
+							return;
+						}
+					});
 				});
 			});
 
