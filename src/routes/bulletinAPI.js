@@ -8,6 +8,25 @@ const dailyBulletin = require(__dirname + '/../libs/dailyBulletin.js');
 const users = require(__dirname + '/../libs/users.js');
 
 module.exports = (app, db, socketIO) => {
+	
+	app.get('/daily-bulletin/json', (req, res) => {
+		
+		dailyBulletin.getPDFJSON((err, content) => {
+			if (!err) {
+				res.end(content);
+						
+				res.json({
+					error : null,
+					words : content
+				})
+			}
+			else {
+				res.json({
+					error : err
+				})
+			}
+		});
+	});
 
 	app.post('/daily-bulletin/list', (req, res) => {
 		dailyBulletin.getList((err, bulletins) => {

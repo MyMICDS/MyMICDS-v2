@@ -11,6 +11,21 @@ const fs        = require('fs-extra');
 const path      = require('path');
 const utils     = require(__dirname + '/utils.js');
 
+
+const PDFParser = require('pdf2json');
+const wordArray = [
+	'activities',
+	'lunch',
+	'schedule',
+	'advisory',
+	'collab',
+	'period',
+	'dismissal'
+]
+
+let pdfParser = new PDFParser();
+
+
 const googleServiceAccount = require(__dirname + '/googleServiceAccount.js');
 const googleBatch          = require('google-batch');
 const google               = googleBatch.require('googleapis');
@@ -34,6 +49,50 @@ const query = 'label:us-daily-bulletin';
  * @callback queryLatestCallback
  * @param {Object} err - Null if success, error object if failure.
  */
+
+ function getPDFJSON(callback) {
+	 /*const bulletinName = bulletinDate.getFullYear()
+		 + '-' + utils.leadingZeros(bulletinDate.getMonth() + 1)
+		 + '-' + utils.leadingZeros(bulletinDate.getDate());*/
+		 
+ 	let path = bulletinPDFDir + '/' + '2017-05-25' + '.pdf'
+		 
+	pdfParser.on("pdfParser_dataError", err => {
+		console.log(`error : ${err}`);
+		callback(err, null);
+	});
+	
+	pdfParser.on("pdfParser_dataReady", success => {
+		let parsed = JSON.parse(JSON.stringify(success));
+		
+		let validWords = [];
+		
+		let index = 0;
+		for (var key in parsed.formImage.Pages[0].Texts) {
+			if (parsed.formImage.Pages[0].Texts.hasOwnProperty(key)) {
+				// valid JSON key
+				
+				for (var word in wordArray) {
+					if (parsed.formImage.Pages[0].Texts[index].R[0].T.toString().includes(word)) {
+						validWords.push(parsed.formImage.Pages[0].Texts[index].R[0].T);
+					}
+				}
+			}
+			
+			index++;
+		}
+		
+		for (let real = 0; real < validWords.length; real++) {
+			//console.log(validWords[real]);
+			// new RegExp('%20', 'g'), ' '
+			validWords[real] = decodeURIComponent(validWords[real]);
+		}
+		
+		callback(null, JSON.stringify(success));
+	});
+	
+	pdfParser.loadPDF(path);
+ }
 
 function queryLatest(callback) {
 	if(typeof callback !== 'function') {
@@ -412,3 +471,4 @@ module.exports.baseURL     = dailyBulletinUrl;
 module.exports.queryLatest = queryLatest;
 module.exports.queryAll    = queryAll;
 module.exports.getList     = getList;
+module.exports.getPDFJSON  = getPDFJSON; 
