@@ -96,19 +96,21 @@ if(config.production) {
 			feeds.processPortalQueue(err => {
 				if(err) {
 					console.log(`[${new Date()}] Error occurred processing Portal queue! (${err})`);
-				}
 
-				// Alert admins if there's an error processing the Portal queue
-				admins.sendEmail(db, {
-					subject: 'Error Notification - Portal Queue',
-					html: 'There was an error when processing the Portal queue.<br>Error message: ' + err
-				}, err => {
-					if (err) {
-						console.log(`[${new Date()}] Error occured when sending admin error notifications! (${err})`);
-						return;
-					}
-					console.log(`[${new Date()}] Alerted admins of error! (${err})`);
-				});
+					// Alert admins if there's an error processing the Portal queue
+					admins.sendEmail(db, {
+						subject: 'Error Notification - Portal Queue',
+						html: 'There was an error when processing the Portal queue.<br>Error message: ' + err
+					}, err => {
+						if (err) {
+							console.log(`[${new Date()}] Error occured when sending admin error notifications! (${err})`);
+							return;
+						}
+						console.log(`[${new Date()}] Alerted admins of error! (${err})`);
+					});
+				} else {
+					console.log(`[${new Date()}] Successfully processed Portal queue!`);
+				}
 			});
 
 		}, later.parse.text('every 15 min'));
