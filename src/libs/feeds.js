@@ -141,7 +141,7 @@ function processPortalQueue(db, callback) {
 			if(i >= queue.length) {
 				callback(null);
 				return;
-			};
+			}
 
 			const userDoc = queue[i];
 

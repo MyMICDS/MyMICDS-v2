@@ -6,6 +6,7 @@ const feeds = require(__dirname + '/../libs/feeds.js');
 module.exports = (app, db) => {
 
 	app.post('/feeds/update-canvas-cache', (req, res) => {
+		console.log(req);
 		feeds.updateCanvasCache(db, req.user.user, err => {
 			let error = null;
 			if(err) {
