@@ -139,23 +139,23 @@ function setURL(db, user, url, callback) {
 
 /**
  * Retrieves a user's events on Canvas from their URL
- * @function getFromURL
+ * @function getUserCal
  *
  * @param {Object} db - Database connection
  * @param {string} user - Username to get schedule
- * @param {getFromURLCallback} callback - Callback
+ * @param {getUserCalCallback} callback - Callback
  */
 
 /**
  * Returns a user's schedule for that day
- * @callback getFromURLCallback
+ * @callback getUserCalCallback
  *
  * @param {Object} err - Null if success, error object if failure.
  * @param {Boolean} hasURL - Whether user has set a valid portal URL. Null if failure.
  * @param {Object} events - Array of all the events in the month. Null if failure.
  */
 
-function getFromURL(db, user, callback) {
+function getUserCal(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
@@ -487,5 +487,5 @@ function getFromCache(db, user, callback) {
 module.exports.verifyURL    = verifyURL;
 module.exports.setURL       = setURL;
 module.exports.getFromCache = getFromCache;
-module.exports.getFromURL   = getFromURL;
+module.exports.getUserCal   = getUserCal;
 module.exports.getClasses   = getClasses;

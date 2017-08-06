@@ -41,7 +41,7 @@ function updateCanvasCache(db, user, callback) {
 			return;
 		}
 
-		canvas.getFromURL(db, userDoc.user, (err, hasURL, events) => {
+		canvas.getUserCal(db, userDoc.user, (err, hasURL, events) => {
 			if(err) {
 				callback(err);
 				return;
@@ -90,7 +90,7 @@ function addPortalQueue(db, user, callback) {
 		return;
 	}
 
-	users.get(db, user, (err, isUser) => {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
 			callback(err);
 			return;
@@ -100,15 +100,46 @@ function addPortalQueue(db, user, callback) {
 			return;
 		}
 
-		const userdata = db.collection('users');
+		const portaldata = db.collection('portalFeeds');
+		const userdata   = db.collection('users');
 
-		userdata.update({ user }, { $set: { inPortalQueue: true } }, err => {
+		portal.getFromCal(db, user, (err, hasURL, events) => {
 			if(err) {
-				callback(new Error('There was an error adding the user to the queue!'));
+				userdata.update({ user }, { $set: { inPortalQueue: true } }, err => {
+					if(err) {
+						callback(new Error('There was an error adding the user to the queue!'));
+						return;
+					}
+
+					callback(null); // TODO: figure out how to differentiate between an actual error and just an empty calendar
+				});
 				return;
 			}
 
-			callback(null);
+			portaldata.deleteMany({ user: userDoc._id }, err => {
+				if(err) {
+					callback(new Error('There was an error removing the old events from the database!'));
+					return;
+				}
+
+				events.forEach(e => e.user = userDoc._id);
+
+				portaldata.insertMany(events, err => {
+					if(err) {
+						callback(new Error('There was an error inserting events into the database!'));
+						return;
+					}
+
+					userdata.update({ user }, { $set: { inPortalQueue: false } }, err => {
+						if(err) {
+							callback(new Error('There was an error removing the user from the queue!'));
+							return;
+						}
+
+						callback(null);
+					});
+				});
+			});
 		});
 	});
 }
@@ -134,7 +165,6 @@ function processPortalQueue(db, callback) {
 		return;
 	}
 
-	const portaldata = db.collection('portalFeeds');
 	const userdata = db.collection('users');
 
 	userdata.find({ inPortalQueue: true }).toArray((err, queue) => {
@@ -149,32 +179,14 @@ function processPortalQueue(db, callback) {
 				return;
 			}
 
-			const userDoc = queue[i];
-
-			portal.getFromCal(db, userDoc.user, (err, hasURL, events) => {
+			addPortalQueue(db, queue[i]._id, err => {
 				if(err) {
 					callback(err);
 					return;
 				}
 
-				portaldata.deleteMany({ user: userDoc._id }, err => {
-					if(err) {
-						callback('There was an error removing the old events from the database!');
-						return;
-					}
-
-					events.forEach(e => e.user = userDoc._id);
-
-					portaldata.insertMany(events, err => {
-						if(err) {
-							callback('There was an error inserting events into the database!');
-							return;
-						}
-					});
-				});
+				handleQueue(++i);
 			});
-
-			handleQueue(++i);
 		}
 
 		handleQueue(0);
