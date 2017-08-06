@@ -61,6 +61,7 @@
     "mongodb": "^2.2.9",
     "multer": "^1.2.0",
     "nodemailer": "^2.2.0",
+    "pdf2json": "^1.1.7",
     "pm2": "^2.0.19",
     "prisma": "^3.1.0",
     "random-js": "^1.0.8",
@@ -68,8 +69,5 @@
     "socket.io": "^1.4.5",
     "underscore": "^1.8.3"
   },
-  "devDependencies": {
-    "pdf2json": "^1.1.7",
-    "word-list": "^2.0.0"
-  }
+  "devDependencies": {}
 }
