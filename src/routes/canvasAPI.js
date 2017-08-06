@@ -2,6 +2,7 @@
  * @file Manages Canvas API endpoints
  */
 const canvas = require(__dirname + '/../libs/canvas.js');
+const feeds  = require(__dirname + '/../libs/feeds.js');
 
 module.exports = (app, db, socketIO) => {
 	app.post('/canvas/test-url', (req, res) => {
@@ -40,7 +41,26 @@ module.exports = (app, db, socketIO) => {
 			if(err) {
 				error = err.message;
 			}
-			res.json({ error, hasURL, events });
+			if(events.length > 0) {
+				res.json({ error, hasURL, events });
+				return;
+			}
+
+			// If the events are empty, there's a chance that we just didn't cache results yet
+			feeds.updateCanvasCache(db, req.user.user, err => {
+				if(err) {
+					error = err.message;
+					res.json({ error, hasURL, events });
+					return;
+				}
+
+				canvas.getFromCache(db, req.user.user, (err, hasURL, events) => {
+					if(err) {
+						error = err.message;
+					}
+					res.json({ error, hasURL, events });
+				});
+			});
 		});
 	});
 
