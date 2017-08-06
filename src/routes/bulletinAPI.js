@@ -8,6 +8,38 @@ const dailyBulletin = require(__dirname + '/../libs/dailyBulletin.js');
 const users = require(__dirname + '/../libs/users.js');
 
 module.exports = (app, db, socketIO) => {
+	
+	app.get('/daily-bulletin/json', (req, res) => {
+		
+		dailyBulletin.getPDFJSON(req.query.date, (err, reals, content, info) => {
+			if (!err) {
+				if (req.query.raw == "true") {
+					res.json({
+						error : null,
+						parsedcontent : info,
+						actualcontent : reals,
+						raw : content
+					})
+				}
+				else {
+					res.json({
+						error : null,
+						parsedcontent : info
+					})
+				}
+			}
+			else if (req.query.date == undefined) {
+				res.json({
+					error : 'you did not give a date (YYYY-MM-DD)'
+				})
+			}
+			else {
+				res.json({
+					error : err
+				})
+			}
+		});
+	});
 
 	app.post('/daily-bulletin/list', (req, res) => {
 		dailyBulletin.getList((err, bulletins) => {

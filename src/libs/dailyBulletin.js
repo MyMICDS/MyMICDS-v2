@@ -11,6 +11,21 @@ const fs        = require('fs-extra');
 const path      = require('path');
 const utils     = require(__dirname + '/utils.js');
 
+
+const PDFParser = require('pdf2json');
+const wordArray = [
+	'activities',
+	'lunch',
+	'schedule',
+	'advisory',
+	'collab',
+	'period',
+	'dismissal'
+]
+
+let pdfParser = new PDFParser();
+
+
 const googleServiceAccount = require(__dirname + '/googleServiceAccount.js');
 const googleBatch          = require('google-batch');
 const google               = googleBatch.require('googleapis');
@@ -24,17 +39,115 @@ const bulletinPDFDir = __dirname + '/../public/daily-bulletin';
 const query = 'label:us-daily-bulletin';
 
 /**
+ * Parses the daily bulletin
+ * @function getPDFJSON
+ * @param {filename} filename - the name of the file (withought .pdf)
+ * @param {callback} callback = Callback
+*/
+
+/**
+ * Returns an error if any
+ * @callback getPDFJSONCallback
+ * @param {Object} error - the error message
+ * @param {Object} validWords - valid words extracted
+ * @param {Object} parsed - the raw parsed content
+ * @param {Object} actual - JSON Object with final parsed content
+ */
+
+ function getPDFJSON(filename, callback) {		 
+ 	let path = bulletinPDFDir + '/' + filename + '.pdf'
+		 
+	pdfParser.on("pdfParser_dataError", err => {
+		callback("Error with getting the file");
+	});
+	
+	pdfParser.on("pdfParser_dataReady", success => {
+		let parsed = JSON.parse(JSON.stringify(success));
+		
+		let validWords = [];
+		
+		let actual = {
+			"birthday" : null,
+			"dismissal" : null,
+			"formalDress" : false,
+			"announcement" : null,
+			"schedule" : null
+		};
+		
+		let index = 0;
+		for (var key in parsed.formImage.Pages[0].Texts) {
+			if (parsed.formImage.Pages[0].Texts.hasOwnProperty(key)) {
+				// valid JSON key
+				
+				for (var word in wordArray) {
+					if (parsed.formImage.Pages[0].Texts[index].R[0].T.toString().includes(word)) {
+						validWords.push(parsed.formImage.Pages[0].Texts[index].R[0].T);
+						break;
+					}
+				}
+			}
+			
+			index++;
+		}
+		
+		// deconde the URL stuff
+		for (let real = 0; real < validWords.length; real++) {
+			validWords[real] = decodeURIComponent(validWords[real]);
+		}
+		
+		index = 0;
+		validWords.forEach((word) => {
+			if (word.toString().search(/Happy Birthday/g) > -1) {
+				actual.birthday = word;
+			}
+			else if (word.toString().search(/DISMISSAL/g) > -1) {
+				actual.dismissal = validWords[index + 4];
+			}
+			else if (word.toString().search(/FORMAL DRESS/) > -1) {
+				actual.formalDress = true;
+			}
+			else if (word.toString().search(/3:15/) > -1) {
+				validWords[index] += ' stop';
+			}
+			
+			index++;
+		});
+		
+		// parse the schedule		
+		let scheduleRaw = [];
+		for (var counter = 9; counter < validWords.length; counter++) {
+			if (validWords[counter].toString().search(/stop/) > -1) {
+				scheduleRaw.push(validWords[counter].replace('stop', ''));
+				break;
+			}
+			else {
+				scheduleRaw.push(validWords[counter]);
+			}
+		}
+		
+		actual.schedule = scheduleRaw.join('\n');
+		
+		actual.announcement = validWords[8];
+		
+		callback(null, validWords, parsed, actual);
+	});
+	
+	pdfParser.loadPDF(path);
+ }
+
+
+/**
  * Gets the most recent Daily Bulletin from Gmail and writes it to the bulletin directory
  * @function queryLatest
  * @param {queryLatestCallback} callback - Callback
  */
-
+ 
 /**
  * Returns an error if any
  * @callback queryLatestCallback
  * @param {Object} err - Null if success, error object if failure.
  */
-
+ 
 function queryLatest(callback) {
 	if(typeof callback !== 'function') {
 		callback = () => {};
@@ -412,3 +525,4 @@ module.exports.baseURL     = dailyBulletinUrl;
 module.exports.queryLatest = queryLatest;
 module.exports.queryAll    = queryAll;
 module.exports.getList     = getList;
+module.exports.getPDFJSON  = getPDFJSON; 
