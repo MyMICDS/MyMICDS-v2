@@ -25,7 +25,7 @@ module.exports = (app, db, socketIO) => {
 					res.json({
 						error : null,
 						parsedcontent : info
-					})
+					});
 				}
 			}
 			else if (req.query.date == undefined) {
@@ -35,8 +35,9 @@ module.exports = (app, db, socketIO) => {
 			}
 			else {
 				res.json({
-					error : err
-				})
+					error : err,
+					raw : content
+				});
 			}
 		});
 	});

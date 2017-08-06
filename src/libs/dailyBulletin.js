@@ -78,7 +78,6 @@ const query = 'label:us-daily-bulletin';
 		for (var key in parsed.formImage.Pages[0].Texts) {
 			if (parsed.formImage.Pages[0].Texts.hasOwnProperty(key)) {
 				// valid JSON key
-				
 				for (var word in wordArray) {
 					if (parsed.formImage.Pages[0].Texts[index].R[0].T.toString().includes(word)) {
 						validWords.push(parsed.formImage.Pages[0].Texts[index].R[0].T);
@@ -90,6 +89,24 @@ const query = 'label:us-daily-bulletin';
 			index++;
 		}
 		
+		try {
+			let index = 0;
+			for (var key in parsed.formImage.Pages[0].Texts) {
+				if (parsed.formImage.Pages[0].Texts.hasOwnProperty(key)) {
+					// valid JSON key
+					if (parsed.formImage.Pages[0].Texts[index].R[1].T.toString().includes('Birthday')) {
+						actual.birthday.concat(parsed.formImage.Pages[0].Texts[index].R[0].T) + " ";
+						break;
+					}
+				}
+				
+				index++;
+			}	
+		}
+		catch (Exception) {
+			
+		}
+		
 		// deconde the URL stuff
 		for (let real = 0; real < validWords.length; real++) {
 			validWords[real] = decodeURIComponent(validWords[real]);
@@ -97,16 +114,19 @@ const query = 'label:us-daily-bulletin';
 		
 		index = 0;
 		validWords.forEach((word) => {
-			if (word.toString().search(/Happy Birthday/g) > -1) {
+			if (word.toString().search(/Birthday/) > -1) {
 				actual.birthday = word;
 			}
-			else if (word.toString().search(/DISMISSAL/g) > -1) {
+			else if (word.toString().search(/DISMISSAL/) > -1 || word.toString().search(/TRIP/) > -1) {
 				actual.dismissal = validWords[index + 4];
 			}
-			else if (word.toString().search(/FORMAL DRESS/) > -1) {
+			else if (word.toString().search(/FORMAL/) > -1) {
 				actual.formalDress = true;
 			}
-			else if (word.toString().search(/3:15/) > -1) {
+			else if (word.toString().search(/SCHEDULE/) > -1) {
+				validWords[index] += ' start';
+			}
+			else if (word.toString().search(/3:15/) > -1 || word.toString().search(/11:30/) > -1) {
 				validWords[index] += ' stop';
 			}
 			
@@ -115,7 +135,18 @@ const query = 'label:us-daily-bulletin';
 		
 		// parse the schedule		
 		let scheduleRaw = [];
-		for (var counter = 9; counter < validWords.length; counter++) {
+		let startIndex = 0; // 9 should be default
+		for (var c = startIndex; c < validWords.length; c++) {
+			if (validWords[c].toString().search(/start/) > -1) {
+				startIndex++;
+				break;
+			}
+			else {
+				startIndex++;
+			}
+		}
+		
+		for (var counter = startIndex; counter < validWords.length; counter++) {
 			if (validWords[counter].toString().search(/stop/) > -1) {
 				scheduleRaw.push(validWords[counter].replace('stop', ''));
 				break;
@@ -128,6 +159,9 @@ const query = 'label:us-daily-bulletin';
 		actual.schedule = scheduleRaw.join('\n');
 		
 		actual.announcement = validWords[8];
+		
+		// build birthdays
+		let birthdayRaw = [];
 		
 		callback(null, validWords, parsed, actual);
 	});
