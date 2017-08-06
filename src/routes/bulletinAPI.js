@@ -11,13 +11,33 @@ module.exports = (app, db, socketIO) => {
 	
 	app.get('/daily-bulletin/json', (req, res) => {
 		
-		dailyBulletin.getPDFJSON((err, content) => {
+		dailyBulletin.getPDFJSON(req.query.date, (err, reals, content, info) => {
 			if (!err) {
-				res.end(content);
-						
+				if (req.query.raw == "true") {
+					res.json({
+						error : null,
+						parsedcontent : info,
+						actualcontent : reals,
+						raw : content
+					})
+				}
+				else if (req.query.simple == "true") {
+					res.json({
+						error : null,
+						parsedcontent : info
+					})
+				}
+				else {
+					res.json({
+						error : null,
+						parsedcontent : info,
+						actualcontent : reals
+					})	
+				}
+			}
+			else if (req.query.date == "undefined") {
 				res.json({
-					error : null,
-					words : content
+					error : 'you did not give a date (YYYY-MM-DD)'
 				})
 			}
 			else {

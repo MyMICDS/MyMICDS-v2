@@ -39,33 +39,30 @@ const bulletinPDFDir = __dirname + '/../public/daily-bulletin';
 const query = 'label:us-daily-bulletin';
 
 /**
- * Gets the most recent Daily Bulletin from Gmail and writes it to the bulletin directory
- * @function queryLatest
- * @param {queryLatestCallback} callback - Callback
- */
-
-/**
- * Returns an error if any
- * @callback queryLatestCallback
- * @param {Object} err - Null if success, error object if failure.
- */
-
- function getPDFJSON(callback) {
-	 /*const bulletinName = bulletinDate.getFullYear()
-		 + '-' + utils.leadingZeros(bulletinDate.getMonth() + 1)
-		 + '-' + utils.leadingZeros(bulletinDate.getDate());*/
-		 
- 	let path = bulletinPDFDir + '/' + '2017-05-25' + '.pdf'
+* Parses the daily bulletin
+* @function getPDFJSON
+* @param {filename} filename - the name of the file (withought .pdf)
+* @param {callback} callback = Callback
+*/
+ function getPDFJSON(filename, callback) {		 
+ 	let path = bulletinPDFDir + '/' + filename + '.pdf'
 		 
 	pdfParser.on("pdfParser_dataError", err => {
-		console.log(`error : ${err}`);
-		callback(err, null);
+		callback("Error with getting the file", null);
 	});
 	
 	pdfParser.on("pdfParser_dataReady", success => {
 		let parsed = JSON.parse(JSON.stringify(success));
 		
 		let validWords = [];
+		
+		let actual = {
+			"birthday" : null,
+			"dismissal" : null,
+			"formalDress" : false,
+			"announcement" : null,
+			"schedule" : null
+		};
 		
 		let index = 0;
 		for (var key in parsed.formImage.Pages[0].Texts) {
@@ -75,6 +72,7 @@ const query = 'label:us-daily-bulletin';
 				for (var word in wordArray) {
 					if (parsed.formImage.Pages[0].Texts[index].R[0].T.toString().includes(word)) {
 						validWords.push(parsed.formImage.Pages[0].Texts[index].R[0].T);
+						break;
 					}
 				}
 			}
@@ -82,18 +80,62 @@ const query = 'label:us-daily-bulletin';
 			index++;
 		}
 		
+		// deconde the URL stuff
 		for (let real = 0; real < validWords.length; real++) {
-			//console.log(validWords[real]);
-			// new RegExp('%20', 'g'), ' '
 			validWords[real] = decodeURIComponent(validWords[real]);
 		}
 		
-		callback(null, JSON.stringify(success));
+		index = 0;
+		validWords.forEach((word) => {
+			if (word.toString().search(/Happy Birthday/g) > -1) {
+				actual.birthday = word;
+			}
+			else if (word.toString().search(/DISMISSAL/g) > -1) {
+				actual.dismissal = validWords[index + 4];
+			}
+			else if (word.toString().search(/FORMAL DRESS/) > -1) {
+				actual.formalDress = true;
+			}
+			else if (word.toString().search(/Advisory and Lunch/) > -1) {
+				validWords[index] += ' stop';
+			}
+			
+			index++;
+		});
+		
+		// parse the schedule		
+		let scheduleRaw = [];
+		for (var counter = 9; counter < validWords.length; counter++) {
+			if (validWords[counter].toString().search(/stop/) > -1) {
+				break;
+			}
+			else {
+				scheduleRaw.push(validWords[counter]);
+			}
+		}
+		
+		actual.schedule = scheduleRaw.join('\n');
+		
+		actual.announcement = validWords[8];
+		
+		callback(null, validWords, parsed, actual);
 	});
 	
 	pdfParser.loadPDF(path);
  }
 
+
+/**
+ * Gets the most recent Daily Bulletin from Gmail and writes it to the bulletin directory
+ * @function queryLatest
+ * @param {queryLatestCallback} callback - Callback
+ */
+ 
+/**
+ * Returns an error if any
+ * @callback queryLatestCallback
+ * @param {Object} err - Null if success, error object if failure.
+ */
 function queryLatest(callback) {
 	if(typeof callback !== 'function') {
 		callback = () => {};
