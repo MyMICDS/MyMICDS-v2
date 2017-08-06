@@ -21,21 +21,14 @@ module.exports = (app, db, socketIO) => {
 						raw : content
 					})
 				}
-				else if (req.query.simple == "true") {
+				else {
 					res.json({
 						error : null,
 						parsedcontent : info
 					})
 				}
-				else {
-					res.json({
-						error : null,
-						parsedcontent : info,
-						actualcontent : reals
-					})	
-				}
 			}
-			else if (req.query.date == "undefined") {
+			else if (req.query.date == undefined) {
 				res.json({
 					error : 'you did not give a date (YYYY-MM-DD)'
 				})

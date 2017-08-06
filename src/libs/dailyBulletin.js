@@ -39,16 +39,26 @@ const bulletinPDFDir = __dirname + '/../public/daily-bulletin';
 const query = 'label:us-daily-bulletin';
 
 /**
-* Parses the daily bulletin
-* @function getPDFJSON
-* @param {filename} filename - the name of the file (withought .pdf)
-* @param {callback} callback = Callback
+ * Parses the daily bulletin
+ * @function getPDFJSON
+ * @param {filename} filename - the name of the file (withought .pdf)
+ * @param {callback} callback = Callback
 */
+
+/**
+ * Returns an error if any
+ * @callback getPDFJSONCallback
+ * @param {Object} error - the error message
+ * @param {Object} validWords - valid words extracted
+ * @param {Object} parsed - the raw parsed content
+ * @param {Object} actual - JSON Object with final parsed content
+ */
+
  function getPDFJSON(filename, callback) {		 
  	let path = bulletinPDFDir + '/' + filename + '.pdf'
 		 
 	pdfParser.on("pdfParser_dataError", err => {
-		callback("Error with getting the file", null);
+		callback("Error with getting the file");
 	});
 	
 	pdfParser.on("pdfParser_dataReady", success => {
@@ -96,7 +106,7 @@ const query = 'label:us-daily-bulletin';
 			else if (word.toString().search(/FORMAL DRESS/) > -1) {
 				actual.formalDress = true;
 			}
-			else if (word.toString().search(/Advisory and Lunch/) > -1) {
+			else if (word.toString().search(/3:15/) > -1) {
 				validWords[index] += ' stop';
 			}
 			
@@ -107,6 +117,7 @@ const query = 'label:us-daily-bulletin';
 		let scheduleRaw = [];
 		for (var counter = 9; counter < validWords.length; counter++) {
 			if (validWords[counter].toString().search(/stop/) > -1) {
+				scheduleRaw.push(validWords[counter].replace('stop', ''));
 				break;
 			}
 			else {
@@ -136,6 +147,7 @@ const query = 'label:us-daily-bulletin';
  * @callback queryLatestCallback
  * @param {Object} err - Null if success, error object if failure.
  */
+ 
 function queryLatest(callback) {
 	if(typeof callback !== 'function') {
 		callback = () => {};
