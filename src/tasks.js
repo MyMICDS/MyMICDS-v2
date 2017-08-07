@@ -93,7 +93,7 @@ if(config.production) {
 		later.setInterval(() => {
 			console.log(`[${new Date()}] Process Portal queue`);
 
-			feeds.processPortalQueue(err => {
+			feeds.processPortalQueue(db, err => {
 				if(err) {
 					console.log(`[${new Date()}] Error occurred processing Portal queue! (${err})`);
 

@@ -269,7 +269,6 @@ function getUserCal(db, user, callback) {
 						// class will be null if error in getting class name.
 						const insertEvent = {
 							_id: canvasEvent.uid,
-							canvas: true,
 							user: userDoc.user,
 							class: canvasClass,
 							title: parsedEvent.assignment,
@@ -478,6 +477,8 @@ function getFromCache(db, user, callback) {
 				callback(new Error('There was an error retrieving Canvas events!'), null, null);
 				return;
 			}
+
+			events.forEach(e => e.canvas = true); // TODO
 
 			callback(null, true, events);
 		});

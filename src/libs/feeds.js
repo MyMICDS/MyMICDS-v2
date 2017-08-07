@@ -3,6 +3,7 @@
  * @module feeds
  */
 
+const _      = require('underscore');
 const canvas = require(__dirname + '/canvas.js');
 const portal = require(__dirname + '/portal.js');
 const users  = require(__dirname + '/users.js');
@@ -80,19 +81,20 @@ function updateCanvasCache(db, user, callback) {
  * @callback addPortalQueueCallback
  *
  * @param {Object} err - Null if success, error object if failure
+ * @param {Array} events - Array of Portal events if success, null if failure
  */
 
 function addPortalQueue(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
+		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
-			callback(err);
+			callback(err, null);
 			return;
 		}
 		if(!isUser) {
@@ -105,20 +107,24 @@ function addPortalQueue(db, user, callback) {
 
 		portal.getFromCal(db, user, (err, hasURL, events) => {
 			if(err) {
+				callback(err, null);
+				return;
+			}
+			if(_.isEmpty(events)) {
 				userdata.update({ user }, { $set: { inPortalQueue: true } }, err => {
 					if(err) {
-						callback(new Error('There was an error adding the user to the queue!'));
+						callback(new Error('There was an error adding the user to the queue!'), null);
 						return;
 					}
 
-					callback(null); // TODO: figure out how to differentiate between an actual error and just an empty calendar
+					callback(null, events);
 				});
 				return;
 			}
 
 			portaldata.deleteMany({ user: userDoc._id }, err => {
 				if(err) {
-					callback(new Error('There was an error removing the old events from the database!'));
+					callback(new Error('There was an error removing the old events from the database!'), null);
 					return;
 				}
 
@@ -126,17 +132,17 @@ function addPortalQueue(db, user, callback) {
 
 				portaldata.insertMany(events, err => {
 					if(err) {
-						callback(new Error('There was an error inserting events into the database!'));
+						callback(new Error('There was an error inserting events into the database!'), null);
 						return;
 					}
 
 					userdata.update({ user }, { $set: { inPortalQueue: false } }, err => {
 						if(err) {
-							callback(new Error('There was an error removing the user from the queue!'));
+							callback(new Error('There was an error removing the user from the queue!'), null);
 							return;
 						}
 
-						callback(null);
+						callback(null, events);
 					});
 				});
 			});
@@ -167,6 +173,8 @@ function processPortalQueue(db, callback) {
 
 	const userdata = db.collection('users');
 
+	console.log('processing');
+
 	userdata.find({ inPortalQueue: true }).toArray((err, queue) => {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'));
@@ -179,7 +187,7 @@ function processPortalQueue(db, callback) {
 				return;
 			}
 
-			addPortalQueue(db, queue[i]._id, err => {
+			addPortalQueue(db, queue[i].user, err => {
 				if(err) {
 					callback(err);
 					return;

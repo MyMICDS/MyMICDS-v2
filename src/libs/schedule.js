@@ -8,6 +8,7 @@ const _ = require('underscore');
 const aliases = require(__dirname + '/aliases.js');
 const asyncLib = require('async');
 const classes = require(__dirname + '/classes.js');
+const feeds = require(__dirname + '/feeds.js');
 const moment = require('moment');
 const users = require(__dirname + '/users.js');
 const prisma = require('prisma');
@@ -149,7 +150,7 @@ const genericBlocks = {
  * @param {Object} schedule.allDay - Array containing all-day events or events spanning multiple days. Empty array if nothing is going on that day.
  */
 
-function getSchedule(db, user, date, callback) {
+function getSchedule(db, user, date, callback, portalBroke = false) {
 	if(typeof callback !== 'function') return;
 	if(typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null, null);
@@ -256,10 +257,10 @@ function getSchedule(db, user, date, callback) {
 					schedule.classes = defaultClasses;
 				}
 
-				callback(null, false, schedule);
+				callback(null, false,   schedule);
 			});
 
-		} else if(typeof userDoc['portalURL'] !== 'string') {
+		} else if(portalBroke || typeof userDoc['portalURL'] !== 'string') {
 			// If user is logged in, but hasn't configured their Portal URL
 			// We would know their grade, and therefore their generic block schedule, as well as any classes they configured
 			asyncLib.parallel({
@@ -327,11 +328,23 @@ function getSchedule(db, user, date, callback) {
 			asyncLib.parallel({
 				// Get Portal calendar feed
 				portal: asyncCallback => {
-					portal.getFromCal(db, user, (err, hasURL, cal) => {
+					portal.getFromCache(db, user, (err, hasURL, cal) => {
 						if(err) {
 							asyncCallback(err, null);
 						} else {
-							asyncCallback(null, { hasURL, cal });
+							if(_.isEmpty(cal)) {
+								feeds.addPortalQueue(db, user, (err, events) => {
+									if(_.isEmpty(events)) {
+										// If it still returns empty, then Portal isn't working at the moment and we can fall back on not having a URL.
+										getSchedule(db, user, date, callback, true);
+										return;
+									} else {
+										asyncCallback(null, { hasURL, cal: events });
+									}
+								});
+							} else {
+								asyncCallback(null, { hasURL, cal });
+							}
 						}
 					});
 				},
