@@ -21,7 +21,7 @@ const wordArray = [
 	'collab',
 	'period',
 	'dismissal'
-]
+];
 
 let pdfParser = new PDFParser();
 
@@ -57,11 +57,11 @@ const query = 'label:us-daily-bulletin';
  function getPDFJSON(filename, callback) {		 
  	let path = bulletinPDFDir + '/' + filename + '.pdf'
 		 
-	pdfParser.on("pdfParser_dataError", err => {
-		callback("Error with getting the file");
+	pdfParser.once("pdfParser_dataError", err => {
+		callback("Error with getting the file", null, null, null);
 	});
 	
-	pdfParser.on("pdfParser_dataReady", success => {
+	pdfParser.once("pdfParser_dataReady", success => {
 		let parsed = JSON.parse(JSON.stringify(success));
 		
 		let validWords = [];
@@ -89,23 +89,9 @@ const query = 'label:us-daily-bulletin';
 			index++;
 		}
 		
-		try {
-			let index = 0;
-			for (var key in parsed.formImage.Pages[0].Texts) {
-				if (parsed.formImage.Pages[0].Texts.hasOwnProperty(key)) {
-					// valid JSON key
-					if (parsed.formImage.Pages[0].Texts[index].R[1].T.toString().includes('Birthday')) {
-						actual.birthday.concat(parsed.formImage.Pages[0].Texts[index].R[0].T) + " ";
-						break;
-					}
-				}
-				
-				index++;
-			}	
-		}
-		catch (Exception) {
-			
-		}
+		/*if (parsed.formImage.Pages[0].Texts[index].R[1].T.toString().includes('Birthday')) {
+			actual.birthday.concat(parsed.formImage.Pages[0].Texts[index].R[0].T) + " ";
+		}*/
 		
 		// deconde the URL stuff
 		for (let real = 0; real < validWords.length; real++) {

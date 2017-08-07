@@ -11,7 +11,7 @@ module.exports = (app, db, socketIO) => {
 	
 	app.get('/daily-bulletin/json', (req, res) => {
 		
-		dailyBulletin.getPDFJSON(req.query.date, (err, reals, content, info) => {
+		dailyBulletin.getPDFJSON(req.query.date, function (err, reals, content, info) {
 			if (!err) {
 				if (req.query.raw == "true") {
 					res.json({
