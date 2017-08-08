@@ -147,7 +147,7 @@ const query = 'label:us-daily-bulletin';
 		let birthdayRaw = [];
 		let foundBirthdayPos = false;
 		validWords.forEach((word) => {
-			if (word.search(/Birthday/) > -1 ) {
+			if (word.search(/Birthday/) > -1 || word.search(/birthday/) > -1) {
 				birthdayRaw.push(word);
 				foundBirthdayPos = true;
 			}
