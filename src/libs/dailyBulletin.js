@@ -164,9 +164,11 @@ const query = 'label:us-daily-bulletin';
 		const conjunctions = [
 			"and",
 			"but",
-			"or",
-			"to",
-			","
+			",",
+			"Sunday",
+			"Saturday",
+			"Friday",
+			"Monday"
 		];
 		
 		conjunctions.forEach((fanboy) => {
@@ -181,6 +183,12 @@ const query = 'label:us-daily-bulletin';
 		actual.birthday = actual.birthday.split("Birthday").join('');
 		actual.birthday = actual.birthday.split("Happy").join('');
 		actual.birthday = actual.birthday.split('  ');
+		
+		for (var s = 0; s < actual.birthday.length; s++) {
+			if (actual.birthday[s].search(/\bto/) > -1) {
+				actual.birthday[s] = actual.birthday[s].substring(3, actual.birthday[s].length);
+			}
+		}
 		
 		var birthdayFormat = [];
 		
@@ -203,7 +211,6 @@ const query = 'label:us-daily-bulletin';
 		actual.birthday = birthdayFormat;
 		
 		/* postprocess the schedule */
-		console.log(actual.schedule);
 		actual.schedule = actual.schedule.split('|');
 		
 		var scheduleFormat = [];
@@ -228,7 +235,7 @@ const query = 'label:us-daily-bulletin';
 		actual.schedule = scheduleFormat;
 		
 		// validate the data
-		if (actual.announcement.length <= 1) {
+		if (actual.announcement.length <= 13) {
 			actual.announcement = null;
 		}
 		//callback(null, validWords, parsed, actual);
