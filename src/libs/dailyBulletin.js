@@ -92,6 +92,12 @@ const query = 'label:us-daily-bulletin';
 			validWords[real] = decodeURIComponent(validWords[real]);
 		}
 		
+		// test for second page, if there is, it is unreliable
+		if (parsed.formImage.Pages.length >= 2) {
+			callback("unreliable data", validWords, parsed, null);
+			return;
+		}
+		
 		index = 0;
 		validWords.forEach((word) => {
 			if (word.toString().search(/DISMISSAL/) > -1 || word.toString().search(/TRIP/) > -1) {
@@ -101,7 +107,7 @@ const query = 'label:us-daily-bulletin';
 				actual.formalDress = true;
 			}
 			else if (word.toString().search(/SCHEDULE/) > -1) {
-				validWords[index] += ' start';
+				validWords[index + 1] += ' start';
 			}
 			else if (word.toString().search(/3:15/) > -1 || word.toString().search(/11:30/) > -1) {
 				validWords[index] += ' stop';
@@ -151,19 +157,15 @@ const query = 'label:us-daily-bulletin';
 		});
 		actual.birthday = birthdayRaw.join('');
 
-		// TODO build the dismissals
+		// TODO build the dismissals (setting null for now)
+		actual.dismissal = null;
 		
-		// validate data
-		let threshold = 10; // amounts of false characters before unreliable data
-		let invalidChar = 0;
-		validWords.forEach((word) => {
-			if (word.search(/\//) > -1) {
-				invalidChar++;
-			}
-		});
-		
+		// validate the data
+		if (actual.announcement.length <= 1) {
+			actual.announcement = null;
+		}
 		//callback(null, validWords, parsed, actual);
-		if (invalidChar >= threshold - 1) {
+		if (actual.schedule == null || actual.schedule == '\\' || actual.schedule == '') {
 			callback("unreliable data", validWords, parsed, null);
 		}
 		else {
