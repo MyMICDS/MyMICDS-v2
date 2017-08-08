@@ -36,6 +36,7 @@ module.exports = (app, db, socketIO) => {
 			else {
 				res.json({
 					error : err,
+					actualcontent : reals,
 					raw : content
 				});
 			}

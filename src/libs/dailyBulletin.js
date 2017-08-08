@@ -23,9 +23,6 @@ const wordArray = [
 	'dismissal'
 ];
 
-let pdfParser = new PDFParser();
-
-
 const googleServiceAccount = require(__dirname + '/googleServiceAccount.js');
 const googleBatch          = require('google-batch');
 const google               = googleBatch.require('googleapis');
@@ -54,7 +51,8 @@ const query = 'label:us-daily-bulletin';
  * @param {Object} actual - JSON Object with final parsed content
  */
 
- function getPDFJSON(filename, callback) {		 
+ function getPDFJSON(filename, callback) {
+	let pdfParser = new PDFParser();
  	let path = bulletinPDFDir + '/' + filename + '.pdf'
 		 
 	pdfParser.once("pdfParser_dataError", err => {
@@ -89,10 +87,6 @@ const query = 'label:us-daily-bulletin';
 			index++;
 		}
 		
-		/*if (parsed.formImage.Pages[0].Texts[index].R[1].T.toString().includes('Birthday')) {
-			actual.birthday.concat(parsed.formImage.Pages[0].Texts[index].R[0].T) + " ";
-		}*/
-		
 		// deconde the URL stuff
 		for (let real = 0; real < validWords.length; real++) {
 			validWords[real] = decodeURIComponent(validWords[real]);
@@ -100,10 +94,7 @@ const query = 'label:us-daily-bulletin';
 		
 		index = 0;
 		validWords.forEach((word) => {
-			if (word.toString().search(/Birthday/) > -1) {
-				actual.birthday = word;
-			}
-			else if (word.toString().search(/DISMISSAL/) > -1 || word.toString().search(/TRIP/) > -1) {
+			if (word.toString().search(/DISMISSAL/) > -1 || word.toString().search(/TRIP/) > -1) {
 				actual.dismissal = validWords[index + 4];
 			}
 			else if (word.toString().search(/FORMAL/) > -1) {
@@ -148,8 +139,36 @@ const query = 'label:us-daily-bulletin';
 		
 		// build birthdays
 		let birthdayRaw = [];
+		let foundBirthdayPos = false;
+		validWords.forEach((word) => {
+			if (word.search(/Birthday/) > -1 ) {
+				birthdayRaw.push(word);
+				foundBirthdayPos = true;
+			}
+			else if (foundBirthdayPos) {
+				birthdayRaw.push(word);
+			}
+		});
+		actual.birthday = birthdayRaw.join('');
+
+		// TODO build the dismissals
 		
-		callback(null, validWords, parsed, actual);
+		// validate data
+		let threshold = 10; // amounts of false characters before unreliable data
+		let invalidChar = 0;
+		validWords.forEach((word) => {
+			if (word.search(/\//) > -1) {
+				invalidChar++;
+			}
+		});
+		
+		//callback(null, validWords, parsed, actual);
+		if (invalidChar >= threshold - 1) {
+			callback("unreliable data", validWords, parsed, null);
+		}
+		else {
+			callback(null, validWords, parsed, actual);
+		}
 	});
 	
 	pdfParser.loadPDF(path);
