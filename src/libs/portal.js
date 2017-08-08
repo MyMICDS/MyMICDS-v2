@@ -78,18 +78,9 @@ function verifyURL(portalURL, callback) {
 			return;
 		}
 
-		const data = ical.parseICS(body);
-
-		// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-		// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-		if(_.isEmpty(data)) {
-			callback(null, 'Invalid URL!', null);
-			return;
-		}
-
 		// Look through every 'Day # (US/MS)' andd see how many events there are
 		const dayDates = {};
-		for(const calEvent of Object.values(data)) {
+		for(const calEvent of Object.values(ical.parseICS(body))) {
 			// If event doesn't have a summary, skip
 			if(typeof calEvent.summary !== 'string') continue;
 
