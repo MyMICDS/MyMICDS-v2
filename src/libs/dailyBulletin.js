@@ -72,19 +72,22 @@ const query = 'label:us-daily-bulletin';
 			"schedule" : null
 		};
 		
-		let index = 0;
-		for (var key in parsed.formImage.Pages[0].Texts) {
-			if (parsed.formImage.Pages[0].Texts.hasOwnProperty(key)) {
-				// valid JSON key
-				for (var word in wordArray) {
-					if (parsed.formImage.Pages[0].Texts[index].R[0].T.toString().includes(word)) {
-						validWords.push(parsed.formImage.Pages[0].Texts[index].R[0].T);
-						break;
+		/* preprocessing */
+		for (var page = 0; page < parsed.formImage.Pages.length; page++) {
+			var index = 0;
+			for (var key in parsed.formImage.Pages[page].Texts) {
+				if (parsed.formImage.Pages[page].Texts.hasOwnProperty(key)) {
+					// valid JSON key
+					for (var word in wordArray) {
+						if (parsed.formImage.Pages[page].Texts[index].R[0].T.toString().includes(word)) {
+							validWords.push(parsed.formImage.Pages[page].Texts[index].R[0].T);
+							break;
+						}
 					}
 				}
+				
+				index++;
 			}
-			
-			index++;
 		}
 		
 		// deconde the URL stuff
@@ -92,12 +95,7 @@ const query = 'label:us-daily-bulletin';
 			validWords[real] = decodeURIComponent(validWords[real]);
 		}
 		
-		// test for second page, if there is, it is unreliable
-		if (parsed.formImage.Pages.length >= 2) {
-			callback("unreliable data", validWords, parsed, null);
-			return;
-		}
-		
+		/* processing */
 		index = 0;
 		validWords.forEach((word) => {
 			if (word.toString().search(/DISMISSAL/) > -1 || word.toString().search(/TRIP/) > -1) {
@@ -107,14 +105,16 @@ const query = 'label:us-daily-bulletin';
 				actual.formalDress = true;
 			}
 			else if (word.toString().search(/SCHEDULE/) > -1) {
-				validWords[index + 1] += ' start';
+				validWords[index] += ' start';
 			}
 			else if (word.toString().search(/3:15/) > -1 || word.toString().search(/11:30/) > -1) {
-				validWords[index] += ' stop';
+				validWords[index + 1] += ' stop';
 			}
 			
 			index++;
 		});
+		
+		/* postprocessing */
 		
 		// parse the schedule		
 		let scheduleRaw = [];
@@ -139,7 +139,7 @@ const query = 'label:us-daily-bulletin';
 			}
 		}
 		
-		actual.schedule = scheduleRaw.join('\n');
+		actual.schedule = scheduleRaw.join('|');
 		
 		actual.announcement = validWords[8];
 		
@@ -159,6 +159,73 @@ const query = 'label:us-daily-bulletin';
 
 		// TODO build the dismissals (setting null for now)
 		actual.dismissal = null;
+		
+		// format the birhtdays
+		const conjunctions = [
+			"and",
+			"but",
+			"or",
+			"to",
+			","
+		];
+		
+		conjunctions.forEach((fanboy) => {
+			if (fanboy == ",") {
+				actual.birthday = actual.birthday.split(fanboy).join(' ');
+			}
+			else {
+				actual.birthday = actual.birthday.split(fanboy).join('');
+			}
+		});
+		
+		actual.birthday = actual.birthday.split("Birthday").join('');
+		actual.birthday = actual.birthday.split("Happy").join('');
+		actual.birthday = actual.birthday.split('  ');
+		
+		var birthdayFormat = [];
+		
+		for (var space = 0; space < actual.birthday.length; space++) {
+			if (actual.birthday[space].length >= 1) {
+				birthdayFormat.push(actual.birthday[space]);
+			}
+		}
+		
+		for (var char = 0; char < birthdayFormat.length; char++) {
+			if (birthdayFormat[char].charAt(' ')) {
+				var split = birthdayFormat[char].split('');
+				if (split[0].includes(' ')) {
+					split[0] = '';
+				}
+				birthdayFormat[char] = split.join('');
+			}
+		}
+		
+		actual.birthday = birthdayFormat;
+		
+		/* postprocess the schedule */
+		console.log(actual.schedule);
+		actual.schedule = actual.schedule.split('|');
+		
+		var scheduleFormat = [];
+		
+		for (var i = 1; i < actual.schedule.length; i++) {
+			if (isNaN(actual.schedule[i].charAt(0)) || actual.schedule[i].search(/Assembly/) > -1) {
+				var template = {
+					"block" : null,
+					"start" : null,
+					"end" : null
+				}
+				
+				template.block = actual.schedule[i];
+				var time = actual.schedule[i - 1].split(' – ');
+				template.start = time[0];
+				template.end = time[1];
+								
+				scheduleFormat.push(template);
+			}
+		}
+		
+		actual.schedule = scheduleFormat;
 		
 		// validate the data
 		if (actual.announcement.length <= 1) {
