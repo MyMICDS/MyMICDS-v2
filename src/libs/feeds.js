@@ -173,8 +173,6 @@ function processPortalQueue(db, callback) {
 
 	const userdata = db.collection('users');
 
-	console.log('processing');
-
 	userdata.find({ inPortalQueue: true }).toArray((err, queue) => {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'));

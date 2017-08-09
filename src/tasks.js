@@ -112,7 +112,6 @@ if(config.production) {
 					console.log(`[${new Date()}] Successfully processed Portal queue!`);
 				}
 			});
-
 		}, later.parse.text('every 15 min'));
 	});
 } else {

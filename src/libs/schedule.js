@@ -367,10 +367,7 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 				};
 
 				// Go through all the events in the Portal calendar
-				for(const index of Object.keys(results.portal.cal)) {
-					const calEvent = results.portal.cal[index];
-					if(typeof calEvent.summary !== 'string') continue;
-
+				for(const calEvent of Object.values(results.portal.cal)) {
 					const start = moment(calEvent['start']);
 					const end = moment(calEvent['end']);
 

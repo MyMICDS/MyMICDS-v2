@@ -103,10 +103,10 @@ function verifyURL(portalURL, callback) {
 			}
 		}
 
-		if(_.isEmpty(dayDates)) {
-			callback(null, 'The calendar does not contain the information we need! Make sure you\'re copying your personal calendar!', null);
-			return;
-		}
+		// if(_.isEmpty(dayDates)) {
+		// 	callback(null, 'The calendar does not contain the information we need! Make sure you\'re copying your personal calendar!', null);
+		// 	return;
+		// }
 
 		callback(null, true, validURL);
 
@@ -285,7 +285,9 @@ function getFromCal(db, user, callback) {
 				return;
 			}
 
-			callback(null, true, ical.parseICS(body));
+			const events = ical.parseICS(body);
+
+			callback(null, true, Object.values(events).filter(e => typeof e.summary === 'string'));
 		});
 	});
 }
@@ -493,8 +495,6 @@ function parsePortalClasses(events, callback) {
 
 	// Go through each event and add to classes object with a count of how many times they occur
 	for(const calEvent of events) {
-		if(typeof calEvent.summary !== 'string') continue;
-
 		const start = moment(calEvent['start']);
 		const end = moment(calEvent['end']);
 
