@@ -138,24 +138,24 @@ function setURL(db, user, url, callback) {
 }
 
 /**
- * Retrieves a user's events on Canvas
- * @function getEvents
+ * Retrieves a user's events on Canvas from their URL
+ * @function getUserCal
  *
  * @param {Object} db - Database connection
  * @param {string} user - Username to get schedule
- * @param {getEventsCallback} callback - Callback
+ * @param {getUserCalCallback} callback - Callback
  */
 
 /**
  * Returns a user's schedule for that day
- * @callback getEventsCallback
+ * @callback getUserCalCallback
  *
  * @param {Object} err - Null if success, error object if failure.
  * @param {Boolean} hasURL - Whether user has set a valid portal URL. Null if failure.
  * @param {Object} events - Array of all the events in the month. Null if failure.
  */
 
-function getEvents(db, user, callback) {
+function getUserCal(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
@@ -189,13 +189,6 @@ function getEvents(db, user, callback) {
 			}
 
 			const data = ical.parseICS(body);
-
-			// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-			// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-			if(_.isEmpty(data)) {
-				callback(new Error('Invalid URL!'), null, null);
-				return;
-			}
 
 			// Get which events are checked
 			checkedEvents.list(db, user, (err, checkedEventsList) => {
@@ -276,7 +269,6 @@ function getEvents(db, user, callback) {
 						// class will be null if error in getting class name.
 						const insertEvent = {
 							_id: canvasEvent.uid,
-							canvas: true,
 							user: userDoc.user,
 							class: canvasClass,
 							title: parsedEvent.assignment,
@@ -411,58 +403,90 @@ function getClasses(db, user, callback) {
 		return;
 	}
 
-	users.get(db, user, (err, isUser, userDoc) => {
+	getFromCache(db, user, (err, hasURL, events) => {
 		if(err) {
 			callback(err, null, null);
+			return;
+		}
+		if(!hasURL) {
+			callback(null, false, null);
+			return;
+		}
+
+		const classes = [];
+
+		for(const calEvent of events) {
+			const parsedEvent = parseCanvasTitle(calEvent.summary);
+
+			// If not already in classes array, push to array
+			if(!_.contains(classes, parsedEvent.class.raw)) {
+				classes.push(parsedEvent.class.raw);
+			}
+		}
+
+		callback(null, true, classes);
+	});
+}
+
+/**
+ * Get Canvas events from the cache
+ * @param {Object} db - Database object
+ * @param {string} user - Username
+ * @param {getFromCacheCallback} callback - Callback
+ */
+
+/**
+ * Returns array containing Canvas events
+ * @callback getFromCacheCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Boolean} hasURL - Whether or not user has a Canvas URL set. Null if error.
+ * @param {Array} events - Array of events if success, null if failure.
+ */
+
+function getFromCache(db, user, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null, null);
+		return;
+	}
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid username!'), null, null);
+		return;
+	}
+
+	users.get(db, user, (err, isUser, userDoc) => {
+		if(err) {
+			callback(err, null, null, null);
 			return;
 		}
 		if(!isUser) {
 			callback(new Error('User doesn\'t exist!'), null, null);
 			return;
 		}
-
 		if(typeof userDoc['canvasURL'] !== 'string') {
 			callback(null, false, null);
 			return;
 		}
 
-		request(userDoc['canvasURL'], (err, response, body) => {
+		const canvasdata = db.collection('canvasFeeds');
+
+		canvasdata.find({ user: userDoc._id }).toArray((err, events) => {
 			if(err) {
-				callback(new Error('There was a problem fetching canvas data from the URL!'), null, null);
-				return;
-			}
-			if(response.statusCode !== 200) {
-				callback(new Error('Invalid URL!'), null, null);
+				callback(new Error('There was an error retrieving Canvas events!'), null, null);
 				return;
 			}
 
-			const data = ical.parseICS(body);
+			events.forEach(e => e.canvas = true); // TODO
 
-			// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-			// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-			if(_.isEmpty(data)) {
-				callback(new Error('Invalid URL!'), null, null);
-				return;
-			}
-
-			const classes = [];
-
-			for(const calEvent of Object.values(data)) {
-				const parsedEvent = parseCanvasTitle(calEvent.summary);
-
-				// If not already in classes array, push to array
-				if(!_.contains(classes, parsedEvent.class.raw)) {
-					classes.push(parsedEvent.class.raw);
-				}
-			}
-
-			callback(null, true, classes);
-
+			callback(null, true, events);
 		});
 	});
 }
 
-module.exports.verifyURL  = verifyURL;
-module.exports.setURL     = setURL;
-module.exports.getEvents  = getEvents;
-module.exports.getClasses = getClasses;
+module.exports.verifyURL    = verifyURL;
+module.exports.setURL       = setURL;
+module.exports.getFromCache = getFromCache;
+module.exports.getUserCal   = getUserCal;
+module.exports.getClasses   = getClasses;

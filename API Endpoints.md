@@ -32,6 +32,9 @@ Endpoints or 'routes' and different URL's that you can send information to. This
 * [Dates API](#dates-api)
   * [`/dates/school-ends`](#datesschool-ends)
   * [`/dates/breaks`](#datesbreaks)
+* [Feeds API](#feeds-api)
+  * [`/feeds/update-canvas-cache`](#feedsupdate-canvas-cache)
+  * [`/feeds/add-portal-queue`](#feedsadd-portal-queue)
 * [Login API](#login-api)
   * [`/auth/login`](#authlogin)
   * [`/auth/logout`](#authlogout)
@@ -269,6 +272,24 @@ Returns an object containing days we have off of school. Includes weekends, long
 - `error` - Null if success, string containing error if failure.
 - `breaks` - An object containing a `weekends`, `longWeekends`, `vacations`, and `other` which are arrays containing a `start` and an `end` date.
 
+
+
+## Feeds API
+The part of the API that relates to the caching of Portal and Canvas feeds. Can be found in `src/routes/feedsAPI.js`. The associates feeds modules can be found under `src/libs/feeds.js`.
+
+
+### `/feeds/add-portal-queue`
+Adds a user to the Portal cache refresh queue.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+
+
+### `/feeds/update-canvas-cache`
+Updates a user's Canvas cache.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
 
 
 ## Login API
