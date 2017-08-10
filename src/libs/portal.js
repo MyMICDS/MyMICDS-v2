@@ -7,6 +7,7 @@
 const config = require(__dirname + '/config.js');
 
 const _ = require('underscore');
+const feeds = require(__dirname + '/feeds.js');
 const ical = require('ical');
 const moment = require('moment');
 const querystring = require('querystring');
@@ -169,8 +170,14 @@ function setURL(db, user, url, callback) {
 					return;
 				}
 
-				callback(null, true, validURL);
+				feeds.addPortalQueue(db, user, err => {
+					if(err) {
+						callback(err, null, null);
+						return;
+					}
 
+					callback(null, true, validURL);
+				});
 			});
 		});
 	});

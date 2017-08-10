@@ -7,6 +7,7 @@
 const _ = require('underscore');
 const aliases = require(__dirname + '/aliases.js');
 const checkedEvents = require(__dirname + '/checkedEvents.js');
+const feeds = require(__dirname + '/feeds.js');
 const htmlParser = require(__dirname + '/htmlParser.js');
 const ical = require('ical');
 const prisma = require('prisma');
@@ -130,8 +131,14 @@ function setURL(db, user, url, callback) {
 					return;
 				}
 
-				callback(null, true, validURL);
+				feeds.updateCanvasCache(db, user, err => {
+					if(err) {
+						callback(err, null, null);
+						return;
+					}
 
+					callback(null, true, validURL);
+				});
 			});
 		});
 	});
