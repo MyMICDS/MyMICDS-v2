@@ -82,7 +82,7 @@ function getRequest(db, options, callback) {
 	}
 
 	async.parallel({
-		from: (err, userCB) => {
+		from: (userCB) => {
 			if (options.from) {
 				users.get(db, options.from, (err, isUser, userDoc) => {
 					if(err) {
@@ -99,7 +99,7 @@ function getRequest(db, options, callback) {
 			}
 			userCB(null, null);
 		},
-		to: (err, userCB) => {
+		to: (userCB) => {
 			if (options.to) {
 				users.get(db, options.to, (err, isUser, userDoc) => {
 					if(err) {

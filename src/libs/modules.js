@@ -8,9 +8,10 @@
 const _ = require('underscore');
 const { ObjectID } = require('mongodb');
 const users = require(__dirname + '/users.js');
+const moment = require('moment');
 
 // All allowed modules
-const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather'];
+const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather', 'countdown'];
 // Module options. Can be either `boolean`, `number`, or `string`
 const modulesConfig = {
 	progress: {
@@ -31,6 +32,24 @@ const modulesConfig = {
 		decimalPrecision: {
 			type: 'number',
 			default: 2
+		}
+	},
+	countdown: {
+		countdownTo: {
+			type: 'Date',
+			default: moment().year(2018).month('may').date(26).hour(15).minute(15).toDate()
+		},
+		eventLabel: {
+			type: 'string',
+			default: 'Summer Break',
+		},
+		schoolDays: {
+			type: 'boolean',
+			default: true
+		},
+		preset: {
+			type: 'string',
+			default: 'Summer Break'
 		}
 	}
 };
@@ -198,6 +217,10 @@ function upsertModules(db, user, modules, callback) {
 
 		// Check that options are the right types. If not, use default value.
 		for(const optionKey of optionKeys) {
+			// Convert iso strings to date objects. 
+			if (optionsConfig[optionKey].type === 'Date') {
+				mod.options[optionKey] = moment(mod.options[optionKey]).toDate();
+			}
 			if (typeof mod.options[optionKey] !== optionsConfig[optionKey].type) {
 				mod.options[optionKey] = optionsConfig[optionKey].default;
 
