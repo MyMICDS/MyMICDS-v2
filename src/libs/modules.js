@@ -15,7 +15,7 @@ const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday'
 // Module options. Can be either `boolean`, `number`, or `string`
 const modulesConfig = {
 	progress: {
-		date: {
+		showDate: {
 			type: 'boolean',
 			default: true
 		}
@@ -151,6 +151,30 @@ function getModules(db, user, callback) {
 			if(err) {
 				callback(err, null);
 				return;
+			}
+
+			if (modules) {
+				for (const mod of modules) {
+					const defaultOptions = getDefaultOptions(mod.type) || {};
+					const defaultKeys = Object.keys(defaultOptions);
+
+					if (_.isEmpty(defaultOptions)) {
+						delete mod.options;
+						continue;
+					}
+
+					mod.options = Object.assign({}, defaultOptions,  mod.options);
+
+					for (const optionKey of Object.keys(mod.options)) {
+						if (!defaultKeys.includes(optionKey)) {
+							delete mod.options[optionKey];
+						}
+					}
+
+					if (_.isEmpty(mod.options)) {
+						delete mod.options;
+					}
+				}
 			}
 
 			// Return default modules if none found, else return found documents
