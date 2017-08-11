@@ -3,19 +3,30 @@
  * @module notifications
  */
 
-// const mail  = require(__dirname + '/mail.js');
-// const users = require(__dirname + '/users.js');
+const mail  = require(__dirname + '/mail.js');
+const users = require(__dirname + '/users.js');
 
+const typesMailInfo = {
+	canvasNightBefore: {
+		subject: '',
+		path: ''
+	},
+	formalDress: {
+		subject: '',
+		path: ''
+	},
+	test: {
+		subject: '{{testData}} this is a test message',
+		path: 'test.html'
+	}
+};
 
 /**
  * Send a notification to a user
  * @param {Object} db - Database object
  * @param {String|Array} users - Either a single user or a list of users to send the notification to
  * @param {String} type - String containing the type of notification to be sent
- * @param {Object} message - JSON containing details of message
- * @param {string} message.subject - Subject of email
- * @param {string} message.file - Path to HTML file
- * @param {Object} message.data - Custom data to interpolate into the email
+ * @param {Object} messageData - Custom data to interpolate into the email
  * @param {notifyCallback} callback - Callback
  */
 
@@ -26,33 +37,79 @@
  * @param {Object} err - Null if success, error object if failure
  */
 
-function notify(db, users, type, message, callback) {
-	// Stupid type validation
-	// This is why I wish we had TypeScript
+function notify(db, notifyUsers, type, messageData, callback) {
 	if(typeof callback !== 'function') return;
-	if(typeof users !== 'string' && typeof users !== 'object') {
-		callback(new Error('Invalid user(s)!'));
-		return;
+	if(typeof notifyUsers !== 'object') {
+		if(typeof notifyUsers === 'string') {
+			notifyUsers = [notifyUsers];
+		} else {
+			callback(new Error('Invalid user(s)!'));
+			return;
+		}
 	}
 	if(typeof type !== 'string') {
 		callback(new Error('Invalid type!'));
 		return;
 	}
-	if(typeof message !== 'object') {
-		callback(new Error('Invalid message object!'));
-		return;
-	}
-	if(typeof message.subject !== 'string') {
-		callback(new Error('Invalid message subject!'));
-		return;
-	}
-	if(typeof message.file !== 'string') {
-		callback(new Error('Invalid message file path!'));
-		return;
-	}
-	if(typeof message.data !== 'object') message.data = {};
+	if(typeof messageData !== 'object') messageData = {};
 
-	// TODO: finish this
+	function loopUsers(i) {
+		if(i >= notifyUsers.length) {
+			callback(null);
+			return;
+		}
+
+		const user = notifyUsers[i];
+
+		users.get(db, user, (err, isUser, userDoc) => {
+			if(err) {
+				callback(err);
+				return;
+			}
+			if(!isUser) {
+				callback(new Error('User doesn\'t exist!'));
+				return;
+			}
+
+			const notificationdata = db.collection('notifications');
+			const sent = userDoc.notifications.includes(type);
+
+			notificationdata.insertOne({
+				user: userDoc._id,
+				type,
+				sent,
+				timestamp: new Date()
+			}, (err, { insertedId }) => {
+				if(err) {
+					callback(new Error('There was an error processing the notification!'));
+					return;
+				}
+				if(sent) {
+					messageData.unsubLink = `https://mymicds.net/unsubscribe/${user}/${insertedId}`;
+					const typeInfo = typesMailInfo[type];
+
+					// Replace JSON Key values with custom data in the subject
+					for(const key of Object.keys(messageData)) {
+						typeInfo.subject = typeInfo.subject.replace('{{' + key + '}}', messageData[key]);
+					}
+
+					mail.sendHTML(user + '@micds.org', typeInfo.subject, __dirname + '/../html/messages/' + typeInfo.path, messageData, err => {
+						if(err) {
+							callback(err);
+							return;
+						}
+
+						callback(null);
+					});
+					return;
+				}
+
+				callback(null);
+			});
+		});
+	}
+
+	loopUsers(0);
 }
 
 module.exports.notify = notify;
