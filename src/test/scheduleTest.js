@@ -84,5 +84,5 @@ for(const test of tests) {
 		}
 	}
 
-	console.log('Test ' + i + ' = ', results);
+	console.log('Test = ', results);
 }

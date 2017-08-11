@@ -117,21 +117,21 @@ function notify(db, notifyUsers, type, messageData, callback) {
 
 
 /**
- * Subscribes a user to a notification type
- * @param {Object} db - Database object'formalDress'
+ * Enables a notification type for a user
+ * @param {Object} db - Database object
  * @param {String} user - Username
  * @param {String} type - Notification type
- * @param {subscribeCallback} callback - Callback
+ * @param {enableCallback} callback - Callback
  */
 
 /**
  * Returns an error if any
- * @callback subscribeCallback
+ * @callback enableCallback
  *
  * @param {Object} err - Null if success, error object if failure
  */
 
-function subscribe(db, user, type, callback) {
+function enable(db, user, type, callback) {
 	if(typeof callback !== 'function') return;
 	if(typeof db !== 'object') {
 		callback(new Error('Invalid database object!'));
@@ -165,6 +165,59 @@ function subscribe(db, user, type, callback) {
 		userdata.update({ user }, { $push: { notifications: type } }, err => {
 			if(err) {
 				callback(new Error('There was an error subscribing the user!'));
+				return;
+			}
+
+			callback(null);
+		});
+	});
+}
+
+/**
+ * Disables a certain notification type for a user
+ * @param {Object} db - Database object
+ * @param {String} user - Username
+ * @param {String} type - Type of the notification to unsubscribe from
+ * @param {disableCallback} callback - Callback
+ */
+
+/**
+ * Returns an error if any
+ * @callback disableCallback
+ *
+ * @param {Object} err - Null if success, error object if error
+ */
+
+function disable(db, user, type, callback) {
+	if(typeof callback !== 'function') return;
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database object!'));
+		return;
+	}
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid user!'));
+		return;
+	}
+	if(typeof type !== 'string' || !Object.keys(typesConfig).includes(type)) {
+		callback(new Error('Invalid notification type!'));
+		return;
+	}
+
+	users.get(db, user, (err, isUser) => {
+		if(err) {
+			callback(err);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'));
+			return;
+		}
+
+		const userdata = db.collection('users');
+
+		userdata.update({ user }, { $pull: { notifications: type } }, err => {
+			if(err) {
+				callback(new Error('There was an error disabling the notification!'));
 				return;
 			}
 
@@ -235,6 +288,7 @@ function unsubscribe(db, user, notificationID, callback) {
 	});
 }
 
+module.exports.disable     = disable;
+module.exports.enable      = enable;
 module.exports.notify      = notify;
-module.exports.subscribe   = subscribe;
 module.exports.unsubscribe = unsubscribe;
