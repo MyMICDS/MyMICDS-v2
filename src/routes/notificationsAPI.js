@@ -1,14 +1,25 @@
-const notifications = require(__dirname + '/../libs/notification.js');
+const notifications = require(__dirname + '/../libs/notifications.js');
 
 module.exports = (app, db) => {
 
-	app.post('/notification/get', (req, res) => {
-		notifications.get(db, req.user.user, true, (err, events) => {
+	app.post('/notifications/subscribe', (req, res) => {
+		notifications.subscribe(db, req.user.user, req.body.type, err => {
 			let error = null;
 			if(err) {
 				error = err.message;
 			}
-			res.json({ error, events });
+			res.json({ error });
 		});
 	});
+
+	app.post('/notifications/unsubscribe', (req, res) => {
+		notifications.unsubscribe(db, req.user.user, req.body.id, err => {
+			let error = null;
+			if(err) {
+				error = err.message;
+			}
+			res.json({ error });
+		});
+	});
+
 };
