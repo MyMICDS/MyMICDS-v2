@@ -8,6 +8,7 @@ const config = require(__dirname + '/config.js');
 
 const fs = require('fs');
 const nodemailer = require('nodemailer');
+const utils = require(__dirname + '/utils.js');
 
 /**
  * Sends mail to the desired user
@@ -113,14 +114,9 @@ function sendHTML(users, subject, file, data, callback) {
 			return;
 		}
 
-		// Replace JSON Key values with custom data
-		for(const key of Object.keys(data)) {
-			body = body.replace('{{' + key + '}}', data[key]);
-		}
-
 		const mesesage = {
 			subject,
-			html: body,
+			html: utils.interpolateWithObject(body, data),
 		};
 
 		send(users, mesesage, callback);

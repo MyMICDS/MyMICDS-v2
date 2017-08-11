@@ -22,6 +22,18 @@ function leadingZeros(n) {
 }
 
 /**
+ * Interpolate object values into a string
+ * @param {String} string - String to interpolate
+ * @param {Object} data - Data to use in interpolation (value replaces the {{key}})
+ * @returns {String}
+ */
+
+function interpolateWithObject(string, data) {
+	// F U N C T I O N A L
+	return Object.keys(data).reduce((str, key) => str.replace(`{{${key}}}`, data[key]));
+}
+
+/**
  * Tests whether string is valid filename to prevent users from accessing/deleting files outside a specified directory (Ex. '../../some/other/directory')
  * @function validUsername
  * @returns {Boolean}
@@ -37,4 +49,5 @@ function validFilename(username) {
 }
 
 module.exports.leadingZeros = leadingZeros;
+module.exports.interpolateWithObject = interpolateWithObject;
 module.exports.validFilename = validFilename;

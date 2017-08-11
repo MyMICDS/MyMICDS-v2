@@ -4,20 +4,18 @@
  */
 
 const mail  = require(__dirname + '/mail.js');
+const utils = require(__dirname + '/utils.js');
 const users = require(__dirname + '/users.js');
 
-const typesMailInfo = {
+const typesConfig = {
 	canvasNightBefore: {
 		subject: '',
-		path: ''
+		path: '',
+		data: () => {}
 	},
 	formalDress: {
 		subject: '',
 		path: ''
-	},
-	test: {
-		subject: '{{testData}} this is a test message',
-		path: 'test.html'
 	}
 };
 
@@ -39,13 +37,11 @@ const typesMailInfo = {
 
 function notify(db, notifyUsers, type, messageData, callback) {
 	if(typeof callback !== 'function') return;
-	if(typeof notifyUsers !== 'object') {
-		if(typeof notifyUsers === 'string') {
-			notifyUsers = [notifyUsers];
-		} else {
-			callback(new Error('Invalid user(s)!'));
-			return;
-		}
+	if(typeof notifyUsers === 'string') {
+		notifyUsers = [notifyUsers];
+	} else if(typeof notifyUsers !== 'object') {
+		callback(new Error('Invalid user(s)!'));
+		return;
 	}
 	if(typeof type !== 'string') {
 		callback(new Error('Invalid type!'));
@@ -71,29 +67,30 @@ function notify(db, notifyUsers, type, messageData, callback) {
 				return;
 			}
 
-			const notificationdata = db.collection('notifications');
+			const typeInfo = typesConfig[type];
 			const sent = userDoc.notifications.includes(type);
-
-			notificationdata.insertOne({
+			const newNotification = {
 				user: userDoc._id,
 				type,
 				sent,
 				timestamp: new Date()
-			}, (err, { insertedId }) => {
+			};
+
+			if(typeof typeInfo.data === 'function') {
+				newNotification.data = typeInfo.data(messageData);
+			}
+
+			const notificationdata = db.collection('notifications');
+
+			notificationdata.insertOne(newNotification, (err, { insertedId }) => {
 				if(err) {
 					callback(new Error('There was an error processing the notification!'));
 					return;
 				}
 				if(sent) {
 					messageData.unsubLink = `https://mymicds.net/unsubscribe/${user}/${insertedId}`;
-					const typeInfo = typesMailInfo[type];
 
-					// Replace JSON Key values with custom data in the subject
-					for(const key of Object.keys(messageData)) {
-						typeInfo.subject = typeInfo.subject.replace('{{' + key + '}}', messageData[key]);
-					}
-
-					mail.sendHTML(user + '@micds.org', typeInfo.subject, __dirname + '/../html/messages/' + typeInfo.path, messageData, err => {
+					mail.sendHTML(user + '@micds.org', utils.interpolateWithObject(typeInfo.subject, messageData), __dirname + '/../html/messages/' + typeInfo.path, messageData, err => {
 						if(err) {
 							callback(err);
 							return;
