@@ -18,7 +18,8 @@ const typesConfig = {
 	formalDress: {
 		subject: '',
 		path: ''
-	}
+	},
+	newsletter: {} // `src/scripts/newsletter.js` changes this data
 };
 
 /**
@@ -49,7 +50,7 @@ function notify(db, notifyUsers, type, messageData, callback) {
 		callback(new Error('Invalid user(s)!'));
 		return;
 	}
-	if(typeof type !== 'string') {
+	if(typeof type !== 'string' || !Object.keys(typesConfig).includes(type)) {
 		callback(new Error('Invalid type!'));
 		return;
 	}
