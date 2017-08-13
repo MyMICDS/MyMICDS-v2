@@ -245,7 +245,8 @@ function upsertModules(db, user, modules, callback) {
 			if (optionsConfig[optionKey].type === 'Date') {
 				mod.options[optionKey] = moment(mod.options[optionKey]).toDate();
 			}
-			if (typeof mod.options[optionKey] !== optionsConfig[optionKey].type) {
+			let optionType = typeof mod.options[optionKey] === 'object' ? mod.options[optionKey].constructor.name : typeof mod.options[optionKey];
+			if (optionType !== optionsConfig[optionKey].type) {
 				mod.options[optionKey] = optionsConfig[optionKey].default;
 
 			}
