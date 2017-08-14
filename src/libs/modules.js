@@ -11,29 +11,9 @@ const users = require(__dirname + '/users.js');
 const moment = require('moment');
 
 // All allowed modules
-const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather', 'countdown', 'stickynote'];
+const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather', 'countdown'];
 // Module options. Can be either `boolean`, `number`, or `string`
 const modulesConfig = {
-	progress: {
-		showDate: {
-			type: 'boolean',
-			default: true
-		}
-	},
-	weather: {
-		metric: {
-			type: 'boolean',
-			default: false
-		},
-		location: {
-			type: 'string',
-			default: 'MICDS'
-		},
-		decimalPrecision: {
-			type: 'number',
-			default: 2
-		}
-	},
 	countdown: {
 		countdownFrom: {
 			type: 'Date',
@@ -56,10 +36,18 @@ const modulesConfig = {
 			default: 'Summer Break'
 		}
 	},
-	stickynote: {
-		text: {
-			type: 'string',
-			default: 'New Stickynote'
+	stickynotes: {
+	},
+	progress: {
+		showDate: {
+			type: 'boolean',
+			default: true
+		}
+	},
+	weather: {
+		metric: {
+			type: 'boolean',
+			default: false
 		}
 	}
 };
@@ -87,14 +75,14 @@ const defaultModules = [
 		row: 3,
 		column: 0,
 		width: columnsPerRow / 2,
-		height: 1
+		height: 2
 	},
 	{
 		type: 'weather',
 		row: 3,
 		column: columnsPerRow / 2,
 		width: columnsPerRow / 2,
-		height: 1,
+		height: 2,
 		options: getDefaultOptions('weather')
 	}
 ];
@@ -251,11 +239,11 @@ function upsertModules(db, user, modules, callback) {
 
 		// Check that options are the right types. If not, use default value.
 		for(const optionKey of optionKeys) {
-			// Convert iso strings to date objects. 
+			// Convert iso strings to date objects.
 			if (optionsConfig[optionKey].type === 'Date') {
 				mod.options[optionKey] = moment(mod.options[optionKey]).toDate();
 			}
-			let optionType = typeof mod.options[optionKey] === 'object' ? mod.options[optionKey].constructor.name : typeof mod.options[optionKey];
+			const optionType = typeof mod.options[optionKey] === 'object' ? mod.options[optionKey].constructor.name : typeof mod.options[optionKey];
 			if (optionType !== optionsConfig[optionKey].type) {
 				mod.options[optionKey] = optionsConfig[optionKey].default;
 
