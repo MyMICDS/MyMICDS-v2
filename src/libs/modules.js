@@ -11,29 +11,9 @@ const users = require(__dirname + '/users.js');
 const moment = require('moment');
 
 // All allowed modules
-const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather', 'countdown'];
+const moduleList = ['countdown', 'progress', 'schedule', 'snowday', 'weather'];
 // Module options. Can be either `boolean`, `number`, or `string`
 const modulesConfig = {
-	progress: {
-		showDate: {
-			type: 'boolean',
-			default: true
-		}
-	},
-	weather: {
-		metric: {
-			type: 'boolean',
-			default: false
-		},
-		location: {
-			type: 'string',
-			default: 'MICDS'
-		},
-		decimalPrecision: {
-			type: 'number',
-			default: 2
-		}
-	},
 	countdown: {
 		countdownTo: {
 			type: 'Date',
@@ -50,6 +30,18 @@ const modulesConfig = {
 		preset: {
 			type: 'string',
 			default: 'Summer Break'
+		}
+	},
+	progress: {
+		showDate: {
+			type: 'boolean',
+			default: true
+		}
+	},
+	weather: {
+		metric: {
+			type: 'boolean',
+			default: false
 		}
 	}
 };
@@ -245,7 +237,7 @@ function upsertModules(db, user, modules, callback) {
 			if (optionsConfig[optionKey].type === 'Date') {
 				mod.options[optionKey] = moment(mod.options[optionKey]).toDate();
 			}
-			let optionType = typeof mod.options[optionKey] === 'object' ? mod.options[optionKey].constructor.name : typeof mod.options[optionKey];
+			const optionType = typeof mod.options[optionKey] === 'object' ? mod.options[optionKey].constructor.name : typeof mod.options[optionKey];
 			if (optionType !== optionsConfig[optionKey].type) {
 				mod.options[optionKey] = optionsConfig[optionKey].default;
 
