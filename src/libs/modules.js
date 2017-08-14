@@ -11,7 +11,7 @@ const users = require(__dirname + '/users.js');
 const moment = require('moment');
 
 // All allowed modules
-const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather', 'countdown'];
+const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday', 'stickynotes', 'weather', 'countdown', 'stickynote'];
 // Module options. Can be either `boolean`, `number`, or `string`
 const modulesConfig = {
 	progress: {
@@ -35,6 +35,10 @@ const modulesConfig = {
 		}
 	},
 	countdown: {
+		countdownFrom: {
+			type: 'Date',
+			default: moment().year(2017).month('august').date(16).hour(8).minute(0).toDate()
+		},
 		countdownTo: {
 			type: 'Date',
 			default: moment().year(2018).month('may').date(26).hour(15).minute(15).toDate()
@@ -50,6 +54,12 @@ const modulesConfig = {
 		preset: {
 			type: 'string',
 			default: 'Summer Break'
+		}
+	},
+	stickynote: {
+		text: {
+			type: 'string',
+			default: 'New Stickynote'
 		}
 	}
 };
