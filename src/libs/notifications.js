@@ -75,7 +75,7 @@ function notify(db, notifyUsers, type, messageData, callback) {
 			}
 
 			const typeInfo = typesConfig[type];
-			const sent = userDoc.notifications.includes(type);
+			const sent = !userDoc.disabledNotifications.includes(type);
 			const newNotification = {
 				user: userDoc._id,
 				type,
@@ -156,14 +156,14 @@ function enable(db, user, type, callback) {
 			callback(new Error('User doesn\'t exist!'));
 			return;
 		}
-		if(userDoc.notifications.includes(type)) {
+		if(!userDoc.disabledNotifications.includes(type)) {
 			callback(new Error('The user is already subscribed!'));
 			return;
 		}
 
 		const userdata = db.collection('users');
 
-		userdata.update({ user }, { $push: { notifications: type } }, err => {
+		userdata.update({ user }, { $pull: { disabledNotifications: type } }, err => {
 			if(err) {
 				callback(new Error('There was an error subscribing the user!'));
 				return;
@@ -216,7 +216,7 @@ function disable(db, user, type, callback) {
 
 		const userdata = db.collection('users');
 
-		userdata.update({ user }, { $pull: { notifications: type } }, err => {
+		userdata.update({ user }, { $push: { disabledNotifications: type } }, err => {
 			if(err) {
 				callback(new Error('There was an error disabling the notification!'));
 				return;
@@ -277,7 +277,7 @@ function unsubscribe(db, user, notificationID, callback) {
 
 			const userdata = db.collection('users');
 
-			userdata.update({ user }, { $pull: { notifications: results[0].type } }, err => {
+			userdata.update({ user }, { $push: { disabledNotifications: results[0].type } }, err => {
 				if(err) {
 					callback(new Error('There was an error unsubscribing the user!'));
 					return;

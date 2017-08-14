@@ -30,7 +30,7 @@ function leadingZeros(n) {
 
 function interpolateWithObject(string, data) {
 	// F U N C T I O N A L
-	return Object.keys(data).reduce((str, key) => str.replace(`{{${key}}}`, data[key]));
+	return Object.keys(data).reduce((str, key) => str.replace(`{{${key}}}`, data[key]), string);
 }
 
 /**
