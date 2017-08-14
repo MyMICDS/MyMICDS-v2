@@ -77,14 +77,14 @@ const defaultModules = [
 		row: 3,
 		column: 0,
 		width: columnsPerRow / 2,
-		height: 1
+		height: 2
 	},
 	{
 		type: 'weather',
 		row: 3,
 		column: columnsPerRow / 2,
 		width: columnsPerRow / 2,
-		height: 1,
+		height: 2,
 		options: getDefaultOptions('weather')
 	}
 ];
@@ -241,7 +241,7 @@ function upsertModules(db, user, modules, callback) {
 
 		// Check that options are the right types. If not, use default value.
 		for(const optionKey of optionKeys) {
-			// Convert iso strings to date objects. 
+			// Convert iso strings to date objects.
 			if (optionsConfig[optionKey].type === 'Date') {
 				mod.options[optionKey] = moment(mod.options[optionKey]).toDate();
 			}
