@@ -10,7 +10,9 @@ const moment = require('moment');
 const request = require('request');
 
 const zipcode = 63124;
-const schoolId = 663;
+// PHP back-end was throwing an error sometimes if school id was inputted
+// const schoolId = 663;
+const schoolId = '';
 const snowdays = 0;
 
 /**
