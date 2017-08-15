@@ -15,10 +15,6 @@ const moduleList = ['date', 'lunch', 'progress', 'quotes', 'schedule', 'snowday'
 // Module options. Can be either `boolean`, `number`, or `string`
 const modulesConfig = {
 	countdown: {
-		countdownFrom: {
-			type: 'Date',
-			default: moment().year(2017).month('august').date(16).hour(8).minute(0).toDate()
-		},
 		countdownTo: {
 			type: 'Date',
 			default: moment().year(2018).month('may').date(26).hour(15).minute(15).toDate()
