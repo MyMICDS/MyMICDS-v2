@@ -423,6 +423,9 @@ function getClasses(db, user, callback) {
 		const classes = [];
 
 		for(const calEvent of events) {
+			// If event doesn't have a summary, skip
+			if(typeof calEvent.summary !== 'string') continue;
+
 			const parsedEvent = parseCanvasTitle(calEvent.summary);
 
 			// If not already in classes array, push to array
