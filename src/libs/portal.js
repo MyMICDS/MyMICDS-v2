@@ -292,9 +292,7 @@ function getFromCal(db, user, callback) {
 				return;
 			}
 
-			const events = ical.parseICS(body);
-
-			callback(null, true, Object.values(events).filter(e => typeof e.summary === 'string'));
+			callback(null, true, Object.values(ical.parseICS(body)));
 		});
 	});
 }
@@ -515,7 +513,7 @@ function parsePortalClasses(events, callback) {
 
 		const className = calEvent.summary.trim();
 
-		if(typeof classes[className] !== 'undefined') {
+		if(className.length > 0 && typeof classes[className] !== 'undefined') {
 			classes[className]++;
 		} else {
 			classes[className] = 1;

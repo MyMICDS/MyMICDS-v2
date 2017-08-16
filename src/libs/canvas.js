@@ -195,119 +195,7 @@ function getUserCal(db, user, callback) {
 				return;
 			}
 
-			const data = ical.parseICS(body);
-
-			// Get which events are checked
-			checkedEvents.list(db, user, (err, checkedEventsList) => {
-				if(err) {
-					callback(err, null, null);
-					return;
-				}
-
-				// Loop through all of the events in the calendar feed and push events within month to validEvents
-				const eventKeys = Object.keys(data);
-				const validEvents = [];
-				// Cache class aliases
-				const classAliases = {};
-
-				// Function for getting class to insert according to canvas name
-				function getCanvasClass(parsedEvent, callback) {
-					const name = parsedEvent.class.raw;
-
-					// Check if alias is already cached
-					if(typeof classAliases[name] !== 'undefined') {
-						callback(null, classAliases[name]);
-						return;
-					}
-
-					// Query aliases to see if possible class object exists
-					aliases.getClass(db, user, 'canvas', name, (err, hasAlias, aliasClassObject) => {
-						if(err) {
-							callback(err, null);
-							return;
-						}
-
-						// Backup object if Canvas class doesn't have alias
-						const defaultColor = '#34444F';
-						const canvasClass = {
-							_id: null,
-							canvas: true,
-							user,
-							name: parsedEvent.class.name,
-							teacher: {
-								_id: null,
-								prefix: '',
-								firstName: parsedEvent.class.teacher.firstName,
-								lastName: parsedEvent.class.teacher.lastName
-							},
-							type: 'other',
-							block: 'other',
-							color: defaultColor,
-							textDark: prisma.shouldTextBeDark(defaultColor)
-						};
-
-						if(hasAlias) {
-							classAliases[name] = aliasClassObject;
-						} else {
-							classAliases[name] = canvasClass;
-						}
-
-						callback(null, classAliases[name]);
-					});
-				}
-
-
-				// Function to iterate over classes asynchronously
-				function checkEvent(i) {
-
-					const canvasEvent = data[eventKeys[i]];
-					const parsedEvent = parseCanvasTitle(canvasEvent.summary);
-
-					// Check if alias for class first
-					getCanvasClass(parsedEvent, (err, canvasClass) => {
-						if(err) {
-							callback(err, null, null);
-							return;
-						}
-
-						const start = new Date(canvasEvent.start);
-						const end = new Date(canvasEvent.end);
-
-						// class will be null if error in getting class name.
-						const insertEvent = {
-							_id: canvasEvent.uid,
-							user: userDoc.user,
-							class: canvasClass,
-							title: parsedEvent.assignment,
-							start,
-							end,
-							link: calendarToEvent(canvasEvent.url) || '',
-							checked: _.contains(checkedEventsList, canvasEvent.uid)
-						};
-
-						if(typeof canvasEvent['ALT-DESC'] === 'object') {
-							insertEvent.desc = canvasEvent['ALT-DESC'].val;
-							insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
-						} else {
-							insertEvent.desc = '';
-							insertEvent.descPlaintext = '';
-						}
-
-						validEvents.push(insertEvent);
-
-						if(i < eventKeys.length - 1) {
-							// If there's still more events, call function again
-							checkEvent(++i);
-						} else {
-							// All done! Call callback
-							callback(null, true, validEvents);
-						}
-
-					});
-				}
-				checkEvent(0);
-
-			});
+			callback(null, true, Object.values(ical.parseICS(body)));
 		});
 	});
 }
@@ -401,40 +289,44 @@ function calendarToEvent(calLink) {
 function getClasses(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null, null);
-		return;
-	}
-	if(typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null, null);
-		return;
-	}
-
-	getFromCache(db, user, (err, hasURL, events) => {
+	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
-			callback(err, null, null);
+			callback(err, null, null, null);
 			return;
 		}
-		if(!hasURL) {
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null, null);
+			return;
+		}
+		if(typeof userDoc['canvasURL'] !== 'string') {
 			callback(null, false, null);
 			return;
 		}
 
-		const classes = [];
+		const canvasdata = db.collection('canvasFeeds');
 
-		for(const calEvent of events) {
-			// If event doesn't have a summary, skip
-			if(typeof calEvent.summary !== 'string') continue;
-
-			const parsedEvent = parseCanvasTitle(calEvent.summary);
-
-			// If not already in classes array, push to array
-			if(!_.contains(classes, parsedEvent.class.raw)) {
-				classes.push(parsedEvent.class.raw);
+		canvasdata.find({ user: userDoc._id }).toArray((err, events) => {
+			if(err) {
+				callback(new Error('There was an error retrieving Canvas events!'), null, null);
+				return;
 			}
-		}
 
-		callback(null, true, classes);
+			const classes = [];
+
+			for(const calEvent of events) {
+				// If event doesn't have a summary, skip
+				if(typeof calEvent.summary !== 'string') continue;
+
+				const parsedEvent = parseCanvasTitle(calEvent.summary);
+
+				// If not already in classes array, push to array
+				if(parsedEvent.class.raw.length > 0 && !_.contains(classes, parsedEvent.class.raw)) {
+					classes.push(parsedEvent.class.raw);
+				}
+			}
+
+			callback(null, true, classes);
+		});
 	});
 }
 
@@ -456,15 +348,6 @@ function getClasses(db, user, callback) {
 
 function getFromCache(db, user, callback) {
 	if(typeof callback !== 'function') return;
-
-	if(typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null, null);
-		return;
-	}
-	if(typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null, null);
-		return;
-	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
 		if(err) {
@@ -488,9 +371,111 @@ function getFromCache(db, user, callback) {
 				return;
 			}
 
-			events.forEach(e => e.canvas = true); // TODO
+			// Get which events are checked
+			checkedEvents.list(db, user, (err, checkedEventsList) => {
+				if(err) {
+					callback(err, null, null);
+					return;
+				}
 
-			callback(null, true, events);
+				// Loop through all of the events in the calendar feed and push events within month to validEvents
+				const validEvents = [];
+				// Cache class aliases
+				const classAliases = {};
+
+				// Function for getting class to insert according to canvas name
+				function getCanvasClass(parsedEvent, classCallback) {
+					const name = parsedEvent.class.raw;
+
+					// Check if alias is already cached
+					if(typeof classAliases[name] !== 'undefined') {
+						classCallback(null, classAliases[name]);
+						return;
+					}
+
+					// Query aliases to see if possible class object exists
+					aliases.getClass(db, user, 'canvas', name, (err, hasAlias, aliasClassObject) => {
+						if(err) {
+							classCallback(err, null);
+							return;
+						}
+
+						// Backup object if Canvas class doesn't have alias
+						const defaultColor = '#34444F';
+						const canvasClass = {
+							_id: null,
+							canvas: true,
+							user,
+							name: parsedEvent.class.name,
+							teacher: {
+								_id: null,
+								prefix: '',
+								firstName: parsedEvent.class.teacher.firstName,
+								lastName: parsedEvent.class.teacher.lastName
+							},
+							type: 'other',
+							block: 'other',
+							color: defaultColor,
+							textDark: prisma.shouldTextBeDark(defaultColor)
+						};
+
+						if(hasAlias) {
+							classAliases[name] = aliasClassObject;
+						} else {
+							classAliases[name] = canvasClass;
+						}
+
+						classCallback(null, classAliases[name]);
+					});
+				}
+
+				// Function to iterate over classes asynchronously
+				function checkEvent(i) {
+					if(i < events.length) {
+						const canvasEvent = events[i];
+						const parsedEvent = parseCanvasTitle(canvasEvent.summary);
+
+						// Check if alias for class first
+						getCanvasClass(parsedEvent, (err, canvasClass) => {
+							if(err) {
+								callback(err, null, null);
+								return;
+							}
+
+							const start = new Date(canvasEvent.start);
+							const end = new Date(canvasEvent.end);
+
+							// class will be null if error in getting class name.
+							const insertEvent = {
+								_id: canvasEvent.uid,
+								user: userDoc.user,
+								class: canvasClass,
+								title: parsedEvent.assignment,
+								start,
+								end,
+								link: calendarToEvent(canvasEvent.url) || '',
+								checked: _.contains(checkedEventsList, canvasEvent.uid)
+							};
+
+							if(typeof canvasEvent['ALT-DESC'] === 'object') {
+								insertEvent.desc = canvasEvent['ALT-DESC'].val;
+								insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
+							} else {
+								insertEvent.desc = '';
+								insertEvent.descPlaintext = '';
+							}
+
+							validEvents.push(insertEvent);
+							checkEvent(++i);
+						});
+					} else {
+						// All done! Call callback
+						callback(null, true, validEvents);
+					}
+				}
+				checkEvent(0);
+
+			});
 		});
 	});
 }
