@@ -132,7 +132,7 @@ function addPortalQueue(db, user, callback) {
 
 				portaldata.insertMany(events, err => {
 					if(err) {
-						callback(new Error('There was an error inserting events into the database!'), null);
+						callback(new Error(`There was an error inserting events into the database! (${err})`), null);
 						return;
 					}
 
