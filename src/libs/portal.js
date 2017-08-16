@@ -292,7 +292,7 @@ function getFromCal(db, user, callback) {
 				return;
 			}
 
-			callback(null, true, Object.values(ical.parseICS(body)));
+			callback(null, true, Object.values(ical.parseICS(body)).filter(e => typeof e.summary === 'string'));
 		});
 	});
 }
