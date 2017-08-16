@@ -303,17 +303,10 @@ function getClasses(db, user, callback) {
 			return;
 		}
 
-		const canvasdata = db.collection('canvasFeeds');
-
-		canvasdata.find({ user: userDoc._id }).toArray((err, events) => {
-			if(err) {
-				callback(new Error('There was an error retrieving Canvas events!'), null, null);
-				return;
-			}
-
+		function parseEvents(eventsToParse) {
 			const classes = [];
 
-			for(const calEvent of events) {
+			for(const calEvent of eventsToParse) {
 				// If event doesn't have a summary, skip
 				if(typeof calEvent.summary !== 'string') continue;
 
@@ -326,6 +319,35 @@ function getClasses(db, user, callback) {
 			}
 
 			callback(null, true, classes);
+		}
+
+		const canvasdata = db.collection('canvasFeeds');
+
+		canvasdata.find({ user: userDoc._id }).toArray((err, events) => {
+			if(err) {
+				callback(new Error('There was an error retrieving Canvas events!'), null, null);
+				return;
+			}
+
+			// If cache is empty, update it
+			if (events.length > 0) {
+				parseEvents(events);
+			} else {
+				feeds.updateCanvasCache(db, user, err => {
+					if (err) {
+						callback(err, null, null);
+						return;
+					}
+
+					canvasdata.find({ user: userDoc._id }).toArray((err, retryEvents) => {
+						if(err) {
+							callback(new Error('There was an error retrieving Canvas events!'), null, null);
+							return;
+						}
+						parseEvents(retryEvents);
+					});
+				});
+			}
 		});
 	});
 }

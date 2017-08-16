@@ -36,31 +36,12 @@ module.exports = (app, db, socketIO) => {
 	});
 
 	app.post('/canvas/get-events', (req, res) => {
-		canvas.getFromCache(db, req.user.user, (err, hasURL, events) => {
+		feeds.canvasCacheRetry(db, req.user.user, (err, hasURL, events) => {
 			let error = null;
-			if(err) {
+			if (err) {
 				error = err.message;
 			}
-			if(events.length > 0) {
-				res.json({ error, hasURL, events });
-				return;
-			}
-
-			// If the events are empty, there's a chance that we just didn't cache results yet
-			feeds.updateCanvasCache(db, req.user.user, err => {
-				if(err) {
-					error = err.message;
-					res.json({ error, hasURL, events });
-					return;
-				}
-
-				canvas.getFromCache(db, req.user.user, (err, hasURL, events) => {
-					if(err) {
-						error = err.message;
-					}
-					res.json({ error, hasURL, events });
-				});
-			});
+			res.json({ error, hasURL, events });
 		});
 	});
 

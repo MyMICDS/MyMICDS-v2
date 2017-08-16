@@ -199,6 +199,48 @@ function processPortalQueue(db, callback) {
 	});
 }
 
+/**
+ * Tries to get Canvas calendar from cache. If it's empty, it tries updating the cache and returning that response.
+ * @param {Object} db - Database object
+ * @param {string} user - Username
+ * @param {canvasCacheRetryCallback} callback - Callback
+ */
+
+/**
+ * Returns array containing Canvas events
+ * @callback canvasCacheRetryCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Boolean} hasURL - Whether or not user has a Canvas URL set. Null if error.
+ * @param {Array} events - Array of events if success, null if failure.
+ */
+
+function canvasCacheRetry(db, user, callback) {
+	if (typeof callback !== 'function') return;
+
+	canvas.getFromCache(db, user, (err, hasURL, events) => {
+		if(err) {
+			callback(err, null, null);
+			return;
+		}
+		if(events.length > 0) {
+			callback(null, hasURL, events);
+			return;
+		}
+
+		// If the events are empty, there's a chance that we just didn't cache results yet
+		updateCanvasCache(db, user, err => {
+			if(err) {
+				callback(err, null, null);
+				return;
+			}
+
+			canvas.getFromCache(db, user, callback);
+		});
+	});
+}
+
 module.exports.updateCanvasCache  = updateCanvasCache;
 module.exports.addPortalQueue     = addPortalQueue;
 module.exports.processPortalQueue = processPortalQueue;
+module.exports.canvasCacheRetry  = canvasCacheRetry;
