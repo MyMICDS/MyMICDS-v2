@@ -175,7 +175,7 @@ function processPortalQueue(db, callback) {
 
 	userdata.find({ inPortalQueue: true }).toArray((err, queue) => {
 		if(err) {
-			//callback(new Error('There was a problem querying the database!'));
+			callback(new Error('There was a problem querying the database!'));
 			return;
 		}
 
