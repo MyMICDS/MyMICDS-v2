@@ -135,6 +135,7 @@ const genericBlocks = {
  * @param {string} user - Username to get schedule
  * @param {Object} date - Date object of day to get schedule
  * @param {getScheduleCallback} callback - Callback
+ * @param {Boolean} portalBroke - Used internally to recursively call the function. Flags whether or not we should use Portal feed to calculate schedule.
  */
 
 /**
@@ -289,16 +290,11 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 				}
 
 				// Assign each class to it's block
-				const blocks = {};
+				const blocks = JSON.parse(JSON.stringify(genericBlocks));
+				// const blockTypeMap = {};
 				for(const block of results.classes) {
 					blocks[block.block] = block; // Very descriptive
-				}
-
-				// Include generic blocks in with the supplied blocks
-				for(const key of Object.keys(genericBlocks)) {
-					if(typeof blocks[key] !== 'object') {
-						blocks[key] = genericBlocks[key];
-					}
+					// blockTypeMap[block.block] = block.type;
 				}
 
 				const schedule = {

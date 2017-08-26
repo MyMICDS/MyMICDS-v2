@@ -358,9 +358,6 @@ function deleteClass(db, user, classId, callback) {
 	});
 }
 
-module.exports.validBlocks = validBlocks;
-module.exports.validTypes  = validTypes;
-
 module.exports.upsert = upsertClass;
 module.exports.get    = getClasses;
 module.exports.delete = deleteClass;

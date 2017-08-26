@@ -17,23 +17,6 @@ const middleschoolSchedule = {
 	5: require(__dirname + '/../schedules/grade5.json'),
 };
 
-const validBlocks = [
-	'a',
-	'b',
-	'c',
-	'd',
-	'e',
-	'f',
-	'g',
-	'activities',
-	'advisory',
-	'collaborative',
-	'community',
-	'enrichment',
-	'lunch',
-	'pe'
-];
-
 /**
  * Returns a user's generic schedule according to their grade and their class names for each corresponding block. Returns null if something's invalid.
  * @function getSchedule
@@ -116,5 +99,4 @@ function getSchedule(date, grade, day, lateStart) {
 	return userSchedule;
 }
 
-module.exports.blocks = validBlocks;
-module.exports.get    = getSchedule;
+module.exports.get = getSchedule;
