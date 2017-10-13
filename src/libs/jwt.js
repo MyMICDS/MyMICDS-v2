@@ -205,8 +205,15 @@ function generate(db, user, rememberMe, callback) {
 				return;
 			}
 
-			callback(null, token);
+			const JWTdata = db.collection('JWTWhitelist');
+			JWTdata.insertOne({ user, jwt: token }, err => {
+				if(err) {
+					callback(new Error('There was a problem registering the JWT!'), null);
+					return;
+				}
 
+				callback(null, token);
+			});
 		});
 	});
 }
@@ -240,7 +247,7 @@ function isBlacklisted(db, jwt, callback) {
 		return;
 	}
 
-	const JWTdata = db.collection('JWTBlacklist');
+	const JWTdata = db.collection('JWTWhitelist');
 
 	JWTdata.find({ jwt }).toArray((err, docs) => {
 		if(err) {
@@ -248,8 +255,7 @@ function isBlacklisted(db, jwt, callback) {
 			return;
 		}
 
-		callback(null, docs.length > 0);
-
+		callback(null, docs.length < 1);
 	});
 }
 
@@ -288,22 +294,15 @@ function revoke(db, payload, jwt, callback) {
 		return;
 	}
 
-	const current = new Date();
-	const JWTdata = db.collection('JWTBlacklist');
+	const JWTdata = db.collection('JWTWhitelist');
 
-	JWTdata.insert({
-		user: payload.user,
-		jwt,
-		expires: new Date(payload.exp * 1000),
-		revoked: current
-	}, err => {
+	JWTdata.deleteOne({ user: payload.user, jwt }, err => {
 		if(err) {
 			callback(new Error('There was a problem revoking the JWT in the database!'));
 			return;
 		}
 
 		callback(null);
-
 	});
 }
 
