@@ -470,6 +470,7 @@ function getFromCache(db, user, callback) {
 							// class will be null if error in getting class name.
 							const insertEvent = {
 								_id: canvasEvent.uid,
+								canvas: true,
 								user: userDoc.user,
 								class: canvasClass,
 								title: parsedEvent.assignment,
