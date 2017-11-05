@@ -55,6 +55,18 @@ function authorize(db) {
 
 function isRevoked(db) {
 	return (req, payload, done) => {
+
+		const ignoredRoutes = [
+			'/auth/logout'
+		];
+
+		// Get rid of possible ending slash
+		const testUrl = req.url.endsWith('/') ? req.url.slice(0, -1) : req.url;
+		if (ignoredRoutes.includes(testUrl)) {
+			done(null, false);
+			return;
+		}
+
 		if(typeof payload !== 'object') {
 			done(null, true);
 			return;
@@ -105,6 +117,9 @@ function isRevoked(db) {
 				const userdata = db.collection('users');
 				userdata.update(userDoc, { $currentDate: { lastVisited: true }});
 
+				const jwtData = db.collection('jwtWhitelist');
+				jwtData.update({ user: userDoc._id, jwt }, { $currentDate: { lastUsed: true }});
+
 				done(null, blacklisted);
 			});
 		});
@@ -148,6 +163,8 @@ function catchUnauthorized(err, req, res, next) {
  *
  * @param {Object} db - Database connection
  * @param {string} user - Username
+ * @param {Boolean} rememberMe - Should the user stay logged in?
+ * @param {string} comment - ID comment to use in JWT
  * @param {generateCallback} callback - Callback
  */
 
@@ -159,7 +176,7 @@ function catchUnauthorized(err, req, res, next) {
  * @param {string} token - JWT token. Error if null.
  */
 
-function generate(db, user, rememberMe, callback) {
+function generate(db, user, rememberMe, comment, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
@@ -190,6 +207,10 @@ function generate(db, user, rememberMe, callback) {
 			}
 		}
 
+		if(typeof comment !== 'string' || comment.length < 1) {
+			comment = 'Unknown';
+		}
+
 		jwt.sign({
 			user, scopes
 		}, config.jwt.secret, {
@@ -205,8 +226,15 @@ function generate(db, user, rememberMe, callback) {
 				return;
 			}
 
-			callback(null, token);
+			const jwtData = db.collection('jwtWhitelist');
+			jwtData.insertOne({ user: userDoc._id, jwt: token, comment }, err => {
+				if(err) {
+					callback(new Error('There was a problem registering the JWT!'), null);
+					return;
+				}
 
+				callback(null, token);
+			});
 		});
 	});
 }
@@ -240,16 +268,15 @@ function isBlacklisted(db, jwt, callback) {
 		return;
 	}
 
-	const JWTdata = db.collection('JWTBlacklist');
+	const jwtData = db.collection('jwtWhitelist');
 
-	JWTdata.find({ jwt }).toArray((err, docs) => {
+	jwtData.find({ jwt }).toArray((err, docs) => {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'), null);
 			return;
 		}
 
-		callback(null, docs.length > 0);
-
+		callback(null, docs.length < 1);
 	});
 }
 
@@ -288,22 +315,26 @@ function revoke(db, payload, jwt, callback) {
 		return;
 	}
 
-	const current = new Date();
-	const JWTdata = db.collection('JWTBlacklist');
-
-	JWTdata.insert({
-		user: payload.user,
-		jwt,
-		expires: new Date(payload.exp * 1000),
-		revoked: current
-	}, err => {
+	users.get(db, payload.user, (err, isUser, userDoc) => {
 		if(err) {
-			callback(new Error('There was a problem revoking the JWT in the database!'));
+			callback(err, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null);
 			return;
 		}
 
-		callback(null);
+		const jwtData = db.collection('jwtWhitelist');
 
+		jwtData.deleteOne({ user: userDoc._id, jwt }, err => {
+			if(err) {
+				callback(new Error('There was a problem revoking the JWT in the database!'));
+				return;
+			}
+
+			callback(null);
+		});
 	});
 }
 
