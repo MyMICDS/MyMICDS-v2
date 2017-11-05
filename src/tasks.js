@@ -51,6 +51,20 @@ if(config.production) {
 						console.log(`[${new Date()}] Alerted admins of error! (${err})`);
 					});
 				} else {
+					let currDate = new Date();
+					parseBulletin(currDate).then((result) => {
+						let formattedDate = currDate.getFullYear() + '-' + (currDate.getMonth()+1) + '-' + currDate.getDate();
+						formattedDate = '2017-10-26';
+						fs.writeFile(__dirname + '/public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', JSON.stringify(result), (err) => {
+							if (err) {
+								console.log(`[${new Date()}] Error occurred parsing daily bulletin writing to file! (${err})`)
+							}
+							console.log(`[${new Date()}] Successfully parsed daily bulletin!`)
+						});
+					})
+					.catch((err) => {
+						console.log(`[${new Date()}] Error occurred parsing daily bulletin! (${err})`)
+					});
 					console.log(`[${new Date()}] Successfully got latest Daily Bulletin!`);
 				}
 			});
@@ -173,6 +187,7 @@ if(config.production) {
 				addToQueue(0);
 			});
 		}, later.parse.text('every 24 hours'));
+
 	});
 } else {
 	console.log('Not starting tasks server because we are not on production.');

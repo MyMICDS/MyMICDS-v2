@@ -5,6 +5,7 @@
  * @module dailyBulletin
  */
 const config = require(__dirname + '/config.js');
+const PDFParser = require("pdf2json");
 
 const _         = require('underscore');
 const fs        = require('fs-extra');
@@ -408,7 +409,118 @@ function getList(callback) {
 	});
 }
 
-module.exports.baseURL     = dailyBulletinUrl;
-module.exports.queryLatest = queryLatest;
-module.exports.queryAll    = queryAll;
-module.exports.getList     = getList;
+function parseBulletin(date) {
+	let formattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate();
+	formattedDate = '2017-10-26';
+	return new Promise((resolve, reject) => { 
+
+		let pdfParser = new PDFParser();
+		
+		pdfParser.on("pdfParser_dataError", errData => reject(errData.parserError) );
+		pdfParser.on("pdfParser_dataReady", pdfData => {
+			// fs.writeFile("./results/10.09.17.json", JSON.stringify(pdfData));
+			let announcements = [];
+			let texts = pdfData.formImage.Pages[0].Texts
+			// Get rid of zero-width spaces
+				.filter(item => {
+					let word = item.R[0].T;
+					return word !== '%E2%80%8B' && word !== '%E2%80%8B%E2%80%8B' ;
+				});
+		
+			// Separate bolded titles and normal weight contents
+			texts.forEach((item, index) => {
+				let styles = item.R[0].TS;
+				let rawWord = item.R[0].T;
+				let word = decodeURIComponent(item.R[0].T);
+					// If text is bolded
+					if (styles[2] === 1) {
+						// Check if last word is not bolded
+						let newTitle = false;
+						let i = index;
+						let lastWord;
+						while(i > 0 && (!lastWord || lastWord.T === '%E2%80%8B')) {
+							lastWord = texts[i - 1].R[0];
+							i--;
+						}
+						newTitle = lastWord ? lastWord.TS[2] !== 1 : true;
+		
+						if (index === 0 || newTitle) {
+							// A new title
+							announcements.push({ title: word, content: '' });
+						} else {
+							// Continuation of last title
+							announcements[announcements.length - 1].title += (' ' + word);
+						}
+					} else {
+						// Announcement content below the title
+						announcements[announcements.length - 1].content += (' ' + word);
+					};
+				
+			});
+		
+			// Find Birthday section and parse it
+			let birthdays = {}
+			for (let i = announcements.length - 1; i >= 0; i--) {
+				let nameRegEx = /Birthday to (.*?)(?= Happy|\n)/g;
+				let dateRegEx = /Happy(.*?)(?= Birthday|\n)/g;
+				let namesRaw = (announcements[i].title + '\n').match(nameRegEx);
+				let datesRaw = (announcements[i].title + '\n').match(dateRegEx);
+				if (namesRaw && datesRaw) {
+					// Get rid of "Birthday to"
+					namesRaw = namesRaw.map(s => s.substring(12, s.length));
+					// Get rid of "Happy " or "Happy Belated"
+					datesRaw = datesRaw.map(s => {
+						if (s.match(/belated|Belated/g)) {
+							return s.substring(14, s.length);
+						} else {
+							return 'Today';
+						}
+					});
+		
+					datesRaw.forEach((date, index) => {
+						birthdays[date] = namesRaw[index].split(', ');
+					});
+		
+					announcements.splice(i, 1);
+				}
+			}
+		
+			// Delete Lunch and Schedule sections
+			for (let i = announcements.length - 1; i >= 0; i--) {
+				let lunchRegEx = /lunch/ig;
+				let scheduleRegEx = /schedule/ig;
+				if (lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title)) {
+					announcements.splice(i, 1);
+				}
+			}
+		
+			let result = {
+				announcements,
+				birthdays
+			}
+
+			resolve(result);
+		});
+		console.log(__dirname + '/../public/daily-bulletin/' + formattedDate + '.pdf')
+		pdfParser.loadPDF(__dirname + '/../public/daily-bulletin/' + formattedDate + '.pdf');
+		
+	});
+}
+
+function getParsed(date, callback) {
+	let formattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate();
+	formattedDate = '2017-10-26';
+	fs.readFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', (err, data) => {
+		if (err) {
+			callback(new Error(err), null);
+		}
+		callback(null, JSON.parse(data));
+	})
+}
+
+module.exports.baseURL       = dailyBulletinUrl;
+module.exports.queryLatest   = queryLatest;
+module.exports.queryAll      = queryAll;
+module.exports.getList       = getList;
+module.exports.parseBulletin = parseBulletin;
+module.exports.getParsed     = getParsed;
