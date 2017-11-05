@@ -301,7 +301,8 @@ If valid credentials are entered, it will log a user in by associating their ses
 #### Parameters
 - `user` - Username to log into.
 - `password` - Plaintext password to compare against the database.
-- `remember` - If set to true, JSON Web Token will expire in 30 days compared to only 12 hours. _(Optional, by default it will be set to true.)_
+- `remember` - If set to true, JSON Web Token will expire in 30 days compared to only 12 hours. _(Optional, defaults to `true`.)_
+- `comment` - Comment used to identify the browser/device from which the user logged in. _(Optional, defaults to "Unknown".)_
 
 #### Response
 - `error` - Null if success, string containing error if failure.

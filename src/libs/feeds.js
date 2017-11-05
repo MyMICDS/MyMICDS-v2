@@ -223,7 +223,7 @@ function canvasCacheRetry(db, user, callback) {
 			callback(err, null, null);
 			return;
 		}
-		if(events.length > 0) {
+		if(!hasURL || !events || events.length > 0) {
 			callback(null, hasURL, events);
 			return;
 		}
