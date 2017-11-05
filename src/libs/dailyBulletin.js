@@ -421,42 +421,56 @@ function parseBulletin(date) {
 			// fs.writeFile("./results/10.09.17.json", JSON.stringify(pdfData));
 			let announcements = [];
 			let texts = pdfData.formImage.Pages[0].Texts
-			// Get rid of zero-width spaces
-				.filter(item => {
-					let word = item.R[0].T;
-					return word !== '%E2%80%8B' && word !== '%E2%80%8B%E2%80%8B' ;
-				});
+			// Get rid of zero-width spaces (not using this because those spaces sometimes have information)
+				// .filter(item => {
+				// 	let word = item.R[0].T;
+				// 	return word !== '%E2%80%8B' && word !== '%E2%80%8B%E2%80%8B' ;
+				// });
 		
 			// Separate bolded titles and normal weight contents
-			texts.forEach((item, index) => {
-				let styles = item.R[0].TS;
-				let rawWord = item.R[0].T;
-				let word = decodeURIComponent(item.R[0].T);
-					// If text is bolded
-					if (styles[2] === 1) {
-						// Check if last word is not bolded
-						let newTitle = false;
-						let i = index;
-						let lastWord;
-						while(i > 0 && (!lastWord || lastWord.T === '%E2%80%8B')) {
-							lastWord = texts[i - 1].R[0];
-							i--;
-						}
-						newTitle = lastWord ? lastWord.TS[2] !== 1 : true;
-		
-						if (index === 0 || newTitle) {
-							// A new title
-							announcements.push({ title: word, content: '' });
-						} else {
-							// Continuation of last title
-							announcements[announcements.length - 1].title += (' ' + word);
-						}
-					} else {
-						// Announcement content below the title
-						announcements[announcements.length - 1].content += (' ' + word);
-					};
+			for (let i = 0; i < texts.length; i++) {
+				let item = texts[i];
+				let rawWord = item.R[0];
+				let word = decodeURIComponent(rawWord.T).trim();
 				
-			});
+				// If the last and current word is a space then skip, if last is and current isn't then there is an actual sapce before
+				let lastWord = i > 0 ? texts[i - 1].R[0] : null;
+				let hasSpaceBefore = false;
+				if (rawWord.T !== '%E2%80%8B') {
+					hasSpaceBefore =lastWord && (lastWord.T === '%E2%80%8B')
+				} else {
+					continue;
+				}
+
+				// Find of the last word that is not a space
+				let j = i;
+				let lastWordNotSpace = lastWord;
+				while (lastWordNotSpace && lastWordNotSpace.T === '%E2%80%8B') {
+					j--;
+					lastWordNotSpace = texts[j - 1].R[0];
+				}
+				// If text is bolded
+				if (rawWord.TS[2] === 1) {
+					// Check if last word is not bolded
+					let newTitle = false;
+					newTitle = lastWordNotSpace ? lastWordNotSpace.TS[2] !== 1 : true;
+	
+					if (newTitle) {
+						// A new title
+						announcements.push({ title: word, content: '' });
+					} else {
+						// Continuation of last title
+						// If there was meant to be a space then add an actual space
+						if (hasSpaceBefore) { word = ' ' + word }
+						announcements[announcements.length - 1].title += word;
+					}
+				} else {
+					// Announcement content below the title
+					if (hasSpaceBefore) { word = ' ' + word }
+					announcements[announcements.length - 1].content += word;
+				};
+				
+			};
 		
 			// Find Birthday section and parse it
 			let birthdays = {}
@@ -489,7 +503,9 @@ function parseBulletin(date) {
 			for (let i = announcements.length - 1; i >= 0; i--) {
 				let lunchRegEx = /lunch/ig;
 				let scheduleRegEx = /schedule/ig;
-				if (lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title)) {
+				let collabRegEx = /Collaborative/ig;
+				let activitiesRegEx = /MeetingSponsorLocation/ig;
+				if (lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title) || collabRegEx.test(announcements[i].title) || activitiesRegEx.test(announcements[i].content)) {
 					announcements.splice(i, 1);
 				}
 			}
@@ -498,7 +514,7 @@ function parseBulletin(date) {
 				announcements,
 				birthdays
 			}
-
+			console.log(result);
 			resolve(result);
 		});
 		console.log(__dirname + '/../public/daily-bulletin/' + formattedDate + '.pdf')
@@ -517,6 +533,21 @@ function getParsed(date, callback) {
 		callback(null, JSON.parse(data));
 	})
 }
+
+let currDate = new Date();
+parseBulletin(currDate).then((result) => {
+	let formattedDate = currDate.getFullYear() + '-' + (currDate.getMonth()+1) + '-' + currDate.getDate();
+	formattedDate = '2017-10-26';
+	fs.writeFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', JSON.stringify(result), (err) => {
+		if (err) {
+			console.log(`[${new Date()}] Error occurred parsing daily bulletin writing to file! (${err})`)
+		}
+		console.log(`[${new Date()}] Successfully parsed daily bulletin!`)
+	});
+})
+.catch((err) => {
+	console.log(`[${new Date()}] Error occurred parsing daily bulletin! (${err})`)
+});
 
 module.exports.baseURL       = dailyBulletinUrl;
 module.exports.queryLatest   = queryLatest;
