@@ -117,6 +117,9 @@ function isRevoked(db) {
 				const userdata = db.collection('users');
 				userdata.update(userDoc, { $currentDate: { lastVisited: true }});
 
+				const jwtData = db.collection('jwtWhitelist');
+				jwtData.update({ user: userDoc._id, jwt }, { $currentDate: { lastUsed: true }});
+
 				done(null, blacklisted);
 			});
 		});
@@ -223,8 +226,8 @@ function generate(db, user, rememberMe, comment, callback) {
 				return;
 			}
 
-			const JWTdata = db.collection('jwtWhitelist');
-			JWTdata.insertOne({ user: userDoc._id, jwt: token, comment }, err => {
+			const jwtData = db.collection('jwtWhitelist');
+			jwtData.insertOne({ user: userDoc._id, jwt: token, comment }, err => {
 				if(err) {
 					callback(new Error('There was a problem registering the JWT!'), null);
 					return;
@@ -265,9 +268,9 @@ function isBlacklisted(db, jwt, callback) {
 		return;
 	}
 
-	const JWTdata = db.collection('jwtWhitelist');
+	const jwtData = db.collection('jwtWhitelist');
 
-	JWTdata.find({ jwt }).toArray((err, docs) => {
+	jwtData.find({ jwt }).toArray((err, docs) => {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'), null);
 			return;
@@ -322,9 +325,9 @@ function revoke(db, payload, jwt, callback) {
 			return;
 		}
 
-		const JWTdata = db.collection('jwtWhitelist');
+		const jwtData = db.collection('jwtWhitelist');
 
-		JWTdata.deleteOne({ user: userDoc._id, jwt }, err => {
+		jwtData.deleteOne({ user: userDoc._id, jwt }, err => {
 			if(err) {
 				callback(new Error('There was a problem revoking the JWT in the database!'));
 				return;
