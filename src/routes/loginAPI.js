@@ -20,7 +20,7 @@ module.exports = (app, db) => {
 
 		const rememberMe = typeof req.body.remember !== 'undefined';
 
-		auth.login(db, req.body.user, req.body.password, req.body.comment, rememberMe, (err, response, message, jwt) => {
+		auth.login(db, req.body.user, req.body.password, rememberMe, req.body.comment, (err, response, message, jwt) => {
 			let error;
 			if(err) {
 				error = err.message;
