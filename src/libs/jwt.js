@@ -148,6 +148,8 @@ function catchUnauthorized(err, req, res, next) {
  *
  * @param {Object} db - Database connection
  * @param {string} user - Username
+ * @param {string} comment - ID comment to use in JWT
+ * @param {Boolean} rememberMe - Should the user stay logged in?
  * @param {generateCallback} callback - Callback
  */
 
@@ -159,7 +161,7 @@ function catchUnauthorized(err, req, res, next) {
  * @param {string} token - JWT token. Error if null.
  */
 
-function generate(db, user, rememberMe, callback) {
+function generate(db, user, comment, rememberMe, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
@@ -190,8 +192,12 @@ function generate(db, user, rememberMe, callback) {
 			}
 		}
 
+		if(typeof comment !== 'string' || comment.length < 1) {
+			comment = 'Unknown';
+		}
+
 		jwt.sign({
-			user, scopes
+			user, scopes, comment
 		}, config.jwt.secret, {
 			subject  : 'MyMICDS API',
 			algorithm: 'HS256',

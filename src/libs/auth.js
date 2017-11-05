@@ -20,6 +20,7 @@ const users = require(__dirname + '/users.js');
  * @param {Object} db - Database connection
  * @param {string} user - Username
  * @param {string} password - Plaintext password
+ * @param {string} comment - JWT comment
  * @param {Boolean} rememberMe - Whether JWT token should expire in 30 days instead of 1 day
  * @param {loginCallback} callback - Callback
  */
@@ -34,7 +35,7 @@ const users = require(__dirname + '/users.js');
  * @param {string} jwt - JSON Web Token for user to make API calls with. Null if error, login invalid, or rememberMe is false.
  */
 
-function login(db, user, password, rememberMe, callback) {
+function login(db, user, password, comment, rememberMe, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
@@ -76,7 +77,7 @@ function login(db, user, password, rememberMe, callback) {
 
 		// Login successful!
 		// Now we need to create a JWT
-		jwt.generate(db, user, rememberMe, (err, jwt) => {
+		jwt.generate(db, user, comment, rememberMe, (err, jwt) => {
 			if(err) {
 				callback(err, null, null, null);
 				return;
