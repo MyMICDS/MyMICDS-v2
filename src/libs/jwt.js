@@ -4,9 +4,11 @@
  * @file Manages Json Web Token authentication for our API
  * @module jwt
  */
+
 const config = require(__dirname + '/config.js');
 
 const _ = require('underscore');
+const api = require(__dirname + '/api.js');
 const expressJWT = require('express-jwt');
 const jwt = require('jsonwebtoken');
 const users = require(__dirname + '/users.js');
@@ -144,13 +146,40 @@ function fallback(req, res, next) {
 }
 
 /**
+ * Route-specific middleware to require the user to be logged in
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {function} next - Callback with no parameters
+ */
+
+function requireLoggedIn(req, res, next) {
+	requireScope('pleb', 'You must be logged in to access this!')(req, res, next);
+}
+
+ /**
+  * Route-specific middleware to require the user to have a specific scope
+  * @param {string} scope - Which scope the user needs to have
+  * @param {string} [message] - Optional. Custom error message to send back to client if they don't have the specified scope.
+  */
+
+function requireScope(scope, message = 'You\'re not authorized in this part of the site, punk.') {
+	return (req, res, next) => {
+		if(!req.user || !req.user.scopes[scope]) {
+			api.respond(res, message, null, 'NOT_LOGGED_IN');
+		} else {
+			next();
+		}
+	};
+}
+
+/**
  * Express middleware to catch any errors if the JWT token is invalid.
  * @function catchUnauthorized
  */
 
 function catchUnauthorized(err, req, res, next) {
 	if(err.name === 'UnauthorizedError') {
-		res.status(401).json({ error: err.message });
+		api.respond(res, err, null, 'UNAUTHORIZED');
 		return;
 	}
 	next();
@@ -340,6 +369,8 @@ function revoke(db, payload, jwt, callback) {
 
 module.exports.authorize         = authorize;
 module.exports.fallback          = fallback;
+module.exports.requireLoggedIn   = requireLoggedIn;
+module.exports.requireScope      = requireScope;
 module.exports.catchUnauthorized = catchUnauthorized;
 module.exports.generate          = generate;
 module.exports.revoke            = revoke;
