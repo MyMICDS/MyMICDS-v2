@@ -1,6 +1,8 @@
 /**
  * @file Manages lunch API endpoints
  */
+
+const api = require(__dirname + '/../libs/api.js');
 const lunch = require(__dirname + '/../libs/lunch.js');
 
 module.exports = (app, db) => {
@@ -16,14 +18,7 @@ module.exports = (app, db) => {
 		const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
 		lunch.get(db, date, (err, lunchJSON) => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			}
-			res.json({
-				error,
-				lunch: lunchJSON
-			});
+			api.respond(res, err, { lunch: lunchJSON });
 		});
 	});
 

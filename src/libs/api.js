@@ -23,7 +23,7 @@ function respond(res, error = null, data = null, action = null) {
 
 	// Check for different types of errors
 	let err = null;
-	if(typeof error === 'object' && typeof error.message === 'string') {
+	if(error !== null && typeof error === 'object' && typeof error.message === 'string') {
 		err = error.message;
 	}
 	if(typeof error === 'string') {
@@ -38,6 +38,11 @@ function respond(res, error = null, data = null, action = null) {
 	// Make sure it's a valid action
 	if(!ACTIONS.includes(action)) {
 		action = null;
+	}
+
+	// If there's an error, that's gonna be a fat L
+	if(err) {
+		res.status(500);
 	}
 
 	// If unauthorized, add proper HTTP header

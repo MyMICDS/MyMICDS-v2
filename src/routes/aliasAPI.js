@@ -1,16 +1,16 @@
 /**
  * @file Manages alias API endpoints
  */
+
 const aliases = require(__dirname + '/../libs/aliases.js');
+const api = require(__dirname + '/../libs/api.js');
+const jwt = require(__dirname + '/../libs/jwt.js');
 
 module.exports = (app, db, socketIO) => {
 
-	app.post('/alias/add', (req, res) => {
+	app.post('/alias/add', jwt.requireLoggedIn, (req, res) => {
 		aliases.add(db, req.user.user, req.body.type, req.body.classString, req.body.classId, (err, aliasId) => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			} else {
+			if(!err) {
 				socketIO.user(req.user.user, 'alias', 'add', {
 					_id: aliasId,
 					type: req.body.type,
@@ -18,32 +18,22 @@ module.exports = (app, db, socketIO) => {
 					classRemote: req.body.classString
 				});
 			}
-
-			res.json({ error, id: aliasId });
+			api.respond(res, err, { id: aliasId });
 		});
 	});
 
-	app.post('/alias/list', (req, res) => {
+	app.post('/alias/list', jwt.requireLoggedIn, (req, res) => {
 		aliases.list(db, req.user.user, (err, aliases) => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			}
-
-			res.json({ error, aliases });
+			api.respond(res, err, { aliases });
 		});
 	});
 
-	app.post('/alias/delete', (req, res) => {
+	app.post('/alias/delete', jwt.requireLoggedIn, (req, res) => {
 		aliases.delete(db, req.user.user, req.body.type, req.body.id, err => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			} else {
+			if(!err) {
 				socketIO.user(req.user.user, 'alias', 'delete', req.body.id);
 			}
-
-			res.json({ error });
+			api.respond(res, err);
 		});
 	});
 

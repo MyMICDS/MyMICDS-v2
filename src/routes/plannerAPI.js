@@ -1,6 +1,8 @@
 /**
  * @file Manages planner API endpoints
  */
+
+const api = require(__dirname + '/../libs/api.js');
 const checkedEvents = require(__dirname + '/../libs/checkedEvents.js');
 const planner = require(__dirname + '/../libs/planner.js');
 
@@ -8,11 +10,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/planner/get', (req, res) => {
 		planner.get(db, req.user.user, (err, events) => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			}
-			res.json({ error, events });
+			api.respond(res, err, { events });
 		});
 	});
 
@@ -39,55 +37,42 @@ module.exports = (app, db, socketIO) => {
 
 		planner.upsert(db, req.user.user, insertEvent, (err, plannerEvent) => {
 			if(err) {
-				res.json({ error: err.message });
+				api.respond(res, err);
 				return;
 			}
 
 			socketIO.user(req.user.user, 'planner', 'add', plannerEvent);
 
 			planner.get(db, req.user.user, (err, events) => {
-				let error = null;
-				if(err) {
-					error = err.message;
-				}
-				res.json({ error, events });
+				api.respond(res, err, { events });
 			});
 		});
 	});
 
 	app.post('/planner/delete', (req, res) => {
 		planner.delete(db, req.user.user, req.body.id, err => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			} else {
+			if(!err) {
 				socketIO.user(req.user.user, 'planner', 'delete', req.body.id);
 			}
-			res.json({ error });
+			api.respond(res, err);
 		});
 	});
 
 	app.post('/planner/check', (req, res) => {
 		checkedEvents.check(db, req.user.user, req.body.id, err => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			} else {
+			if(!err) {
 				socketIO.user(req.user.user, 'planner', 'check', req.body.id);
 			}
-			res.json({ error });
+			api.respond(res, err);
 		});
 	});
 
 	app.post('/planner/uncheck', (req, res) => {
 		checkedEvents.uncheck(db, req.user.user, req.body.id, err => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			} else {
+			if(!err) {
 				socketIO.user(req.user.user, 'planner', 'uncheck', req.body.id);
 			}
-			res.json({ error });
+			api.respond(res, err);
 		});
 	});
 
