@@ -320,7 +320,6 @@ function getAllBackgrounds(db, callback) {
 		}
 
 		function handleBackground(i, result) {
-			console.log(i, result);
 			if(i < users.length) {
 				const user = users[i].user;
 				getBackground(user, (err, variants) => {
