@@ -8,20 +8,20 @@ const modules = require(__dirname + '/../libs/modules.js');
 module.exports = (app, db) => {
 
 	app.post('/modules/get', (req, res) => {
-		modules.get(db, req.user.user, (err, modules) => {
+		modules.get(db, req.apiUser, (err, modules) => {
 			api.respond(res, err, { modules });
 		});
 	});
 
 	app.post('/modules/upsert', (req, res) => {
-		modules.upsert(db, req.user.user, req.body.modules, err => {
+		modules.upsert(db, req.apiUser, req.body.modules, err => {
 			if(err) {
 				api.respond(res, err);
 				return;
 			}
 
 			// Return new modules + ids
-			modules.get(db, req.user.user, (err, modules) => {
+			modules.get(db, req.apiUser, (err, modules) => {
 				api.respond(res, err, { modules });
 			});
 		});

@@ -15,22 +15,22 @@ module.exports = (app, db, socketIO) => {
 	});
 
 	app.post('/canvas/set-url', jwt.requireLoggedIn, (req, res) => {
-		canvas.setURL(db, req.user.user, req.body.url, (err, isValid, validURL) => {
+		canvas.setURL(db, req.apiUser, req.body.url, (err, isValid, validURL) => {
 			if(!err) {
-				socketIO.user(req.user.user, 'canvas', 'set-url', validURL);
+				socketIO.user(req.apiUser, 'canvas', 'set-url', validURL);
 			}
 			api.respond(res, err, { valid: isValid, url: validURL });
 		});
 	});
 
 	app.post('/canvas/get-events', jwt.requireLoggedIn, (req, res) => {
-		feeds.canvasCacheRetry(db, req.user.user, (err, hasURL, events) => {
+		feeds.canvasCacheRetry(db, req.apiUser, (err, hasURL, events) => {
 			api.respond(res, err, { hasURL, events });
 		});
 	});
 
 	app.post('/canvas/get-classes', jwt.requireLoggedIn, (req, res) => {
-		canvas.getClasses(db, req.user.user, (err, hasURL, classes) => {
+		canvas.getClasses(db, req.apiUser, (err, hasURL, classes) => {
 			api.respond(res, err, { hasURL, classes });
 		});
 	});

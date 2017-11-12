@@ -32,7 +32,7 @@ module.exports = (app, db, socketIO) => {
 	});
 
 	app.post('/user/get-info', jwt.requireLoggedIn, (req, res) => {
-		users.getInfo(db, req.user.user, true, (err, userInfo) => {
+		users.getInfo(db, req.apiUser, true, (err, userInfo) => {
 			api.respond(res, err, { user: userInfo });
 		});
 	});
@@ -53,9 +53,9 @@ module.exports = (app, db, socketIO) => {
 			info.gradYear = parseInt(req.body.gradYear);
 		}
 
-		users.changeInfo(db, req.user.user, info, err => {
+		users.changeInfo(db, req.apiUser, info, err => {
 			if(!err) {
-				socketIO.user(req.user.user, 'user', 'change-info', info);
+				socketIO.user(req.apiUser, 'user', 'change-info', info);
 			}
 			api.respond(res, err);
 		});

@@ -70,6 +70,16 @@ MongoClient.connect(config.mongodb.uri, (err, db) => {
 	app.use(jwt.fallback);
 	app.use(jwt.catchUnauthorized);
 
+	// Enable admin overrides
+	app.use((req, res, next) => {
+		req.apiUser = req.user.user;
+		if(req.user && Object.keys(req.user.scopes).includes('admin') && req.body.behalfOf) {
+			req.apiUser = req.body.behalfOf;
+		}
+
+		next();
+	});
+
 	// API Routes
 	require(__dirname + '/routes/aliasAPI.js')(app, db, socketIO);
 	require(__dirname + '/routes/backgroundAPI.js')(app, db, socketIO);

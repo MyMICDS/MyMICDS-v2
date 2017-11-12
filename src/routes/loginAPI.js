@@ -64,13 +64,13 @@ module.exports = (app, db) => {
 	});
 
 	app.post('/auth/change-password', jwt.requireLoggedIn, (req, res) => {
-		passwords.changePassword(db, req.user.user, req.body.oldPassword, req.body.newPassword, err => {
+		passwords.changePassword(db, req.apiUser, req.body.oldPassword, req.body.newPassword, err => {
 			api.respond(res, err);
 		});
 	});
 
 	app.post('/auth/forgot-password', (req, res) => {
-		if(req.user.user) {
+		if(req.apiUser) {
 			api.respond(res, 'You are already logged in, silly!');
 			return;
 		}
@@ -80,7 +80,7 @@ module.exports = (app, db) => {
 	});
 
 	app.post('/auth/reset-password', (req, res) => {
-		if(req.user.user) {
+		if(req.apiUser) {
 			api.respond(res, 'You are already logged in, silly!');
 			return;
 		}

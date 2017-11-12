@@ -14,16 +14,16 @@ module.exports = (app, db, socketIO) => {
 	});
 
 	app.post('/portal/set-url', jwt.requireLoggedIn, (req, res) => {
-		portal.setURL(db, req.user.user, req.body.url, (err, isValid, validURL) => {
+		portal.setURL(db, req.apiUser, req.body.url, (err, isValid, validURL) => {
 			if(!err) {
-				socketIO.user(req.user.user, 'portal', 'set-url', validURL);
+				socketIO.user(req.apiUser, 'portal', 'set-url', validURL);
 			}
 			api.respond(res, err, { valid: isValid, url: validURL });
 		});
 	});
 
 	app.post('/portal/get-classes', jwt.requireLoggedIn, (req, res) => {
-		portal.getClasses(db, req.user.user, (err, hasURL, classes) => {
+		portal.getClasses(db, req.apiUser, (err, hasURL, classes) => {
 			api.respond(res, err, { hasURL, classes });
 		});
 	});

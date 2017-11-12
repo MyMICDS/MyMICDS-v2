@@ -8,7 +8,7 @@ const notifications = require(__dirname + '/../libs/notification.js');
 module.exports = (app, db) => {
 
 	app.post('/notification/get', (req, res) => {
-		notifications.get(db, req.user.user, true, (err, events) => {
+		notifications.get(db, req.apiUser, true, (err, events) => {
 			api.respond(res, err, { events });
 		});
 	});

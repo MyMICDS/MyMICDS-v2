@@ -50,14 +50,14 @@ function uploadBackground() {
 	const storage = multer.diskStorage({
 		destination: (req, file, cb) => {
 			// Delete current background
-			deleteBackground(req.user.user, err => {
+			deleteBackground(req.apiUser, err => {
 				if (err) {
 					cb(err, null);
 					return;
 				}
 
 				// Make sure directory is created for user backgrounds
-				const userDir = userBackgroundsDir + '/' + req.user.user + '-' + Date.now();
+				const userDir = userBackgroundsDir + '/' + req.apiUser + '-' + Date.now();
 				fs.ensureDir(userDir, err => {
 					if (err) {
 						cb(new Error('There was a problem ensuring the image directory!'), null);
@@ -81,7 +81,7 @@ function uploadBackground() {
 	const upload = multer({
 		storage,
 		fileFilter: (req, file, cb) => {
-			if (!req.user.user) {
+			if (!req.apiUser) {
 				cb(new Error('You must be logged in!'), null);
 				return;
 			}

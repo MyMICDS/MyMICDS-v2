@@ -9,7 +9,7 @@ const planner = require(__dirname + '/../libs/planner.js');
 module.exports = (app, db, socketIO) => {
 
 	app.post('/planner/get', (req, res) => {
-		planner.get(db, req.user.user, (err, events) => {
+		planner.get(db, req.apiUser, (err, events) => {
 			api.respond(res, err, { events });
 		});
 	});
@@ -35,42 +35,42 @@ module.exports = (app, db, socketIO) => {
 			end
 		};
 
-		planner.upsert(db, req.user.user, insertEvent, (err, plannerEvent) => {
+		planner.upsert(db, req.apiUser, insertEvent, (err, plannerEvent) => {
 			if(err) {
 				api.respond(res, err);
 				return;
 			}
 
-			socketIO.user(req.user.user, 'planner', 'add', plannerEvent);
+			socketIO.user(req.apiUser, 'planner', 'add', plannerEvent);
 
-			planner.get(db, req.user.user, (err, events) => {
+			planner.get(db, req.apiUser, (err, events) => {
 				api.respond(res, err, { events });
 			});
 		});
 	});
 
 	app.post('/planner/delete', (req, res) => {
-		planner.delete(db, req.user.user, req.body.id, err => {
+		planner.delete(db, req.apiUser, req.body.id, err => {
 			if(!err) {
-				socketIO.user(req.user.user, 'planner', 'delete', req.body.id);
+				socketIO.user(req.apiUser, 'planner', 'delete', req.body.id);
 			}
 			api.respond(res, err);
 		});
 	});
 
 	app.post('/planner/check', (req, res) => {
-		checkedEvents.check(db, req.user.user, req.body.id, err => {
+		checkedEvents.check(db, req.apiUser, req.body.id, err => {
 			if(!err) {
-				socketIO.user(req.user.user, 'planner', 'check', req.body.id);
+				socketIO.user(req.apiUser, 'planner', 'check', req.body.id);
 			}
 			api.respond(res, err);
 		});
 	});
 
 	app.post('/planner/uncheck', (req, res) => {
-		checkedEvents.uncheck(db, req.user.user, req.body.id, err => {
+		checkedEvents.uncheck(db, req.apiUser, req.body.id, err => {
 			if(!err) {
-				socketIO.user(req.user.user, 'planner', 'uncheck', req.body.id);
+				socketIO.user(req.apiUser, 'planner', 'uncheck', req.body.id);
 			}
 			api.respond(res, err);
 		});

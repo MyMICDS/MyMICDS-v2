@@ -15,7 +15,7 @@ module.exports = (app, db) => {
 
 		const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
-		schedule.get(db, req.user.user, date, (err, hasURL, schedule) => {
+		schedule.get(db, req.apiUser, date, (err, hasURL, schedule) => {
 			api.respond(res, err, { hasURL, schedule });
 		});
 	});

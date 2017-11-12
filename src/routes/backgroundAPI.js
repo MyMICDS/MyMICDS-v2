@@ -8,7 +8,7 @@ const backgrounds = require(__dirname + '/../libs/backgrounds.js');
 module.exports = (app, db, socketIO) => {
 
 	app.post('/background/get', (req, res) => {
-		backgrounds.get(req.user.user, (err, variants, hasDefault) => {
+		backgrounds.get(req.apiUser, (err, variants, hasDefault) => {
 			api.respond(res, err, { hasDefault, variants });
 		});
 	});
@@ -22,15 +22,15 @@ module.exports = (app, db, socketIO) => {
 			}
 
 			// Add blurred version of image
-			backgrounds.blurUser(req.user.user, err => {
+			backgrounds.blurUser(req.apiUser, err => {
 				if(err) {
 					api.respond(res, err);
 					return;
 				}
 
-				socketIO.user(req.user.user, 'background', 'upload');
+				socketIO.user(req.apiUser, 'background', 'upload');
 
-				backgrounds.get(req.user.user, (err, variants, hasDefault) => {
+				backgrounds.get(req.apiUser, (err, variants, hasDefault) => {
 					api.respond(res, err, { hasDefault, variants });
 				});
 
@@ -39,15 +39,15 @@ module.exports = (app, db, socketIO) => {
 	});
 
 	app.post('/background/delete', (req, res) => {
-		backgrounds.delete(req.user.user, err => {
+		backgrounds.delete(req.apiUser, err => {
 			if(err) {
 				api.respond(res, err);
 				return;
 			}
 
-			socketIO.user(req.user.user, 'background', 'delete');
+			socketIO.user(req.apiUser, 'background', 'delete');
 
-			backgrounds.get(req.user.user, (err, variants, hasDefault) => {
+			backgrounds.get(req.apiUser, (err, variants, hasDefault) => {
 				res.respond(res, err, { hasDefault, variants });
 			});
 		});

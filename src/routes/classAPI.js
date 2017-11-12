@@ -9,13 +9,13 @@ const jwt = require(__dirname + '/../libs/jwt.js');
 module.exports = (app, db, socketIO) => {
 
 	app.post('/classes/get', jwt.requireLoggedIn, (req, res) => {
-		classes.get(db, req.user.user, (err, classes) => {
+		classes.get(db, req.apiUser, (err, classes) => {
 			api.respond(res, err, { classes });
 		});
 	});
 
 	app.post('/classes/add', jwt.requireLoggedIn, (req, res) => {
-		const user = req.user.user;
+		const user = req.apiUser;
 		const scheduleClass = {
 			_id: req.body.id,
 			name: req.body.name,
@@ -31,16 +31,16 @@ module.exports = (app, db, socketIO) => {
 
 		classes.upsert(db, user, scheduleClass, (err, scheduleClass) => {
 			if(!err) {
-				socketIO.user(req.user.user, 'classes', 'add', scheduleClass);
+				socketIO.user(req.apiUser, 'classes', 'add', scheduleClass);
 			}
 			api.respond(res, err, { id: scheduleClass ? scheduleClass._id : null });
 		});
 	});
 
 	app.post('/classes/delete', jwt.requireLoggedIn, (req, res) => {
-		classes.delete(db, req.user.user, req.body.id, err => {
+		classes.delete(db, req.apiUser, req.body.id, err => {
 			if(!err) {
-				socketIO.user(req.user.user, 'classes', 'delete', req.body.id);
+				socketIO.user(req.apiUser, 'classes', 'delete', req.body.id);
 			}
 			api.respond(res, err);
 		});
