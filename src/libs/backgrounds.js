@@ -290,6 +290,58 @@ function getBackground(user, callback) {
 }
 
 /**
+ * Pairs all users with their background variants
+ * @function getAllBackgrounds
+ *
+ * @param {Object} db - Database connection
+ * @param {getAllBackgroundsCallback} callback - Callback
+ */
+
+/**
+ * Returns object with users and backgrounds
+ * @callback getAllBackgroundsCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Object} backgrounds - Object of all users and backgrounds
+ */
+
+function getAllBackgrounds(db, callback) {
+	if(typeof callback !== 'function') return;
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+
+	const userdata = db.collection('users');
+	userdata.find({ confirmed: true }).toArray((err, users) => {
+		if(err) {
+			callback(new Error('There was a problem querying the database!'), null);
+			return;
+		}
+
+		function handleBackground(i, result) {
+			console.log(i, result);
+			if(i < users.length) {
+				const user = users[i].user;
+				getBackground(user, (err, variants) => {
+					if(err) {
+						callback(err, null);
+						return;
+					}
+
+					result[user] = variants;
+					handleBackground(++i, result);
+				});
+			} else {
+				callback(null, result);
+			}
+		}
+
+		handleBackground(0, {});
+	});
+}
+
+/**
  * Adds a blur to an image
  * @function addBlur
  *
@@ -393,4 +445,5 @@ function blurUser(user, callback) {
 module.exports.get    	= getBackground;
 module.exports.upload	= uploadBackground;
 module.exports.delete 	= deleteBackground;
+module.exports.getAll	= getAllBackgrounds;
 module.exports.blurUser = blurUser;

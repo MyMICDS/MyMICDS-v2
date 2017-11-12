@@ -13,6 +13,12 @@ module.exports = (app, db, socketIO) => {
 		});
 	});
 
+	app.post('/background/get-all', (req, res) => {
+		backgrounds.getAll(db, (err, backgrounds) => {
+			api.respond(res, err, { backgrounds });
+		});
+	});
+
 	app.post('/background/upload', (req, res) => {
 		// Write image to user-backgrounds
 		backgrounds.upload()(req, res, err => {
