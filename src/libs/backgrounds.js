@@ -314,7 +314,6 @@ function getAllBackgrounds(db, callback) {
 
 			function handleDir(i) {
 				if(i < userDirs.length) {
-					console.log(userDirs);
 					const dirname = path.parse(userDirs[i]).name;
 					const dirnameSplit = dirname.split('-');
 
