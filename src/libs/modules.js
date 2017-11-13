@@ -148,27 +148,7 @@ function getModules(db, user, callback) {
 			}
 
 			if (modules) {
-				for (const mod of modules) {
-					const defaultOptions = getDefaultOptions(mod.type) || {};
-					const defaultKeys = Object.keys(defaultOptions);
-
-					if (_.isEmpty(defaultOptions)) {
-						delete mod.options;
-						continue;
-					}
-
-					mod.options = Object.assign({}, defaultOptions,  mod.options);
-
-					for (const optionKey of Object.keys(mod.options)) {
-						if (!defaultKeys.includes(optionKey)) {
-							delete mod.options[optionKey];
-						}
-					}
-
-					if (_.isEmpty(mod.options)) {
-						delete mod.options;
-					}
-				}
+				modules = modules.map(processModuleOptions);
 			}
 
 			// Return default modules if none found, else return found documents
@@ -201,30 +181,54 @@ function getAllModules(db, callback) {
 	}
 
 	const userdata = db.collection('users');
-	userdata.find({ confirmed: true }).toArray((err, users) => {
+	// Begin aggregation pipeline
+	userdata.aggregate([
+		// Stage 1
+		{
+			$match: {
+				confirmed: true
+			}
+		},
+		// Stage 2
+		{
+			$lookup: {
+				from: 'modules',
+				localField: '_id',
+				foreignField: 'user',
+				as: 'modules'
+			}
+		},
+		// Stage 3
+		{
+			$project: {
+				// only include these in the final results
+				user: 1,
+				modules: {
+					type: 1,
+					row: 1,
+					column: 1,
+					width: 1,
+					height: 1,
+					options: 1
+				}
+			}
+		}
+	]).toArray((err, docs) => {
 		if(err) {
-			callback(new Error('There was a problem querying the database!'), null);
+			callback(new Error('There was a problem connecting to the database!'), null);
 			return;
 		}
 
-		function handleModule(i, result) {
-			if(i < users.length) {
-				const user = users[i].user;
-				getModules(db, user, (err, modules) => {
-					if(err) {
-						callback(err, null);
-						return;
-					}
-
-					result[user] = modules;
-					handleModule(++i, result);
-				});
+		const userModules = {};
+		for(const doc of docs) {
+			if(doc.modules.length < 1) {
+				userModules[doc.user] = defaultModules;
 			} else {
-				callback(null, result);
+				userModules[doc.user] = doc.modules.map(processModuleOptions);
 			}
 		}
 
-		handleModule(0, {});
+		callback(null, userModules);
 	});
 }
 
@@ -394,6 +398,30 @@ function upsertModules(db, user, modules, callback) {
 	});
 }
 
-module.exports.get    = getModules;
+function processModuleOptions(mod) {
+	const defaultOptions = getDefaultOptions(mod.type) || {};
+	const defaultKeys = Object.keys(defaultOptions);
+
+	if (_.isEmpty(defaultOptions)) {
+		delete mod.options;
+		return mod;
+	}
+
+	mod.options = Object.assign({}, defaultOptions,  mod.options);
+
+	for (const optionKey of Object.keys(mod.options)) {
+		if (!defaultKeys.includes(optionKey)) {
+			delete mod.options[optionKey];
+		}
+	}
+
+	if (_.isEmpty(mod.options)) {
+		delete mod.options;
+	}
+
+	return mod;
+}
+
+module.exports.get	= getModules;
 module.exports.getAll = getAllModules;
 module.exports.upsert = upsertModules;

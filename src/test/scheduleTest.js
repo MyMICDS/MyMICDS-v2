@@ -71,7 +71,8 @@ const tests = [
 	}
 ];
 
-for(const test of tests) {
+for(let i = 0; i < tests.length; i++) {
+	const test = tests[i];
 	const results = schedule.ordine(test.base, test.add);
 
 	// Convert moment.js objects to readable strings
@@ -84,5 +85,5 @@ for(const test of tests) {
 		}
 	}
 
-	console.log('Test ' + i + ' = ', results);
+	console.log(`Test ${i + 1} = ${results}`);
 }

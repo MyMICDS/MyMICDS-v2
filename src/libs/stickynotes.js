@@ -1,6 +1,6 @@
 function getNotes(db, moduleId, callback) {
 	if(typeof callback !== 'function') return;
-	
+
 	if(typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
@@ -21,14 +21,14 @@ function getNotes(db, moduleId, callback) {
 
 		// create a new stickynote if nothing exits under the module Id
 		if (notes.length === 0) {
-			let noteDoc = { text: 'New Stickynote', moduleId };
-			stickynotes.insertOne(noteDoc, (err, note) => {
+			const noteDoc = { text: 'New Stickynote', moduleId };
+			stickynotes.insertOne(noteDoc, err => {
 				if (err) {
 					callback(new Error(err), null);
 					return;
 				}
 				callback(null, noteDoc);
-			})
+			});
 		} else {
 			callback(null, notes[0]);
 		}
@@ -37,7 +37,7 @@ function getNotes(db, moduleId, callback) {
 
 function postNote(db, text, moduleId, callback) {
 	if(typeof callback !== 'function') return;
-	
+
 	if(typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
