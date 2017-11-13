@@ -71,10 +71,14 @@ MongoClient.connect(config.mongodb.uri, (err, db) => {
 	app.use(jwt.catchUnauthorized);
 
 	// Enable admin overrides
+	// Function is small enough that I don't feel bad about inlining it
 	app.use((req, res, next) => {
-		req.apiUser = req.user.user;
-		if(req.user && Object.keys(req.user.scopes).includes('admin') && req.body.behalfOf) {
-			req.apiUser = req.body.behalfOf;
+		req.apiUser = null;
+		if(req.user) {
+			req.apiUser = req.user.user;
+			if(Object.keys(req.user.scopes).includes('admin') && req.body.behalfOf) {
+				req.apiUser = req.body.behalfOf;
+			}
 		}
 
 		next();
