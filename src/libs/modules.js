@@ -147,12 +147,8 @@ function getModules(db, user, callback) {
 				return;
 			}
 
-			if (modules) {
-				modules = modules.map(processModuleOptions);
-			}
-
 			// Return default modules if none found, else return found documents
-			callback(null, modules.length === 0 ? defaultModules : modules);
+			callback(null, modules.length === 0 ? defaultModules : modules.map(processModuleOptions));
 		});
 	});
 }
@@ -215,7 +211,7 @@ function getAllModules(db, callback) {
 		}
 	]).toArray((err, docs) => {
 		if(err) {
-			callback(new Error('There was a problem connecting to the database!'), null);
+			callback(new Error('There was a problem querying the database!'), null);
 			return;
 		}
 
