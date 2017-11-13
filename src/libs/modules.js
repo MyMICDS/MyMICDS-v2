@@ -178,6 +178,57 @@ function getModules(db, user, callback) {
 }
 
 /**
+ * Pairs all users with their module configurations
+ * @function getAllModules
+ *
+ * @param {Object} db - Database connection
+ * @param {getAllModulesCallback} callback - Callback
+ */
+
+/**
+ * Returns object with users and modules
+ * @callback getAllModulesCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Object} modules - Object of all users and modules
+ */
+
+function getAllModules(db, callback) {
+	if(typeof callback !== 'function') return;
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+
+	const userdata = db.collection('users');
+	userdata.find({ confirmed: true }).toArray((err, users) => {
+		if(err) {
+			callback(new Error('There was a problem querying the database!'), null);
+			return;
+		}
+
+		function handleModule(i, result) {
+			if(i < users.length) {
+				const user = users[i].user;
+				getModules(db, user, (err, modules) => {
+					if(err) {
+						callback(err, null);
+						return;
+					}
+
+					result[user] = modules;
+					handleModule(++i, result);
+				});
+			} else {
+				callback(null, result);
+			}
+		}
+
+		handleModule(0, {});
+	});
+}
+
+/**
  * Change a user's current modules
  * @param {Object} db - Database object
  * @param {String} user - Username
@@ -343,5 +394,6 @@ function upsertModules(db, user, modules, callback) {
 	});
 }
 
-module.exports.get = getModules;
+module.exports.get    = getModules;
+module.exports.getAll = getAllModules;
 module.exports.upsert = upsertModules;
