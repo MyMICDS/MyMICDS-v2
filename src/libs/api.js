@@ -12,6 +12,25 @@ const ACTIONS = [
 ];
 
 /**
+ * Express middleware to allow admins to perform any action on behalf of another user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Calls the next function in the middleware chain
+ */
+
+function adminOverride(req, res, next) {
+	req.apiUser = null;
+	if(req.user) {
+		req.apiUser = req.user.user;
+		if(Object.keys(req.user.scopes).includes('admin') && req.body.behalfOf) {
+			req.apiUser = req.body.behalfOf;
+		}
+	}
+
+	next();
+}
+
+/**
  * Responds to the Express request in the proper format
  * @param {Object} res - Express 'response' object for the route
  * @param {Object|string} error - Error (if any) of the request. Can be either a string, error object, or null. Defaults to null.
@@ -58,4 +77,5 @@ function respond(res, error = null, data = null, action = null) {
 }
 
 module.exports.ACTIONS = ACTIONS;
+module.exports.adminOverride = adminOverride;
 module.exports.respond = respond;
