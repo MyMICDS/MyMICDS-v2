@@ -33,6 +33,11 @@ const userBackgroundsDir = __dirname + '/../public/user-backgrounds';
 const defaultBackgroundUser = 'default';
 const defaultExtension = '.jpg';
 
+const defaultVariants = {
+	normal: userBackgroundUrl + '/' + defaultBackgroundUser + '/normal' + defaultExtension,
+	blur: userBackgroundUrl + '/' + defaultBackgroundUser + '/blur' + defaultExtension
+};
+
 // How many pixels to apply gaussian blur radius by default
 const defaultBlurRadius = 10;
 
@@ -160,28 +165,13 @@ function getCurrentFiles(user, callback) {
 			return;
 		}
 
-		// Read user's background file
-		fs.readdir(userBackgroundsDir + '/' + userDir, (err, userImages) => {
+		getDirExtension(userDir, (err, extension) => {
 			if(err) {
-				callback(new Error('There was a problem reading the user\'s background directory!'), null, null);
+				callback(err, null, null);
 				return;
 			}
 
-			// Loop through all valid files until there's either a .png or .jpg extention
-			let userExtension = null;
-			for(const _file of userImages) {
-				const file = path.parse(_file);
-				const extension = file.ext;
-
-				// If valid extension, just break out of loop and return that
-				if(_.contains(validExtensions, extension)) {
-					userExtension = extension;
-					break;
-				}
-			}
-
-			callback(null, userDir, userExtension);
-
+			callback(null, userDir, extension);
 		});
 	});
 }
@@ -257,26 +247,20 @@ function deleteBackground(user, callback) {
 
 function getBackground(user, callback) {
 	if(typeof callback !== 'function') return;
-
-	const defaultBackground = {
-		normal: userBackgroundUrl + '/' + defaultBackgroundUser + '/normal' + defaultExtension,
-		blur: userBackgroundUrl + '/' + defaultBackgroundUser + '/blur' + defaultExtension
-	};
-
 	if(typeof user !== 'string' || !utils.validFilename(user)) {
-		callback(null, defaultBackground, true);
+		callback(null, defaultVariants, true);
 		return;
 	}
 
 	// Get user's extension
 	getCurrentFiles(user, (err, dirname, extension) => {
 		if(err) {
-			callback(err, defaultBackground, true);
+			callback(err, defaultVariants, true);
 			return;
 		}
 		// Fallback to default background if no custom extension
 		if(dirname === null || extension === null) {
-			callback(null, defaultBackground, true);
+			callback(null, defaultVariants, true);
 			return;
 		}
 
@@ -312,31 +296,94 @@ function getAllBackgrounds(db, callback) {
 		return;
 	}
 
-	const userdata = db.collection('users');
-	userdata.find({ confirmed: true }).toArray((err, users) => {
+	fs.readdir(userBackgroundsDir, (err, userDirs) => {
 		if(err) {
-			callback(new Error('There was a problem querying the database!'), null);
+			callback(new Error('There was a problem reading the user backgrounds directory!'), null, null);
 			return;
 		}
 
-		function handleBackground(i, result) {
-			if(i < users.length) {
-				const user = users[i].user;
-				getBackground(user, (err, variants) => {
-					if(err) {
-						callback(err, null);
+		const userdata = db.collection('users');
+		userdata.find({ confirmed: true }).toArray((err, users) => {
+			if(err) {
+				callback(new Error('There was a problem querying the database!'), null);
+				return;
+			}
+
+			const remainingUsers = users.map(u => u.user);
+			const result = {};
+
+			function handleDir(i) {
+				if(i < userDirs.length) {
+					console.log(userDirs);
+					const dirname = path.parse(userDirs[i]).name;
+					const dirnameSplit = dirname.split('-');
+
+					if(dirnameSplit[0] === 'deleted' || dirnameSplit[0] === 'default') {
+						handleDir(++i);
 						return;
 					}
 
-					result[user] = variants;
-					handleBackground(++i, result);
-				});
-			} else {
-				callback(null, result);
+					// Remove timestamp
+					dirnameSplit.pop();
+
+					// User might have dashes in their name (i.e. bhollander-bodie)
+					const user = dirnameSplit.join('-');
+
+					getDirExtension(dirname, (err, extension) => {
+						if(err) {
+							callback(err, null);
+							return;
+						}
+
+						result[user] = {
+							hasDefault: false,
+							variants: {
+								normal: userBackgroundUrl + '/' + dirname + '/normal' + extension,
+								blur: userBackgroundUrl + '/' + dirname + '/blur' + extension
+							}
+						};
+						// Remove user from list of people that don't have backgrounds
+						remainingUsers.splice(remainingUsers.indexOf(user), 1);
+
+						handleDir(++i);
+					});
+				} else {
+					for(const user of remainingUsers) {
+						result[user] = {
+							hasDefault: true,
+							variants: defaultVariants
+						};
+					}
+					callback(null, result);
+				}
+			}
+			handleDir(0);
+		});
+	});
+}
+
+function getDirExtension(userDir, callback) {
+	fs.readdir(userBackgroundsDir + '/' + userDir, (err, userImages) => {
+		if(err) {
+			callback(new Error('There was a problem reading the user\'s background directory!'), null);
+			return;
+		}
+
+		// Loop through all valid files until there's either a .png or .jpg extention
+		let userExtension = null;
+		for(const _file of userImages) {
+			const file = path.parse(_file);
+			const extension = file.ext;
+
+			// If valid extension, just break out of loop and return that
+			if(_.contains(validExtensions, extension)) {
+				userExtension = extension;
+				break;
 			}
 		}
 
-		handleBackground(0, {});
+		callback(null, userExtension);
+
 	});
 }
 
