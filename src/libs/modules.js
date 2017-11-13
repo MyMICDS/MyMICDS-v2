@@ -394,6 +394,14 @@ function upsertModules(db, user, modules, callback) {
 	});
 }
 
+/**
+ * Adds default options to modules (I think? I'm not really sure how this works)
+ * @function processModuleOptions
+ *
+ * @param {Object} mod - Module to sanitize
+ * @return {Object} Modified module
+ */
+
 function processModuleOptions(mod) {
 	const defaultOptions = getDefaultOptions(mod.type) || {};
 	const defaultKeys = Object.keys(defaultOptions);
