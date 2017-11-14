@@ -7,11 +7,11 @@ const dates = require(__dirname + '/../libs/dates.js');
 
 module.exports = app => {
 
-	app.post('/dates/school-ends', (req, res) => {
+	app.get('/dates/school-ends', (req, res) => {
 		res.json({ date: dates.schoolEnds() });
 	});
 
-	app.post('/dates/breaks', (req, res) => {
+	app.get('/dates/breaks', (req, res) => {
 		dates.getBreaks((err, breaks) => {
 			api.respond(res, err, { breaks });
 		});

@@ -7,7 +7,7 @@ const lunch = require(__dirname + '/../libs/lunch.js');
 
 module.exports = (app, db) => {
 
-	app.post('/lunch/get', (req, res) => {
+	app.get('/lunch', (req, res) => {
 
 		const current = new Date();
 

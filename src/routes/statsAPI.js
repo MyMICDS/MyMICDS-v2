@@ -7,7 +7,7 @@ const stats = require(__dirname + '/../libs/stats.js');
 
 module.exports = (app, db) => {
 
-	app.post('/stats/get', (req, res) => {
+	app.get('/stats', (req, res) => {
 		stats.get(db, (err, statsObj) => {
 			api.respond(res, err, { stats: statsObj });
 		});

@@ -8,13 +8,13 @@ const jwt = require(__dirname + '/../libs/jwt.js');
 
 module.exports = (app, db, socketIO) => {
 
-	app.post('/classes/get', jwt.requireLoggedIn, (req, res) => {
+	app.get('/classes', jwt.requireLoggedIn, (req, res) => {
 		classes.get(db, req.apiUser, (err, classes) => {
 			api.respond(res, err, { classes });
 		});
 	});
 
-	app.post('/classes/add', jwt.requireLoggedIn, (req, res) => {
+	app.post('/classes', jwt.requireLoggedIn, (req, res) => {
 		const user = req.apiUser;
 		const scheduleClass = {
 			_id: req.body.id,
@@ -37,7 +37,7 @@ module.exports = (app, db, socketIO) => {
 		});
 	});
 
-	app.post('/classes/delete', jwt.requireLoggedIn, (req, res) => {
+	app.delete('/classes', jwt.requireLoggedIn, (req, res) => {
 		classes.delete(db, req.apiUser, req.body.id, err => {
 			if(!err) {
 				socketIO.user(req.apiUser, 'classes', 'delete', req.body.id);

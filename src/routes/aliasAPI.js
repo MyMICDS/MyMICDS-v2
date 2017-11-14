@@ -8,7 +8,7 @@ const jwt = require(__dirname + '/../libs/jwt.js');
 
 module.exports = (app, db, socketIO) => {
 
-	app.post('/alias/add', jwt.requireLoggedIn, (req, res) => {
+	app.post('/alias', jwt.requireLoggedIn, (req, res) => {
 		aliases.add(db, req.apiUser, req.body.type, req.body.classString, req.body.classId, (err, aliasId) => {
 			if(!err) {
 				socketIO.user(req.apiUser, 'alias', 'add', {
@@ -22,13 +22,13 @@ module.exports = (app, db, socketIO) => {
 		});
 	});
 
-	app.post('/alias/list', jwt.requireLoggedIn, (req, res) => {
+	app.get('/alias', jwt.requireLoggedIn, (req, res) => {
 		aliases.list(db, req.apiUser, (err, aliases) => {
 			api.respond(res, err, { aliases });
 		});
 	});
 
-	app.post('/alias/delete', jwt.requireLoggedIn, (req, res) => {
+	app.delete('/alias', jwt.requireLoggedIn, (req, res) => {
 		aliases.delete(db, req.apiUser, req.body.type, req.body.id, err => {
 			if(!err) {
 				socketIO.user(req.apiUser, 'alias', 'delete', req.body.id);

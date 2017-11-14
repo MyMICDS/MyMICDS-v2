@@ -7,19 +7,19 @@ const modules = require(__dirname + '/../libs/modules.js');
 
 module.exports = (app, db) => {
 
-	app.post('/modules/get', (req, res) => {
+	app.get('/modules', (req, res) => {
 		modules.get(db, req.apiUser, (err, modules) => {
 			api.respond(res, err, { modules });
 		});
 	});
 
-	app.post('/modules/get-all', (req, res) => {
+	app.get('/modules/all', (req, res) => {
 		modules.getAll(db, (err, modules) => {
 			api.respond(res, err, { modules });
 		});
 	});
 
-	app.post('/modules/upsert', (req, res) => {
+	app.put('/modules', (req, res) => {
 		modules.upsert(db, req.apiUser, req.body.modules, err => {
 			if(err) {
 				api.respond(res, err);

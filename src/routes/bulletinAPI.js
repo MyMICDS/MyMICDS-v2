@@ -10,7 +10,7 @@ const jwt = require(__dirname + '/../libs/jwt.js');
 
 module.exports = (app) => {
 
-	app.post('/daily-bulletin/list', (req, res) => {
+	app.get('/daily-bulletin', (req, res) => {
 		dailyBulletin.getList((err, bulletins) => {
 			api.respond(res, err, {
 				baseURL: dailyBulletin.baseURL,

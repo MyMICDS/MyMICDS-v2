@@ -6,7 +6,7 @@ const api = require(__dirname + '/../libs/api.js');
 const schedule = require(__dirname + '/../libs/schedule.js');
 
 module.exports = (app, db) => {
-	app.post('/schedule/get', (req, res) => {
+	app.get('/schedule', (req, res) => {
 		const current = new Date();
 
 		const year = req.body.year || current.getFullYear();

@@ -8,7 +8,7 @@ const jwt = require(__dirname + '/../libs/jwt.js');
 
 module.exports = (app, db) => {
 
-	app.post('/teachers/list', jwt.requireLoggedIn, (req, res) => {
+	app.get('/teachers', jwt.requireLoggedIn, (req, res) => {
 		teachers.list(db, (err, teachers) => {
 			api.respond(res, err, { teachers });
 		});

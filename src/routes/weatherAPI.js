@@ -8,7 +8,7 @@ const weather = require(__dirname + '/../libs/weather.js');
 
 module.exports = (app, db, socketIO) => {
 
-	app.post('/weather/get', (req, res) => {
+	app.get('/weather', (req, res) => {
 		weather.get((err, weatherJSON) => {
 			api.respond(res, err, { weather: weatherJSON });
 		});

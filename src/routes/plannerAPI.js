@@ -8,13 +8,13 @@ const planner = require(__dirname + '/../libs/planner.js');
 
 module.exports = (app, db, socketIO) => {
 
-	app.post('/planner/get', (req, res) => {
+	app.get('/planner', (req, res) => {
 		planner.get(db, req.apiUser, (err, events) => {
 			api.respond(res, err, { events });
 		});
 	});
 
-	app.post('/planner/add', (req, res) => {
+	app.post('/planner', (req, res) => {
 
 		let start = new Date();
 		if(req.body.start) {
@@ -49,7 +49,7 @@ module.exports = (app, db, socketIO) => {
 		});
 	});
 
-	app.post('/planner/delete', (req, res) => {
+	app.delete('/planner', (req, res) => {
 		planner.delete(db, req.apiUser, req.body.id, err => {
 			if(!err) {
 				socketIO.user(req.apiUser, 'planner', 'delete', req.body.id);
@@ -58,7 +58,7 @@ module.exports = (app, db, socketIO) => {
 		});
 	});
 
-	app.post('/planner/check', (req, res) => {
+	app.patch('/planner/check', (req, res) => {
 		checkedEvents.check(db, req.apiUser, req.body.id, err => {
 			if(!err) {
 				socketIO.user(req.apiUser, 'planner', 'check', req.body.id);
@@ -67,7 +67,7 @@ module.exports = (app, db, socketIO) => {
 		});
 	});
 
-	app.post('/planner/uncheck', (req, res) => {
+	app.patch('/planner/uncheck', (req, res) => {
 		checkedEvents.uncheck(db, req.apiUser, req.body.id, err => {
 			if(!err) {
 				socketIO.user(req.apiUser, 'planner', 'uncheck', req.body.id);

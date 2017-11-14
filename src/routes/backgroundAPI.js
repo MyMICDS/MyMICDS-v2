@@ -7,19 +7,19 @@ const backgrounds = require(__dirname + '/../libs/backgrounds.js');
 
 module.exports = (app, db, socketIO) => {
 
-	app.post('/background/get', (req, res) => {
+	app.get('/background', (req, res) => {
 		backgrounds.get(req.apiUser, (err, variants, hasDefault) => {
 			api.respond(res, err, { hasDefault, variants });
 		});
 	});
 
-	app.post('/background/get-all', (req, res) => {
+	app.get('/background/all', (req, res) => {
 		backgrounds.getAll(db, (err, backgrounds) => {
 			api.respond(res, err, { backgrounds });
 		});
 	});
 
-	app.post('/background/upload', (req, res) => {
+	app.put('/background', (req, res) => {
 		// Write image to user-backgrounds
 		backgrounds.upload()(req, res, err => {
 			if(err) {
@@ -44,7 +44,7 @@ module.exports = (app, db, socketIO) => {
 		});
 	});
 
-	app.post('/background/delete', (req, res) => {
+	app.delete('/background', (req, res) => {
 		backgrounds.delete(req.apiUser, err => {
 			if(err) {
 				api.respond(res, err);

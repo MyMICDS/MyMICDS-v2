@@ -10,7 +10,7 @@ const engine = Random.engines.mt19937().autoSeed();
 
 module.exports = (app, db) => {
 
-	app.post('/quote/get', (req, res) => {
+	app.get('/quote', (req, res) => {
 		quotes.get(db, (err, quotes) => {
 			let quote = null;
 			if(!err) {
@@ -20,7 +20,7 @@ module.exports = (app, db) => {
 		});
 	});
 
-	app.post('/quote/insert', (req, res) => {
+	app.post('/quote', (req, res) => {
 		quotes.insert(db, req.body.author, req.body.quote, err => {
 			api.respond(res, err);
 		});
