@@ -9,12 +9,12 @@ const users = require(__dirname + '/../libs/users.js');
 module.exports = (app, db, socketIO) => {
 
 	app.get('/user/grad-year-to-grade', (req, res) => {
-		const grade = users.gradYearToGrade(parseInt(req.body.year));
+		const grade = users.gradYearToGrade(parseInt(req.query.year));
 		api.respond(res, null, { grade });
 	});
 
 	app.get('/user/grade-to-grad-year', (req, res) => {
-		const gradYear = users.gradeToGradYear(parseInt(req.body.grade));
+		const gradYear = users.gradeToGradYear(parseInt(req.query.grade));
 		api.respond(res, null, { year: gradYear });
 	});
 
