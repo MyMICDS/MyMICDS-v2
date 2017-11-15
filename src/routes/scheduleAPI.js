@@ -9,9 +9,9 @@ module.exports = (app, db) => {
 	app.get('/schedule', (req, res) => {
 		const current = new Date();
 
-		const year = req.body.year || current.getFullYear();
-		const month = req.body.month || current.getMonth() + 1;
-		const day = req.body.day || current.getDate();
+		const year = req.query.year || current.getFullYear();
+		const month = req.query.month || current.getMonth() + 1;
+		const day = req.query.day || current.getDate();
 
 		const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 

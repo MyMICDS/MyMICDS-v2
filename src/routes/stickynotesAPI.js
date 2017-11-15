@@ -7,7 +7,7 @@ const stickynotes = require(__dirname + '/../libs/stickynotes.js');
 
 module.exports = (app, db) => {
 	app.get('/stickynotes', (req, res) => {
-		stickynotes.get(db, req.body.moduleId, (err, note) => {
+		stickynotes.get(db, req.query.moduleId, (err, note) => {
 			api.respond(res, err, { stickynote: note });
 		});
 	});
