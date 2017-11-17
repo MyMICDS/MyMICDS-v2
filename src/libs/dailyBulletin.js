@@ -8,6 +8,7 @@ const config = require(__dirname + '/config.js');
 
 const _         = require('underscore');
 const fs        = require('fs-extra');
+const moment    = require('moment');
 const path      = require('path');
 const utils     = require(__dirname + '/utils.js');
 
@@ -104,14 +105,15 @@ function queryLatest(callback) {
 
 					// PDF Contents
 					const pdf = Buffer.from(attachment.data, 'base64');
-					// Parse base filename to date
-					const bulletinDate = new Date(originalFilename.name);
-
-
 					// Get PDF name
-					const bulletinName = bulletinDate.getFullYear()
-						+ '-' + utils.leadingZeros(bulletinDate.getMonth() + 1)
-						+ '-' + utils.leadingZeros(bulletinDate.getDate());
+					const bulletinName = parseFilename(originalFilename.name);
+
+					// If bulletinName is null, we are unable to parse bulletin and should skip
+					// This probably means it's not a bulletin
+					if(!bulletinName) {
+						callback(null);
+						return;
+					}
 
 					// Make sure directory for Daily Bulletin exists
 					fs.ensureDir(bulletinPDFDir, err => {
@@ -121,7 +123,7 @@ function queryLatest(callback) {
 						}
 
 						// Write PDF to file
-						fs.writeFile(bulletinPDFDir + '/' + bulletinName + '.pdf', pdf, err => {
+						fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf, err => {
 							if(err) {
 								callback(new Error('There was a problem writing the PDF!'));
 								return;
@@ -306,20 +308,15 @@ function queryAll(callback) {
 														const pdf = Buffer.from(dailyBulletin.body.data, 'base64');
 														// We must now get the filename of the Daily Bulletin
 														const originalFilename = path.parse(attachmentIdFilenames[m]);
-														// Parse base filename to date
-														const bulletinDate = new Date(originalFilename.name);
+														// Get PDF name
+														const bulletinName = parseFilename(originalFilename.name);
 
-														// If not valid date, it isn't the Daily Bulletin
-														if(_.isNaN(bulletinDate.getTime())) {
+														// If bulletinName is null, we are unable to parse bulletin and should skip
+														// This probably means it's not a bulletin
+														if(!bulletinName) {
 															writeBulletin(++m);
 															return;
 														}
-
-														// Get PDF name
-														const bulletinName = bulletinDate.getFullYear()
-															+ '-' + utils.leadingZeros(bulletinDate.getMonth() + 1)
-															+ '-' + utils.leadingZeros(bulletinDate.getDate())
-															+ '.pdf';
 
 														// Write PDF to file
 														fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf, err => {
@@ -406,6 +403,25 @@ function getList(callback) {
 
 		});
 	});
+}
+
+/**
+ * Return MyMICDS filename from parsing filename. Returns null if unable to parse.
+ * @param {string} filename - Name of file
+ * @returns {string}
+ */
+
+function parseFilename(filename) {
+	const cleanedName = /([0-9]+.)+[0-9]+/.exec(filename);
+	if (!cleanedName || !cleanedName[0]) {
+		return null;
+	}
+	const date = new Date(cleanedName[0]);
+	if(_.isNaN(date.getTime())) {
+		return null;
+	}
+	console.log(filename, cleanedName, date);
+	return `${utils.leadingZeros(date.getFullYear())}-${utils.leadingZeros(date.getMonth() + 1)}-${utils.leadingZeros(date.getDate())}.pdf`;
 }
 
 module.exports.baseURL     = dailyBulletinUrl;
