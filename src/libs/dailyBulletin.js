@@ -7,10 +7,10 @@
 const config = require(__dirname + '/config.js');
 const PDFParser = require("pdf2json");
 
-const _         = require('underscore');
-const fs        = require('fs-extra');
-const path      = require('path');
-const utils     = require(__dirname + '/utils.js');
+const _     = require('underscore');
+const fs    = require('fs-extra');
+const path  = require('path');
+const utils = require(__dirname + '/utils.js');
 
 const googleServiceAccount = require(__dirname + '/googleServiceAccount.js');
 const googleBatch          = require('google-batch');
@@ -105,14 +105,15 @@ function queryLatest(callback) {
 
 					// PDF Contents
 					const pdf = Buffer.from(attachment.data, 'base64');
-					// Parse base filename to date
-					const bulletinDate = new Date(originalFilename.name);
-
-
 					// Get PDF name
-					const bulletinName = bulletinDate.getFullYear()
-						+ '-' + utils.leadingZeros(bulletinDate.getMonth() + 1)
-						+ '-' + utils.leadingZeros(bulletinDate.getDate());
+					const bulletinName = parseFilename(originalFilename.name);
+
+					// If bulletinName is null, we are unable to parse bulletin and should skip
+					// This probably means it's not a bulletin
+					if(!bulletinName) {
+						callback(null);
+						return;
+					}
 
 					// Make sure directory for Daily Bulletin exists
 					fs.ensureDir(bulletinPDFDir, err => {
@@ -122,7 +123,7 @@ function queryLatest(callback) {
 						}
 
 						// Write PDF to file
-						fs.writeFile(bulletinPDFDir + '/' + bulletinName + '.pdf', pdf, err => {
+						fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf, err => {
 							if(err) {
 								callback(new Error('There was a problem writing the PDF!'));
 								return;
@@ -307,20 +308,15 @@ function queryAll(callback) {
 														const pdf = Buffer.from(dailyBulletin.body.data, 'base64');
 														// We must now get the filename of the Daily Bulletin
 														const originalFilename = path.parse(attachmentIdFilenames[m]);
-														// Parse base filename to date
-														const bulletinDate = new Date(originalFilename.name);
+														// Get PDF name
+														const bulletinName = parseFilename(originalFilename.name);
 
-														// If not valid date, it isn't the Daily Bulletin
-														if(_.isNaN(bulletinDate.getTime())) {
+														// If bulletinName is null, we are unable to parse bulletin and should skip
+														// This probably means it's not a bulletin
+														if(!bulletinName) {
 															writeBulletin(++m);
 															return;
 														}
-
-														// Get PDF name
-														const bulletinName = bulletinDate.getFullYear()
-															+ '-' + utils.leadingZeros(bulletinDate.getMonth() + 1)
-															+ '-' + utils.leadingZeros(bulletinDate.getDate())
-															+ '.pdf';
 
 														// Write PDF to file
 														fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf, err => {
@@ -409,16 +405,43 @@ function getList(callback) {
 	});
 }
 
+/**
+ * Return MyMICDS filename (including extension) from parsing email attachment filename. Returns null if unable to parse.
+ * @param {string} filename - Name of file
+ * @returns {string}
+ */
+
+function parseFilename(filename) {
+	const cleanedName = /([0-9]+.)+[0-9]+/.exec(filename);
+	if (!cleanedName || !cleanedName[0]) {
+		return null;
+	}
+	const date = new Date(cleanedName[0]);
+	if(_.isNaN(date.getTime())) {
+		return null;
+	}
+	return `${utils.leadingZeros(date.getFullYear())}-${utils.leadingZeros(date.getMonth() + 1)}-${utils.leadingZeros(date.getDate())}.pdf`;
+}
+
+// return if a url-encoded word is a zero-length space or not
+function isZLS(word) {
+	return word === '%E2%80%8B' || word === '%E2%80%8B%E2%80%8B';
+}
+
 function parseBulletin(date) {
 	let formattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate();
-	formattedDate = '2017-10-26';
+	formattedDate = '2017-11-20';
 	return new Promise((resolve, reject) => { 
 
 		let pdfParser = new PDFParser();
 		
 		pdfParser.on("pdfParser_dataError", errData => reject(errData.parserError) );
 		pdfParser.on("pdfParser_dataReady", pdfData => {
-			// fs.writeFile("./results/10.09.17.json", JSON.stringify(pdfData));
+			fs.writeFile(__dirname + "/results/10.09.17.json", JSON.stringify(pdfData), (err) => {
+				if (err) {
+					console.log('fuck', err)
+				}
+			});
 			let announcements = [];
 			let texts = pdfData.formImage.Pages[0].Texts
 			// Get rid of zero-width spaces (not using this because those spaces sometimes have information)
@@ -426,35 +449,45 @@ function parseBulletin(date) {
 				// 	let word = item.R[0].T;
 				// 	return word !== '%E2%80%8B' && word !== '%E2%80%8B%E2%80%8B' ;
 				// });
-		
+
 			// Separate bolded titles and normal weight contents
 			for (let i = 0; i < texts.length; i++) {
 				let item = texts[i];
 				let rawWord = item.R[0];
 				let word = decodeURIComponent(rawWord.T).trim();
-				
+
 				// If the last and current word is a space then skip, if last is and current isn't then there is an actual sapce before
-				let lastWord = i > 0 ? texts[i - 1].R[0] : null;
+				let lastItem = i > 0 ? texts[i - 1] : null;
+				let lastWord = lastItem ? lastItem.R[0] : null;
 				let hasSpaceBefore = false;
-				if (rawWord.T !== '%E2%80%8B') {
-					hasSpaceBefore =lastWord && (lastWord.T === '%E2%80%8B')
+				if (!isZLS(rawWord.T)) {
+					hasSpaceBefore = lastWord && isZLS(lastWord.T);
 				} else {
 					continue;
 				}
 
 				// Find of the last word that is not a space
 				let j = i;
-				let lastWordNotSpace = lastWord;
-				while (lastWordNotSpace && lastWordNotSpace.T === '%E2%80%8B') {
+				let lastItemNotSpace = lastItem;
+				while (j > 0 && lastItemNotSpace && isZLS(lastItemNotSpace.R[0].T)) {
 					j--;
-					lastWordNotSpace = texts[j - 1].R[0];
+					lastItemNotSpace = texts[j];
 				}
+
 				// If text is bolded
 				if (rawWord.TS[2] === 1) {
-					// Check if last word is not bolded
 					let newTitle = false;
-					newTitle = lastWordNotSpace ? lastWordNotSpace.TS[2] !== 1 : true;
-	
+					if (word === 'TODAY') {
+						console.log(lastItemNotSpace.R[0].TS, item);
+					}
+					newTitle =
+						// Is this not very first word in the document
+						lastItemNotSpace ?
+							// Is this different line
+							lastItemNotSpace.y !== item.y 
+								// If both are bolded and on different lines, then its a new title
+								: true;
+
 					if (newTitle) {
 						// A new title
 						announcements.push({ title: word, content: '' });
@@ -469,9 +502,27 @@ function parseBulletin(date) {
 					if (hasSpaceBefore) { word = ' ' + word }
 					announcements[announcements.length - 1].content += word;
 				};
-				
+
 			};
 		
+			let dayType = '';
+			// Find the type of day it is, like special schedule or turkey train or whatever
+			for (let i = announcements.length - 1; i >= 0; i--) {
+				let dayTypeRegEx = /DAY [0-9] - /g;
+				if (dayTypeRegEx.test(announcements[i].title)) {
+					dayType = announcements[i].title.substring(8, announcements[i].title.length);
+				}
+			}
+
+			let jeansDay = false;
+			// Find the type of day it is, like special schedule or turkey train or whatever
+			for (let i = announcements.length - 1; i >= 0; i--) {
+				let jeansDayRegEx = /JEANS DAY/ig;
+				if (jeansDayRegEx.test(announcements[i].title)) {
+					jeansDay = true;
+				}
+			}
+
 			// Find Birthday section and parse it
 			let birthdays = {}
 			for (let i = announcements.length - 1; i >= 0; i--) {
@@ -498,7 +549,7 @@ function parseBulletin(date) {
 					announcements.splice(i, 1);
 				}
 			}
-		
+
 			// Delete Lunch and Schedule sections
 			for (let i = announcements.length - 1; i >= 0; i--) {
 				let lunchRegEx = /lunch/ig;
@@ -512,42 +563,49 @@ function parseBulletin(date) {
 		
 			let result = {
 				announcements,
-				birthdays
+				birthdays,
+				dayType,
+				jeansDay
 			}
+
 			console.log(result);
 			resolve(result);
 		});
-		console.log(__dirname + '/../public/daily-bulletin/' + formattedDate + '.pdf')
 		pdfParser.loadPDF(__dirname + '/../public/daily-bulletin/' + formattedDate + '.pdf');
 		
 	});
 }
 
 function getParsed(date, callback) {
-	let formattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate();
-	formattedDate = '2017-10-26';
-	fs.readFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', (err, data) => {
-		if (err) {
-			callback(new Error(err), null);
-		}
-		callback(null, JSON.parse(data));
+	let currDate = new Date();
+	parseBulletin(currDate).then((result) => {
+		let formattedDate = currDate.getFullYear() + '-' + (currDate.getMonth()+1) + '-' + currDate.getDate();
+		formattedDate = '2017-08-25';
+		fs.writeFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', JSON.stringify(result), (err) => {
+			if (err) {
+				console.log(`[${new Date()}] Error occurred parsing daily bulletin writing to file! (${err})`)
+			}
+			console.log(`[${new Date()}] Successfully parsed daily bulletin!`)
+
+
+			let formattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate();
+			formattedDate = '2017-10-26';
+			fs.readFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', (err, data) => {
+				if (err) {
+					callback(new Error(err), null);
+				}
+				callback(null, JSON.parse(data));
+			})
+
+
+		});
 	})
+	.catch((err) => {
+		console.log(`[${new Date()}] Error occurred parsing daily bulletin! (${err})`)
+	});
 }
 
-let currDate = new Date();
-parseBulletin(currDate).then((result) => {
-	let formattedDate = currDate.getFullYear() + '-' + (currDate.getMonth()+1) + '-' + currDate.getDate();
-	formattedDate = '2017-10-26';
-	fs.writeFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', JSON.stringify(result), (err) => {
-		if (err) {
-			console.log(`[${new Date()}] Error occurred parsing daily bulletin writing to file! (${err})`)
-		}
-		console.log(`[${new Date()}] Successfully parsed daily bulletin!`)
-	});
-})
-.catch((err) => {
-	console.log(`[${new Date()}] Error occurred parsing daily bulletin! (${err})`)
-});
+
 
 module.exports.baseURL       = dailyBulletinUrl;
 module.exports.queryLatest   = queryLatest;
