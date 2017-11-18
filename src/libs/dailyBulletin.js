@@ -6,11 +6,10 @@
  */
 const config = require(__dirname + '/config.js');
 
-const _         = require('underscore');
-const fs        = require('fs-extra');
-const moment    = require('moment');
-const path      = require('path');
-const utils     = require(__dirname + '/utils.js');
+const _     = require('underscore');
+const fs    = require('fs-extra');
+const path  = require('path');
+const utils = require(__dirname + '/utils.js');
 
 const googleServiceAccount = require(__dirname + '/googleServiceAccount.js');
 const googleBatch          = require('google-batch');
@@ -406,7 +405,7 @@ function getList(callback) {
 }
 
 /**
- * Return MyMICDS filename from parsing filename. Returns null if unable to parse.
+ * Return MyMICDS filename (including extension) from parsing email attachment filename. Returns null if unable to parse.
  * @param {string} filename - Name of file
  * @returns {string}
  */
@@ -420,7 +419,6 @@ function parseFilename(filename) {
 	if(_.isNaN(date.getTime())) {
 		return null;
 	}
-	console.log(filename, cleanedName, date);
 	return `${utils.leadingZeros(date.getFullYear())}-${utils.leadingZeros(date.getMonth() + 1)}-${utils.leadingZeros(date.getDate())}.pdf`;
 }
 
