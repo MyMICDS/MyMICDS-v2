@@ -505,27 +505,28 @@ function parseBulletin(date) {
 
 			};
 		
+			let operations = [];
 			let dayType = '';
 			// Find the type of day it is, like special schedule or turkey train or whatever
-			for (let i = announcements.length - 1; i >= 0; i--) {
+			operations.push((i) => {
 				let dayTypeRegEx = /DAY [0-9] - /g;
 				if (dayTypeRegEx.test(announcements[i].title)) {
 					dayType = announcements[i].title.substring(8, announcements[i].title.length);
 				}
-			}
+			})
 
 			let jeansDay = false;
 			// Find the type of day it is, like special schedule or turkey train or whatever
-			for (let i = announcements.length - 1; i >= 0; i--) {
+			operations.push((i) => {
 				let jeansDayRegEx = /JEANS DAY/ig;
 				if (jeansDayRegEx.test(announcements[i].title)) {
 					jeansDay = true;
 				}
-			}
+			})
 
 			// Find Birthday section and parse it
 			let birthdays = {}
-			for (let i = announcements.length - 1; i >= 0; i--) {
+			operations.push((i) => {
 				let nameRegEx = /Birthday to (.*?)(?= Happy|\n)/g;
 				let dateRegEx = /Happy(.*?)(?= Birthday|\n)/g;
 				let namesRaw = (announcements[i].title + '\n').match(nameRegEx);
@@ -548,10 +549,10 @@ function parseBulletin(date) {
 		
 					announcements.splice(i, 1);
 				}
-			}
+			})
 
 			// Delete Lunch and Schedule sections
-			for (let i = announcements.length - 1; i >= 0; i--) {
+			operations.push((i) => {
 				let lunchRegEx = /lunch/ig;
 				let scheduleRegEx = /schedule/ig;
 				let collabRegEx = /Collaborative/ig;
@@ -559,8 +560,12 @@ function parseBulletin(date) {
 				if (lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title) || collabRegEx.test(announcements[i].title) || activitiesRegEx.test(announcements[i].content)) {
 					announcements.splice(i, 1);
 				}
+			})
+
+			for (let i = announcements.length - 1; i >= 0; i--) {
+				operations.forEach(op => op(i));
 			}
-		
+
 			let result = {
 				announcements,
 				birthdays,
