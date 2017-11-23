@@ -29,6 +29,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/classes/delete`](#classesdelete)
 * [Daily Bulletin API](#daily-bulletin-api)
   * [`/daily-bulletin/list`](#daily-bulletinlist)
+  * [`/daily-bulletin/parsed`](#daily-bulletinparsed)
 * [Dates API](#dates-api)
   * [`/dates/school-ends`](#datesschool-ends)
   * [`/dates/breaks`](#datesbreaks)
@@ -251,6 +252,16 @@ Gets an array of bulletin filenames from newest to oldest.
 - `error` - Null if success, string containing error if failure.
 - `baseURL` - Base URL all Daily Bulletins are stored in.
 - `bulletins` - Array of bulletins names from newest to oldest. Null if error.
+
+### `/daily-bulletin/parsed`
+Gets a JSON object for the parsed bulletin, containing announcements in the daily bulletin.
+
+#### Parameters
+- `date` - query parameter named date, has to be parsable by Date constrcuter.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
+- `data` - Object containing parsed information. 
 
 
 
