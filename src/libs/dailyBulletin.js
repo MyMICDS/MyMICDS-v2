@@ -549,25 +549,28 @@ function parseBulletin(path) {
 				}
 			})
 
+			let cleanAnnouncements = [];
 			// Delete Lunch and Schedule sections
 			operations.push((i) => {
-				let lunchRegEx = /Lunch/ig;
-				let scheduleRegEx = /schedule|block and lunch/ig;
+				let titleRegEx = /DAILY BULLETIN|DAY [0-6]/ig
+				let lunchRegEx = /Lunch:/ig;
+				let scheduleRegEx = /schedule|and lunch|[0-9]{2}:[0-9]{2}/ig;
 				let collabRegEx = /Collaborative/ig;
 				let activitiesRegEx = /MeetingSponsorLocation/ig;
-				if (lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title) || collabRegEx.test(announcements[i].title) || activitiesRegEx.test(announcements[i].content)) {
-					announcements.splice(i, 1);
+				// console.log(announcements[i], lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title) || collabRegEx.test(announcements[i].title) || activitiesRegEx.test(announcements[i].content))
+				if (!(titleRegEx.test(announcements[i].title) || lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title) || collabRegEx.test(announcements[i].title) || activitiesRegEx.test(announcements[i].content))) {
+					cleanAnnouncements.push(announcements[i])
 				}
 			})
 
-			operations.forEach(op => {
-				for (let i = 0; i < announcements.length; i++) {
-					op(i);
+			for (let i = 0; i < operations.length; i++) {
+				for (let j = 0; j < announcements.length; j++) {
+					operations[i](j);
 				}
-			});
+			};
 
 			let result = {
-				announcements,
+				nnouncements: cleanAnnouncements,
 				birthdays,
 				dayType,
 				jeansDay

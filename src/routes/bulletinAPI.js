@@ -73,8 +73,9 @@ module.exports = (app, db, socketIO) => {
 		});
 	});
 
-	app.post('/daily-bulletin/parsed', (req, res) => {
-		let date = req.body.date || new Date();
+	// Send query parameter named date, has to be parsable by Date constrcuter 
+	app.get('/daily-bulletin/parsed', (req, res) => {
+		let date = req.query.date || new Date();
 		dailyBulletin.getParsed(new Date(date), (err, data)=> {
 			let error = null;
 			if (err) {
