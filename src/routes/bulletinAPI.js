@@ -74,11 +74,11 @@ module.exports = (app, db, socketIO) => {
 	});
 
 	app.post('/daily-bulletin/parsed', (req, res) => {
-		dailyBulletin.getParsed(new Date(), (err, data)=> {
+		let date = req.body.date || new Date();
+		dailyBulletin.getParsed(new Date(date), (err, data)=> {
 			let error = null;
 			if (err) {
 				error = err.message;
-				return;
 			}
 
 			res.json({ error, data })

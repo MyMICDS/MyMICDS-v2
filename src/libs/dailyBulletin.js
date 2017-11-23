@@ -428,28 +428,30 @@ function isZLS(word) {
 	return word === '%E2%80%8B' || word === '%E2%80%8B%E2%80%8B';
 }
 
-function parseBulletin(date) {
-	let formattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate();
-	formattedDate = '2017-11-20';
+function parseBulletin(path) {
 	return new Promise((resolve, reject) => { 
 
 		let pdfParser = new PDFParser();
 		
-		pdfParser.on("pdfParser_dataError", errData => reject(errData.parserError) );
+		pdfParser.on("pdfParser_dataError", errData => {
+			reject(errData.parserError || errData.data.toString());
+		});
+
 		pdfParser.on("pdfParser_dataReady", pdfData => {
-			fs.writeFile(__dirname + "/results/10.09.17.json", JSON.stringify(pdfData), (err) => {
+			fs.writeFile(__dirname + "/results/pdf-test.json", JSON.stringify(pdfData), (err) => {
 				if (err) {
-					console.log('fuck', err)
+					console.log('Error when writing pdf data: ', err)
 				}
 			});
 			let announcements = [];
-			let texts = pdfData.formImage.Pages[0].Texts
+			let texts = pdfData.formImage.Pages[0].Texts;
 			// Get rid of zero-width spaces (not using this because those spaces sometimes have information)
 				// .filter(item => {
 				// 	let word = item.R[0].T;
 				// 	return word !== '%E2%80%8B' && word !== '%E2%80%8B%E2%80%8B' ;
 				// });
 
+			let lastTitleItem;
 			// Separate bolded titles and normal weight contents
 			for (let i = 0; i < texts.length; i++) {
 				let item = texts[i];
@@ -461,7 +463,8 @@ function parseBulletin(date) {
 				let lastWord = lastItem ? lastItem.R[0] : null;
 				let hasSpaceBefore = false;
 				if (!isZLS(rawWord.T)) {
-					hasSpaceBefore = lastWord && isZLS(lastWord.T);
+					// if there's a non zero space before the word or its a new line then there is a space
+					hasSpaceBefore = lastWord && (isZLS(lastWord.T) || item.y !== lastItem.y);
 				} else {
 					continue;
 				}
@@ -474,37 +477,32 @@ function parseBulletin(date) {
 					lastItemNotSpace = texts[j];
 				}
 
-				// If text is bolded
-				if (rawWord.TS[2] === 1) {
-					let newTitle = false;
-					if (word === 'TODAY') {
-						console.log(lastItemNotSpace.R[0].TS, item);
-					}
-					newTitle =
-						// Is this not very first word in the document
-						lastItemNotSpace ?
-							// Is this different line
-							lastItemNotSpace.y !== item.y 
-								// If both are bolded and on different lines, then its a new title
-								: true;
+				// If text and previous one are on different lines it might be a new title
+				if (!lastItemNotSpace || ((item.y - lastItemNotSpace.y > 0.9 && lastItemNotSpace.x >= item.x))) {
 
-					if (newTitle) {
-						// A new title
-						announcements.push({ title: word, content: '' });
-					} else {
-						// Continuation of last title
-						// If there was meant to be a space then add an actual space
-						if (hasSpaceBefore) { word = ' ' + word }
-						announcements[announcements.length - 1].title += word;
-					}
+					lastTitleItem = item;
+					// A new title
+					announcements.push({ title: word, content: '' });
+
+				} else
+				// if the word is bolded, or big enough, and previous word is bolded too then 
+				if (lastTitleItem.y === item.y && (rawWord.TS[2] === 1 || rawWord.TS[1] > 30)) {
+
+					lastTitleItem = item;
+					// Continuation of previous title
+					if (hasSpaceBefore) { word = ' ' + word }
+					announcements[announcements.length - 1].title += word;
+
 				} else {
+
 					// Announcement content below the title
 					if (hasSpaceBefore) { word = ' ' + word }
 					announcements[announcements.length - 1].content += word;
+
 				};
 
 			};
-		
+
 			let operations = [];
 			let dayType = '';
 			// Find the type of day it is, like special schedule or turkey train or whatever
@@ -553,8 +551,8 @@ function parseBulletin(date) {
 
 			// Delete Lunch and Schedule sections
 			operations.push((i) => {
-				let lunchRegEx = /lunch/ig;
-				let scheduleRegEx = /schedule/ig;
+				let lunchRegEx = /Lunch/ig;
+				let scheduleRegEx = /schedule|block and lunch/ig;
 				let collabRegEx = /Collaborative/ig;
 				let activitiesRegEx = /MeetingSponsorLocation/ig;
 				if (lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title) || collabRegEx.test(announcements[i].title) || activitiesRegEx.test(announcements[i].content)) {
@@ -562,9 +560,11 @@ function parseBulletin(date) {
 				}
 			})
 
-			for (let i = announcements.length - 1; i >= 0; i--) {
-				operations.forEach(op => op(i));
-			}
+			operations.forEach(op => {
+				for (let i = 0; i < announcements.length; i++) {
+					op(i);
+				}
+			});
 
 			let result = {
 				announcements,
@@ -573,40 +573,37 @@ function parseBulletin(date) {
 				jeansDay
 			}
 
-			console.log(result);
 			resolve(result);
 		});
-		pdfParser.loadPDF(__dirname + '/../public/daily-bulletin/' + formattedDate + '.pdf');
+
+		pdfParser.loadPDF(path);
 		
 	});
 }
 
 function getParsed(date, callback) {
-	let currDate = new Date();
-	parseBulletin(currDate).then((result) => {
-		let formattedDate = currDate.getFullYear() + '-' + (currDate.getMonth()+1) + '-' + currDate.getDate();
-		formattedDate = '2017-08-25';
+	let formattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + (date.getDate() + 1);
+	let path = __dirname + '/../public/daily-bulletin/' + formattedDate + '.pdf'
+	parseBulletin(path).then((result) => {
+
 		fs.writeFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', JSON.stringify(result), (err) => {
 			if (err) {
 				console.log(`[${new Date()}] Error occurred parsing daily bulletin writing to file! (${err})`)
 			}
 			console.log(`[${new Date()}] Successfully parsed daily bulletin!`)
 
-
-			let formattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate();
-			formattedDate = '2017-10-26';
 			fs.readFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', (err, data) => {
 				if (err) {
-					callback(new Error(err), null);
+					callback(new Error('Error occurred reading daily bulletin!'), null);
 				}
 				callback(null, JSON.parse(data));
 			})
 
-
 		});
 	})
 	.catch((err) => {
-		console.log(`[${new Date()}] Error occurred parsing daily bulletin! (${err})`)
+		console.log(`[${new Date()}] Error occurred parsing daily bulletin! (${err})`);
+		callback(new Error('Error occurred parsing daily bulletin!'), null);
 	});
 }
 
