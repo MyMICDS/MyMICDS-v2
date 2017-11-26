@@ -463,8 +463,12 @@ function parseBulletin(path) {
 				let lastWord = lastItem ? lastItem.R[0] : null;
 				let hasSpaceBefore = false;
 				if (!isZLS(rawWord.T)) {
-					// if there's a non zero space before the word or its a new line then there is a space
-					hasSpaceBefore = lastWord && (isZLS(lastWord.T) || item.y !== lastItem.y);
+					// if there's a non zero space before the word or its a new line or there is an encoded space char then there is a space
+					hasSpaceBefore = lastWord && (
+						isZLS(lastWord.T) ||
+						item.y !== lastItem.y ||
+						lastWord.T.slice(lastWord.T.length - 3, lastWord.T.length) === '%20'
+					);
 				} else {
 					continue;
 				}
@@ -478,7 +482,7 @@ function parseBulletin(path) {
 				}
 
 				// If text and previous one are on different lines it might be a new title
-				if (!lastItemNotSpace || ((item.y - lastItemNotSpace.y > 0.9 && lastItemNotSpace.x >= item.x))) {
+				if (!lastItemNotSpace || ((item.y - lastItemNotSpace.y > 0.9))) {
 
 					lastTitleItem = item;
 					// A new title
@@ -486,7 +490,7 @@ function parseBulletin(path) {
 
 				} else
 				// if the word is bolded, or big enough, and previous word is bolded too then 
-				if (lastTitleItem.y === item.y && (rawWord.TS[2] === 1 || rawWord.TS[1] > 30)) {
+				if (lastTitleItem.y === item.y && item.x - lastTitleItem.x < 5 && (rawWord.TS[2] === 1 || rawWord.TS[1] > 30)) {
 
 					lastTitleItem = item;
 					// Continuation of previous title
@@ -507,9 +511,9 @@ function parseBulletin(path) {
 			let dayType = '';
 			// Find the type of day it is, like special schedule or turkey train or whatever
 			operations.push((i) => {
-				let dayTypeRegEx = /DAY [0-9] - /g;
+				let dayTypeRegEx = /DAY [0-9]{1} [-|–]/g;
 				if (dayTypeRegEx.test(announcements[i].title)) {
-					dayType = announcements[i].title.substring(8, announcements[i].title.length);
+					dayType = announcements[i].title.substring(7, announcements[i].title.length);
 				}
 			})
 
@@ -525,43 +529,58 @@ function parseBulletin(path) {
 			// Find Birthday section and parse it
 			let birthdays = {}
 			operations.push((i) => {
-				let nameRegEx = /Birthday to (.*?)(?= Happy|\n)/g;
-				let dateRegEx = /Happy(.*?)(?= Birthday|\n)/g;
-				let namesRaw = (announcements[i].title + '\n').match(nameRegEx);
-				let datesRaw = (announcements[i].title + '\n').match(dateRegEx);
-				if (namesRaw && datesRaw) {
-					// Get rid of "Birthday to"
-					namesRaw = namesRaw.map(s => s.substring(12, s.length));
-					// Get rid of "Happy " or "Happy Belated"
-					datesRaw = datesRaw.map(s => {
-						if (s.match(/belated|Belated/g)) {
-							return s.substring(14, s.length);
-						} else {
-							return 'Today';
-						}
-					});
-		
-					datesRaw.forEach((date, index) => {
-						birthdays[date] = namesRaw[index].split(', ');
-					});
-		
-					announcements.splice(i, 1);
+				let parseBirthdays = (bDayText) => {
+					let nameRegEx = /Birthday to (.*?)(?= Happy|\n)/g;
+					let dateRegEx = /Happy(.*?)(?= Birthday|\n)/g;
+					let namesRaw = (bDayText + '\n').match(nameRegEx);
+					let datesRaw = (bDayText + '\n').match(dateRegEx);
+					if (namesRaw && datesRaw) {
+						// Get rid of "Birthday to"
+						namesRaw = namesRaw.map(s => s.substring(12, s.length));
+						// Get rid of "Happy " or "Happy Belated"
+						datesRaw = datesRaw.map(s => {
+							if (s.match(/belated/ig)) {
+								return s.substring(14, s.length);
+							} else if (s.match(/Happy /ig)) {
+								return s.substring(6, s.length);
+							} else {
+								return 'Today';
+							}
+						});
+			
+						datesRaw.forEach((date, index) => {
+							birthdays[date] = namesRaw[index].split(', ');
+						});
+					}
 				}
-			})
+
+				parseBirthdays(announcements[i].title);
+				parseBirthdays(announcements[i].content);
+			});
 
 			let cleanAnnouncements = [];
 			// Delete Lunch and Schedule sections
 			operations.push((i) => {
-				let titleRegEx = /DAILY BULLETIN|DAY [0-6]/ig
-				let lunchRegEx = /Lunch:/ig;
+				let titleRegEx = /DAILY BULLETIN|DAY [0-6]|TODAY IS A JEANS DAY/ig
+				let lunchRegEx = /LUNCH/g;
 				let scheduleRegEx = /schedule|and lunch|[0-9]{2}:[0-9]{2}/ig;
 				let collabRegEx = /Collaborative/ig;
 				let activitiesRegEx = /MeetingSponsorLocation/ig;
+				let birthdayRegEx = /Happy Birthday to /ig;
 				// console.log(announcements[i], lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title) || collabRegEx.test(announcements[i].title) || activitiesRegEx.test(announcements[i].content))
-				if (!(titleRegEx.test(announcements[i].title) || lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title) || collabRegEx.test(announcements[i].title) || activitiesRegEx.test(announcements[i].content))) {
+				if (!(birthdayRegEx.test(announcements[i].title) || titleRegEx.test(announcements[i].title) || lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title) || collabRegEx.test(announcements[i].title) || activitiesRegEx.test(announcements[i].content))) {
 					cleanAnnouncements.push(announcements[i])
 				}
-			})
+			});
+
+			// clean colons and spaces
+			operations.push((i) => {
+				announcements[i].content = announcements[i].content.trim();
+				announcements[i].title = announcements[i].title.trim();
+				if (/:/.test(announcements[i].content.substr(0, 1))) {
+					announcements[i].content = announcements[i].content.slice(1, announcements[i].content.length).trim();
+				};
+			});
 
 			for (let i = 0; i < operations.length; i++) {
 				for (let j = 0; j < announcements.length; j++) {
@@ -570,7 +589,7 @@ function parseBulletin(path) {
 			};
 
 			let result = {
-				nnouncements: cleanAnnouncements,
+				announcements: cleanAnnouncements,
 				birthdays,
 				dayType,
 				jeansDay
@@ -585,7 +604,7 @@ function parseBulletin(path) {
 }
 
 function getParsed(date, callback) {
-	let formattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + (date.getDate() + 1);
+	let formattedDate = date.getFullYear() + '-' + utils.leadingZeros((date.getMonth()+1)) + '-' + utils.leadingZeros((date.getDate() + 1));
 	let path = __dirname + '/../public/daily-bulletin/' + formattedDate + '.pdf'
 	parseBulletin(path).then((result) => {
 
