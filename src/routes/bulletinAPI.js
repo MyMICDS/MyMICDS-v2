@@ -74,8 +74,11 @@ module.exports = (app, db, socketIO) => {
 	});
 
 	app.get('/daily-bulletin/parsed', (req, res) => {
-		let date = req.query.date || new Date();
-		dailyBulletin.getParsed(new Date(date), (err, data)=> {
+		let date = new Date()
+		date.setFullYear(req.query.year);
+		date.setMonth(req.query.month);
+		date.setDate(req.query.day);
+		dailyBulletin.getParsed(date, (err, data)=> {
 			let error = null;
 			if (err) {
 				error = err.message;

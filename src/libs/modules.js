@@ -11,7 +11,7 @@ const users = require(__dirname + '/users.js');
 const moment = require('moment');
 
 // All allowed modules
-const moduleList = ['countdown', 'progress', 'schedule', 'simplifiedSchedule', 'snowday', 'stickynotes', 'weather'];
+const moduleList = ['countdown', 'progress', 'schedule', 'simplifiedSchedule', 'snowday', 'stickynotes', 'weather', 'announcements'];
 // Module options. Can be either `boolean`, `number`, or `string`
 const modulesConfig = {
 	countdown: {
@@ -45,6 +45,8 @@ const modulesConfig = {
 			type: 'boolean',
 			default: false
 		}
+	},
+	announcements: {
 	}
 };
 

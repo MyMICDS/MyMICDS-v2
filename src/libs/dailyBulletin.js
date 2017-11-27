@@ -608,7 +608,7 @@ function parseBulletin(path) {
 }
 
 function getParsed(date, callback) {
-	let formattedDate = date.getFullYear() + '-' + utils.leadingZeros((date.getMonth()+1)) + '-' + utils.leadingZeros((date.getDate() + 1));
+	let formattedDate = date.getFullYear() + '-' + utils.leadingZeros((date.getMonth()+1)) + '-' + utils.leadingZeros((date.getDate()+1));
 	let path = __dirname + '/../public/daily-bulletin/' + formattedDate + '.pdf'
 	parseBulletin(path).then((result) => {
 
@@ -616,14 +616,16 @@ function getParsed(date, callback) {
 			if (err) {
 				console.log(`[${new Date()}] Error occurred parsing daily bulletin writing to file! (${err})`)
 			}
-			console.log(`[${new Date()}] Successfully parsed daily bulletin!`)
+			console.log(`[${new Date()}] Successfully parsed daily bulletin! ${formattedDate}`)
 
+//----------This will be the actuall part of this function, above and below are supposed to be in the tasks file.----------
 			fs.readFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', (err, data) => {
 				if (err) {
 					callback(new Error('Error occurred reading daily bulletin!'), null);
 				}
 				callback(null, JSON.parse(data));
 			})
+//-------------------------------------------------------------------------------------------------------------------------
 
 		});
 	})
