@@ -550,6 +550,10 @@ function parseBulletin(path) {
 			
 						datesRaw.forEach((date, index) => {
 							birthdays[date] = namesRaw[index].split(', ');
+							// get rid of the "and"
+							// birthdays[date].forEach((name) => {
+								
+							// });
 						});
 					}
 				}
