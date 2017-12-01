@@ -10,6 +10,8 @@ try {
 } catch(e) {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }
+const PDFParser     = require('pdf2json');
+const fs            = require('fs-extra');
 
 const admins        = require(__dirname + '/libs/admins.js');
 const dailyBulletin = require(__dirname + '/libs/dailyBulletin.js');
@@ -51,20 +53,23 @@ if(config.production) {
 						console.log(`[${new Date()}] Alerted admins of error! (${err})`);
 					});
 				} else {
-					let currDate = new Date();
-					parseBulletin(currDate).then((result) => {
-						let formattedDate = currDate.getFullYear() + '-' + (currDate.getMonth()+1) + '-' + currDate.getDate();
-						formattedDate = '2017-10-26';
-						fs.writeFile(__dirname + '/public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', JSON.stringify(result), (err) => {
+					const formattedDate = date.getFullYear() + '-' + utils.leadingZeros((date.getMonth()+1)) + '-' + utils.leadingZeros((date.getDate()+1));
+					const path = __dirname + '/public/daily-bulletin/' + formattedDate + '.pdf';
+
+					dailyBulletin.parseBulletin(path).then((result) => {
+						
+						fs.writeFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', JSON.stringify(result), (err) => {
 							if (err) {
-								console.log(`[${new Date()}] Error occurred parsing daily bulletin writing to file! (${err})`)
+								console.log(`[${new Date()}] Error occurred parsing daily bulletin writing to file! (${err})`);
 							}
-							console.log(`[${new Date()}] Successfully parsed daily bulletin!`)
+							console.log(`[${new Date()}] Successfully parsed daily bulletin! ${formattedDate}`);
 						});
+						
 					})
 					.catch((err) => {
-						console.log(`[${new Date()}] Error occurred parsing daily bulletin! (${err})`)
+						console.log(`[${new Date()}] Error occurred parsing daily bulletin! (${err})`);
 					});
+
 					console.log(`[${new Date()}] Successfully got latest Daily Bulletin!`);
 				}
 			});

@@ -74,7 +74,7 @@ module.exports = (app, db, socketIO) => {
 	});
 
 	app.get('/daily-bulletin/parsed', (req, res) => {
-		let date = new Date()
+		const date = new Date();
 		date.setFullYear(req.query.year);
 		date.setMonth(req.query.month);
 		date.setDate(req.query.day);
@@ -84,7 +84,7 @@ module.exports = (app, db, socketIO) => {
 				error = err.message;
 			}
 
-			res.json({ error, data })
+			res.json({ error, data });
 		});
 	});
 

@@ -5,7 +5,7 @@
  * @module dailyBulletin
  */
 const config = require(__dirname + '/config.js');
-const PDFParser = require("pdf2json");
+const PDFParser = require('pdf2json');
 
 const _     = require('underscore');
 const fs    = require('fs-extra');
@@ -431,20 +431,20 @@ function isZLS(word) {
 function parseBulletin(path) {
 	return new Promise((resolve, reject) => { 
 
-		let pdfParser = new PDFParser();
+		const pdfParser = new PDFParser();
 		
-		pdfParser.on("pdfParser_dataError", errData => {
+		pdfParser.on('pdfParser_dataError', errData => {
 			reject(errData.parserError || errData.data.toString());
 		});
 
-		pdfParser.on("pdfParser_dataReady", pdfData => {
-			fs.writeFile(__dirname + "/results/pdf-test.json", JSON.stringify(pdfData), (err) => {
+		pdfParser.on('pdfParser_dataReady', pdfData => {
+			fs.writeFile(__dirname + '/results/pdf-test.json', JSON.stringify(pdfData), (err) => {
 				if (err) {
-					console.log('Error when writing pdf data: ', err)
+					console.log('Error when writing pdf data: ', err);
 				}
 			});
-			let announcements = [];
-			let texts = pdfData.formImage.Pages[0].Texts;
+			const announcements = [];
+			const texts = pdfData.formImage.Pages[0].Texts;
 			// Get rid of zero-width spaces (not using this because those spaces sometimes have information)
 				// .filter(item => {
 				// 	let word = item.R[0].T;
@@ -454,13 +454,13 @@ function parseBulletin(path) {
 			let lastTitleItem;
 			// Separate bolded titles and normal weight contents
 			for (let i = 0; i < texts.length; i++) {
-				let item = texts[i];
-				let rawWord = item.R[0];
+				const item = texts[i];
+				const rawWord = item.R[0];
 				let word = decodeURIComponent(rawWord.T).trim();
 
 				// If the last and current word is a space then skip, if last is and current isn't then there is an actual sapce before
-				let lastItem = i > 0 ? texts[i - 1] : null;
-				let lastWord = lastItem ? lastItem.R[0] : null;
+				const lastItem = i > 0 ? texts[i - 1] : null;
+				const lastWord = lastItem ? lastItem.R[0] : null;
 				let hasSpaceBefore = false;
 				if (!isZLS(rawWord.T)) {
 					// if there's a non zero space before the word or its a new line or there is an encoded space char then there is a space
@@ -494,44 +494,44 @@ function parseBulletin(path) {
 
 					lastTitleItem = item;
 					// Continuation of previous title
-					if (hasSpaceBefore) { word = ' ' + word }
+					if (hasSpaceBefore) { word = ' ' + word; }
 					announcements[announcements.length - 1].title += word;
 
 				} else {
 
 					// Announcement content below the title
-					if (hasSpaceBefore) { word = ' ' + word }
+					if (hasSpaceBefore) { word = ' ' + word; }
 					announcements[announcements.length - 1].content += word;
 
-				};
+				}
 
-			};
+			}
 
-			let operations = [];
+			const operations = [];
 			let dayType = '';
 			// Find the type of day it is, like special schedule or turkey train or whatever
 			operations.push((i) => {
-				let dayTypeRegEx = /DAY [0-9]{1} [-|–]/g;
+				const dayTypeRegEx = /DAY [0-9]{1} [-|–]/g;
 				if (dayTypeRegEx.test(announcements[i].title)) {
 					dayType = announcements[i].title.substring(7, announcements[i].title.length);
 				}
-			})
+			});
 
 			let jeansDay = false;
 			// Find the type of day it is, like special schedule or turkey train or whatever
 			operations.push((i) => {
-				let jeansDayRegEx = /JEANS DAY/ig;
+				const jeansDayRegEx = /JEANS DAY/ig;
 				if (jeansDayRegEx.test(announcements[i].title)) {
 					jeansDay = true;
 				}
-			})
+			});
 
 			// Find Birthday section and parse it
-			let birthdays = {}
+			const birthdays = {};
 			operations.push((i) => {
-				let parseBirthdays = (bDayText) => {
-					let nameRegEx = /Birthday to (.*?)(?= Happy|\n)/g;
-					let dateRegEx = /Happy(.*?)(?= Birthday|\n)/g;
+				const parseBirthdays = (bDayText) => {
+					const nameRegEx = /Birthday to (.*?)(?= Happy|\n)/g;
+					const dateRegEx = /Happy(.*?)(?= Birthday|\n)/g;
 					let namesRaw = (bDayText + '\n').match(nameRegEx);
 					let datesRaw = (bDayText + '\n').match(dateRegEx);
 					if (namesRaw && datesRaw) {
@@ -556,24 +556,24 @@ function parseBulletin(path) {
 							// });
 						});
 					}
-				}
+				};
 
 				parseBirthdays(announcements[i].title);
 				parseBirthdays(announcements[i].content);
 			});
 
-			let cleanAnnouncements = [];
+			const cleanAnnouncements = [];
 			// Delete Lunch and Schedule sections
 			operations.push((i) => {
-				let titleRegEx = /DAILY BULLETIN|DAY [0-6]|TODAY IS A JEANS DAY/ig
-				let lunchRegEx = /LUNCH/g;
-				let scheduleRegEx = /schedule|and lunch|[0-9]{2}:[0-9]{2}/ig;
-				let collabRegEx = /Collaborative/ig;
-				let activitiesRegEx = /MeetingSponsorLocation/ig;
-				let birthdayRegEx = /Happy Birthday to /ig;
+				const titleRegEx = /DAILY BULLETIN|DAY [0-6]|TODAY IS A JEANS DAY/ig;
+				const lunchRegEx = /LUNCH/g;
+				const scheduleRegEx = /schedule|and lunch|[0-9]{2}:[0-9]{2}/ig;
+				const collabRegEx = /Collaborative/ig;
+				const activitiesRegEx = /MeetingSponsorLocation/ig;
+				const birthdayRegEx = /Happy Birthday to /ig;
 				// console.log(announcements[i], lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title) || collabRegEx.test(announcements[i].title) || activitiesRegEx.test(announcements[i].content))
 				if (!(birthdayRegEx.test(announcements[i].title) || titleRegEx.test(announcements[i].title) || lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title) || collabRegEx.test(announcements[i].title) || activitiesRegEx.test(announcements[i].content))) {
-					cleanAnnouncements.push(announcements[i])
+					cleanAnnouncements.push(announcements[i]);
 				}
 			});
 
@@ -583,21 +583,21 @@ function parseBulletin(path) {
 				announcements[i].title = announcements[i].title.trim();
 				if (/:/.test(announcements[i].content.substr(0, 1))) {
 					announcements[i].content = announcements[i].content.slice(1, announcements[i].content.length).trim();
-				};
+				}
 			});
 
 			for (let i = 0; i < operations.length; i++) {
 				for (let j = 0; j < announcements.length; j++) {
 					operations[i](j);
 				}
-			};
+			}
 
-			let result = {
+			const result = {
 				announcements: cleanAnnouncements,
 				birthdays,
 				dayType,
 				jeansDay
-			}
+			};
 
 			resolve(result);
 		});
@@ -608,31 +608,42 @@ function parseBulletin(path) {
 }
 
 function getParsed(date, callback) {
-	let formattedDate = date.getFullYear() + '-' + utils.leadingZeros((date.getMonth()+1)) + '-' + utils.leadingZeros((date.getDate()+1));
-	let path = __dirname + '/../public/daily-bulletin/' + formattedDate + '.pdf'
-	parseBulletin(path).then((result) => {
+	const formattedDate = date.getFullYear() + '-' + utils.leadingZeros((date.getMonth()+1)) + '-' + utils.leadingZeros((date.getDate()+1));
+	const path = __dirname + '/../public/daily-bulletin/' + formattedDate + '.pdf';
 
-		fs.writeFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', JSON.stringify(result), (err) => {
-			if (err) {
-				console.log(`[${new Date()}] Error occurred parsing daily bulletin writing to file! (${err})`)
-			}
-			console.log(`[${new Date()}] Successfully parsed daily bulletin! ${formattedDate}`)
-
-//----------This will be the actuall part of this function, above and below are supposed to be in the tasks file.----------
-			fs.readFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', (err, data) => {
+	if (!config.production) {
+		parseBulletin(path).then((result) => {
+		
+			fs.writeFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', JSON.stringify(result), (err) => {
 				if (err) {
-					callback(new Error('Error occurred reading daily bulletin!'), null);
+					console.log(`[${new Date()}] Error occurred parsing daily bulletin writing to file! (${err})`);
 				}
-				callback(null, JSON.parse(data));
-			})
-//-------------------------------------------------------------------------------------------------------------------------
-
+				console.log(`[${new Date()}] Successfully parsed daily bulletin! ${formattedDate}`);
+	
+	// ----------This will be the actuall part of this function, above and below are supposed to be in the tasks file.----------
+				fs.readFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', (err, data) => {
+					if (err) {
+						callback(new Error('Error occurred reading daily bulletin!'), null);
+					}
+					callback(null, JSON.parse(data));
+				});
+	// -------------------------------------------------------------------------------------------------------------------------
+	
+			});
+		})
+		.catch((err) => {
+			console.log(`[${new Date()}] Error occurred parsing daily bulletin! (${err})`);
+			callback(new Error('Error occurred parsing daily bulletin!'), null);
 		});
-	})
-	.catch((err) => {
-		console.log(`[${new Date()}] Error occurred parsing daily bulletin! (${err})`);
-		callback(new Error('Error occurred parsing daily bulletin!'), null);
-	});
+	} else {
+		fs.readFile(__dirname + '/../public/parsed-daily-bulletin/' + formattedDate + '.pdf.json', (err, data) => {
+			if (err) {
+				callback(new Error('Error occurred reading daily bulletin!'), null);
+			}
+			callback(null, JSON.parse(data));
+		});
+	}
+
 }
 
 
