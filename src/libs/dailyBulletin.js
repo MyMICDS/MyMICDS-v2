@@ -438,6 +438,7 @@ function parseBulletin(path) {
 		});
 
 		pdfParser.on('pdfParser_dataReady', pdfData => {
+			// generate data file for debugging
 			fs.writeFile(__dirname + '/results/pdf-test.json', JSON.stringify(pdfData), (err) => {
 				if (err) {
 					console.log('Error when writing pdf data: ', err);
@@ -490,7 +491,7 @@ function parseBulletin(path) {
 
 				} else
 				// if the word is bolded, or big enough, and previous word is bolded too then 
-				if (lastTitleItem.y === item.y && item.x - lastTitleItem.x < 5 && (rawWord.TS[2] === 1 || rawWord.TS[1] > 30)) {
+				if (lastTitleItem.y === item.y && item.x - lastTitleItem.x < lastTitleItem.w * 0.063 && (rawWord.TS[2] === 1 || rawWord.TS[1] > 30)) {
 
 					lastTitleItem = item;
 					// Continuation of previous title
@@ -563,17 +564,20 @@ function parseBulletin(path) {
 			});
 
 			const cleanAnnouncements = [];
-			// Delete Lunch and Schedule sections
+			// Delete Lunch and Schedule and other unnecessarysections
 			operations.push((i) => {
 				const titleRegEx = /DAILY BULLETIN|DAY [0-6]|TODAY IS A JEANS DAY/ig;
 				const lunchRegEx = /LUNCH/g;
-				const scheduleRegEx = /schedule|and lunch|[0-9]{2}:[0-9]{2}/ig;
+				const scheduleRegEx = /schedule|and lunch|[0-9]{1,2}:[0-9]{2}/ig;
 				const collabRegEx = /Collaborative/ig;
 				const activitiesRegEx = /MeetingSponsorLocation/ig;
 				const birthdayRegEx = /Happy Birthday to /ig;
 				// console.log(announcements[i], lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title) || collabRegEx.test(announcements[i].title) || activitiesRegEx.test(announcements[i].content))
-				if (!(birthdayRegEx.test(announcements[i].title) || titleRegEx.test(announcements[i].title) || lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title) || collabRegEx.test(announcements[i].title) || activitiesRegEx.test(announcements[i].content))) {
-					cleanAnnouncements.push(announcements[i]);
+				// The content shouldn't be just a few words long (usually)
+				if (announcements[i].content.length >= 20) {
+					if (!(birthdayRegEx.test(announcements[i].title) || titleRegEx.test(announcements[i].title) || lunchRegEx.test(announcements[i].title) || scheduleRegEx.test(announcements[i].title) || collabRegEx.test(announcements[i].title) || activitiesRegEx.test(announcements[i].content))) {
+						cleanAnnouncements.push(announcements[i]);
+					}
 				}
 			});
 
