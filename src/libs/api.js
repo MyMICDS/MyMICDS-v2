@@ -38,7 +38,7 @@ function adminOverride(req, res, next) {
  * @param {string} action - Action (if any) for the front-end client to perform. Must be one of the strings in the `ACTIONS` array or null. Defaults to null.
  */
 
-function respond(res, error = null, data = null, action = null) {
+function respond(res, error = null, data = {}, action = null) {
 
 	// Check for different types of errors
 	let err = null;
