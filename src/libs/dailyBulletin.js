@@ -566,7 +566,7 @@ function parseBulletin(path) {
 			const cleanAnnouncements = [];
 			// Delete Lunch and Schedule and other unnecessarysections
 			operations.push((i) => {
-				const titleRegEx = /DAILY BULLETIN|DAY [0-6]|TODAY IS A JEANS DAY/ig;
+				const titleRegEx = /DAILY( BULLETIN){0,1}|DAY [0-6]|TODAY IS A JEANS DAY/ig;
 				const lunchRegEx = /LUNCH/g;
 				const scheduleRegEx = /schedule|and lunch|[0-9]{1,2}:[0-9]{2}/ig;
 				const collabRegEx = /Collaborative/ig;
