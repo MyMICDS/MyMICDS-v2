@@ -28,7 +28,7 @@ function getNotes(db, moduleId, callback) {
 					return;
 				}
 				callback(null, noteDoc);
-			})
+			});
 		} else {
 			callback(null, notes[0]);
 		}
