@@ -10,7 +10,6 @@ try {
 } catch(e) {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }
-const PDFParser     = require('pdf2json');
 const fs            = require('fs-extra');
 
 const admins        = require(__dirname + '/libs/admins.js');
@@ -19,6 +18,7 @@ const feeds         = require(__dirname + '/libs/feeds.js');
 const later         = require('later');
 const MongoClient   = require('mongodb').MongoClient;
 const weather       = require(__dirname + '/libs/weather.js');
+const utils         = require(__dirname + '/libs/utils.js');
 
 // Only run these intervals in production so we don't waste our API calls
 if(config.production) {
@@ -53,6 +53,7 @@ if(config.production) {
 						console.log(`[${new Date()}] Alerted admins of error! (${err})`);
 					});
 				} else {
+					const date = new Date();
 					const formattedDate = date.getFullYear() + '-' + utils.leadingZeros((date.getMonth()+1)) + '-' + utils.leadingZeros((date.getDate()+1));
 					const path = __dirname + '/public/daily-bulletin/' + formattedDate + '.pdf';
 
