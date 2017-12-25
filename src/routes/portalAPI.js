@@ -22,7 +22,7 @@ module.exports = (app, db, socketIO) => {
 		});
 	});
 
-	app.get('/portal/events', jwt.requireLoggedIn, (req, res) => {
+	app.get('/portal/classes', jwt.requireLoggedIn, (req, res) => {
 		portal.getClasses(db, req.apiUser, (err, hasURL, classes) => {
 			api.respond(res, err, { hasURL, classes });
 		});
