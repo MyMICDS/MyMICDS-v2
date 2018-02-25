@@ -8,7 +8,7 @@ const dates = require(__dirname + '/../libs/dates.js');
 module.exports = app => {
 
 	app.get('/dates/school-ends', (req, res) => {
-		res.json({ date: dates.schoolEnds() });
+		api.respond(res, null, { date: dates.schoolEnds() });
 	});
 
 	app.get('/dates/breaks', (req, res) => {
