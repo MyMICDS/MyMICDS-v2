@@ -1,5 +1,3 @@
-import { dirname } from 'path';
-
 /**
  * @file Manages schedule API endpoints
  */
@@ -26,7 +24,7 @@ module.exports = (app, db) => {
 
 	app.get('/block-schedule', (req, res) => {
 		fs.readFile(__dirname + '/../schedules/' + req.query.grade, 'utf8', (err, data) => {
-			api.respond(res, err, data)
-		})
-	})
+			api.respond(res, err, data);
+		});
+	});
 };
