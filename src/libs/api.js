@@ -22,8 +22,12 @@ function adminOverride(req, res, next) {
 	req.apiUser = null;
 	if(req.user) {
 		req.apiUser = req.user.user;
-		if(Object.keys(req.user.scopes).includes('admin') && req.body.behalfOf) {
-			req.apiUser = req.body.behalfOf;
+		if(Object.keys(req.user.scopes).includes('admin')) {
+			if (req.body.behalfOf) {
+				req.apiUser = req.body.behalfOf;
+			} else if (req.query.behalfOf) {
+				req.apiUser = req.query.behalfOf;
+			}
 		}
 	}
 
