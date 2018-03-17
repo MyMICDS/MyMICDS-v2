@@ -298,7 +298,7 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 
 					let portalSchedule = [];
 					const schedule = {
-						day: null,
+						day: scheduleDay,
 						special: false,
 						classes: [],
 						allDay: []
@@ -314,13 +314,6 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 
 						// Check if it's an all-day event
 						if(start.isSameOrBefore(scheduleDate) && end.isSameOrAfter(scheduleNextDay)) {
-							// See if valid day
-							if(portal.validDayRotation.test(calEvent.summary)) {
-								// Get actual day
-								schedule.day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
-								continue;
-							}
-
 							// Check if special schedule
 							const lowercaseSummary = calEvent.summary.toLowerCase();
 							if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
