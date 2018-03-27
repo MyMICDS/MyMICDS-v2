@@ -33,6 +33,10 @@ const modulesConfig = {
 		}
 	},
 	stickynotes: {
+		color: {
+			type: 'string',
+			default: 'white'
+		}
 	},
 	progress: {
 		showDate: {
