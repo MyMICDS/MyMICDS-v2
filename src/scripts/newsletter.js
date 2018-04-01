@@ -12,22 +12,24 @@ try {
 
 const subject = 'MyMICDS Site Migration';
 const messageDir = __dirname + '/../html/messages/burroughs.html';
-// Path to JSON file to keep track of who's been sent the email already (in case script stops haflway through)
+// Path to JSON file to keep track of who's been sent the email already (in case script stops halfway through)
 const blacklistPath = __dirname + '/blacklist.json';
 
 // ONLY SET THIS TO TRUE IF YOU KNOW FOR SURE YOU WANNA DO THIS
-// Please set to `false` once you're done using this script
+// Please set to false once you're done using this script
 const I_REALLY_WANT_TO_DO_THIS = false;
 // Must set `I_REALLY_WANT_TO_DO_THIS` to true. Will limit email recipients to only `debugList`
+// Please set to true once you're done using this script
 const DEBUG = true;
 const debugList = ['mgira', 'nclifford', 'jcai'];
 
 const fs = require('fs-extra');
+const moment = require('moment');
 const MongoClient = require('mongodb').MongoClient;
 const mail = require(__dirname + '/../libs/mail');
 
 if (!I_REALLY_WANT_TO_DO_THIS) {
-	console.log('Are you sure you really want to do this? Set `I_REALLY_WANT_TO_DO_THIS` to true.');
+	console.log('Are you sure you really want to do this? Set `I_REALLY_WANT_TO_DO_THIS` to true on line 20. Make sure to set back to false before committing.');
 	process.exit();
 }
 
@@ -44,33 +46,55 @@ getBlacklist((err, blacklist) => {
 		// Get all users
 		userdata.find({ confirmed: true }).toArray((err, userDocs) => {
 			if (err) throw err;
+
+			const startTime = Date.now();
+
+			function getDuration() {
+				const duration = moment.duration(Date.now() - startTime);
+				return `${duration.minutes()}:${duration.seconds().toString().padStart(2, '0')}.${duration.milliseconds().toString().padStart(3, '0')}`;
+			}
+
 			sendEmail(0);
 			function sendEmail(i) {
+				const percent = (((i + 1) / userDocs.length) * 100).toFixed(2);
 				if (i < userDocs.length) {
 					const userDoc = userDocs[i];
+
+					// If we're in debug mode
+					if (DEBUG && !debugList.includes(userDoc.user)) {
+						console.log(`[${getDuration()}] Skipping user ${userDoc.user} because we're in debug mode. ${percent}% complete (${i + 1} / ${userDocs.length})`);
+						setTimeout(() => {
+							sendEmail(++i);
+						});
+						return;
+					}
+
 					// Make sure we haven't already sent user the email
-					if (typeof blacklist[userDoc.user] === 'undefined'
-							&& (!DEBUG || (DEBUG && debugList.includes(userDoc.user)))) {
+					if (typeof blacklist[userDoc.user] !== 'undefined') {
+						console.log(`[${getDuration()}] Skipping user ${userDoc.user} because they are already in blacklist. ${percent}% complete (${i + 1} / ${userDocs.length})`);
+						setTimeout(() => {
+							sendEmail(++i);
+						});
+						return;
+					}
 
-						const email = userDoc.user + '@micds.org';
-						const emailReplace = {
-							firstName: userDoc.firstName
-						};
-
-						console.log(`Sending email for ${userDoc.user}...`);
-						mail.sendHTML(email, subject, messageDir, emailReplace, () => {
-							console.log(`Email for ${userDoc.user} sent!`);
-							blacklistUser(userDoc.user, err => {
-								if (err) throw err;
-								setTimeout(() => {
-									sendEmail(++i);
-								});
+					// Send email
+					const email = userDoc.user + '@micds.org';
+					const emailReplace = {
+						firstName: userDoc.firstName
+					};
+					const startEmailTime = Date.now();
+					console.log(`[${getDuration()}] Sending email for ${userDoc.user}...`);
+					mail.sendHTML(email, subject, messageDir, emailReplace, () => {
+						const emailSendDuration = Date.now() - startEmailTime;
+						console.log(`[${getDuration()}] Email for ${userDoc.user} sent! Took ${emailSendDuration} ms. ${percent}% complete (${i + 1} / ${userDocs.length})`);
+						blacklistUser(userDoc.user, err => {
+							if (err) throw err;
+							setTimeout(() => {
+								sendEmail(++i);
 							});
 						});
-					} else {
-						console.log(`User ${userDoc.user} is already in blacklist. Skipping.`);
-						sendEmail(++i);
-					}
+					});
 				} else {
 					console.log('All done!');
 					process.exit();
