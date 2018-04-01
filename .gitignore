@@ -11,3 +11,4 @@ src/public/daily-bulletin
 src/public/user-backgrounds/*
 !src/public/user-backgrounds/default
 src/public/json
+src/scripts/blacklist.json
