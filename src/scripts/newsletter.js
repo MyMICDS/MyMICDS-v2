@@ -27,6 +27,7 @@ const fs = require('fs-extra');
 const moment = require('moment');
 const MongoClient = require('mongodb').MongoClient;
 const mail = require(__dirname + '/../libs/mail');
+const nodemailer = require('nodemailer');
 
 if (!I_REALLY_WANT_TO_DO_THIS) {
 	console.log('Are you sure you really want to do this? Set `I_REALLY_WANT_TO_DO_THIS` to true on line 20. Make sure to set back to false before committing.');
@@ -36,6 +37,9 @@ if (!I_REALLY_WANT_TO_DO_THIS) {
 // See who we've already sent email to
 getBlacklist((err, blacklist) => {
 	if (err) throw err;
+
+	// Log into email
+	const transporter = nodemailer.createTransport(config.email.URI);
 
 	// Connect to database
 	MongoClient.connect(config.mongodb.uri, (err, db) => {
@@ -85,7 +89,12 @@ getBlacklist((err, blacklist) => {
 					};
 					const startEmailTime = Date.now();
 					console.log(`[${getDuration()}] Sending email for ${userDoc.user}...`);
-					mail.sendHTML(email, subject, messageDir, emailReplace, () => {
+					mail.sendHTML(email, subject, messageDir, emailReplace, err => {
+						if (err) {
+							console.log(`Error sending mail for user ${userDoc.user}! They have not been added to the blacklist.\n`, err, '\n');
+							process.exit();
+						}
+
 						const emailSendDuration = Date.now() - startEmailTime;
 						console.log(`[${getDuration()}] Email for ${userDoc.user} sent! Took ${emailSendDuration} ms. ${percent}% complete (${i + 1} / ${userDocs.length})`);
 						blacklistUser(userDoc.user, err => {
@@ -94,7 +103,7 @@ getBlacklist((err, blacklist) => {
 								sendEmail(++i);
 							});
 						});
-					});
+					}, transporter);
 				} else {
 					console.log('All done!');
 					process.exit();
