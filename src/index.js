@@ -53,7 +53,7 @@ const io = require('socket.io')(server);
 const socketIO = require(__dirname + '/libs/socket.io.js')(io);
 
 // Miscellaneous stuff
-require(__dirname + '/libs/realtime.js')(io, socketIO);
+// require(__dirname + '/libs/realtime.js')(io, socketIO);
 
 /*
  * Routes
@@ -93,6 +93,10 @@ MongoClient.connect(config.mongodb.uri, (err, db) => {
 	require(__dirname + '/routes/userAPI.js')(app, db, socketIO);
 	require(__dirname + '/routes/weatherAPI.js')(app, db, socketIO);
 	require(__dirname + '/routes/stickynotesAPI.js')(app, db);
+});
+
+app.get('/', (req, res) => {
+	res.sendFile(__dirname + '/html/admin.html');
 });
 
 app.get('/start', (req, res) => {
