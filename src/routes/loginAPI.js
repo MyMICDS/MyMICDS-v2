@@ -124,4 +124,15 @@ module.exports = (app, db) => {
 		});
 	});
 
+	app.post('/auth/verify', (req, res) => {
+		if(!req.user.user) {
+			res.json({ error: 'JWT not provided!' });
+			return;
+		}
+		res.json({
+			error: null,
+			payload: req.user
+		});
+	});
+
 };

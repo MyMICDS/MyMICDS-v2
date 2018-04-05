@@ -40,6 +40,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/auth/logout`](#authlogout)
   * [`/auth/register`](#authregister)
   * [`/auth/confirm`](#authconfirm)
+  * [`/auth/verify`](#authverify)
   * [`/auth/change-password`](#userchange-password)
   * [`/auth/forgot-password`](#userforgot-password)
   * [`/auth/reset-password`](#userreset-password)
@@ -341,6 +342,14 @@ Confirm a newly registered account. Hash is sent via email.
 
 #### Response
 - `error` - Null if successful, string containing error if failure.
+
+
+### `/auth/verify`
+Confirm the authenticity of a JWT. Pass JWT through normal HTTP headers: `Authorization: Bearer <JWT>`
+
+#### Response
+- `error` - Null if successful, string containing error if failure.
+- `payload` - Payload of decoded JWT. Null if failure.
 
 
 
