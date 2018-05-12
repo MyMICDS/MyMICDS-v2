@@ -54,6 +54,7 @@ const modulesConfig = {
 // Delcare your own enum types and use just like any other module option type!
 const enumTypes = {
 	COUNTDOWN_MODE: [
+		'TIME_OFF',
 		'END',
 		'VACATION',
 		'LONG_WEEKEND',
