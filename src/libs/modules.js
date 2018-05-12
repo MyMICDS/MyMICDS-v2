@@ -18,6 +18,14 @@ const modulesConfig = {
 			type: 'COUNTDOWN_MODE',
 			default: 'END'
 		},
+		schoolDays: {
+			type: 'boolean',
+			default: true
+		},
+		shake: {
+			type: 'boolean',
+			default: true
+		},
 		countdownTo: {
 			type: 'Date',
 			optional: true,
@@ -25,11 +33,8 @@ const modulesConfig = {
 		},
 		eventLabel: {
 			type: 'string',
+			optional: true,
 			default: 'Countdown'
-		},
-		schoolDays: {
-			type: 'boolean',
-			default: true
 		}
 	},
 	progress: {
@@ -50,7 +55,7 @@ const modulesConfig = {
 const enumTypes = {
 	COUNTDOWN_MODE: [
 		'END',
-		'BREAK',
+		'VACATION',
 		'LONG_WEEKEND',
 		'WEEKEND',
 		'CUSTOM'
