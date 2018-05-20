@@ -1,0 +1,96 @@
+<mjml>
+	<mj-head>
+		<mj-attributes>
+			<!-- General Styles -->
+			<mj-all
+				color="#222"
+				font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'"
+				font-size="1rem"
+				letter-spacing="normal"
+				line-height="1.5" />
+
+			<!-- Classes -->
+			<mj-class name="title"
+				align="center"
+				font-size="2rem"
+				font-weight="700"
+				line-height="1" />
+			<mj-class name="greeting"
+				font-size="1.5rem"
+				font-weight="300"/>
+			<mj-class name="message"
+				background-color="#fafafa"/>
+			<mj-class name="important"
+				font-size="1.5rem"
+				font-weight="700" />
+			<mj-class name="cta-button"
+				color="#fff"
+				background-color="#a61d35"
+				boder-color="#a61d35"
+				font-size="1.25rem"
+				font-weight="400" />
+			<mj-class name="bye"
+				padding-top="4rem" />
+		</mj-attributes>
+		<mj-style inline="inline">
+			.title {
+				line-height: 1.25;
+			}
+
+			.button-container {
+				padding: 0 25px;
+			}
+		</mj-stle>
+	</mj-head>
+	<mj-body width="50rem" background-color="#fff">
+		<mj-section>
+			<mj-column>
+				<mj-text align="center">
+					<h1 mj-class="title" class="title">Announcement from MyMICDS.net</h1>
+				</mj-text>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message">
+			<mj-column>
+				<mj-text mj-class="greeting">Hey there {{firstName}},</mj-text>
+
+				<mj-text>Here at MyMICDS, we're always continually improving and evolving to deliver the best possible experience. It wasn't until recently that we realized obtaining the perfect website requires rethinking from the ground-up. This is why we've decided to upgrade the platform from MICDS to John Burroughs.</mj-text>
+				<mj-text mj-class="important">From now on, MyMICDS will be MyJohnBurroughs</mj-text>
+				<mj-text>Your existing MyMICDS account and all of its data is migrated. As always, you can email <strong>support@myjohnburroughs.net</strong> if you have any questions. This change is permanent starting April 1st.</mj-text>
+
+				<mj-text mj-class="bye">
+					Love,
+					<br>
+					The MyJohnBurroughs Development Team
+				</mj-text>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message">
+			<mj-column>
+				<mj-raw>
+					<div class="button-container">
+						<a href="https://jbs.mymicds.net" style="
+							margin: 0 auto;
+							padding: 0.75rem 1.5rem;
+							max-width: 20rem;
+							display: block;
+							font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+							font-size: 1.25rem;
+							font-weight: 400;
+							line-height: 1.25;
+							text-align: center;
+							white-space: nowrap;
+							-webkit-user-select: none;
+							-moz-user-select: none;
+							-ms-user-select: none;
+							user-select: none;
+							border-radius: 0.3rem;
+							background-color: #a61d35;
+							color: #fff;
+							text-decoration: none;">Visit Now</a>
+						</div>
+				</mj-raw>
+			</mj-column>
+		</mj-section>
+	</mj-body>
+</mjml>
