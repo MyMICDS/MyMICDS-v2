@@ -188,7 +188,7 @@ function register(db, user, callback) {
 					};
 
 					// Send confirmation email
-					mail.sendHTML(email, 'Confirm your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
+					mail.sendHTML(email, 'Confirm Your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
 
 					// Let's celebrate and the message throughout the land!
 					admins.sendEmail(db, {
