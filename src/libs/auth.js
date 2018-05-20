@@ -153,51 +153,62 @@ function register(db, user, callback) {
 				return;
 			}
 
-			const hash = buf.toString('hex');
+			const confirmationHash = buf.toString('hex');
 
-			// Hash Password
-			cryptoUtils.hashPassword(user.password, (err, hashedPassword) => {
+			// Generate unsubscribe email hash
+			crypto.randomBytes(16, (err, buf) => {
 				if(err) {
-					callback(err);
+					callback(new Error('There was a problem generating a random email hash!'));
 					return;
 				}
 
-				const newUser = {
-					user: user.user,
-					password: hashedPassword,
-					firstName: user.firstName,
-					lastName: user.lastName,
-					gradYear: user.gradYear,
-					confirmed: false,
-					registered: new Date(),
-					confirmationHash: hash,
-					scopes: []
-				};
+				const unsubscribeHash = buf.toString('hex');
 
-				userdata.update({ user: newUser.user }, newUser, { upsert: true }, err => {
+				// Hash Password
+				cryptoUtils.hashPassword(user.password, (err, hashedPassword) => {
 					if(err) {
-						callback(new Error('There was a problem inserting the account into the database!'));
+						callback(err);
 						return;
 					}
 
-					const email = newUser.user + '@micds.org';
-					const emailReplace = {
-						firstName: newUser.firstName,
-						lastName: newUser.lastName,
-						confirmLink: 'https://mymicds.net/confirm/' + newUser.user + '/' + hash,
+					const newUser = {
+						user: user.user,
+						password: hashedPassword,
+						firstName: user.firstName,
+						lastName: user.lastName,
+						gradYear: user.gradYear,
+						confirmed: false,
+						registered: new Date(),
+						confirmationHash,
+						unsubscribeHash,
+						scopes: []
 					};
 
-					// Send confirmation email
-					mail.sendHTML(email, 'Confirm Your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
-
-					// Let's celebrate and the message throughout the land!
-					admins.sendEmail(db, {
-						subject: newUser.user + ' just created a 2.0 account!',
-						html: newUser.firstName + ' ' + newUser.lastName + ' (' + newUser.gradYear + ') just created an account with the username ' + newUser.user
-					}, err => {
+					userdata.update({ user: newUser.user }, newUser, { upsert: true }, err => {
 						if(err) {
-							console.log('[' + new Date() + '] Error occured when sending admin notification! (' + err + ')');
+							callback(new Error('There was a problem inserting the account into the database!'));
+							return;
 						}
+
+						const email = newUser.user + '@micds.org';
+						const emailReplace = {
+							firstName: newUser.firstName,
+							lastName: newUser.lastName,
+							confirmLink: 'https://mymicds.net/confirm/' + newUser.user + '/' + confirmationHash,
+						};
+
+						// Send confirmation email
+						mail.sendHTML(email, 'Confirm Your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
+
+						// Let's celebrate and the message throughout the land!
+						admins.sendEmail(db, {
+							subject: newUser.user + ' just created a 2.0 account!',
+							html: newUser.firstName + ' ' + newUser.lastName + ' (' + newUser.gradYear + ') just created an account with the username ' + newUser.user
+						}, err => {
+							if(err) {
+								console.log('[' + new Date() + '] Error occured when sending admin notification! (' + err + ')');
+							}
+						});
 					});
 				});
 			});

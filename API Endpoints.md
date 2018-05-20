@@ -49,6 +49,8 @@ Endpoints or 'routes' and different URL's that you can send information to. This
 * [Modules API](#modules-api)
   * [`/modules/get`](#modulesget)
   * [`/modules/upsert`](#modulesupsert)
+* [Notifications API](#notifications-api)
+  * [`/notifications/unsubscribe`](#notificationsunsubscribe)
 * [Notifications API](#notification-api)
   * [`/notification/get`](#notificationget)
 * [Planner API](#planner-api)
@@ -390,6 +392,21 @@ This is the part of the API that relates to the homepage modules. Can be found i
 
 #### Response
 - `err` - Null if success, string containing error if failure.
+
+
+
+## Notifications API
+This is the part of the API that relates to the notifications. Can be found in `src/routes/notificationsAPI.js`. The associated notifications module can be found in `src/libs/notifications.js`.
+
+
+### `/notifications/unsubscribe`
+**Requires user to be logged in.** Unsubscribes the user from certain email types.
+
+#### Parameters
+- `scopes` - Either single string or array of strings of valid email types to unsubscribe from.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
 
 
 
