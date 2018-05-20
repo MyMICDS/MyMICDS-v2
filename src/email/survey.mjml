@@ -1,0 +1,48 @@
+<mjml>
+	<mj-head>
+		<mj-include path="./partials/default-styles.mjml" />
+	</mj-head>
+	<mj-body>
+		<mj-section>
+			<mj-column>
+				<mj-text mj-class="title-container">
+					<h1 mj-class="title" class="title">MyMICDS Needs Your Feedback!</h1>
+				</mj-text>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message">
+			<mj-column>
+				<mj-text mj-class="greeting">Hey there {{firstName}},</mj-text>
+				<mj-text>
+					<h2>Let's take a survey!</h2>
+					<p>School is wrapping up and summer break is beginning, which means we'll have some downtime to improve the site. What should we fix? What should we add? <a href="#" class="link">We're launching a survey to find out just that.</a>
+					</p>
+					<h2>Anything else?</h2>
+					<p>Feel free to email <a href="mailto:support@mymicds.net" class="link">support@mymicds.net</a> with any additional questions, comments, or concerns you have right now throughout the summer.</p>
+					<h2>Become a developer!</h2>
+					<p>MyMICDS is a student-run website, and said students will eventually graduate. We're always look for fresh talent to help and eventually take the reigns. Hit us up even if you're interested but have no prior experience!</p>
+				</mj-text>
+				<mj-text>Let's end the school year on a good note. Good luck and thanks for your feedback!</mj-text>
+				<mj-text mj-class="bye">
+					Love,
+					<br>
+					The MyMICDS Development Team
+				</mj-text>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message raw-container">
+			<mj-column>
+				<mj-raw>
+					<a href="{{passwordLink}}" class="button">Take the Survey! (Please)</a>
+				</mj-raw>
+			</mj-column>
+		</mj-section>
+		<mj-section>
+			<mj-column>
+				<mj-text mj-class="disclaimer">
+					<small>Want us to shut up? You can <a href="https://mymicds.net/unsubscribe" class="link">unsubscribe</a> from this kind of stuff.</small>
+				</mj-text>
+			</mj-column>
+		</mj-section>
+	</mj-body>
+</mjml>
