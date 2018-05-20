@@ -6,6 +6,7 @@ node_modules
 .vscode
 
 src/api
+src/html/messages/*.html
 src/libs/config.js
 src/public/daily-bulletin
 src/public/user-backgrounds/*

@@ -1,0 +1,113 @@
+<mjml>
+	<mj-head>
+		<mj-attributes>
+			<!-- General Styles -->
+			<mj-all
+				color="#222"
+				font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'"
+				font-size="1rem"
+				letter-spacing="normal"
+				line-height="1.5" />
+
+			<!-- Classes -->
+			<mj-class name="title"
+				align="center"
+				font-size="2rem"
+				font-weight="700"
+				line-height="1" />
+			<mj-class name="greeting"
+				font-size="1.5rem"
+				font-weight="300"/>
+			<mj-class name="message"
+				background-color="#fafafa"/>
+			<mj-class name="bye"
+				padding-top="4rem" />
+		</mj-attributes>
+		<mj-style inline="inline">
+			.title {
+				line-height: 1.25;
+			}
+
+			.blockquote {
+				margin: 0 1rem;
+				padding: 0.5rem 1rem;
+				border-left: 5px solid #eee;
+				font-size: 1.5rem;
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+				font-size: 1.25rem;
+			}
+			
+			.blockquote p {
+				margin: 0;
+			}
+
+			.button {
+				margin: 0 auto;
+				padding: 0.75rem 1.5rem;
+				max-width: 20rem;
+				display: block;
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+				font-size: 1.25rem;
+				font-weight: 400;
+				line-height: 1.25;
+				text-align: center;
+				white-space: nowrap;
+				-webkit-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				user-select: none;
+				border-radius: 0.3rem;
+				background-color: #a61d35;
+				color: #fff;
+				text-decoration: none;
+			}
+		</mj-stle>
+	</mj-head>
+	<mj-body width="50rem" background-color="#fff">
+		<mj-section>
+			<mj-column>
+				<mj-text align="center">
+					<h1 mj-class="title" class="title">Confirm Your MyMICDS Account</h1>
+				</mj-text>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message">
+			<mj-column>
+				<mj-text mj-class="greeting">Hey there {{firstName}} {{lastName}},</mj-text>
+
+				<mj-text>Thanks for signing up! Click on the link below to confirm your account. And now a haiku about signing up:</mj-text>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message" padding="25px">
+			<mj-column>
+				<mj-raw>
+					<div class="blockquote">
+						<p>MyMICD</p>
+						<p>There was no room for the 'S'</p>
+						<p>Nor room for '.net'</p>
+					</div>
+				</mj-raw>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message">
+			<mj-column>
+				<mj-text>
+					<small>If you did not create an account for <a href="https://mymicds.net" style="color: #6699ff">MyMICDS.net</a>, please ignore this email.</small>
+				</mj-text>
+
+				<mj-text mj-class="bye">
+					Love,
+					<br>
+					The MyMICDS Development Team
+				</mj-text>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message" padding="25px">
+			<mj-column>
+				<mj-raw>
+					<a href="{{confirmLink}}" class="button">Confirm My Account!</a>
+				</mj-raw>
+			</mj-column>
+		</mj-section>
+	</mj-body>
+</mjml>
