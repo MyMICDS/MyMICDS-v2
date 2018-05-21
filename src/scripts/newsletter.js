@@ -55,8 +55,8 @@ getBlacklist((err, blacklist) => {
 
 		const userdata = db.collection('users');
 
-		// Get all users
-		userdata.find({ confirmed: true }).toArray((err, userDocs) => {
+		// Get all confirmed users that are either teachers or not graduated yet
+		userdata.find({ confirmed: true, $or: [{gradYear: { $gte: 2019 }}, { gradYear: null }]}).toArray((err, userDocs) => {
 			if (err) throw err;
 
 			const startTime = Date.now();
