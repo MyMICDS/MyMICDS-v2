@@ -91,7 +91,7 @@ getBlacklist((err, blacklist) => {
 					}
 
 					// Make sure user hasn't unsubscribed from these types of things
-					if (userDoc.unsubscribed && userDoc.unsubscribed.includes(messageType.toUpperCase())) {
+					if (userDoc.unsubscribed && (userDoc.unsubscribed.includes('ALL') || userDoc.unsubscribed.includes(messageType.toUpperCase()))) {
 						console.log(`[${getDuration()}] Skipping user ${userDoc.user} because they are unsubscribed from these messages. ${percent}% complete (${i + 1} / ${userDocs.length})`);
 						setTimeout(() => {
 							sendEmail(++i);
