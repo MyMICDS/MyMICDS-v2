@@ -41,6 +41,7 @@ MongoClient.connect(config.mongodb.uri, (err, db) => {
 			} else {
 				// All done!
 				console.log('All done!');
+				process.exit();
 			}
 		}
 	});

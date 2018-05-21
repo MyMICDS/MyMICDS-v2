@@ -10,8 +10,9 @@ try {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }
 
-const subject = 'MyMICDS Site Migration';
-const messageDir = __dirname + '/../html/messages/burroughs.html';
+const messageType = 'announcements';
+const subject = 'We need your help!';
+const messageDir = __dirname + '/../html/messages/survey.html';
 // Path to JSON file to keep track of who's been sent the email already (in case script stops halfway through)
 const blacklistPath = __dirname + '/blacklist.json';
 
@@ -21,16 +22,23 @@ const I_REALLY_WANT_TO_DO_THIS = false;
 // Must set `I_REALLY_WANT_TO_DO_THIS` to true. Will limit email recipients to only `debugList`
 // Please set to true once you're done using this script
 const DEBUG = true;
-const debugList = ['mgira', 'nclifford', 'jcai'];
+// const debugList = ['mgira', 'nclifford', 'jcai'];
+const debugList = ['mgira'];
 
 const fs = require('fs-extra');
 const moment = require('moment');
 const MongoClient = require('mongodb').MongoClient;
 const mail = require(__dirname + '/../libs/mail');
 const nodemailer = require('nodemailer');
+const { SCOPES } = require(__dirname + '/../libs/notifications');
 
-if (!I_REALLY_WANT_TO_DO_THIS) {
-	console.log('Are you sure you really want to do this? Set `I_REALLY_WANT_TO_DO_THIS` to true on line 20. Make sure to set back to false before committing.');
+if (!SCOPES.includes(messageType.toUpperCase())) {
+	console.log(`"${messageType}" is an invalid message type! Refer to \`/src/libs/notifications.js\` for list of valid types.`);
+	process.exit();
+}
+
+if (!DEBUG && !I_REALLY_WANT_TO_DO_THIS) {
+	console.log('Are you sure you really want to do this? Set `I_REALLY_WANT_TO_DO_THIS` to true on line 21. Make sure to set back to false before committing.');
 	process.exit();
 }
 
@@ -66,7 +74,7 @@ getBlacklist((err, blacklist) => {
 
 					// If we're in debug mode
 					if (DEBUG && !debugList.includes(userDoc.user)) {
-						console.log(`[${getDuration()}] Skipping user ${userDoc.user} because we're in debug mode. ${percent}% complete (${i + 1} / ${userDocs.length})`);
+						// console.log(`[${getDuration()}] Skipping user ${userDoc.user} because we're in debug mode. ${percent}% complete (${i + 1} / ${userDocs.length})`);
 						setTimeout(() => {
 							sendEmail(++i);
 						});
@@ -82,10 +90,20 @@ getBlacklist((err, blacklist) => {
 						return;
 					}
 
+					// Make sure user hasn't unsubscribed from these types of things
+					if (userDoc.unsubscribed && userDoc.unsubscribed.includes(messageType.toUpperCase())) {
+						console.log(`[${getDuration()}] Skipping user ${userDoc.user} because they are unsubscribed from these messages. ${percent}% complete (${i + 1} / ${userDocs.length})`);
+						setTimeout(() => {
+							sendEmail(++i);
+						});
+						return;
+					}
+
 					// Send email
 					const email = userDoc.user + '@micds.org';
 					const emailReplace = {
-						firstName: userDoc.firstName
+						firstName: userDoc.firstName,
+						unsubscribeLink: `https://mymicds.net/unsubscribe/${userDoc.user}/${userDoc.unsubscribeHash}?type=${messageType}`
 					};
 					const startEmailTime = Date.now();
 					console.log(`[${getDuration()}] Sending email for ${userDoc.user}...`);

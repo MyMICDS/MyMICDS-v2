@@ -22,7 +22,7 @@
 					<h2>Become a developer!</h2>
 					<p>MyMICDS is a student-run website, and said students will eventually graduate. We're always look for fresh talent to help and eventually take the reigns. Hit us up even if you're interested but have no prior experience!</p>
 				</mj-text>
-				<mj-text font-style="italic">Let's end the school year on a good note. Good luck and thanks for your feedback!</mj-text>
+				<mj-text font-style="italic">Let's end the school year strong. Good luck and thanks for your feedback!</mj-text>
 				<mj-text mj-class="bye">
 					Love,
 					<br>
@@ -33,14 +33,16 @@
 		<mj-section mj-class="message raw-container">
 			<mj-column>
 				<mj-raw>
-					<a href="{{passwordLink}}" class="button">Take the Survey! (Please)</a>
+					<a class="button" href="https://docs.google.com/forms/d/e/1FAIpQLSeqhf-DBGg74thhQTOvg-DW9FPEeSMlm6ijc6LWM71RI3oKPA/viewform?usp=sf_link">
+						Take the Survey! (Please)
+					</a>
 				</mj-raw>
 			</mj-column>
 		</mj-section>
 		<mj-section>
 			<mj-column>
 				<mj-text mj-class="disclaimer">
-					<small>Want us to shut up? You can <a href="https://mymicds.net/unsubscribe" class="link">unsubscribe</a> from this kind of stuff.</small>
+					<small>Want us to shut up? You can <a href="{{unsubscribeLink}}" class="link">unsubscribe</a> from this kind of stuff.</small>
 				</mj-text>
 			</mj-column>
 		</mj-section>

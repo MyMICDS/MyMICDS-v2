@@ -92,4 +92,5 @@ function unsubscribe(db, user, hash, scopes, callback) {
 	});
 }
 
+module.exports.SCOPES = SCOPES;
 module.exports.unsubscribe = unsubscribe;
