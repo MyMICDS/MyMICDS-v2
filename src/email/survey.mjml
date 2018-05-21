@@ -15,7 +15,7 @@
 				<mj-text mj-class="greeting">Hey there {{firstName}},</mj-text>
 				<mj-text>
 					<h2>Let's take a survey!</h2>
-					<p>School is wrapping up and summer break is beginning, which means we'll have some downtime to improve the site. What should we fix? What should we add? <a href="#" class="link">We're launching a survey to find out just that.</a>
+					<p>School is wrapping up and summer break is beginning, which means we'll have some downtime to improve the site. What should we fix? What should we add? <a href="https://docs.google.com/forms/d/e/1FAIpQLSeqhf-DBGg74thhQTOvg-DW9FPEeSMlm6ijc6LWM71RI3oKPA/viewform?usp=sf_link" class="link">We're launching a survey to find out just that.</a>
 					</p>
 					<h2>Anything else?</h2>
 					<p>Feel free to email <a href="mailto:support@mymicds.net" class="link">support@mymicds.net</a> with any additional questions, comments, or concerns you have right now throughout the summer.</p>
