@@ -45,7 +45,7 @@ function unsubscribe(db, user, hash, scopes, callback) {
 		callback(new Error('Invalid username!'));
 		return;
 	}
-	if(typeof hash !== 'string') {
+	if(typeof hash !== 'string' && hash !== true) {
 		callback(new Error('Invalid hash!'));
 		return;
 	}
@@ -75,7 +75,7 @@ function unsubscribe(db, user, hash, scopes, callback) {
 
 		const dbHash = userDoc['unsubscribeHash'];
 
-		if(cryptoUtils.safeCompare(hash, dbHash)) {
+		if(hash === true || cryptoUtils.safeCompare(hash, dbHash)) {
 			// Hash matches, unsubscribe account!
 			const userdata = db.collection('users');
 			userdata.update({ user }, { $addToSet: { unsubscribed: { $each: scopes }}}, err => {

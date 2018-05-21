@@ -51,8 +51,6 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/modules/upsert`](#modulesupsert)
 * [Notifications API](#notifications-api)
   * [`/notifications/unsubscribe`](#notificationsunsubscribe)
-* [Notifications API](#notification-api)
-  * [`/notification/get`](#notificationget)
 * [Planner API](#planner-api)
   * [`/planner/get`](#plannerget)
   * [`/planner/add`](#planneradd)
@@ -400,9 +398,11 @@ This is the part of the API that relates to the notifications. Can be found in `
 
 
 ### `/notifications/unsubscribe`
-**Requires user to be logged in.** Unsubscribes the user from certain email types.
+Unsubscribes the user from certain email types.
 
 #### Parameters
+- `user` - Username of account to unsubscribe. _(Optional, send this as an alternative to being logged in and sending JWT.)_
+- `hash` - Random string embedded in link to confirm user received the email. _(Optional, send this as an alternative to being logged in and sending JWT.)_
 - `scopes` - Either single string or array of strings of valid email types to unsubscribe from.
 
 #### Response
@@ -648,16 +648,7 @@ Resets a user's password after clicking on the link from email sent by `/user/fo
 #### Response
 - `error` - Null if success, string containing error if failure.
 
-## Notifications API
-This is the part of the API that relates to the sidebar notifications. Can be found under `src/routes/notificationAPI.js`. The associated notification module can be found under `src/libs/notification.js`.
 
-### `/notification/get`
-Get the list of notifications.
-
-#### Parameters
-
-#### Response
-- `events` - List of notifications
 
 ## Quotes API
 The part of the API that relates to the quotes page. Can be found under `src/routes/quotesAPI.js`.
