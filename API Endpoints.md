@@ -30,6 +30,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
 * [Daily Bulletin API](#daily-bulletin-api)
   * [`/daily-bulletin/list`](#daily-bulletinlist)
 * [Dates API](#dates-api)
+  * [`/dates/school-starts`](#datesschool-starts)
   * [`/dates/school-ends`](#datesschool-ends)
   * [`/dates/breaks`](#datesbreaks)
 * [Feeds API](#feeds-api)
@@ -260,10 +261,17 @@ The part of the API that realtes to dates and time. Can be found in `src/routes/
 
 
 ### `/dates/school-ends`
+Returns the date when school starts. During the school year, returns the date next school year starts.
+
+#### Response
+- `date` - Date when school starts. Third Wednesday of August at 8:00.
+
+
+### `/dates/school-ends`
 Returns the date when school ends. During Summer, returns the date next school year ends.
 
 #### Response
-- `date` - Date when school ends. Last Friday of may at 11:30.
+- `date` - Date when school ends. Last Friday of May at 11:30.
 
 
 ### `/dates/breaks`

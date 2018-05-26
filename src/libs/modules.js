@@ -55,6 +55,7 @@ const modulesConfig = {
 const enumTypes = {
 	COUNTDOWN_MODE: [
 		'TIME_OFF',
+		'START',
 		'END',
 		'VACATION',
 		'LONG_WEEKEND',
