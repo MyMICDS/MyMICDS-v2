@@ -19,7 +19,7 @@
   "main": "src/index.js",
   "scripts": {
     "build": "mjml -r src/email/* -o src/html/messages",
-	"start": "npm run build && node src/index.js",
+    "start": "npm run build && node src/index.js",
     "prod": "npm run build && pm2 start src/index.js -i max --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds\"",
     "tasks": "pm2 start src/tasks.js --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds-tasks\"",
     "test": "echo \"Error: no test specified\" && exit 1",
