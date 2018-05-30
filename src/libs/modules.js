@@ -10,9 +10,34 @@ const { ObjectID } = require('mongodb');
 const users = require(__dirname + '/users.js');
 
 // All allowed modules
-const moduleList = ['countdown', 'progress', 'schedule', 'simplifiedLunch', 'simplifiedSchedule', 'snowday', 'stickynotes', 'twitter', 'weather'];
+const moduleList = [
+	'bookmarks',
+	'countdown',
+	'progress',
+	'schedule',
+	'simplifiedLunch',
+	'simplifiedSchedule',
+	'snowday',
+	'stickynotes',
+	'twitter',
+	'weather'
+];
 // Module options. Can be either `boolean`, `number`, or `string`
 const modulesConfig = {
+	bookmarks: {
+		label: {
+			type: 'string',
+			default: 'Really Cool Site'
+		},
+		icon: {
+			type: 'string',
+			default: 'fa-bookmark'
+		},
+		url: {
+			type: 'string',
+			default: 'https://mymicds.net'
+		}
+	},
 	countdown: {
 		mode: {
 			type: 'COUNTDOWN_MODE',
