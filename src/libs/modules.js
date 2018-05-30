@@ -8,28 +8,33 @@
 const _ = require('underscore');
 const { ObjectID } = require('mongodb');
 const users = require(__dirname + '/users.js');
-const moment = require('moment');
 
 // All allowed modules
-const moduleList = ['countdown', 'progress', 'schedule', 'simplifiedLunch', 'simplifiedSchedule', 'snowday', 'stickynotes', 'weather'];
+const moduleList = ['countdown', 'progress', 'schedule', 'simplifiedLunch', 'simplifiedSchedule', 'snowday', 'stickynotes', 'twitter', 'weather'];
 // Module options. Can be either `boolean`, `number`, or `string`
 const modulesConfig = {
 	countdown: {
-		countdownTo: {
-			type: 'Date',
-			default: moment().year(2018).month('may').date(26).hour(15).minute(15).toDate()
-		},
-		eventLabel: {
-			type: 'string',
-			default: 'Summer Break',
+		mode: {
+			type: 'COUNTDOWN_MODE',
+			default: 'END'
 		},
 		schoolDays: {
 			type: 'boolean',
 			default: true
 		},
-		preset: {
+		shake: {
+			type: 'boolean',
+			default: true
+		},
+		countdownTo: {
+			type: 'Date',
+			optional: true,
+			default: null
+		},
+		eventLabel: {
 			type: 'string',
-			default: 'Summer Break'
+			optional: true,
+			default: 'Countdown'
 		}
 	},
 	stickynotes: {
@@ -50,6 +55,19 @@ const modulesConfig = {
 			default: false
 		}
 	}
+};
+
+// Delcare your own enum types and use just like any other module option type!
+const enumTypes = {
+	COUNTDOWN_MODE: [
+		'TIME_OFF',
+		'START',
+		'END',
+		'VACATION',
+		'LONG_WEEKEND',
+		'WEEKEND',
+		'CUSTOM'
+	]
 };
 
 // Range column indexes start at (inclusive)
@@ -156,13 +174,15 @@ function getModules(db, user, callback) {
 					const defaultOptions = getDefaultOptions(mod.type) || {};
 					const defaultKeys = Object.keys(defaultOptions);
 
+					// If config has no options, ignore recieved options
 					if (_.isEmpty(defaultOptions)) {
 						delete mod.options;
 						continue;
 					}
 
-					mod.options = Object.assign({}, defaultOptions,  mod.options);
+					mod.options = Object.assign({}, defaultOptions, mod.options);
 
+					// Get rid of excess options
 					for (const optionKey of Object.keys(mod.options)) {
 						if (!defaultKeys.includes(optionKey)) {
 							delete mod.options[optionKey];
@@ -239,14 +259,39 @@ function upsertModules(db, user, modules, callback) {
 
 		// Check that options are the right types. If not, use default value.
 		for(const optionKey of optionKeys) {
-			// Convert iso strings to date objects.
-			if (optionsConfig[optionKey].type === 'Date') {
-				mod.options[optionKey] = moment(mod.options[optionKey]).toDate();
-			}
-			const optionType = typeof mod.options[optionKey] === 'object' ? mod.options[optionKey].constructor.name : typeof mod.options[optionKey];
-			if (optionType !== optionsConfig[optionKey].type) {
-				mod.options[optionKey] = optionsConfig[optionKey].default;
+			const configType = optionsConfig[optionKey].type;
+			const optional = optionsConfig[optionKey].optional;
 
+			const moduleValue = mod.options[optionKey];
+			let moduleValueType = null;
+			if (moduleValue !== null) {
+				moduleValueType = typeof moduleValue === 'object' ? moduleValue.constructor.name : typeof moduleValue;
+			}
+
+			let valid = false;
+
+			// Convert iso strings to date objects
+			if (configType === 'Date') {
+				mod.options[optionKey] = new Date(moduleValue);
+				if (isNaN(mod.options[optionKey].getTime())) {
+					valid = false;
+				} else {
+					valid = true;
+				}
+			} else if (enumTypes[configType] && enumTypes[configType].includes(moduleValue)) {
+				// Check if custom enum type
+				valid = true;
+			} else if (moduleValueType === configType) {
+				// Check if native type
+				valid = true;
+			}
+
+			if (!valid) {
+				if (optional && (moduleValue === undefined || moduleValue === null)) {
+					mod.options[optionKey] = null;
+				} else {
+					mod.options[optionKey] = optionsConfig[optionKey].default;
+				}
 			}
 		}
 	}

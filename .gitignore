@@ -6,9 +6,11 @@ node_modules
 .vscode
 
 src/api
+src/html/messages/*.html
 src/libs/config.js
 src/public/daily-bulletin
 src/public/parsed-daily-bulletin
 src/public/user-backgrounds/*
 !src/public/user-backgrounds/default
 src/public/json
+src/scripts/*blacklist.json

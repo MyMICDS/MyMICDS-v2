@@ -1,0 +1,54 @@
+<mjml>
+	<mj-head>
+		<mj-include path="./partials/default-styles.mjml" />
+	</mj-head>
+	<mj-body>
+		<mj-section>
+			<mj-column>
+				<mj-text mj-class="title-container">
+					<h1 mj-class="title" class="title">Confirm Your MyMICDS Account</h1>
+				</mj-text>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message">
+			<mj-column>
+				<mj-text mj-class="greeting">Hey there {{firstName}} {{lastName}},</mj-text>
+				<mj-text>Thanks for signing up! Click on the link below to confirm your account. And now a haiku about signing up:</mj-text>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message blockquote-container">
+			<mj-column>
+				<mj-raw>
+					<div class="blockquote">
+						<p>MyMICD</p>
+						<p>There was no room for the 'S'</p>
+						<p>Nor room for '.net'</p>
+					</div>
+				</mj-raw>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message">
+			<mj-column>
+				<mj-text mj-class="bye">
+					Love,
+					<br>
+					The MyMICDS Development Team
+				</mj-text>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message raw-container">
+			<mj-column>
+				<mj-raw>
+					<a href="{{confirmLink}}" class="button">Confirm My Account!</a>
+				</mj-raw>
+			</mj-column>
+		</mj-section>
+		<mj-section>
+			<mj-column>
+				<mj-text mj-class="disclaimer">
+					<small>If you did not create an account for <a href="https://mymicds.net" class="link">MyMICDS.net</a>, please ignore this email.</small>
+				</mj-text>
+			</mj-column>
+		</mj-section>
+	</mj-body>
+</mjml>

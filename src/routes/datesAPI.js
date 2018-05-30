@@ -5,8 +5,12 @@ const dates = require(__dirname + '/../libs/dates.js');
 
 module.exports = app => {
 
+	app.post('/dates/school-starts', (req, res) => {
+		res.json({ error: null, date: dates.schoolStarts() });
+	});
+
 	app.post('/dates/school-ends', (req, res) => {
-		res.json({ date: dates.schoolEnds() });
+		res.json({ error: null, date: dates.schoolEnds() });
 	});
 
 	app.post('/dates/breaks', (req, res) => {
