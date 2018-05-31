@@ -26,7 +26,7 @@
 		<mj-section mj-class="message raw-container">
 			<mj-column>
 				<mj-raw>
-					<a href="https://jbs.mymicds.net" class="button">Visit Now</a>
+					<a class="button" href="https://jbs.mymicds.net">Visit Now</a>
 				</mj-raw>
 			</mj-column>
 		</mj-section>

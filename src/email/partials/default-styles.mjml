@@ -32,7 +32,7 @@
 		font-size="1.5rem"
 		font-weight="700" />
 
-	<mj-class name="bye" />		
+	<mj-class name="bye" />
 
 	<mj-class name="raw-container"
 		padding="25px" />
@@ -42,6 +42,10 @@
 
 	<mj-class name="disclaimer"
 		align="center" />
+
+	<mj-class name="social"
+		padding="0 0 1rem 0"
+		line-height="1" />
 
 </mj-attributes>
 <mj-style inline="inline">

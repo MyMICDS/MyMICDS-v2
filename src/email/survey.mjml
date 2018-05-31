@@ -15,10 +15,10 @@
 				<mj-text mj-class="greeting">Hey there {{firstName}},</mj-text>
 				<mj-text>
 					<h2>Let's take a survey!</h2>
-					<p>School is wrapping up and summer break is beginning, which means we'll have some downtime to improve the site. What should we fix? What should we add? <a href="https://docs.google.com/forms/d/e/1FAIpQLSeqhf-DBGg74thhQTOvg-DW9FPEeSMlm6ijc6LWM71RI3oKPA/viewform?usp=sf_link" class="link">We're launching a survey to find out just that.</a>
+					<p>School is wrapping up and summer break is beginning, which means we'll have some downtime to improve the site. What should we fix? What should we add? <a class="link" href="https://docs.google.com/forms/d/e/1FAIpQLSeqhf-DBGg74thhQTOvg-DW9FPEeSMlm6ijc6LWM71RI3oKPA/viewform?usp=sf_link">We're launching a survey to find out just that.</a>
 					</p>
 					<h2>Anything else?</h2>
-					<p>Feel free to email <a href="mailto:support@mymicds.net" class="link">support@mymicds.net</a> with any additional questions, comments, or concerns you have right now throughout the summer.</p>
+					<p>Feel free to email <a class="link" href="mailto:support@mymicds.net">support@mymicds.net</a> with any additional questions, comments, or concerns you have right now throughout the summer.</p>
 					<h2>Become a developer!</h2>
 					<p>MyMICDS is a student-run website, and said students will eventually graduate. We're always look for fresh talent to help and eventually take the reigns. Hit us up even if you're interested but have no prior experience!</p>
 				</mj-text>
@@ -42,7 +42,12 @@
 		<mj-section>
 			<mj-column>
 				<mj-text mj-class="disclaimer">
-					<small>Want us to shut up? You can <a href="{{unsubscribeLink}}" class="link">unsubscribe</a> from this kind of stuff.</small>
+					<p mj-class="social">
+						<a class="link" href="https://twitter.com/MyMICDS">Twitter</a>
+						|
+						<a class="link" href="https://skills-store.amazon.com/deeplink/dp/B076DWGCZY?deviceType=app&share&refSuffix=ss_copy">Amazon Alexa Skill</a>
+					</p>
+					<small>Want us to shut up? You can <a class="link" href="{{unsubscribeLink}}">unsubscribe</a> from this kind of stuff.</small>
 				</mj-text>
 			</mj-column>
 		</mj-section>
