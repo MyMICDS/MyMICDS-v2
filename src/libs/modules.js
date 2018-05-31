@@ -68,6 +68,12 @@ const modulesConfig = {
 			default: true
 		}
 	},
+	stickynotes: {
+		color: {
+			type: 'COLOR',
+			default: 'WHITE'
+		}
+	},
 	weather: {
 		metric: {
 			type: 'boolean',
@@ -86,6 +92,14 @@ const enumTypes = {
 		'LONG_WEEKEND',
 		'WEEKEND',
 		'CUSTOM'
+	],
+	COLOR: [
+		'GRAY',
+		'ORANGE',
+		'PINK',
+		'TEAL',
+		'WHITE',
+		'YELLOW'
 	]
 };
 
