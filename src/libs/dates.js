@@ -9,6 +9,41 @@ const moment = require('moment');
 const portal = require(__dirname + '/portal.js');
 
 /**
+ * Returns a Moment.js object the date and time school is going to start
+ * Based on two consecutive years, we have gather enough data and deeply analyzed that the last day of school is _probably_ the third Wednesday of August.
+ * @function thirdWednesdayAugust
+ * @param {Number} year - Which May to get third Wednesday from
+ * @returns {Object}
+ */
+
+function thirdWednesdayAugust(year) {
+	const current = moment();
+	if(typeof year !== 'number' || year % 1 !== 0) {
+		year = current.year();
+	}
+
+	return moment().year(year).month('August').startOf('month').day('Wednesday').add(2, 'weeks').startOf('day').hours(8);
+}
+
+/**
+ * Returns a Moment.js object when the next start of school is.
+ * Based on two consecutive years, we have gather enough data and deeply analyzed that the last day of school is _probably_ the third Wednesday of August.
+ * @function schoolEnds
+ * @returns {Object}
+ */
+
+function schoolStarts() {
+	const current = moment();
+	const firstDayThisYear = thirdWednesdayAugust(current.year());
+
+	if(firstDayThisYear.isAfter(current)) {
+		return firstDayThisYear;
+	} else {
+		return thirdWednesdayAugust(current.year() + 1);
+	}
+}
+
+/**
  * Returns a Moment.js object the date and time school is going to end
  * Based on two consecutive years, we have gather enough data and deeply analyzed that the last day of school is _probably_ the last Friday of May.
  * @function lastFridayMay
@@ -31,18 +66,18 @@ function lastFridayMay(year) {
 	let lastDay;
 	switch(lastDayOfMay.day()) {
 	case 5:
-			// If day is already Friday
+		// If day is already Friday
 		lastDay = lastDayOfMay;
 		break;
 
 	case 6:
-			// Last day is Sunday
+		// Last day is Sunday
 		lastDay = lastDayOfMay.subtract(1, 'day');
 		break;
 
 	default:
-			// Subtract day of week (which cancels it out) and start on Saturday.
-			// Then subtract to days to get from Saturday to Friday.
+		// Subtract day of week (which cancels it out) and start on Saturday.
+		// Then subtract to days to get from Saturday to Friday.
 		lastDay = lastDayOfMay.subtract(lastDayOfMay.day() + 2, 'days');
 		break;
 	}
@@ -240,7 +275,9 @@ function getBreaks(callback) {
 	});
 }
 
-module.exports.lastFridayMay = lastFridayMay;
-module.exports.schoolEnds    = schoolEnds;
-module.exports.getSchoolYear = getSchoolYear;
-module.exports.getBreaks     = getBreaks;
+module.exports.thirdWednesdayAugust = thirdWednesdayAugust;
+module.exports.schoolStarts         = schoolStarts;
+module.exports.lastFridayMay        = lastFridayMay;
+module.exports.schoolEnds           = schoolEnds;
+module.exports.getSchoolYear        = getSchoolYear;
+module.exports.getBreaks            = getBreaks;

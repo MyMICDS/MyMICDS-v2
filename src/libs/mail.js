@@ -18,8 +18,8 @@ const nodemailer = require('nodemailer');
  * @param {Object} message - JSON containing details of message
  * @param {string} message.subject - Subject of email
  * @param {string} message.html - HTML message
- *
  * @param {sendCallback} callback - Callback
+ * @param [Object] transporter - Optional transporter so we don't have to log in again
  */
 
 /**
@@ -29,7 +29,7 @@ const nodemailer = require('nodemailer');
  * @param {Object} err - Null if success, error object if failure
  */
 
-function send(users, message, callback) {
+function send(users, message, callback, transporter) {
 
 	// Validate inputs
 	if(typeof callback !== 'function') {
@@ -53,7 +53,9 @@ function send(users, message, callback) {
 		return;
 	}
 
-	const transporter = nodemailer.createTransport(config.email.URI);
+	if (typeof transporter !== 'object') {
+		transporter = nodemailer.createTransport(config.email.URI);
+	}
 
 	const mailOptions = {
 		from: config.email.fromName + ' <' + config.email.fromEmail + '>',
@@ -63,9 +65,8 @@ function send(users, message, callback) {
 	};
 
 	transporter.sendMail(mailOptions, err => {
-
 		if(err) {
-			callback(new Error('There was a problem sending the mail!'));
+			callback(new Error(`There was a problem sending the mail! (${err.message})`));
 			return;
 		}
 
@@ -83,6 +84,7 @@ function send(users, message, callback) {
  * @param {string} file - Path to HTML file
  * @param {Object} data - JSON of custom data. (Ex. Replace '{{firstName}}' in HTML by putting 'firstName: Michael' in the JSON). Set to empty object if there's no data.
  * @param {sendHTMLCallback} callback - Callback
+ * @param [Object] transporter - Optional transporter so we don't have to log in again
  */
 
 /**
@@ -92,7 +94,7 @@ function send(users, message, callback) {
  * @param {Object} err - Null if successful, error object if failure
  */
 
-function sendHTML(users, subject, file, data, callback) {
+function sendHTML(users, subject, file, data, callback, transporter) {
 
 	// Validate inputs
 	if(typeof callback !== 'function') {
@@ -123,7 +125,7 @@ function sendHTML(users, subject, file, data, callback) {
 			html: body,
 		};
 
-		send(users, mesesage, callback);
+		send(users, mesesage, callback, transporter);
 	});
 }
 

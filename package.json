@@ -18,7 +18,9 @@
   ],
   "main": "src/index.js",
   "scripts": {
-    "start": "pm2 start src/index.js -i max --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds\"",
+    "build": "mjml -r src/email/* -o src/html/messages",
+    "start": "npm run build && node src/index.js",
+    "prod": "npm run build && pm2 start src/index.js -i max --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds\"",
     "tasks": "pm2 start src/tasks.js --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds-tasks\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "docs": "jsdoc -c jsdoc_conf.json . && echo Docs built in ./docs folder",
@@ -58,6 +60,7 @@
     "jsdoc": "^3.4.0",
     "jsonwebtoken": "^7.1.9",
     "later": "^1.2.0",
+    "mjml": "^4.0.5",
     "moment": "^2.11.2",
     "mongodb": "^2.2.9",
     "multer": "^1.2.0",

@@ -217,7 +217,7 @@ function resetPasswordEmail(db, user, callback) {
 				};
 
 				// Send email confirmation
-				mail.sendHTML(email, 'Change your password', __dirname + '/../html/messages/password.html', emailReplace, callback);
+				mail.sendHTML(email, 'Change Your Password', __dirname + '/../html/messages/password.html', emailReplace, callback);
 
 			});
 		});
