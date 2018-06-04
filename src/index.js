@@ -94,6 +94,7 @@ MongoClient.connect(config.mongodb.uri, (err, db) => {
 	require(__dirname + '/routes/userAPI.js')(app, db, socketIO);
 	require(__dirname + '/routes/weatherAPI.js')(app, db, socketIO);
 	require(__dirname + '/routes/stickynotesAPI.js')(app, db);
+	require(__dirname + '/routes/snacklistAPI.js')(app, db);
 });
 
 app.get('/', (req, res) => {
