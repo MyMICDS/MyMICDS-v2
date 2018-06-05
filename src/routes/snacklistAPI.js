@@ -20,4 +20,6 @@ module.exports = (app, db) => {
 			res.json({ error, advisory });
 		});
 	});
+
+	snacklist.giveSnackDuty(db);
 };
