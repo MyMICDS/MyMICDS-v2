@@ -76,13 +76,13 @@ MongoClient.connect(config.mongodb.uri, (err, db) => {
 
 	// API Routes
 	require(__dirname + '/routes/aliasAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/authAPI.js')(app, db);
 	require(__dirname + '/routes/backgroundAPI.js')(app, db, socketIO);
-	require(__dirname + '/routes/bulletinAPI.js')(app);
 	require(__dirname + '/routes/canvasAPI.js')(app, db, socketIO);
 	require(__dirname + '/routes/classAPI.js')(app, db, socketIO);
+	require(__dirname + '/routes/dailyBulletinAPI.js')(app);
 	require(__dirname + '/routes/datesAPI.js')(app);
 	require(__dirname + '/routes/feedsAPI.js')(app, db);
-	require(__dirname + '/routes/loginAPI.js')(app, db);
 	require(__dirname + '/routes/lunchAPI.js')(app, db);
 	require(__dirname + '/routes/modulesAPI.js')(app, db);
 	require(__dirname + '/routes/notificationsAPI.js')(app, db);
