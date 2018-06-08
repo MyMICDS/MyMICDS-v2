@@ -1,0 +1,34 @@
+<mjml>
+	<mj-head>
+		<mj-include path="./partials/default-styles.mjml" />
+	</mj-head>
+	<mj-body>
+		<mj-section>
+			<mj-column>
+				<mj-text mj-class="title-container">
+					<h1 mj-class="title" class="title">Announcement from MyMICDS.net</h1>
+				</mj-text>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message">
+			<mj-column>
+				<mj-text mj-class="greeting">Hey there {{firstName}},</mj-text>
+				<mj-text>Here at MyMICDS, we're always continually improving and evolving to deliver the best possible experience. It wasn't until recently that we realized obtaining the perfect website requires rethinking from the ground-up. This is why we've decided to upgrade the platform from MICDS to John Burroughs.</mj-text>
+				<mj-text mj-class="important">From now on, MyMICDS will be MyJohnBurroughs</mj-text>
+				<mj-text>Your existing MyMICDS account and all of its data is migrated. As always, you can email <strong>support@myjohnburroughs.net</strong> if you have any questions. This change is permanent starting April 1st.</mj-text>
+				<mj-text mj-class="bye">
+					Love,
+					<br>
+					The MyJohnBurroughs Development Team
+				</mj-text>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message raw-container">
+			<mj-column>
+				<mj-raw>
+					<a class="button" href="https://jbs.mymicds.net">Visit Now</a>
+				</mj-raw>
+			</mj-column>
+		</mj-section>
+	</mj-body>
+</mjml>

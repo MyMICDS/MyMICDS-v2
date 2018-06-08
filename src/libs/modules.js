@@ -8,36 +8,70 @@
 const _ = require('underscore');
 const { ObjectID } = require('mongodb');
 const users = require(__dirname + '/users.js');
-const moment = require('moment');
 
 // All allowed modules
-const moduleList = ['countdown', 'progress', 'schedule', 'simplifiedSchedule', 'snowday', 'stickynotes', 'weather'];
+const moduleList = [
+	'bookmarks',
+	'countdown',
+	'progress',
+	'schedule',
+	'simplifiedLunch',
+	'simplifiedSchedule',
+	'snowday',
+	'stickynotes',
+	'twitter',
+	'weather'
+];
 // Module options. Can be either `boolean`, `number`, or `string`
 const modulesConfig = {
-	countdown: {
-		countdownTo: {
-			type: 'Date',
-			default: moment().year(2018).month('may').date(26).hour(15).minute(15).toDate()
-		},
-		eventLabel: {
+	bookmarks: {
+		label: {
 			type: 'string',
-			default: 'Summer Break',
+			default: 'Really Cool Site'
+		},
+		icon: {
+			type: 'string',
+			default: 'fa-bookmark'
+		},
+		url: {
+			type: 'string',
+			default: 'https://mymicds.net'
+		}
+	},
+	countdown: {
+		mode: {
+			type: 'COUNTDOWN_MODE',
+			default: 'END'
 		},
 		schoolDays: {
 			type: 'boolean',
 			default: true
 		},
-		preset: {
+		shake: {
+			type: 'boolean',
+			default: true
+		},
+		countdownTo: {
+			type: 'Date',
+			optional: true,
+			default: null
+		},
+		eventLabel: {
 			type: 'string',
-			default: 'Summer Break'
+			optional: true,
+			default: 'Countdown'
 		}
-	},
-	stickynotes: {
 	},
 	progress: {
 		showDate: {
 			type: 'boolean',
 			default: true
+		}
+	},
+	stickynotes: {
+		color: {
+			type: 'COLOR',
+			default: 'WHITE'
 		}
 	},
 	weather: {
@@ -46,6 +80,27 @@ const modulesConfig = {
 			default: false
 		}
 	}
+};
+
+// Delcare your own enum types and use just like any other module option type!
+const enumTypes = {
+	COUNTDOWN_MODE: [
+		'TIME_OFF',
+		'START',
+		'END',
+		'VACATION',
+		'LONG_WEEKEND',
+		'WEEKEND',
+		'CUSTOM'
+	],
+	COLOR: [
+		'GRAY',
+		'ORANGE',
+		'PINK',
+		'TEAL',
+		'WHITE',
+		'YELLOW'
+	]
 };
 
 // Range column indexes start at (inclusive)
@@ -147,84 +202,35 @@ function getModules(db, user, callback) {
 				return;
 			}
 
-			// Return default modules if none found, else return found documents
-			callback(null, modules.length === 0 ? defaultModules : modules.map(processModuleOptions));
-		});
-	});
-}
+			if (modules) {
+				for (const mod of modules) {
+					const defaultOptions = getDefaultOptions(mod.type) || {};
+					const defaultKeys = Object.keys(defaultOptions);
 
-/**
- * Pairs all users with their module configurations
- * @function getAllModules
- *
- * @param {Object} db - Database connection
- * @param {getAllModulesCallback} callback - Callback
- */
+					// If config has no options, ignore recieved options
+					if (_.isEmpty(defaultOptions)) {
+						delete mod.options;
+						continue;
+					}
 
-/**
- * Returns object with users and modules
- * @callback getAllModulesCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Object} modules - Object of all users and modules
- */
+					mod.options = Object.assign({}, defaultOptions, mod.options);
 
-function getAllModules(db, callback) {
-	if(typeof callback !== 'function') return;
-	if(typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
-	}
+					// Get rid of excess options
+					for (const optionKey of Object.keys(mod.options)) {
+						if (!defaultKeys.includes(optionKey)) {
+							delete mod.options[optionKey];
+						}
+					}
 
-	const userdata = db.collection('users');
-	// Begin aggregation pipeline
-	userdata.aggregate([
-		// Stage 1
-		{
-			$match: {
-				confirmed: true
-			}
-		},
-		// Stage 2
-		{
-			$lookup: {
-				from: 'modules',
-				localField: '_id',
-				foreignField: 'user',
-				as: 'modules'
-			}
-		},
-		// Stage 3
-		{
-			$project: {
-				// only include these in the final results
-				user: 1,
-				modules: {
-					type: 1,
-					row: 1,
-					column: 1,
-					width: 1,
-					height: 1,
-					options: 1
+					if (_.isEmpty(mod.options)) {
+						delete mod.options;
+					}
 				}
 			}
-		}
-	]).toArray((err, docs) => {
-		if(err) {
-			callback(new Error('There was a problem querying the database!'), null);
-			return;
-		}
 
-		const userModules = {};
-		for(const doc of docs) {
-			if(doc.modules.length < 1) {
-				userModules[doc.user] = defaultModules;
-			} else {
-				userModules[doc.user] = doc.modules.map(processModuleOptions);
-			}
-		}
-
-		callback(null, userModules);
+			// Return default modules if none found, else return found documents
+			callback(null, modules.length === 0 ? defaultModules : modules);
+		});
 	});
 }
 
@@ -286,14 +292,39 @@ function upsertModules(db, user, modules, callback) {
 
 		// Check that options are the right types. If not, use default value.
 		for(const optionKey of optionKeys) {
-			// Convert iso strings to date objects.
-			if (optionsConfig[optionKey].type === 'Date') {
-				mod.options[optionKey] = moment(mod.options[optionKey]).toDate();
-			}
-			const optionType = typeof mod.options[optionKey] === 'object' ? mod.options[optionKey].constructor.name : typeof mod.options[optionKey];
-			if (optionType !== optionsConfig[optionKey].type) {
-				mod.options[optionKey] = optionsConfig[optionKey].default;
+			const configType = optionsConfig[optionKey].type;
+			const optional = optionsConfig[optionKey].optional;
 
+			const moduleValue = mod.options[optionKey];
+			let moduleValueType = null;
+			if (moduleValue !== null) {
+				moduleValueType = typeof moduleValue === 'object' ? moduleValue.constructor.name : typeof moduleValue;
+			}
+
+			let valid = false;
+
+			// Convert iso strings to date objects
+			if (configType === 'Date') {
+				mod.options[optionKey] = new Date(moduleValue);
+				if (isNaN(mod.options[optionKey].getTime())) {
+					valid = false;
+				} else {
+					valid = true;
+				}
+			} else if (enumTypes[configType] && enumTypes[configType].includes(moduleValue)) {
+				// Check if custom enum type
+				valid = true;
+			} else if (moduleValueType === configType) {
+				// Check if native type
+				valid = true;
+			}
+
+			if (!valid) {
+				if (optional && (moduleValue === undefined || moduleValue === null)) {
+					mod.options[optionKey] = null;
+				} else {
+					mod.options[optionKey] = optionsConfig[optionKey].default;
+				}
 			}
 		}
 	}
@@ -394,38 +425,5 @@ function upsertModules(db, user, modules, callback) {
 	});
 }
 
-/**
- * Adds default options to modules (I think? I'm not really sure how this works)
- * @function processModuleOptions
- *
- * @param {Object} mod - Module to sanitize
- * @return {Object} Modified module
- */
-
-function processModuleOptions(mod) {
-	const defaultOptions = getDefaultOptions(mod.type) || {};
-	const defaultKeys = Object.keys(defaultOptions);
-
-	if (_.isEmpty(defaultOptions)) {
-		delete mod.options;
-		return mod;
-	}
-
-	mod.options = Object.assign({}, defaultOptions,  mod.options);
-
-	for (const optionKey of Object.keys(mod.options)) {
-		if (!defaultKeys.includes(optionKey)) {
-			delete mod.options[optionKey];
-		}
-	}
-
-	if (_.isEmpty(mod.options)) {
-		delete mod.options;
-	}
-
-	return mod;
-}
-
-module.exports.get	= getModules;
-module.exports.getAll = getAllModules;
+module.exports.get = getModules;
 module.exports.upsert = upsertModules;

@@ -30,6 +30,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
 * [Daily Bulletin API](#daily-bulletin-api)
   * [`/daily-bulletin/list`](#daily-bulletinlist)
 * [Dates API](#dates-api)
+  * [`/dates/school-starts`](#datesschool-starts)
   * [`/dates/school-ends`](#datesschool-ends)
   * [`/dates/breaks`](#datesbreaks)
 * [Feeds API](#feeds-api)
@@ -40,6 +41,7 @@ Endpoints or 'routes' and different URL's that you can send information to. This
   * [`/auth/logout`](#authlogout)
   * [`/auth/register`](#authregister)
   * [`/auth/confirm`](#authconfirm)
+  * [`/auth/verify`](#authverify)
   * [`/auth/change-password`](#userchange-password)
   * [`/auth/forgot-password`](#userforgot-password)
   * [`/auth/reset-password`](#userreset-password)
@@ -48,8 +50,8 @@ Endpoints or 'routes' and different URL's that you can send information to. This
 * [Modules API](#modules-api)
   * [`/modules/get`](#modulesget)
   * [`/modules/upsert`](#modulesupsert)
-* [Notifications API](#notification-api)
-  * [`/notification/get`](#notificationget)
+* [Notifications API](#notifications-api)
+  * [`/notifications/unsubscribe`](#notificationsunsubscribe)
 * [Planner API](#planner-api)
   * [`/planner/get`](#plannerget)
   * [`/planner/add`](#planneradd)
@@ -259,10 +261,17 @@ The part of the API that realtes to dates and time. Can be found in `src/routes/
 
 
 ### `/dates/school-ends`
+Returns the date when school starts. During the school year, returns the date next school year starts.
+
+#### Response
+- `date` - Date when school starts. Third Wednesday of August at 8:00.
+
+
+### `/dates/school-ends`
 Returns the date when school ends. During Summer, returns the date next school year ends.
 
 #### Response
-- `date` - Date when school ends. Last Friday of may at 11:30.
+- `date` - Date when school ends. Last Friday of May at 11:30.
 
 
 ### `/dates/breaks`
@@ -343,6 +352,14 @@ Confirm a newly registered account. Hash is sent via email.
 - `error` - Null if successful, string containing error if failure.
 
 
+### `/auth/verify`
+Confirm the authenticity of a JWT. Pass JWT through normal HTTP headers: `Authorization: Bearer <JWT>`
+
+#### Response
+- `error` - Null if successful, string containing error if failure.
+- `payload` - Payload of decoded JWT. Null if failure.
+
+
 
 ## Lunch API
 This is the part of the API that relates to the lunch. Can be found in `src/routes/lunchAPI.js`. The associated lunch module can be found in `src/libs/lunch.js`.
@@ -381,6 +398,23 @@ This is the part of the API that relates to the homepage modules. Can be found i
 
 #### Response
 - `err` - Null if success, string containing error if failure.
+
+
+
+## Notifications API
+This is the part of the API that relates to the notifications. Can be found in `src/routes/notificationsAPI.js`. The associated notifications module can be found in `src/libs/notifications.js`.
+
+
+### `/notifications/unsubscribe`
+Unsubscribes the user from certain email types.
+
+#### Parameters
+- `user` - Username of account to unsubscribe. _(Optional, send this as an alternative to being logged in and sending JWT.)_
+- `hash` - Random string embedded in link to confirm user received the email. _(Optional, send this as an alternative to being logged in and sending JWT.)_
+- `scopes` - Either single string or array of strings of valid email types to unsubscribe from.
+
+#### Response
+- `error` - Null if success, string containing error if failure.
 
 
 
@@ -622,16 +656,7 @@ Resets a user's password after clicking on the link from email sent by `/user/fo
 #### Response
 - `error` - Null if success, string containing error if failure.
 
-## Notifications API
-This is the part of the API that relates to the sidebar notifications. Can be found under `src/routes/notificationAPI.js`. The associated notification module can be found under `src/libs/notification.js`.
 
-### `/notification/get`
-Get the list of notifications.
-
-#### Parameters
-
-#### Response
-- `events` - List of notifications
 
 ## Quotes API
 The part of the API that relates to the quotes page. Can be found under `src/routes/quotesAPI.js`.

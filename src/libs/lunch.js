@@ -50,18 +50,19 @@ function getLunch(db, date, callback) {
 		if(res.statusCode !== 200) {
 
 			// Alert admins if lunch page has moved
-			admins.sendEmail(db, {
-				subject: 'Error Notification - Lunch Retrieval',
-				html: 'There was a problem with the lunch URL.<br>Error message: ' + err
-			}, err => {
-				if(err) {
-					console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
-					return;
-				}
-				console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
-			});
+			// admins.sendEmail(db, {
+			// 	subject: 'Error Notification - Lunch Retrieval',
+			// 	html: 'There was a problem with the lunch URL.<br>Error message: ' + err
+			// }, err => {
+			// 	if(err) {
+			// 		console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
+			// 		return;
+			// 	}
+			// 	console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
+			// });
 
-			callback(new Error('There was a problem with the lunch URL!'), null);
+			// callback(new Error('There was a problem with the lunch URL!'), null);
+			callback(new Error('It appears the lunch site is down. Check again later!'), null);
 			return;
 		}
 

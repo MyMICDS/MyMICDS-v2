@@ -6,15 +6,24 @@ const api = require(__dirname + '/../libs/api.js');
 const stickynotes = require(__dirname + '/../libs/stickynotes.js');
 
 module.exports = (app, db) => {
+
 	app.get('/stickynotes', (req, res) => {
-		stickynotes.get(db, req.query.moduleId, (err, note) => {
+		stickynotes.get(db, req.user.user, req.body.moduleId, (err, note) => {
+			res.json({
+				error: err ? err.message : null,
+				stickynote: note
+			});
 			api.respond(res, err, { stickynote: note });
 		});
 	});
 
 	app.put('/stickynotes', (req, res) => {
-		stickynotes.post(db, req.body.text, req.body.moduleId, (err) => {
+		stickynotes.post(db, req.user.user, req.body.moduleId, req.body.text, (err) => {
+			res.json({
+				error: err ? err.message : null
+			});
 			api.respond(res, err);
 		});
 	});
+
 };
