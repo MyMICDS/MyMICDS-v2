@@ -23,9 +23,9 @@ const moment = require('moment');
  */
 
 function getStats(db, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
@@ -45,7 +45,7 @@ function getStats(db, callback) {
 
 	// Get all users
 	userdata.find({ confirmed: true }).toArray((err, userDocs) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem querying the users from the database!'), null);
 			return;
 		}
@@ -55,32 +55,32 @@ function getStats(db, callback) {
 
 		// Get array of unique gradYears
 		const gradYears = [];
-		for(const userDoc of userDocs) {
+		for (const userDoc of userDocs) {
 			let gradYear = userDoc.gradYear;
 
 			// If gradYear is null, it's a teacher
-			if(gradYear === null) {
+			if (gradYear === null) {
 				gradYear = 'teacher';
 			}
 
 			// If gradYear isn't in the array yet, push to gradYears
-			if(!gradYears.includes(gradYear)) {
+			if (!gradYears.includes(gradYear)) {
 				gradYears.push(gradYear);
 			}
 		}
 
 		// First off, set every graduation year to 0 or empty object
-		for(const gradYear of gradYears) {
+		for (const gradYear of gradYears) {
 			stats.registered.gradYears[gradYear] = {};
 			stats.visitedToday.gradYears[gradYear] = 0;
 		}
 
 		// Loop through all the users for when they registered and last time they visited the site
 		const today = moment();
-		for(const userDoc of userDocs) {
+		for (const userDoc of userDocs) {
 			// If gradYear is null, it's a teacher
 			let gradYear = userDoc.gradYear;
-			if(gradYear === null) {
+			if (gradYear === null) {
 				gradYear = 'teacher';
 			}
 
@@ -89,14 +89,14 @@ function getStats(db, callback) {
 			const formatRegistered = registered.format('YYYY-MM-DD');
 
 			// Check if user registered today
-			if(today.isSame(registered, 'day')) {
+			if (today.isSame(registered, 'day')) {
 				stats.registered.today++;
 			}
 
 			stats.registered.gradYears[gradYear][formatRegistered] = stats.registered.gradYears[gradYear][formatRegistered] + 1 || 1;
 
 			// Check if user visited today
-			if(today.isSame(userDoc.lastVisited, 'day')) {
+			if (today.isSame(userDoc.lastVisited, 'day')) {
 				stats.visitedToday.total++;
 				stats.visitedToday.gradYears[gradYear]++;
 			}

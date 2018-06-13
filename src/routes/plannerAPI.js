@@ -17,12 +17,12 @@ module.exports = (app, db, socketIO) => {
 	app.post('/planner', (req, res) => {
 
 		let start = new Date();
-		if(req.body.start) {
+		if (req.body.start) {
 			start = new Date(req.body.start);
 		}
 
 		let end = new Date();
-		if(req.body.end) {
+		if (req.body.end) {
 			end = new Date(req.body.end);
 		}
 
@@ -36,7 +36,7 @@ module.exports = (app, db, socketIO) => {
 		};
 
 		planner.upsert(db, req.apiUser, insertEvent, (err, plannerEvent) => {
-			if(err) {
+			if (err) {
 				api.respond(res, err);
 				return;
 			}
@@ -51,7 +51,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.delete('/planner', (req, res) => {
 		planner.delete(db, req.apiUser, req.body.id, err => {
-			if(!err) {
+			if (!err) {
 				socketIO.user(req.apiUser, 'planner', 'delete', req.body.id);
 			}
 			api.respond(res, err);
@@ -60,7 +60,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.patch('/planner/check', (req, res) => {
 		checkedEvents.check(db, req.apiUser, req.body.id, err => {
-			if(!err) {
+			if (!err) {
 				socketIO.user(req.apiUser, 'planner', 'check', req.body.id);
 			}
 			api.respond(res, err);
@@ -69,7 +69,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.patch('/planner/uncheck', (req, res) => {
 		checkedEvents.uncheck(db, req.apiUser, req.body.id, err => {
-			if(!err) {
+			if (!err) {
 				socketIO.user(req.apiUser, 'planner', 'uncheck', req.body.id);
 			}
 			api.respond(res, err);

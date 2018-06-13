@@ -18,7 +18,7 @@ const portal = require(__dirname + '/portal.js');
 
 function thirdWednesdayAugust(year) {
 	const current = moment();
-	if(typeof year !== 'number' || year % 1 !== 0) {
+	if (typeof year !== 'number' || year % 1 !== 0) {
 		year = current.year();
 	}
 
@@ -36,7 +36,7 @@ function schoolStarts() {
 	const current = moment();
 	const firstDayThisYear = thirdWednesdayAugust(current.year());
 
-	if(firstDayThisYear.isAfter(current)) {
+	if (firstDayThisYear.isAfter(current)) {
 		return firstDayThisYear;
 	} else {
 		return thirdWednesdayAugust(current.year() + 1);
@@ -53,7 +53,7 @@ function schoolStarts() {
 
 function lastFridayMay(year) {
 	const current = moment();
-	if(typeof year !== 'number' || year % 1 !== 0) {
+	if (typeof year !== 'number' || year % 1 !== 0) {
 		year = current.year();
 	}
 
@@ -64,7 +64,7 @@ function lastFridayMay(year) {
 	 */
 
 	let lastDay;
-	switch(lastDayOfMay.day()) {
+	switch (lastDayOfMay.day()) {
 	case 5:
 		// If day is already Friday
 		lastDay = lastDayOfMay;
@@ -96,7 +96,7 @@ function schoolEnds() {
 	const current = moment();
 	const lastDayThisYear = lastFridayMay(current.year());
 
-	if(lastDayThisYear.isAfter(current)) {
+	if (lastDayThisYear.isAfter(current)) {
 		return lastDayThisYear;
 	} else {
 		return lastFridayMay(current.year() + 1);
@@ -115,7 +115,7 @@ function getSchoolYear(date) {
 	const lastDayThisYear = lastFridayMay(date.year());
 
 	// If after summer, include next year. Otherwise, include last year
-	if(date.isAfter(lastDayThisYear)) {
+	if (date.isAfter(lastDayThisYear)) {
 		return [date.year(), date.year() + 1];
 	} else {
 		return [date.year() - 1, date.year()];
@@ -137,12 +137,12 @@ function getSchoolYear(date) {
  */
 
 function getDaysOff(callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		return;
 	}
 
 	portal.getDayRotations((err, days) => {
-		if(err) {
+		if (err) {
 			callback(err, null);
 			return;
 		}
@@ -154,10 +154,10 @@ function getDaysOff(callback) {
 		const daysOff = [];
 
 		// Go through all days
-		while(dayPointer.isSameOrBefore(dayMax)) {
+		while (dayPointer.isSameOrBefore(dayMax)) {
 
 			// Check if there's no rotation day and that it isn't the weekend
-			if(!(days[dayPointer.year()] && days[dayPointer.year()][dayPointer.month() + 1] && days[dayPointer.year()][dayPointer.month() + 1][dayPointer.date()])) {
+			if (!(days[dayPointer.year()] && days[dayPointer.year()][dayPointer.month() + 1] && days[dayPointer.year()][dayPointer.month() + 1][dayPointer.date()])) {
 				daysOff.push(dayPointer.clone());
 			}
 
@@ -183,13 +183,13 @@ function getDaysOff(callback) {
  */
 
 function getBreaks(callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		return;
 	}
 
 	// Get array of days that have no day rotation
 	getDaysOff((err, days) => {
-		if(err) {
+		if (err) {
 			callback(err, null);
 			return;
 		}
@@ -232,9 +232,9 @@ function getBreaks(callback) {
 			other: []
 		};
 
-		for(const group of groupedDays) {
+		for (const group of groupedDays) {
 			// Check if weekend
-			if(group.length === 2 && group[0].day() === 6 && group[1].day() === 0) {
+			if (group.length === 2 && group[0].day() === 6 && group[1].day() === 0) {
 				categorizedBreaks.weekends.push({
 					start: group[0],
 					end: group[group.length - 1]
@@ -244,14 +244,14 @@ function getBreaks(callback) {
 
 			// Check if Saturday / Sunday are included in break
 			let weekendIncluded = false;
-			for(const dayObj of group) {
-				if(dayObj.day() === 6 || dayObj.day() === 0) {
+			for (const dayObj of group) {
+				if (dayObj.day() === 6 || dayObj.day() === 0) {
 					weekendIncluded = true;
 				}
 			}
 
-			if(weekendIncluded) {
-				if(group.length < 7) {
+			if (weekendIncluded) {
+				if (group.length < 7) {
 					categorizedBreaks.longWeekends.push({
 						start: group[0],
 						end: group[group.length - 1]

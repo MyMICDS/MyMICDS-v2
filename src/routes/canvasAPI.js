@@ -16,7 +16,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.put('/canvas/url', jwt.requireLoggedIn, (req, res) => {
 		canvas.setURL(db, req.apiUser, req.body.url, (err, isValid, validURL) => {
-			if(!err) {
+			if (!err) {
 				socketIO.user(req.apiUser, 'canvas', 'set-url', validURL);
 			}
 			api.respond(res, err, { valid: isValid, url: validURL });

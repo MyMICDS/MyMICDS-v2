@@ -36,37 +36,37 @@ const users = require(__dirname + '/users.js');
  */
 
 function login(db, user, password, rememberMe, comment, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null, null, null);
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'), null, null, null);
 		return;
 	} else {
 		user = user.toLowerCase();
 	}
-	if(typeof password !== 'string') {
+	if (typeof password !== 'string') {
 		callback(new Error('Invalid password!'), null, null, null);
 		return;
 	}
-	if(typeof rememberMe !== 'boolean') {
+	if (typeof rememberMe !== 'boolean') {
 		rememberMe = true;
 	}
 
 	passwords.passwordMatches(db, user, password, (err, passwordMatches, confirmed) => {
-		if(err) {
+		if (err) {
 			callback(err, null, null, null);
 			return;
 		}
 
-		if(!confirmed) {
+		if (!confirmed) {
 			callback(null, false, 'Account is not confirmed! Please check your email or register under the same username to resend the email.', null);
 			return;
 		}
-		if(!passwordMatches) {
+		if (!passwordMatches) {
 			callback(null, false, 'Invalid username / password!', null);
 			return;
 		}
@@ -78,7 +78,7 @@ function login(db, user, password, rememberMe, comment, callback) {
 		// Login successful!
 		// Now we need to create a JWT
 		jwt.generate(db, user, rememberMe, comment, (err, jwt) => {
-			if(err) {
+			if (err) {
 				callback(err, null, null, null);
 				return;
 			}
@@ -113,10 +113,10 @@ function login(db, user, password, rememberMe, comment, callback) {
 
 function register(db, user, callback) {
 	// Validate inputs
-	if(typeof callback !== 'function') callback = () => {};
-	if(typeof db   !== 'object') { callback(new Error('Invalid database connection!')); return; }
-	if(typeof user !== 'object') { callback(new Error('Invalid user object!'));         return; }
-	if(typeof user.user !== 'string') {
+	if (typeof callback !== 'function') callback = () => {};
+	if (typeof db   !== 'object') { callback(new Error('Invalid database connection!')); return; }
+	if (typeof user !== 'object') { callback(new Error('Invalid user object!'));         return; }
+	if (typeof user.user !== 'string') {
 		callback(new Error('Invalid username!'));
 		return;
 	} else {
@@ -124,22 +124,22 @@ function register(db, user, callback) {
 		user.user = user.user.toLowerCase();
 	}
 
-	if(typeof user.password  !== 'string' || _.contains(passwords.passwordBlacklist, user.password)) {
+	if (typeof user.password  !== 'string' || _.contains(passwords.passwordBlacklist, user.password)) {
 		callback(new Error('Invalid password!'));
 		return;
 	}
 
-	if(typeof user.firstName !== 'string') { callback(new Error('Invalid first name!')); return; }
-	if(typeof user.lastName  !== 'string') { callback(new Error('Invalid last name!'));  return; }
+	if (typeof user.firstName !== 'string') { callback(new Error('Invalid first name!')); return; }
+	if (typeof user.lastName  !== 'string') { callback(new Error('Invalid last name!'));  return; }
 
 	// If gradYear not valid, default to faculty
-	if(typeof user.gradYear !== 'number' || user.gradYear % 1 !== 0 || _.isNaN(user.gradYear)) {
+	if (typeof user.gradYear !== 'number' || user.gradYear % 1 !== 0 || _.isNaN(user.gradYear)) {
 		user.gradYear = null;
 	}
 
 	// Check if it's an already existing user
 	users.get(db, user.user, (err, isUser, data) => {
-		if(isUser && data.confirmed) {
+		if (isUser && data.confirmed) {
 			callback(new Error('An account is already registered under the email ' + user.user + '@micds.org!'));
 			return;
 		}
@@ -148,7 +148,7 @@ function register(db, user, callback) {
 
 		// Generate confirmation email hash
 		crypto.randomBytes(16, (err, buf) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem generating a random confirmation hash!'));
 				return;
 			}
@@ -157,7 +157,7 @@ function register(db, user, callback) {
 
 			// Generate unsubscribe email hash
 			crypto.randomBytes(16, (err, buf) => {
-				if(err) {
+				if (err) {
 					callback(new Error('There was a problem generating a random email hash!'));
 					return;
 				}
@@ -166,7 +166,7 @@ function register(db, user, callback) {
 
 				// Hash Password
 				cryptoUtils.hashPassword(user.password, (err, hashedPassword) => {
-					if(err) {
+					if (err) {
 						callback(err);
 						return;
 					}
@@ -185,7 +185,7 @@ function register(db, user, callback) {
 					};
 
 					userdata.update({ user: newUser.user }, newUser, { upsert: true }, err => {
-						if(err) {
+						if (err) {
 							callback(new Error('There was a problem inserting the account into the database!'));
 							return;
 						}
@@ -205,7 +205,7 @@ function register(db, user, callback) {
 							subject: newUser.user + ' just created a 2.0 account!',
 							html: newUser.firstName + ' ' + newUser.lastName + ' (' + newUser.gradYear + ') just created an account with the username ' + newUser.user
 						}, err => {
-							if(err) {
+							if (err) {
 								console.log('[' + new Date() + '] Error occured when sending admin notification! (' + err + ')');
 							}
 						});
@@ -235,40 +235,40 @@ function register(db, user, callback) {
 
 function confirm(db, user, hash, callback) {
 
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'));
 		return;
 	}
-	if(typeof hash !== 'string') {
+	if (typeof hash !== 'string') {
 		callback(new Error('Invalid hash!'));
 		return;
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('Does doesn\'t exist!'));
 			return;
 		}
 
 		const dbHash = userDoc['confirmationHash'];
 
-		if(cryptoUtils.safeCompare(hash, dbHash)) {
+		if (cryptoUtils.safeCompare(hash, dbHash)) {
 			// Hash matches, confirm account!
 			const userdata = db.collection('users');
 			userdata.update({ user }, {$set: { confirmed: true }}, err => {
-				if(err) {
+				if (err) {
 					callback(new Error('There was a problem updating the database!'));
 					return;
 				}

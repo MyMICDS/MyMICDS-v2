@@ -13,7 +13,7 @@ module.exports = (app, db) => {
 	app.get('/quote', (req, res) => {
 		quotes.get(db, (err, quotes) => {
 			let quote = null;
-			if(!err) {
+			if (!err) {
 				quote = Random.pick(engine, quotes);
 			}
 			api.respond(res, err, { quote });

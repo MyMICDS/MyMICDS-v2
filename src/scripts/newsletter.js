@@ -51,7 +51,7 @@ getBlacklist((err, blacklist) => {
 
 	// Connect to database
 	MongoClient.connect(config.mongodb.uri, (err, db) => {
-		if(err) throw err;
+		if (err) throw err;
 
 		const userdata = db.collection('users');
 

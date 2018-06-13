@@ -28,13 +28,13 @@ module.exports = io => {
 				clockTolerance: 30
 
 			}, (err, decoded) => {
-				if(err) {
+				if (err) {
 					socket.emit('unauthorized');
 					return;
 				}
 
 				// User is valid!
-				if(!err && decoded) {
+				if (!err && decoded) {
 					socket.decodedToken = decoded;
 					socket.emit('authorized');
 				}

@@ -16,7 +16,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/weather/update', jwt.requireScope('admin'), (req, res) => {
 		weather.update((err, weatherJSON) => {
-			if(!err) {
+			if (!err) {
 				socketIO.global('weather', weatherJSON);
 			}
 			api.respond(res, err);

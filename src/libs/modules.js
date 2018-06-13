@@ -174,22 +174,22 @@ function getDefaultOptions(type) {
 
 function getModules(db, user, callback) {
 	// Input validation
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
 
 	// Check for user validity, get ID
 	users.get(db, user || '', (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null);
 			return;
 		}
 
 		// If user doesn't exist, return default modules
-		if(!isUser) {
+		if (!isUser) {
 			callback(null, defaultModules);
 			return;
 		}
@@ -197,7 +197,7 @@ function getModules(db, user, callback) {
 		const moduledata = db.collection('modules');
 
 		moduledata.find({ user: userDoc['_id'] }).toArray((err, modules) => {
-			if(err) {
+			if (err) {
 				callback(err, null);
 				return;
 			}
@@ -251,22 +251,22 @@ function getModules(db, user, callback) {
 
 function upsertModules(db, user, modules, callback) {
 	// Input validation
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
 
-	if(!_.isArray(modules)) {
+	if (!_.isArray(modules)) {
 		callback(new Error('Modules is not an array!'));
 		return;
 	}
-	if(!modules.every(m => _.contains(moduleList, m.type))) {
+	if (!modules.every(m => _.contains(moduleList, m.type))) {
 		callback(new Error('Invalid module type!'));
 		return;
 	}
-	for(const mod of modules) {
+	for (const mod of modules) {
 		const optionsConfig = modulesConfig[mod.type];
 
 		// If no options config, delete any recieved module's options
@@ -284,14 +284,14 @@ function upsertModules(db, user, modules, callback) {
 		const optionKeys = Object.keys(optionsConfig);
 
 		// Remove any extra options
-		for(const modOptionKey of Object.keys(mod.options)) {
+		for (const modOptionKey of Object.keys(mod.options)) {
 			if (!optionKeys.includes(modOptionKey)) {
 				delete mod.options[modOptionKey];
 			}
 		}
 
 		// Check that options are the right types. If not, use default value.
-		for(const optionKey of optionKeys) {
+		for (const optionKey of optionKeys) {
 			const configType = optionsConfig[optionKey].type;
 			const optional = optionsConfig[optionKey].optional;
 
@@ -328,42 +328,42 @@ function upsertModules(db, user, modules, callback) {
 			}
 		}
 	}
-	if(!modules.every(m => m.width > 0)) {
+	if (!modules.every(m => m.width > 0)) {
 		callback(new Error('Modules must be at least 1 cell wide!'));
 		return;
 	}
-	if(!modules.every(m => m.height > 0)) {
+	if (!modules.every(m => m.height > 0)) {
 		callback(new Error('Modules must be at least 1 cell tall!'));
 		return;
 	}
-	if(!modules.every(m => (columnStarts <= m.column) && (m.column + m.width - columnStarts <= columnsPerRow))) {
+	if (!modules.every(m => (columnStarts <= m.column) && (m.column + m.width - columnStarts <= columnsPerRow))) {
 		callback(new Error(`Module column exceeds range between ${columnStarts} - ${columnsPerRow}!`));
 		return;
 	}
-	if(!modules.every(m => (rowStarts <= m.row))) {
+	if (!modules.every(m => (rowStarts <= m.row))) {
 		callback(new Error(`Module row below minimum value of ${rowStarts}!`));
 		return;
 	}
 
 	// Check for user validity, get ID
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'));
 			return;
 		}
 
 		const moduleGrid = [];
 
-		for(const mod of modules) {
-			for(let j = mod.row; j <= mod.row + mod.height - 1; j++) {
-				if(typeof moduleGrid[j] !== 'object') moduleGrid[j] = [];
+		for (const mod of modules) {
+			for (let j = mod.row; j <= mod.row + mod.height - 1; j++) {
+				if (typeof moduleGrid[j] !== 'object') moduleGrid[j] = [];
 
-				for(let k = mod.column; k <= mod.column + mod.width - 1; k++) {
-					if(moduleGrid[j][k]) {
+				for (let k = mod.column; k <= mod.column + mod.width - 1; k++) {
+					if (moduleGrid[j][k]) {
 						callback(new Error('Modules overlap!'));
 						return;
 					}
@@ -377,7 +377,7 @@ function upsertModules(db, user, modules, callback) {
 
 		// Delete all modules not included in new upsert request
 		moduledata.deleteMany({ _id: { $nin: modules.map(m => new ObjectID(m['_id'])) }, user: userDoc['_id'] }, err => {
-			if(err) {
+			if (err) {
 				callback(err);
 				return;
 			}
@@ -387,12 +387,12 @@ function upsertModules(db, user, modules, callback) {
 
 				const dbModuleIds = [];
 
-				for(const mod of dbModules) {
+				for (const mod of dbModules) {
 					dbModuleIds.push(mod['_id'].toHexString());
 				}
 
 				function handleModule(i) {
-					if(i < modules.length) {
+					if (i < modules.length) {
 						const mod = modules[i];
 
 						// If _id doesn't exist or is invalid, create a new one
@@ -407,7 +407,7 @@ function upsertModules(db, user, modules, callback) {
 						mod['user'] = userDoc['_id'];
 
 						moduledata.update({ _id: mod['_id'], user: userDoc['_id'] }, { $set: mod }, { upsert: true }, err => {
-							if(err) {
+							if (err) {
 								callback(err);
 								return;
 							}

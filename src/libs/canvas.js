@@ -38,9 +38,9 @@ const urlPrefix = 'https://micds.instructure.com/feeds/calendars/';
 
 function verifyURL(canvasURL, callback) {
 
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof canvasURL !== 'string') {
+	if (typeof canvasURL !== 'string') {
 		callback(new Error('Invalid URL!'), null, null);
 		return;
 	}
@@ -49,7 +49,7 @@ function verifyURL(canvasURL, callback) {
 	const parsedURL = url.parse(canvasURL);
 
 	// Check if pathname is valid
-	if(!parsedURL.pathname || !parsedURL.pathname.startsWith('/feeds/calendars/')) {
+	if (!parsedURL.pathname || !parsedURL.pathname.startsWith('/feeds/calendars/')) {
 		// Not a valid URL!
 		callback(null, 'Invalid URL path!', null);
 		return;
@@ -62,11 +62,11 @@ function verifyURL(canvasURL, callback) {
 
 	// Not lets see if we can actually get any data from here
 	request(validURL, (err, response) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem fetching calendar data from the URL!'), null, null);
 			return;
 		}
-		if(response.statusCode !== 200) {
+		if (response.statusCode !== 200) {
 			callback(null, 'Invalid URL!', null);
 			return;
 		}
@@ -95,30 +95,30 @@ function verifyURL(canvasURL, callback) {
  */
 
 function setURL(db, user, url, callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null, null);
 		return;
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null, null);
 			return;
 		}
 
 		verifyURL(url, (err, isValid, validURL) => {
-			if(err) {
+			if (err) {
 				callback(err, null, null);
 				return;
-			} else if(isValid !== true) {
+			} else if (isValid !== true) {
 				callback(null, isValid, null);
 				return;
 			}
@@ -126,13 +126,13 @@ function setURL(db, user, url, callback) {
 			const userdata = db.collection('users');
 
 			userdata.update({ _id: userDoc['_id'] }, { $set: { canvasURL: validURL }}, { upsert: true }, err => {
-				if(err) {
+				if (err) {
 					callback(new Error('There was a problem updating the URL to the database!'), null, null);
 					return;
 				}
 
 				feeds.updateCanvasCache(db, user, err => {
-					if(err) {
+					if (err) {
 						callback(err, null, null);
 						return;
 					}
@@ -163,34 +163,34 @@ function setURL(db, user, url, callback) {
  */
 
 function getUserCal(db, user, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null, null);
 			return;
 		}
 
-		if(typeof userDoc.canvasURL !== 'string') {
+		if (typeof userDoc.canvasURL !== 'string') {
 			callback(null, false, null);
 			return;
 		}
 
 		request(userDoc.canvasURL, (err, response, body) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
 				return;
 			}
-			if(response.statusCode !== 200) {
+			if (response.statusCode !== 200) {
 				callback(new Error('Invalid URL!'), null, null);
 				return;
 			}
@@ -259,9 +259,9 @@ function calendarToEvent(calLink) {
 	// Remove hash sign and switch to event URL format
 	const eventString = calObject.hash.slice(1);
 	let eventId;
-	if(eventString.includes('assignment')) {
+	if (eventString.includes('assignment')) {
 		eventId = eventString.replace('assignment_', 'assignments/');
-	} else if(eventString.includes('calendar_event')) {
+	} else if (eventString.includes('calendar_event')) {
 		eventId = eventString.replace('calendar_event_', 'calendar_events/');
 	}
 
@@ -287,18 +287,18 @@ function calendarToEvent(calLink) {
  */
 
 function getClasses(db, user, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null, null, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null, null);
 			return;
 		}
-		if(typeof userDoc['canvasURL'] !== 'string') {
+		if (typeof userDoc['canvasURL'] !== 'string') {
 			callback(null, false, null);
 			return;
 		}
@@ -306,14 +306,14 @@ function getClasses(db, user, callback) {
 		function parseEvents(eventsToParse) {
 			const classes = [];
 
-			for(const calEvent of eventsToParse) {
+			for (const calEvent of eventsToParse) {
 				// If event doesn't have a summary, skip
-				if(typeof calEvent.summary !== 'string') continue;
+				if (typeof calEvent.summary !== 'string') continue;
 
 				const parsedEvent = parseCanvasTitle(calEvent.summary);
 
 				// If not already in classes array, push to array
-				if(parsedEvent.class.raw.length > 0 && !_.contains(classes, parsedEvent.class.raw)) {
+				if (parsedEvent.class.raw.length > 0 && !_.contains(classes, parsedEvent.class.raw)) {
 					classes.push(parsedEvent.class.raw);
 				}
 			}
@@ -324,7 +324,7 @@ function getClasses(db, user, callback) {
 		const canvasdata = db.collection('canvasFeeds');
 
 		canvasdata.find({ user: userDoc._id }).toArray((err, events) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was an error retrieving Canvas events!'), null, null);
 				return;
 			}
@@ -340,7 +340,7 @@ function getClasses(db, user, callback) {
 					}
 
 					canvasdata.find({ user: userDoc._id }).toArray((err, retryEvents) => {
-						if(err) {
+						if (err) {
 							callback(new Error('There was an error retrieving Canvas events!'), null, null);
 							return;
 						}
@@ -369,18 +369,18 @@ function getClasses(db, user, callback) {
  */
 
 function getFromCache(db, user, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null, null, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null, null);
 			return;
 		}
-		if(typeof userDoc['canvasURL'] !== 'string') {
+		if (typeof userDoc['canvasURL'] !== 'string') {
 			callback(null, false, null);
 			return;
 		}
@@ -388,14 +388,14 @@ function getFromCache(db, user, callback) {
 		const canvasdata = db.collection('canvasFeeds');
 
 		canvasdata.find({ user: userDoc._id }).toArray((err, events) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was an error retrieving Canvas events!'), null, null);
 				return;
 			}
 
 			// Get which events are checked
 			checkedEvents.list(db, user, (err, checkedEventsList) => {
-				if(err) {
+				if (err) {
 					callback(err, null, null);
 					return;
 				}
@@ -410,14 +410,14 @@ function getFromCache(db, user, callback) {
 					const name = parsedEvent.class.raw;
 
 					// Check if alias is already cached
-					if(typeof classAliases[name] !== 'undefined') {
+					if (typeof classAliases[name] !== 'undefined') {
 						classCallback(null, classAliases[name]);
 						return;
 					}
 
 					// Query aliases to see if possible class object exists
 					aliases.getClass(db, user, 'canvas', name, (err, hasAlias, aliasClassObject) => {
-						if(err) {
+						if (err) {
 							classCallback(err, null);
 							return;
 						}
@@ -441,7 +441,7 @@ function getFromCache(db, user, callback) {
 							textDark: prisma.shouldTextBeDark(defaultColor)
 						};
 
-						if(hasAlias) {
+						if (hasAlias) {
 							classAliases[name] = aliasClassObject;
 						} else {
 							classAliases[name] = canvasClass;
@@ -453,13 +453,13 @@ function getFromCache(db, user, callback) {
 
 				// Function to iterate over classes asynchronously
 				function checkEvent(i) {
-					if(i < events.length) {
+					if (i < events.length) {
 						const canvasEvent = events[i];
 						const parsedEvent = parseCanvasTitle(canvasEvent.summary);
 
 						// Check if alias for class first
 						getCanvasClass(parsedEvent, (err, canvasClass) => {
-							if(err) {
+							if (err) {
 								callback(err, null, null);
 								return;
 							}
@@ -480,7 +480,7 @@ function getFromCache(db, user, callback) {
 								checked: _.contains(checkedEventsList, canvasEvent.uid)
 							};
 
-							if(typeof canvasEvent['ALT-DESC'] === 'object') {
+							if (typeof canvasEvent['ALT-DESC'] === 'object') {
 								insertEvent.desc = canvasEvent['ALT-DESC'].val;
 								insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
 							} else {

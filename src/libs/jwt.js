@@ -69,7 +69,7 @@ function isRevoked(db) {
 			return;
 		}
 
-		if(typeof payload !== 'object') {
+		if (typeof payload !== 'object') {
 			done(null, true);
 			return;
 		}
@@ -81,17 +81,17 @@ function isRevoked(db) {
 		// Make sure expiration is accurate within 30 seconds to account for time differences between computers.
 		const clockTolerance = 30;
 
-		if(timeLeft < (clockTolerance * -1000)) {
+		if (timeLeft < (clockTolerance * -1000)) {
 			done(null, true);
 			return;
 		}
 
 		users.get(db, payload.user, (err, isUser, userDoc) => {
-			if(err) {
+			if (err) {
 				done(err, true);
 				return;
 			}
-			if(!isUser) {
+			if (!isUser) {
 				done(null, true);
 				return;
 			}
@@ -101,7 +101,7 @@ function isRevoked(db) {
 			 * @TODO Automatically log user out in front-end on password change
 			 * or prevent session that changed password from expiring.
 			 */
-			/* if(typeof userDoc['lastPasswordChange'] === 'object' && (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
+			/* if (typeof userDoc['lastPasswordChange'] === 'object' && (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
 				done(null, true);
 				return;
 			}*/
@@ -110,7 +110,7 @@ function isRevoked(db) {
 			const jwt = req.get('Authorization').slice(7);
 
 			isBlacklisted(db, jwt, (err, blacklisted) => {
-				if(err) {
+				if (err) {
 					done(err, true);
 					return;
 				}
@@ -139,7 +139,7 @@ function isRevoked(db) {
 
 function fallback(req, res, next) {
 	// If user doesn't exist or is invalid, default req.user to false
-	if(typeof req.user === 'undefined') {
+	if (typeof req.user === 'undefined') {
 		req.user = false;
 	}
 	next();
@@ -164,7 +164,7 @@ function requireLoggedIn(req, res, next) {
 
 function requireScope(scope, message = 'You\'re not authorized in this part of the site, punk.') {
 	return (req, res, next) => {
-		if(!req.user || !req.user.scopes[scope]) {
+		if (!req.user || !req.user.scopes[scope]) {
 			api.respond(res, message, null, 'NOT_LOGGED_IN');
 		} else {
 			next();
@@ -178,7 +178,7 @@ function requireScope(scope, message = 'You\'re not authorized in this part of t
  */
 
 function catchUnauthorized(err, req, res, next) {
-	if(err.name === 'UnauthorizedError') {
+	if (err.name === 'UnauthorizedError') {
 		api.respond(res, err, null, 'UNAUTHORIZED');
 		return;
 	}
@@ -206,9 +206,9 @@ function catchUnauthorized(err, req, res, next) {
  */
 
 function generate(db, user, rememberMe, comment, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
@@ -216,11 +216,11 @@ function generate(db, user, rememberMe, comment, callback) {
 	const expiration = rememberMe ? '30 days' : '12 hours';
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null);
 			return;
 		}
@@ -230,13 +230,13 @@ function generate(db, user, rememberMe, comment, callback) {
 			'pleb': true
 		};
 
-		if(_.isArray(userDoc['scopes'])) {
-			for(const scope of userDoc['scopes']) {
+		if (_.isArray(userDoc['scopes'])) {
+			for (const scope of userDoc['scopes']) {
 				scopes[scope] = true;
 			}
 		}
 
-		if(typeof comment !== 'string' || comment.length < 1) {
+		if (typeof comment !== 'string' || comment.length < 1) {
 			comment = 'Unknown';
 		}
 
@@ -250,14 +250,14 @@ function generate(db, user, rememberMe, comment, callback) {
 			issuer   : config.hostedOn
 
 		}, (err, token) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem generating a JWT!'), null);
 				return;
 			}
 
 			const jwtData = db.collection('jwtWhitelist');
 			jwtData.insertOne({ user: userDoc._id, jwt: token, comment }, err => {
-				if(err) {
+				if (err) {
 					callback(new Error('There was a problem registering the JWT!'), null);
 					return;
 				}
@@ -286,13 +286,13 @@ function generate(db, user, rememberMe, comment, callback) {
  */
 
 function isBlacklisted(db, jwt, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
-	if(typeof jwt !== 'string') {
+	if (typeof jwt !== 'string') {
 		callback(new Error('Invalid JWT!'), null);
 		return;
 	}
@@ -300,7 +300,7 @@ function isBlacklisted(db, jwt, callback) {
 	const jwtData = db.collection('jwtWhitelist');
 
 	jwtData.find({ jwt }).toArray((err, docs) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem querying the database!'), null);
 			return;
 		}
@@ -327,29 +327,29 @@ function isBlacklisted(db, jwt, callback) {
  */
 
 function revoke(db, payload, jwt, callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
-	if(typeof payload !== 'object') {
+	if (typeof payload !== 'object') {
 		callback(new Error('Invalid payload!'));
 		return;
 	}
-	if(typeof jwt !== 'string') {
+	if (typeof jwt !== 'string') {
 		callback(new Error('Invalid JWT!'));
 		return;
 	}
 
 	users.get(db, payload.user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null);
 			return;
 		}
@@ -357,7 +357,7 @@ function revoke(db, payload, jwt, callback) {
 		const jwtData = db.collection('jwtWhitelist');
 
 		jwtData.deleteOne({ user: userDoc._id, jwt }, err => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem revoking the JWT in the database!'));
 				return;
 			}

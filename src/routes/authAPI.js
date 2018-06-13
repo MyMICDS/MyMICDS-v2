@@ -10,7 +10,7 @@ const passwords = require(__dirname + '/../libs/passwords.js');
 module.exports = (app, db) => {
 
 	app.post('/auth/login', (req, res) => {
-		if(req.user) {
+		if (req.user) {
 			api.respond(res, null, {
 				success: true,
 				message: 'You\'re already logged in, silly!',
@@ -29,7 +29,7 @@ module.exports = (app, db) => {
 	app.post('/auth/logout', (req, res) => {
 		let token = req.get('Authorization');
 		// If there's a token, we need to get rid of the 'Bearer ' at the beginning
-		if(token) {
+		if (token) {
 			token = token.slice(7);
 		}
 
@@ -48,7 +48,7 @@ module.exports = (app, db) => {
 			gradYear: parseInt(req.body.gradYear)
 		};
 
-		if(typeof req.body.teacher !== 'undefined' && req.body.teacher !== false) {
+		if (typeof req.body.teacher !== 'undefined' && req.body.teacher !== false) {
 			user.gradYear = null;
 		}
 
@@ -70,7 +70,7 @@ module.exports = (app, db) => {
 	});
 
 	app.post('/auth/forgot-password', (req, res) => {
-		if(req.apiUser) {
+		if (req.apiUser) {
 			api.respond(res, 'You are already logged in, silly!');
 			return;
 		}
@@ -80,7 +80,7 @@ module.exports = (app, db) => {
 	});
 
 	app.put('/auth/reset-password', (req, res) => {
-		if(req.apiUser) {
+		if (req.apiUser) {
 			api.respond(res, 'You are already logged in, silly!');
 			return;
 		}
@@ -90,7 +90,7 @@ module.exports = (app, db) => {
 	});
 
 	app.get('/auth/verify', (req, res) => {
-		if(!req.user.user) {
+		if (!req.user.user) {
 			res.json({ error: 'JWT not provided!' });
 			return;
 		}

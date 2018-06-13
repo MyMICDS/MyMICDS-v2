@@ -15,7 +15,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.put('/portal/url', jwt.requireLoggedIn, (req, res) => {
 		portal.setURL(db, req.apiUser, req.body.url, (err, isValid, validURL) => {
-			if(!err) {
+			if (!err) {
 				socketIO.user(req.apiUser, 'portal', 'set-url', validURL);
 			}
 			api.respond(res, err, { valid: isValid, url: validURL });

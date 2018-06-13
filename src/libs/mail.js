@@ -32,23 +32,23 @@ const nodemailer = require('nodemailer');
 function send(users, message, callback, transporter) {
 
 	// Validate inputs
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof users !== 'string' && typeof users !== 'object') {
+	if (typeof users !== 'string' && typeof users !== 'object') {
 		callback(new Error('Invalid user(s)!'));
 		return;
 	}
-	if(typeof message !== 'object') {
+	if (typeof message !== 'object') {
 		callback(new Error('Invalid message object!'));
 		return;
 	}
-	if(typeof message.subject !== 'string') {
+	if (typeof message.subject !== 'string') {
 		callback(new Error('Invalid mail subject!'));
 		return;
 	}
-	if(typeof message.html !== 'string') {
+	if (typeof message.html !== 'string') {
 		callback(new Error('Invalid mail html!'));
 		return;
 	}
@@ -65,7 +65,7 @@ function send(users, message, callback, transporter) {
 	};
 
 	transporter.sendMail(mailOptions, err => {
-		if(err) {
+		if (err) {
 			callback(new Error(`There was a problem sending the mail! (${err.message})`));
 			return;
 		}
@@ -97,26 +97,26 @@ function send(users, message, callback, transporter) {
 function sendHTML(users, subject, file, data, callback, transporter) {
 
 	// Validate inputs
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof file !== 'string') {
+	if (typeof file !== 'string') {
 		callback(new Error('Invalid mail file path!'));
 		return;
 	}
-	if(typeof data !== 'object') {
+	if (typeof data !== 'object') {
 		data = {};
 	}
 
 	fs.readFile(file, 'utf8', (err, body) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem reading the HTML path for the mail!'));
 			return;
 		}
 
 		// Replace JSON Key values with custom data
-		for(const key of Object.keys(data)) {
+		for (const key of Object.keys(data)) {
 			body = body.replace('{{' + key + '}}', data[key]);
 		}
 

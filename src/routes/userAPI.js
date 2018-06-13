@@ -23,7 +23,7 @@ module.exports = (app, db, socketIO) => {
 		// Set min (inclusive) and max (inclusive)
 		const min = -1; // JK
 		const max = 12; // Senior
-		for(let i = min; i <= max; i++) {
+		for (let i = min; i <= max; i++) {
 			gradYears.push(users.gradeToGradYear(i));
 		}
 		// Put most recent years first
@@ -40,21 +40,21 @@ module.exports = (app, db, socketIO) => {
 	app.patch('/user/info', jwt.requireLoggedIn, (req, res) => {
 		const info = {};
 
-		if(typeof req.body.firstName === 'string' && req.body.firstName !== '') {
+		if (typeof req.body.firstName === 'string' && req.body.firstName !== '') {
 			info.firstName = req.body.firstName;
 		}
-		if(typeof req.body.lastName === 'string' && req.body.lastName !== '') {
+		if (typeof req.body.lastName === 'string' && req.body.lastName !== '') {
 			info.lastName = req.body.lastName;
 		}
 
-		if(typeof req.body.teacher !== 'undefined' && req.body.teacher !== false) {
+		if (typeof req.body.teacher !== 'undefined' && req.body.teacher !== false) {
 			info.gradYear = null;
 		} else {
 			info.gradYear = parseInt(req.body.gradYear);
 		}
 
 		users.changeInfo(db, req.apiUser, info, err => {
-			if(!err) {
+			if (!err) {
 				socketIO.user(req.apiUser, 'user', 'change-info', info);
 			}
 			api.respond(res, err);

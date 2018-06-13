@@ -121,28 +121,28 @@ function uploadBackground() {
  */
 
 function getCurrentFiles(user, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof user !== 'string' || !utils.validFilename(user)) {
+	if (typeof user !== 'string' || !utils.validFilename(user)) {
 		callback(new Error('Invalid username!'), null);
 		return;
 	}
 
 	fs.readdir(userBackgroundsDir, (err, userDirs) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem reading the user backgrounds directory!'), null, null);
 			return;
 		}
 
 		// Look through all the directories
 		let userDir = null;
-		for(const _dir of userDirs) {
+		for (const _dir of userDirs) {
 			const dir = path.parse(_dir);
 			const dirname = dir.name;
 			const dirnameSplit = dirname.split('-');
 
 			// Check directory isn't deleted
-			if(dirnameSplit[0] === 'deleted') {
+			if (dirnameSplit[0] === 'deleted') {
 				continue;
 			}
 
@@ -153,20 +153,20 @@ function getCurrentFiles(user, callback) {
 			const directoryOwner = dirnameSplit.join('-');
 
 			// Check if background belongs to user
-			if(directoryOwner === user) {
+			if (directoryOwner === user) {
 				userDir = dirname;
 				break;
 			}
 		}
 
 		// User doesn't have any background
-		if(userDir === null) {
+		if (userDir === null) {
 			callback(null, null, null);
 			return;
 		}
 
 		getDirExtension(userDir, (err, extension) => {
-			if(err) {
+			if (err) {
 				callback(err, null, null);
 				return;
 			}
@@ -192,23 +192,23 @@ function getCurrentFiles(user, callback) {
  */
 
 function deleteBackground(user, callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof user !== 'string' || !utils.validFilename(user)) {
+	if (typeof user !== 'string' || !utils.validFilename(user)) {
 		callback(new Error('Invalid user!'));
 		return;
 	}
 
 	// Find out user's current directory
 	getCurrentFiles(user, (err, dirname, extension) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
 		// Check if no existing background
-		if(dirname === null || extension === null) {
+		if (dirname === null || extension === null) {
 			callback(null);
 			return;
 		}
@@ -217,7 +217,7 @@ function deleteBackground(user, callback) {
 		const deletedPath = userBackgroundsDir + '/deleted-' + dirname;
 
 		fs.rename(currentPath, deletedPath, err => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem deleting the directory!'));
 				return;
 			}
@@ -246,20 +246,20 @@ function deleteBackground(user, callback) {
  */
 
 function getBackground(user, callback) {
-	if(typeof callback !== 'function') return;
-	if(typeof user !== 'string' || !utils.validFilename(user)) {
+	if (typeof callback !== 'function') return;
+	if (typeof user !== 'string' || !utils.validFilename(user)) {
 		callback(null, defaultVariants, true);
 		return;
 	}
 
 	// Get user's extension
 	getCurrentFiles(user, (err, dirname, extension) => {
-		if(err) {
+		if (err) {
 			callback(err, defaultVariants, true);
 			return;
 		}
 		// Fallback to default background if no custom extension
-		if(dirname === null || extension === null) {
+		if (dirname === null || extension === null) {
 			callback(null, defaultVariants, true);
 			return;
 		}
@@ -290,21 +290,21 @@ function getBackground(user, callback) {
  */
 
 function getAllBackgrounds(db, callback) {
-	if(typeof callback !== 'function') return;
-	if(typeof db !== 'object') {
+	if (typeof callback !== 'function') return;
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
 
 	fs.readdir(userBackgroundsDir, (err, userDirs) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem reading the user backgrounds directory!'), null, null);
 			return;
 		}
 
 		const userdata = db.collection('users');
 		userdata.find({ confirmed: true }).toArray((err, users) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem querying the database!'), null);
 				return;
 			}
@@ -313,11 +313,11 @@ function getAllBackgrounds(db, callback) {
 			const result = {};
 
 			function handleDir(i) {
-				if(i < userDirs.length) {
+				if (i < userDirs.length) {
 					const dirname = path.parse(userDirs[i]).name;
 					const dirnameSplit = dirname.split('-');
 
-					if(dirnameSplit[0] === 'deleted' || dirnameSplit[0] === 'default') {
+					if (dirnameSplit[0] === 'deleted' || dirnameSplit[0] === 'default') {
 						handleDir(++i);
 						return;
 					}
@@ -329,7 +329,7 @@ function getAllBackgrounds(db, callback) {
 					const user = dirnameSplit.join('-');
 
 					getDirExtension(dirname, (err, extension) => {
-						if(err) {
+						if (err) {
 							callback(err, null);
 							return;
 						}
@@ -347,7 +347,7 @@ function getAllBackgrounds(db, callback) {
 						handleDir(++i);
 					});
 				} else {
-					for(const user of remainingUsers) {
+					for (const user of remainingUsers) {
 						result[user] = {
 							hasDefault: true,
 							variants: defaultVariants
@@ -363,19 +363,19 @@ function getAllBackgrounds(db, callback) {
 
 function getDirExtension(userDir, callback) {
 	fs.readdir(userBackgroundsDir + '/' + userDir, (err, userImages) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem reading the user\'s background directory!'), null);
 			return;
 		}
 
 		// Loop through all valid files until there's either a .png or .jpg extention
 		let userExtension = null;
-		for(const _file of userImages) {
+		for (const _file of userImages) {
 			const file = path.parse(_file);
 			const extension = file.ext;
 
 			// If valid extension, just break out of loop and return that
-			if(_.contains(validExtensions, extension)) {
+			if (_.contains(validExtensions, extension)) {
 				userExtension = extension;
 				break;
 			}
@@ -404,30 +404,30 @@ function getDirExtension(userDir, callback) {
  */
 
 function addBlur(fromPath, toPath, blurRadius, callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof fromPath !== 'string') {
+	if (typeof fromPath !== 'string') {
 		callback(new Error('Invalid path to original image!'));
 		return;
 	}
-	if(typeof toPath !== 'string') {
+	if (typeof toPath !== 'string') {
 		callback(new Error('Invalid path to blurred image!'));
 		return;
 	}
-	if(typeof blurRadius !== 'number') {
+	if (typeof blurRadius !== 'number') {
 		blurRadius = defaultBlurRadius;
 	}
 
 	Jimp.read(fromPath, (err, image) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem reading the image!'));
 			return;
 		}
 
 		image.blur(blurRadius).write(toPath, err => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem saving the image!'));
 				return;
 			}
@@ -453,21 +453,21 @@ function addBlur(fromPath, toPath, blurRadius, callback) {
  */
 
 function blurUser(user, callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof user !== 'string' || !utils.validFilename(user)) {
+	if (typeof user !== 'string' || !utils.validFilename(user)) {
 		callback(new Error('Invalid username!'));
 		return;
 	}
 
 	getCurrentFiles(user, (err, dirname, extension) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
-		if(dirname === null || extension === null) {
+		if (dirname === null || extension === null) {
 			callback(null);
 			return;
 		}
@@ -477,7 +477,7 @@ function blurUser(user, callback) {
 		const toPath = userDir + '/blur' + extension;
 
 		addBlur(fromPath, toPath, defaultBlurRadius, err => {
-			if(err) {
+			if (err) {
 				callback(err);
 				return;
 			}

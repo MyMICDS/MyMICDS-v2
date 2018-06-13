@@ -22,14 +22,14 @@ module.exports = (app, db, socketIO) => {
 	app.put('/background', (req, res) => {
 		// Write image to user-backgrounds
 		backgrounds.upload()(req, res, err => {
-			if(err) {
+			if (err) {
 				api.respond(res, err);
 				return;
 			}
 
 			// Add blurred version of image
 			backgrounds.blurUser(req.apiUser, err => {
-				if(err) {
+				if (err) {
 					api.respond(res, err);
 					return;
 				}
@@ -46,7 +46,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.delete('/background', (req, res) => {
 		backgrounds.delete(req.apiUser, err => {
-			if(err) {
+			if (err) {
 				api.respond(res, err);
 				return;
 			}

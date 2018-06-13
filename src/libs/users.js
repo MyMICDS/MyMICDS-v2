@@ -27,13 +27,13 @@ const moment = require('moment');
  */
 
 function getUser(db, user, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null, null);
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'), null, null);
 		return;
 	}
@@ -41,11 +41,11 @@ function getUser(db, user, callback) {
 	const userdata = db.collection('users');
 	// Query database to find possible user
 	userdata.find({ user }).toArray((err, docs) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem querying the database!'), null, null);
 			return;
 		}
-		if(docs.length === 0) {
+		if (docs.length === 0) {
 			callback(null, false, null);
 		} else {
 			callback(null, true, docs[0]);
@@ -73,22 +73,22 @@ function getUser(db, user, callback) {
  */
 
 function getInfo(db, user, privateInfo, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
-	if(typeof privateInfo !== 'boolean') {
+	if (typeof privateInfo !== 'boolean') {
 		privateInfo = false;
 	}
 
 	getUser(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null);
 			return;
 		}
@@ -104,14 +104,14 @@ function getInfo(db, user, privateInfo, callback) {
 		userInfo.grade     = gradYearToGrade(userInfo['gradYear']);
 		userInfo.school    = gradeToSchool(userInfo['grade']);
 
-		if(privateInfo) {
-			if(typeof userDoc['canvasURL'] === 'string') {
+		if (privateInfo) {
+			if (typeof userDoc['canvasURL'] === 'string') {
 				userInfo.canvasURL = userDoc['canvasURL'];
 			} else {
 				userInfo.canvasURL = null;
 			}
 
-			if(typeof userDoc['portalURL'] === 'string') {
+			if (typeof userDoc['portalURL'] === 'string') {
 				userInfo.portalURL = userDoc['portalURL'];
 			} else {
 				userInfo.portalURL = null;
@@ -144,26 +144,26 @@ function getInfo(db, user, privateInfo, callback) {
  */
 
 function changeInfo(db, user, info, callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof info !== 'object') {
+	if (typeof info !== 'object') {
 		callback(new Error('Invalid information!'));
 		return;
 	}
 	// I mean if they want nothing changed, I guess there's no error
-	if(_.isEmpty(info)) {
+	if (_.isEmpty(info)) {
 		callback(null);
 		return;
 	}
 
 	getUser(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'));
 			return;
 		}
@@ -171,19 +171,19 @@ function changeInfo(db, user, info, callback) {
 		// See what information the user wants changed
 		const set = {};
 
-		if(typeof info.firstName === 'string') {
+		if (typeof info.firstName === 'string') {
 			set.firstName = info.firstName;
 		}
-		if(typeof info.lastName === 'string') {
+		if (typeof info.lastName === 'string') {
 			set.lastName = info.lastName;
 		}
-		if(info.gradYear === null) {
+		if (info.gradYear === null) {
 			set.gradYear = null;
-		} else if(typeof info.gradYear === 'number' && info.gradYear % 1 === 0 && !_.isNaN(info.gradYear)) {
+		} else if (typeof info.gradYear === 'number' && info.gradYear % 1 === 0 && !_.isNaN(info.gradYear)) {
 			set.gradYear = info.gradYear;
 		}
 
-		if(_.isEmpty(set)) {
+		if (_.isEmpty(set)) {
 			callback(null);
 			return;
 		}
@@ -191,7 +191,7 @@ function changeInfo(db, user, info, callback) {
 		// Update data
 		const userdata = db.collection('users');
 		userdata.update({ _id: userDoc['_id'], user }, { $set: set }, { upsert: true }, err => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem updating the databse!'));
 				return;
 			}
@@ -211,7 +211,7 @@ function changeInfo(db, user, info, callback) {
  */
 
 function gradYearToGrade(gradYear) {
-	if(typeof gradYear !== 'number' || gradYear % 1 !== 0) return null;
+	if (typeof gradYear !== 'number' || gradYear % 1 !== 0) return null;
 
 	const current = moment();
 	const differenceYears = current.year() - gradYear;
@@ -219,7 +219,7 @@ function gradYearToGrade(gradYear) {
 
 	// If last day of school has already passed, you completed a grade of school
 	const schoolEnd = dates.lastFridayMay();
-	if(current.isAfter(schoolEnd)) {
+	if (current.isAfter(schoolEnd)) {
 		grade++;
 	}
 
@@ -235,13 +235,13 @@ function gradYearToGrade(gradYear) {
  */
 
 function gradeToGradYear(grade) {
-	if(typeof grade !== 'number' || grade % 1 !== 0) return null;
+	if (typeof grade !== 'number' || grade % 1 !== 0) return null;
 
 	const current = moment();
 
 	// If last day of school has already passed, round year down
 	const schoolEnd = dates.lastFridayMay();
-	if(current.isAfter(schoolEnd)) {
+	if (current.isAfter(schoolEnd)) {
 		grade--;
 	}
 

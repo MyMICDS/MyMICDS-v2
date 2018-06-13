@@ -15,14 +15,14 @@ const schedule = require(__dirname + '/../libs/schedule.js');
 let times = 7;
 
 MongoClient.connect(config.mongodb.uri, (err, db) => {
-	if(err) throw err;
+	if (err) throw err;
 
 	function testSchedule(date, user) {
-		if(times-- > 0) {
+		if (times-- > 0) {
 			date = date || moment().add(5, 'days');
 			user = user || 'alhuber';
 			schedule.get(db, user, date, (err, hasURL, schedule) => {
-				if(err) throw err;
+				if (err) throw err;
 				// console.log(schedule);
 
 				const names = [];

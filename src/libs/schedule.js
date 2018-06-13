@@ -166,8 +166,8 @@ const genericBlocks = {
  */
 
 function getSchedule(db, user, date, callback, portalBroke = false) {
-	if(typeof callback !== 'function') return;
-	if(typeof db !== 'object') {
+	if (typeof callback !== 'function') return;
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null, null);
 		return;
 	}
@@ -176,13 +176,13 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 	const scheduleNextDay = scheduleDate.clone().add(1, 'day');
 
 	portal.getDayRotation(scheduleDate, (err, scheduleDay) => {
-		if(err) {
+		if (err) {
 			callback(err, null, null);
 			return;
 		}
 
 		users.get(db, user || '', (err, isUser, userDoc) => {
-			if(err) {
+			if (err) {
 				callback(err, null, null);
 				return;
 			}
@@ -190,7 +190,7 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 			// Determine when school should start and end for a default schedule
 			let lateStart = false;
 			let defaultStart = null;
-			if(scheduleDate.day() !== 3) {
+			if (scheduleDate.day() !== 3) {
 				// Not Wednesday, school starts at 8
 				defaultStart = scheduleDate.clone().hour(8);
 			} else {
@@ -207,7 +207,7 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 			}];
 
 			// If it isn't a user OR it's a teacher with no Portal URL
-			if(!isUser || (userDoc['gradYear'] === null && typeof userDoc['portalURL'] !== 'string')) {
+			if (!isUser || (userDoc['gradYear'] === null && typeof userDoc['portalURL'] !== 'string')) {
 				// Fallback to default schedule if user is invalid
 				const schedule = {
 					day: scheduleDay,
@@ -216,17 +216,17 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 					allDay: []
 				};
 
-				if(scheduleDay) {
+				if (scheduleDay) {
 					schedule.classes = defaultClasses;
 				}
 
 				callback(null, false, schedule);
 
-			} else if(portalBroke || typeof userDoc['portalURL'] !== 'string') {
+			} else if (portalBroke || typeof userDoc['portalURL'] !== 'string') {
 				// If user is logged in, but hasn't configured their Portal URL
 				// We would know their grade, and therefore their generic block schedule, as well as any classes they configured
 				classes.get(db, user, (err, classes) => {
-					if(err) {
+					if (err) {
 						callback(err, null, null);
 						return;
 					}
@@ -234,7 +234,7 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 					// Assign each class to it's block
 					const blocks = JSON.parse(JSON.stringify(genericBlocks));
 					// const blockTypeMap = {};
-					for(const block of classes) {
+					for (const block of classes) {
 						blocks[block.block] = block; // Very descriptive
 						// blockTypeMap[block.block] = block.type;
 					}
@@ -250,7 +250,7 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 					const daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc['gradYear']), scheduleDay, lateStart);
 
 					// Only combine with block schedule if the block schedule exists
-					if(!daySchedule) {
+					if (!daySchedule) {
 						callback(null, false, schedule);
 						return;
 					}
@@ -267,12 +267,12 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 					// Get Portal calendar feed
 					portal: asyncCallback => {
 						portal.getFromCache(db, user, (err, hasURL, cal) => {
-							if(err) {
+							if (err) {
 								asyncCallback(err, null);
 							} else {
-								if(_.isEmpty(cal)) {
+								if (_.isEmpty(cal)) {
 									feeds.addPortalQueue(db, user, (err, events) => {
-										if(_.isEmpty(events)) {
+										if (_.isEmpty(events)) {
 											// If it still returns empty, then Portal isn't working at the moment and we can fall back on not having a URL.
 											getSchedule(db, user, date, callback, true);
 											return;
@@ -291,7 +291,7 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 						aliases.mapList(db, user, asyncCallback);
 					},
 				}, (err, results) => {
-					if(err) {
+					if (err) {
 						callback(err, null, null);
 						return;
 					}
@@ -305,18 +305,18 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 					};
 
 					// Go through all the events in the Portal calendar
-					for(const calEvent of Object.values(results.portal.cal)) {
+					for (const calEvent of Object.values(results.portal.cal)) {
 						const start = moment(calEvent['start']);
 						const end = moment(calEvent['end']);
 
 						// Make sure the event isn't all whacky
-						if(end.isBefore(start)) continue;
+						if (end.isBefore(start)) continue;
 
 						// Check if it's an all-day event
-						if(start.isSameOrBefore(scheduleDate) && end.isSameOrAfter(scheduleNextDay)) {
+						if (start.isSameOrBefore(scheduleDate) && end.isSameOrAfter(scheduleNextDay)) {
 							// Check if special schedule
 							const lowercaseSummary = calEvent.summary.toLowerCase();
-							if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
+							if (lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
 								schedule.special = true;
 								continue;
 							}
@@ -324,17 +324,17 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 							// Push event to all-day events
 							schedule.allDay.push(portal.cleanUp(calEvent.summary));
 
-						} else if(start.isAfter(scheduleDate) && end.isBefore(scheduleNextDay)) {
+						} else if (start.isAfter(scheduleDate) && end.isBefore(scheduleNextDay)) {
 							// See if it's part of the schedule
 
 							// We should use the Portal class's alias; otherwise, we should fallback to a default class object. [sp1a]
-							if(typeof results.aliases.portal[calEvent.summary] !== 'object') {
+							if (typeof results.aliases.portal[calEvent.summary] !== 'object') {
 
 								// Determine block
 								const blockPart = _.last(calEvent.summary.match(portal.portalSummaryBlock));
 								let block = 'other';
 
-								if(blockPart) {
+								if (blockPart) {
 									block = _.last(blockPart.match(/[A-G]/g)).toLowerCase();
 								}
 
@@ -369,7 +369,7 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 					portalSchedule = ordineSchedule([], portalSchedule);
 
 					// If special schedule, just use default portal schedule
-					if(schedule.special) {
+					if (schedule.special) {
 						schedule.classes = portalSchedule;
 						callback(null, true, schedule);
 						return;
@@ -378,14 +378,14 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 					const daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc['gradYear']), schedule.day, lateStart);
 
 					// If schedule is null for some reason, default back to portal schedule
-					if(daySchedule === null) {
+					if (daySchedule === null) {
 						schedule.classes = portalSchedule;
 					} else {
 
 						// Keep track of original start and end of blocks detecting overlap
-						for(let i = 0; i < daySchedule.length; i++) {
+						for (let i = 0; i < daySchedule.length; i++) {
 							const block = daySchedule[i];
-							if(block.noOverlapAddBlocks) {
+							if (block.noOverlapAddBlocks) {
 								daySchedule[i].originalStart = block.start;
 								daySchedule[i].originalEnd = block.end;
 							}
@@ -403,14 +403,14 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 						// show up on the portal, there's no overlap from a portal class which
 						// determines if they have first or second lunch; therefore, we must add it
 						// ourselves.
-						for(let i = 0; i < schedule.classes.length; i++) {
+						for (let i = 0; i < schedule.classes.length; i++) {
 							const block = schedule.classes[i];
-							if(block.noOverlapAddBlocks) {
+							if (block.noOverlapAddBlocks) {
 								// If no overlap, add blocks
-								if(block.originalStart === block.start && block.originalEnd === block.end) {
+								if (block.originalStart === block.start && block.originalEnd === block.end) {
 
 									// Before combining blocks to existing schedule, convert to moment objects
-									for(let i = 0; i < block.noOverlapAddBlocks.length; i++) {
+									for (let i = 0; i < block.noOverlapAddBlocks.length; i++) {
 										const addBlock = block.noOverlapAddBlocks[i];
 
 										const startTime = addBlock.start.split(':');
@@ -430,14 +430,14 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 						// Check for any blocks in the schedule that have the `block` property. This means it's directly from the
 						// schedule JSON. See if there's any pre-configured classes we should insert instead, otherwise do our best
 						// to make a formatted MyMICDS class object.
-						for(let i = 0; i < schedule.classes.length; i++) {
+						for (let i = 0; i < schedule.classes.length; i++) {
 							const scheduleClass = schedule.classes[i];
 
-							if(scheduleClass.block) {
+							if (scheduleClass.block) {
 								const block = scheduleClass.block;
 
 								// It's a class from the block schedule. Create a class object for it
-								if(typeof genericBlocks[block] === 'object') {
+								if (typeof genericBlocks[block] === 'object') {
 									scheduleClass.class = genericBlocks[block];
 								} else {
 									const blockName = 'Block ' + block[0].toUpperCase() + block.slice(1);
@@ -484,18 +484,18 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 
 function combineClassesSchedule(date, schedule, blocks) {
 	date = moment(date);
-	if(!_.isArray(schedule)) schedule = [];
-	if(typeof blocks !== 'object') blocks = {};
+	if (!_.isArray(schedule)) schedule = [];
+	if (typeof blocks !== 'object') blocks = {};
 
 	// Loop through schedule
 	const combinedSchedule = [];
 
-	for(const blockObject of schedule) {
+	for (const blockObject of schedule) {
 		// Check if user has configured a class for this block
 		const block = blockObject.block;
 		let scheduleClass = blocks[block];
 
-		if(typeof scheduleClass !== 'object') {
+		if (typeof scheduleClass !== 'object') {
 			const blockName = 'Block ' + block[0].toUpperCase() + block.slice(1);
 			const color = prisma(block).hex;
 			scheduleClass = {
@@ -513,7 +513,7 @@ function combineClassesSchedule(date, schedule, blocks) {
 		}
 
 		// Check if we should also be adding lunch
-		if(blockObject.includeLunch) {
+		if (blockObject.includeLunch) {
 			scheduleClass.name += ' + Lunch!';
 		}
 
@@ -538,11 +538,11 @@ function combineClassesSchedule(date, schedule, blocks) {
  */
 
 function ordineSchedule(baseSchedule, addClasses) {
-	if(!_.isArray(baseSchedule)) baseSchedule = [];
-	if(!_.isArray(addClasses)) addClasses = [];
+	if (!_.isArray(baseSchedule)) baseSchedule = [];
+	if (!_.isArray(addClasses)) addClasses = [];
 
 	// Add each class to the base schedule
-	for(const addClass of addClasses) {
+	for (const addClass of addClasses) {
 		const start = moment(addClass.start);
 		const end   = moment(addClass.end);
 
@@ -550,70 +550,70 @@ function ordineSchedule(baseSchedule, addClasses) {
 		const conflictIndexes = [];
 
 		// Move other (if any) events with conflicting times
-		for(let i = 0; i < baseSchedule.length; i++) {
+		for (let i = 0; i < baseSchedule.length; i++) {
 			const scheduleClass = baseSchedule[i];
 
 			const blockStart = moment(scheduleClass.start);
 			const blockEnd   = moment(scheduleClass.end);
 			// Determine start/end times relative to the class we're currently trying to add
 			let startRelation = null;
-			if(start.isSame(blockStart)) {
+			if (start.isSame(blockStart)) {
 				startRelation = 'same start';
 
-			} else if(start.isSame(blockEnd)) {
+			} else if (start.isSame(blockEnd)) {
 				startRelation = 'same end';
 
-			} else if(start.isBefore(blockStart)) {
+			} else if (start.isBefore(blockStart)) {
 				startRelation = 'before';
 
-			} else if(start.isAfter(blockEnd)) {
+			} else if (start.isAfter(blockEnd)) {
 				startRelation = 'after';
 
-			} else if(start.isAfter(blockStart) && start.isBefore(blockEnd)) {
+			} else if (start.isAfter(blockStart) && start.isBefore(blockEnd)) {
 				startRelation = 'inside';
 			}
 
 			let endRelation = null;
-			if(end.isSame(blockStart)) {
+			if (end.isSame(blockStart)) {
 				endRelation = 'same start';
 
-			} else if(end.isSame(blockEnd)) {
+			} else if (end.isSame(blockEnd)) {
 				endRelation = 'same end';
 
-			} else if(end.isBefore(blockStart)) {
+			} else if (end.isBefore(blockStart)) {
 				endRelation = 'before';
 
-			} else if(end.isAfter(blockEnd)) {
+			} else if (end.isAfter(blockEnd)) {
 				endRelation = 'after';
 
-			} else if(end.isAfter(blockStart) && end.isBefore(blockEnd)) {
+			} else if (end.isAfter(blockStart) && end.isBefore(blockEnd)) {
 				endRelation = 'inside';
 			}
 
 			// If new event is totally unrelated to the block, just ignore
-			if(startRelation === 'same end' || startRelation === 'after') continue;
-			if(endRelation === 'same start' || endRelation === 'before') continue;
+			if (startRelation === 'same end' || startRelation === 'after') continue;
+			if (endRelation === 'same start' || endRelation === 'before') continue;
 
 			// If start is before or equal to block start
-			if(startRelation === 'before' || startRelation === 'same start') {
+			if (startRelation === 'before' || startRelation === 'same start') {
 				// If end is inside, we can still keep half of the block
-				if(endRelation === 'inside') {
+				if (endRelation === 'inside') {
 					baseSchedule[i].start = end.clone();
 				}
 
 				// If new class completely engulfs the block, delete
-				if(endRelation === 'same end' || endRelation === 'after') {
+				if (endRelation === 'same end' || endRelation === 'after') {
 					// Only push to array if index isn't already in array
-					if(!_.contains(conflictIndexes, i)) {
+					if (!_.contains(conflictIndexes, i)) {
 						conflictIndexes.push(i);
 					}
 				}
 			}
 
 			// If end is inside the block
-			if(startRelation === 'inside') {
+			if (startRelation === 'inside') {
 				// If new event is inside block
-				if(endRelation === 'inside') {
+				if (endRelation === 'inside') {
 					// Split event into two
 					const newBlock = JSON.parse(JSON.stringify(scheduleClass));
 
@@ -627,15 +627,15 @@ function ordineSchedule(baseSchedule, addClasses) {
 					baseSchedule.push(newBlock);
 				}
 
-				if(endRelation === 'same end' || endRelation === 'after') {
+				if (endRelation === 'same end' || endRelation === 'after') {
 					baseSchedule[i].end = start.clone();
 				}
 			}
 
 			// If same times, delete
-			if(startRelation === 'same start' && endRelation === 'same end') {
+			if (startRelation === 'same start' && endRelation === 'same end') {
 				// Only push to array if index isn't already in array
-				if(!_.contains(conflictIndexes, i)) {
+				if (!_.contains(conflictIndexes, i)) {
 					conflictIndexes.push(i);
 				}
 			}
@@ -644,7 +644,7 @@ function ordineSchedule(baseSchedule, addClasses) {
 		// Delete all conflicting classes
 		conflictIndexes.sort();
 		let deleteOffset = 0;
-		for(const conflictIndex of conflictIndexes) {
+		for (const conflictIndex of conflictIndexes) {
 			const index = conflictIndex - deleteOffset++;
 			baseSchedule.splice(index, 1);
 		}

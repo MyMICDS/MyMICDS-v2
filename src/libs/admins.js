@@ -21,10 +21,10 @@ const mail = require(__dirname + '/mail.js');
  */
 
 function getAdmins(db, callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
@@ -32,7 +32,7 @@ function getAdmins(db, callback) {
 	const userdata = db.collection('users');
 
 	userdata.find({scopes: ['admin']}).toArray((err, docs) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem querying the database!'), null);
 			return;
 		}
@@ -60,17 +60,17 @@ function getAdmins(db, callback) {
  */
 
 function sendAdminEmail(db, message, callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
 
 	// Get admin objects
 	getAdmins(db, (err, admins) => {
-		if(err) {
+		if (err) {
 			callback(new Error('Error getting list of admins!'));
 			return;
 		}
@@ -81,7 +81,7 @@ function sendAdminEmail(db, message, callback) {
 
 		// Send email
 		mail.send(admins.map(a => a.user + '@micds.org'), message, err => {
-			if(err) {
+			if (err) {
 				callback(err);
 			}
 

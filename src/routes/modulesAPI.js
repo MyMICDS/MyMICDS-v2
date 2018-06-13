@@ -21,7 +21,7 @@ module.exports = (app, db) => {
 
 	app.put('/modules', (req, res) => {
 		modules.upsert(db, req.apiUser, req.body.modules, err => {
-			if(err) {
+			if (err) {
 				api.respond(res, err);
 				return;
 			}

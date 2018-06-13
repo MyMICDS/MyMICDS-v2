@@ -36,13 +36,13 @@ const query = 'label:us-daily-bulletin';
  */
 
 function queryLatest(callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
 	// Get Google Service Account
 	googleServiceAccount.create((err, jwtClient) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
@@ -53,7 +53,7 @@ function queryLatest(callback) {
 			userId: 'me',
 			q: query
 		}, (err, messageList) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem listing the messages from Gmail!'));
 				return;
 			}
@@ -67,7 +67,7 @@ function queryLatest(callback) {
 				userId: 'me',
 				id: recentMsgId
 			}, (err, recentMessage) => {
-				if(err) {
+				if (err) {
 					callback(new Error('There was a problem getting the most recent email!'));
 					return;
 				}
@@ -76,16 +76,16 @@ function queryLatest(callback) {
 				const parts = recentMessage.payload.parts;
 				let attachmentId = null;
 				let originalFilename = null;
-				for(const part of parts) {
+				for (const part of parts) {
 					// If part contains PDF attachment, we're done boys.
-					if(part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
+					if (part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
 						attachmentId = part.body.attachmentId;
 						originalFilename = path.parse(part.filename);
 						break;
 					}
 				}
 
-				if(attachmentId === null) {
+				if (attachmentId === null) {
 					callback(new Error('The most recent Daily Bulletin email did not contain any PDF attachment!'));
 					return;
 				}
@@ -97,7 +97,7 @@ function queryLatest(callback) {
 					messageId: recentMsgId,
 					id: attachmentId
 				}, (err, attachment) => {
-					if(err) {
+					if (err) {
 						callback(new Error('There was a problem getting the PDF attachment!'));
 						return;
 					}
@@ -109,21 +109,21 @@ function queryLatest(callback) {
 
 					// If bulletinName is null, we are unable to parse bulletin and should skip
 					// This probably means it's not a bulletin
-					if(!bulletinName) {
+					if (!bulletinName) {
 						callback(null);
 						return;
 					}
 
 					// Make sure directory for Daily Bulletin exists
 					fs.ensureDir(bulletinPDFDir, err => {
-						if(err) {
+						if (err) {
 							callback(new Error('There was a problem ensuring directory for Daily Bulletins!'));
 							return;
 						}
 
 						// Write PDF to file
 						fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf, err => {
-							if(err) {
+							if (err) {
 								callback(new Error('There was a problem writing the PDF!'));
 								return;
 							}
@@ -150,13 +150,13 @@ function queryLatest(callback) {
  */
 
 function queryAll(callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
 	console.log('Trying to query all the Daily Bulletins in existence. This may take a bit of time...');
 	googleServiceAccount.create((err, jwtClient) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
@@ -172,12 +172,12 @@ function queryAll(callback) {
 				maxResults: 200,
 				q: query
 			};
-			if(typeof nextPageToken === 'string') {
+			if (typeof nextPageToken === 'string') {
 				listQuery.pageToken = nextPageToken;
 			}
 
 			gmail.users.messages.list(listQuery, (err, messageList) => {
-				if(err) {
+				if (err) {
 					callback(new Error('There was a problem listing the messages from Gmail!'));
 					return;
 				}
@@ -186,7 +186,7 @@ function queryAll(callback) {
 				messageIds = messageIds.concat(messageList.messages);
 
 				// If there is a next page, get it
-				if(typeof messageList.nextPageToken === 'string') {
+				if (typeof messageList.nextPageToken === 'string') {
 					console.log('Get next page with token ' + messageList.nextPageToken);
 					getPage(messageList.nextPageToken);
 				} else {
@@ -201,7 +201,7 @@ function queryAll(callback) {
 
 					console.log('Get detailed information about messages...');
 					const addMessageToBatch = (i, inBatch) => {
-						if(i >= 0) {
+						if (i >= 0) {
 							// Add to batch
 							const messageId = messageIds[i].id;
 							const params = {
@@ -214,7 +214,7 @@ function queryAll(callback) {
 							inBatch++;
 
 							// If there are 100 queries in Batch request, query it.
-							if(inBatch === 100) {
+							if (inBatch === 100) {
 								batch.exec((err, responses) => {
 									getMessages = getMessages.concat(responses);
 									batch.clear();
@@ -237,13 +237,13 @@ function queryAll(callback) {
 								const attachmentIdFilenames = [];
 
 								// Search through the emails for any PDF
-								for(const response of getMessages) {
+								for (const response of getMessages) {
 									const parts = response.body.payload.parts;
 
 									// Loop through parts looking for a PDF attachment
-									for(const part of parts) {
+									for (const part of parts) {
 										// If part contains PDF attachment, append attachment id and filename to arrays.
-										if(part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
+										if (part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
 											const attachmentId = part.body.attachmentId;
 											attachments.push({
 												emailId: response.body.id,
@@ -259,7 +259,7 @@ function queryAll(callback) {
 								console.log('Downloading Daily Bulletins...');
 								let dailyBulletins = [];
 								function addAttachmentToBatch(l, inBatch) {
-									if(l < attachments.length) {
+									if (l < attachments.length) {
 										// Add attachment to batch
 										const attachment = attachments[l];
 										const params = {
@@ -272,7 +272,7 @@ function queryAll(callback) {
 										batch.add(gmail.users.messages.attachments.get(params));
 										inBatch++;
 
-										if(inBatch === 100) {
+										if (inBatch === 100) {
 											batch.exec((err, responses) => {
 												dailyBulletins = dailyBulletins.concat(responses);
 												batch.clear();
@@ -294,13 +294,13 @@ function queryAll(callback) {
 
 											// Make sure directory for Daily Bulletin exists
 											fs.ensureDir(bulletinPDFDir, err => {
-												if(err) {
+												if (err) {
 													callback(new Error('There was a problem ensuring directory for Daily Bulletins!'));
 													return;
 												}
 
 												function writeBulletin(m) {
-													if(m < dailyBulletins.length) {
+													if (m < dailyBulletins.length) {
 														const dailyBulletin = dailyBulletins[m];
 
 														// PDF contents
@@ -312,14 +312,14 @@ function queryAll(callback) {
 
 														// If bulletinName is null, we are unable to parse bulletin and should skip
 														// This probably means it's not a bulletin
-														if(!bulletinName) {
+														if (!bulletinName) {
 															writeBulletin(++m);
 															return;
 														}
 
 														// Write PDF to file
 														fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf, err => {
-															if(err) {
+															if (err) {
 																callback(new Error('There was a problem writing the PDF!'));
 																return;
 															}
@@ -370,26 +370,26 @@ function queryAll(callback) {
  */
 
 function getList(callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
 	// Read directory
 	fs.ensureDir(bulletinPDFDir, err => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem ensuring the bulletin directory exists!'), null);
 			return;
 		}
 
 		fs.readdir(bulletinPDFDir, (err, files) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem reading the bulletin directory!'), null);
 				return;
 			}
 
 			// Only return files that are a PDF
 			const bulletins = [];
-			for(const _file of files) {
+			for (const _file of files) {
 				const file = path.parse(_file);
-				if(file.ext === '.pdf') {
+				if (file.ext === '.pdf') {
 					bulletins.push(file.name);
 				}
 			}
@@ -416,7 +416,7 @@ function parseFilename(filename) {
 		return null;
 	}
 	const date = new Date(cleanedName[0]);
-	if(_.isNaN(date.getTime())) {
+	if (_.isNaN(date.getTime())) {
 		return null;
 	}
 	return `${utils.leadingZeros(date.getFullYear())}-${utils.leadingZeros(date.getMonth() + 1)}-${utils.leadingZeros(date.getDate())}.pdf`;

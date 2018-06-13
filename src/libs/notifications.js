@@ -33,23 +33,23 @@ const SCOPES = [
   */
 
 function unsubscribe(db, user, hash, scopes, callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'));
 		return;
 	}
-	if(typeof hash !== 'string' && hash !== true) {
+	if (typeof hash !== 'string' && hash !== true) {
 		callback(new Error('Invalid hash!'));
 		return;
 	}
-	if(typeof scopes !== 'string' && typeof scopes !== 'object') {
+	if (typeof scopes !== 'string' && typeof scopes !== 'object') {
 		callback(new Error('Invalid scope(s)!'));
 		return;
 	}
@@ -64,22 +64,22 @@ function unsubscribe(db, user, hash, scopes, callback) {
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('Does doesn\'t exist!'));
 			return;
 		}
 
 		const dbHash = userDoc['unsubscribeHash'];
 
-		if(hash === true || cryptoUtils.safeCompare(hash, dbHash)) {
+		if (hash === true || cryptoUtils.safeCompare(hash, dbHash)) {
 			// Hash matches, unsubscribe account!
 			const userdata = db.collection('users');
 			userdata.update({ user }, { $addToSet: { unsubscribed: { $each: scopes }}}, err => {
-				if(err) {
+				if (err) {
 					callback(new Error('There was a problem updating the database!'));
 					return;
 				}

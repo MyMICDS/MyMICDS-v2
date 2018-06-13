@@ -19,12 +19,12 @@ const MongoClient   = require('mongodb').MongoClient;
 const weather       = require(__dirname + '/libs/weather.js');
 
 // Only run these intervals in production so we don't waste our API calls
-if(config.production) {
+if (config.production) {
 
 	console.log('Starting tasks server!');
 
 	MongoClient.connect(config.mongodb.uri, (err, db) => {
-		if(err) throw err;
+		if (err) throw err;
 
 		const fiveMinuteInterval = later.parse.text('every 5 min');
 
@@ -94,7 +94,7 @@ if(config.production) {
 			console.log(`[${new Date()}] Process Portal queue`);
 
 			feeds.processPortalQueue(db, err => {
-				if(err) {
+				if (err) {
 					console.log(`[${new Date()}] Error occurred processing Portal queue! (${err})`);
 
 					// Alert admins if there's an error processing the Portal queue
@@ -123,13 +123,13 @@ if(config.production) {
 
 			userdata.find({ confirmed: true }).toArray((err, users) => {
 				function updateCache(i) {
-					if(i >= users.length) return;
+					if (i >= users.length) return;
 
 					setTimeout(() => {
 						const user = users[i].user;
 
 						feeds.updateCanvasCache(db, user, err => {
-							if(err) {
+							if (err) {
 								console.log(`[${new Date()}] Error occurred updating ${user}'s Canvas cache! (${err})`);
 							} else {
 								console.log(`[${new Date()}] Successfully updated ${user}'s Canvas cache!`);
@@ -153,13 +153,13 @@ if(config.production) {
 
 			userdata.find({ confirmed: true }).toArray((err, users) => {
 				function addToQueue(i) {
-					if(i >= users.length) return;
+					if (i >= users.length) return;
 
 					setTimeout(() => {
 						const user = users[i].user;
 
 						feeds.addPortalQueue(db, user, err => {
-							if(err) {
+							if (err) {
 								console.log(`[${new Date()}] Error occurred adding ${user} to the Portal queue! (${err})`);
 							} else {
 								console.log(`[${new Date()}] Successfully added ${user} to the Portal queue!`);

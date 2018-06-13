@@ -31,7 +31,7 @@ const snowdays = 0;
  */
 
 function calculate(db, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
 	request.get({
 		url: 'http://www.snowdaycalculator.com/Apps/jsPred.php',
@@ -42,7 +42,7 @@ function calculate(db, callback) {
 		},
 		gzip: true
 	}, (err, res, body) => {
-		if(err || res.statusCode !== 200) {
+		if (err || res.statusCode !== 200) {
 			callback(new Error('There was a problem querying the Snowday Calculator!'), null);
 			return;
 		}
@@ -51,14 +51,14 @@ function calculate(db, callback) {
 		const variables = body.match(/[a-zA-Z]+\[\d+] = .+;/g);
 
 		// If for some reason there are no variables
-		if(!variables) {
+		if (!variables) {
 
 			// This is not expected; alert admins
 			// admins.sendEmail(db, {
 			// 	subject: 'Error Notification - Snowday Calculator',
 			// 	html: 'There was a problem with the retrieving snowday calculator values.<br>Error message: ' + err
 			// }, function(err) {
-			// 	if(err) {
+			// 	if (err) {
 			// 		console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
 			// 		return;
 			// 	}
@@ -84,7 +84,7 @@ function calculate(db, callback) {
 
 		// Loop through all matches of Javascript variables and assign to data object
 		const data = {};
-		for(const variable of variables) {
+		for (const variable of variables) {
 			// Split variable into the two parts on either side of equals
 			const parts = variable.split(' = ');
 
@@ -94,7 +94,7 @@ function calculate(db, callback) {
 			const dateString = varName.match(/(?!\[)\d+(?=\])/);
 
 			// If variable name isn't mapped, we don't care about it
-			if(!labels[name]) continue;
+			if (!labels[name]) continue;
 
 			// Get value of variable (we need `eval` in order to parse concatenated strings)
 			let value = eval(parts[1]); // eslint-disable-line
@@ -104,13 +104,13 @@ function calculate(db, callback) {
 			const formatDate = date.format('YYYY-MM-DD');
 
 			// If value is string, strip away HTML and remove redundant whitespaces
-			if(typeof value === 'string') {
+			if (typeof value === 'string') {
 				value = $(value).text();
 				value = value.replace(/\s+/g, ' ');
 			}
 
 			// Set to data object
-			if(!data[formatDate]) {
+			if (!data[formatDate]) {
 				data[formatDate] = {};
 			}
 			data[formatDate][labels[name]] = value;

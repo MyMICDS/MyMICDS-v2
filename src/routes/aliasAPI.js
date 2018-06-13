@@ -10,7 +10,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.post('/alias', jwt.requireLoggedIn, (req, res) => {
 		aliases.add(db, req.apiUser, req.body.type, req.body.classString, req.body.classId, (err, aliasId) => {
-			if(!err) {
+			if (!err) {
 				socketIO.user(req.apiUser, 'alias', 'add', {
 					_id: aliasId,
 					type: req.body.type,
@@ -30,7 +30,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.delete('/alias', jwt.requireLoggedIn, (req, res) => {
 		aliases.delete(db, req.apiUser, req.body.type, req.body.id, err => {
-			if(!err) {
+			if (!err) {
 				socketIO.user(req.apiUser, 'alias', 'delete', req.body.id);
 			}
 			api.respond(res, err);

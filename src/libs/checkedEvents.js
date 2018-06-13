@@ -22,38 +22,38 @@ const users = require(__dirname + '/users.js');
  */
 
 function checkEvent(db, user, eventId, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'));
 		return;
 	}
-	if(typeof eventId !== 'string') {
+	if (typeof eventId !== 'string') {
 		callback(new Error('Invalid event id!'));
 		return;
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'));
 			return;
 		}
 
 		getChecked(db, user, eventId, (err, checked) => {
-			if(err) {
+			if (err) {
 				callback(err);
 				return;
 			}
 			// If already checked, just return null
-			if(checked) {
+			if (checked) {
 				callback(null);
 				return;
 			}
@@ -68,7 +68,7 @@ function checkEvent(db, user, eventId, callback) {
 			const checkedEventsData = db.collection('checkedEvents');
 
 			checkedEventsData.insert(insertChecked, err => {
-				if(err) {
+				if (err) {
 					callback(new Error('There was a problem crossing out the event in the database!'));
 					return;
 				}
@@ -98,27 +98,27 @@ function checkEvent(db, user, eventId, callback) {
  */
 
 function getChecked(db, user, eventId, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'), null);
 		return;
 	}
-	if(typeof eventId !== 'string') {
+	if (typeof eventId !== 'string') {
 		callback(new Error('Invalid event id!'), null);
 		return;
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null);
 			return;
 		}
@@ -126,7 +126,7 @@ function getChecked(db, user, eventId, callback) {
 		const checkedEventsData = db.collection('checkedEvents');
 
 		checkedEventsData.find({ user: userDoc['_id'], eventId }).toArray((err, checkedEvents) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem querying the database!'), null);
 				return;
 			}
@@ -155,23 +155,23 @@ function getChecked(db, user, eventId, callback) {
  */
 
 function listChecked(db, user, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'), null);
 		return;
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null);
 			return;
 		}
@@ -179,7 +179,7 @@ function listChecked(db, user, callback) {
 		const checkedEventsData = db.collection('checkedEvents');
 
 		checkedEventsData.find({ user: userDoc['_id'] }).toArray((err, checkedEvents) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem querying the database!'), null);
 				return;
 			}
@@ -208,27 +208,27 @@ function listChecked(db, user, callback) {
  */
 
 function uncheckEvent(db, user, eventId, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'));
 		return;
 	}
-	if(typeof eventId !== 'string') {
+	if (typeof eventId !== 'string') {
 		callback(new Error('Invalid event id!'));
 		return;
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'));
 			return;
 		}
@@ -236,7 +236,7 @@ function uncheckEvent(db, user, eventId, callback) {
 		const checkedEventsData = db.collection('checkedEvents');
 
 		checkedEventsData.deleteMany({ user: userDoc['_id'], eventId }, err => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem uncrossing the event in the database!'));
 				return;
 			}

@@ -5,7 +5,7 @@
  * @module lunch
  */
 
-const admins = require(__dirname + '/admins.js');
+// const admins = require(__dirname + '/admins.js');
 const request = require('request');
 const cheerio = require('cheerio');
 const moment = require('moment');
@@ -32,9 +32,9 @@ const schools = ['Lower School', 'Middle School', 'Upper School'];
  */
 
 function getLunch(db, date, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
@@ -43,18 +43,18 @@ function getLunch(db, date, callback) {
 
 	// Send POST request to lunch website
 	request.post(lunchURL, { form: { 'current_day': currentDay.format() }}, (err, res, body) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem fetching the lunch data!'), null);
 			return;
 		}
-		if(res.statusCode !== 200) {
+		if (res.statusCode !== 200) {
 
 			// Alert admins if lunch page has moved
 			// admins.sendEmail(db, {
 			// 	subject: 'Error Notification - Lunch Retrieval',
 			// 	html: 'There was a problem with the lunch URL.<br>Error message: ' + err
 			// }, err => {
-			// 	if(err) {
+			// 	if (err) {
 			// 		console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
 			// 		return;
 			// 	}
@@ -99,11 +99,11 @@ function parseLunch(body) {
 			+ '-' + utils.leadingZeros(dateObject.getMonth() + 1)
 			+ '-' + utils.leadingZeros(dateObject.getDate());
 
-		for(const school of schools) {
+		for (const school of schools) {
 			const schoolLunch = day.find('div[location="' + school + '"]');
 
 			// Make sure it's not the weekend
-			if(schoolLunch.length > 0) {
+			if (schoolLunch.length > 0) {
 
 				const lunchTitle = schoolLunch.find('span.period-value').text().trim();
 				const categories = schoolLunch.find('div.category-week');
@@ -127,7 +127,7 @@ function parseLunch(body) {
 					json[dateString][schoolFilter(school)]['categories'] = json[dateString][schoolFilter(school)]['categories'] || {};
 					json[dateString][schoolFilter(school)]['categories'][categoryTitle] = json[dateString][schoolFilter(school)]['categories'][categoryTitle] || [];
 
-					for(const f of food) {
+					for (const f of food) {
 						json[dateString][schoolFilter(school)]['categories'][categoryTitle].push(f);
 					}
 

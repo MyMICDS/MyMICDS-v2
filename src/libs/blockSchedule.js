@@ -31,17 +31,17 @@ const middleschoolSchedule = {
 
 function getSchedule(date, grade, day, lateStart) {
 	// Validate inputs
-	if(date) {
+	if (date) {
 		date = moment(date);
 	} else {
 		date = null;
 	}
 	grade = parseInt(grade);
-	if(typeof grade !== 'number' || _.isNaN(grade) || -1 > grade || grade > 12) {
+	if (typeof grade !== 'number' || _.isNaN(grade) || -1 > grade || grade > 12) {
 		return null;
 	}
 	day = parseInt(day);
-	if(typeof day !== 'number' || _.isNaN(day) || 1 > day || day > 6) {
+	if (typeof day !== 'number' || _.isNaN(day) || 1 > day || day > 6) {
 		return null;
 	}
 	lateStart = !!lateStart;
@@ -49,13 +49,13 @@ function getSchedule(date, grade, day, lateStart) {
 	const schoolName = users.gradeToSchool(grade);
 
 	// We don't have lowerschool schedules
-	if(schoolName === 'lowerschool') return null;
+	if (schoolName === 'lowerschool') return null;
 
 	// User's final schedule
 	let userSchedule = [];
 
 	// Use highschool schedule if upperschool
-	if(schoolName === 'upperschool') {
+	if (schoolName === 'upperschool') {
 		// Determine if lowerclassman (9 - 10) or upperclassman (11 - 12)
 		const lowerclass = (grade === 9 || grade === 10);
 		const upperclass = (grade === 11 || grade === 12);
@@ -63,20 +63,20 @@ function getSchedule(date, grade, day, lateStart) {
 		// Loop through JSON and append classes to user schedule
 		const jsonSchedule = highschoolSchedule['day' + day][lateStart ? 'lateStart' : 'regular'];
 
-		for(const jsonBlock of jsonSchedule) {
+		for (const jsonBlock of jsonSchedule) {
 			// Check for any restrictions on the block
-			if(typeof jsonBlock.lowerclass !== 'undefined') {
-				if(jsonBlock.lowerclass !== lowerclass) continue;
+			if (typeof jsonBlock.lowerclass !== 'undefined') {
+				if (jsonBlock.lowerclass !== lowerclass) continue;
 			}
-			if(typeof jsonBlock.upperclass !== 'undefined') {
-				if(jsonBlock.lowerclass !== upperclass) continue;
+			if (typeof jsonBlock.upperclass !== 'undefined') {
+				if (jsonBlock.lowerclass !== upperclass) continue;
 			}
 
 			// Push to user schedule
 			userSchedule.push(jsonBlock);
 		}
 
-	} else if(schoolName === 'middleschool') {
+	} else if (schoolName === 'middleschool') {
 		// Directly return JSON from middleschool schedule
 		userSchedule = middleschoolSchedule[grade]['day' + day][lateStart ? 'lateStart' : 'regular'];
 	}
@@ -85,8 +85,8 @@ function getSchedule(date, grade, day, lateStart) {
 	userSchedule = JSON.parse(JSON.stringify(userSchedule));
 
 	// If date isn't null, set times relative to date object
-	if(date && userSchedule) {
-		for(const schedule of userSchedule) {
+	if (date && userSchedule) {
+		for (const schedule of userSchedule) {
 			// Get start and end moment objects
 			const startTime = schedule.start.split(':');
 			schedule.start = date.clone().hour(startTime[0]).minute(startTime[1]);

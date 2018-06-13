@@ -30,7 +30,7 @@ module.exports = (app, db, socketIO) => {
 		};
 
 		classes.upsert(db, user, scheduleClass, (err, scheduleClass) => {
-			if(!err) {
+			if (!err) {
 				socketIO.user(req.apiUser, 'classes', 'add', scheduleClass);
 			}
 			api.respond(res, err, { id: scheduleClass ? scheduleClass._id : null });
@@ -39,7 +39,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.delete('/classes', jwt.requireLoggedIn, (req, res) => {
 		classes.delete(db, req.apiUser, req.body.id, err => {
-			if(!err) {
+			if (!err) {
 				socketIO.user(req.apiUser, 'classes', 'delete', req.body.id);
 			}
 			api.respond(res, err);

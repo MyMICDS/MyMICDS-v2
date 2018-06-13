@@ -20,9 +20,9 @@ const ACTIONS = [
 
 function adminOverride(req, res, next) {
 	req.apiUser = null;
-	if(req.user) {
+	if (req.user) {
 		req.apiUser = req.user.user;
-		if(Object.keys(req.user.scopes).includes('admin')) {
+		if (Object.keys(req.user.scopes).includes('admin')) {
 			if (req.body.behalfOf) {
 				req.apiUser = req.body.behalfOf;
 			} else if (req.query.behalfOf) {
@@ -46,30 +46,30 @@ function respond(res, error = null, data = {}, action = null) {
 
 	// Check for different types of errors
 	let err = null;
-	if(error !== null && typeof error === 'object' && typeof error.message === 'string') {
+	if (error !== null && typeof error === 'object' && typeof error.message === 'string') {
 		err = error.message;
 	}
-	if(typeof error === 'string') {
+	if (typeof error === 'string') {
 		err = error;
 	}
 
 	// If there's an error, data should be null
-	if(err !== null) {
+	if (err !== null) {
 		data = null;
 	}
 
 	// Make sure it's a valid action
-	if(!ACTIONS.includes(action)) {
+	if (!ACTIONS.includes(action)) {
 		action = null;
 	}
 
 	// If there's an error, that's gonna be a fat L
-	if(err) {
+	if (err) {
 		res.status(500);
 	}
 
 	// If unauthorized, add proper HTTP header
-	if(['LOGIN_EXPIRED', 'UNAUTHORIZED', 'NOT_LOGGED_IN'].includes(action)) {
+	if (['LOGIN_EXPIRED', 'UNAUTHORIZED', 'NOT_LOGGED_IN'].includes(action)) {
 		res.status(401);
 	}
 

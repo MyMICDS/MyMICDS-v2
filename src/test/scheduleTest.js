@@ -71,16 +71,16 @@ const tests = [
 	}
 ];
 
-for(let i = 0; i < tests.length; i++) {
+for (let i = 0; i < tests.length; i++) {
 	const test = tests[i];
 	const results = schedule.ordine(test.base, test.add);
 
 	// Convert moment.js objects to readable strings
-	for(const result of results) {
-		if(moment.isMoment(result.start)) {
+	for (const result of results) {
+		if (moment.isMoment(result.start)) {
 			result.start = result.start.format('LT');
 		}
-		if(moment.isMoment(result.end)) {
+		if (moment.isMoment(result.end)) {
 			result.end = result.end.format('LT');
 		}
 	}

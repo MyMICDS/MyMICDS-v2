@@ -75,18 +75,18 @@ const validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
 
 function upsertClass(db, user, scheduleClass, callback) {
 	// Input validation best validation
-	if(typeof callback !== 'function') callback = () => {};
-	if(typeof db !== 'object') { callback(new Error('Invalid database connection!'), null); return; }
-	if(typeof scheduleClass._id !== 'string') scheduleClass._id = '';
+	if (typeof callback !== 'function') callback = () => {};
+	if (typeof db !== 'object') { callback(new Error('Invalid database connection!'), null); return; }
+	if (typeof scheduleClass._id !== 'string') scheduleClass._id = '';
 
-	if(typeof user               !== 'string') { callback(new Error('Invalid username!'),     null); return; }
-	if(typeof scheduleClass      !== 'object') { callback(new Error('Invalid class object!'), null); return; }
-	if(typeof scheduleClass.name !== 'string') { callback(new Error('Invalid class name!'),   null); return; }
+	if (typeof user               !== 'string') { callback(new Error('Invalid username!'),     null); return; }
+	if (typeof scheduleClass      !== 'object') { callback(new Error('Invalid class object!'), null); return; }
+	if (typeof scheduleClass.name !== 'string') { callback(new Error('Invalid class name!'),   null); return; }
 	// If no valid block or type, default to 'other'
-	if(!_.contains(validBlocks, scheduleClass.block)) scheduleClass.block = 'other';
-	if(!_.contains(validTypes, scheduleClass.type))   scheduleClass.type  = 'other';
+	if (!_.contains(validBlocks, scheduleClass.block)) scheduleClass.block = 'other';
+	if (!_.contains(validTypes, scheduleClass.type))   scheduleClass.type  = 'other';
 	// If not valid color, generate random
-	if(!validColor.test(scheduleClass.color)) {
+	if (!validColor.test(scheduleClass.color)) {
 		// You think we're playing around here? No. This is MyMICDS.
 		// We are going to cryptographically generate a color as random as human intelligence can get us.
 		scheduleClass.color = '#' + Random.hex(true)(engine, 6);
@@ -97,18 +97,18 @@ function upsertClass(db, user, scheduleClass, callback) {
 
 	// Make sure username is valid first
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem connecting to the database!'), null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('Invalid username!'), null);
 			return;
 		}
 
 		// Add teacher to database
 		teachers.add(db, scheduleClass.teacher, (err, teacherDoc) => {
-			if(err) {
+			if (err) {
 				callback(err, null);
 				return;
 			}
@@ -118,17 +118,17 @@ function upsertClass(db, user, scheduleClass, callback) {
 			// Check for duplicate classes first
 			classdata.find({ user: userDoc['_id'] }).toArray((err, classes) => {
 				let id;
-				if(err) {
+				if (err) {
 					callback(new Error('There was a problem querying the database!'), null);
 					return;
 				}
 
 				// Lets see if any of the classes are the one we are supposed to edit
 				let validEditId = false;
-				if(scheduleClass._id !== '') {
-					for(const theClass of classes) {
+				if (scheduleClass._id !== '') {
+					for (const theClass of classes) {
 						const classId = theClass['_id'];
-						if(scheduleClass._id === classId.toHexString()) {
+						if (scheduleClass._id === classId.toHexString()) {
 							validEditId = classId;
 							break;
 						}
@@ -137,9 +137,9 @@ function upsertClass(db, user, scheduleClass, callback) {
 
 				// Now lets see if any of these classes are duplicate
 				const dupClassIds = [];
-				for(const classDoc of classes) {
+				for (const classDoc of classes) {
 					// If duplicate class, push id to array
-					if(scheduleClass.name  === classDoc.name
+					if (scheduleClass.name  === classDoc.name
 						&& teacherDoc['_id'].toHexString() === classDoc['teacher'].toHexString()
 						&& scheduleClass.block === classDoc.block
 						&& scheduleClass.color === classDoc.color
@@ -150,10 +150,10 @@ function upsertClass(db, user, scheduleClass, callback) {
 				}
 
 				// If any of the classes are duplicate, just give up.
-				if(dupClassIds.length > 0) {
+				if (dupClassIds.length > 0) {
 					// If the edit id matches one of the dup classes, maybe the student accidentally pressed 'save'.
 					// Since nothing changed in that case, just return no error
-					if(validEditId) {
+					if (validEditId) {
 						callback(null, scheduleClass);
 					} else {
 						callback(new Error('Tried to insert a duplicate class!'), null);
@@ -162,7 +162,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 				}
 
 				// Generate an Object ID, or use the id that we are editting
-				if(validEditId) {
+				if (validEditId) {
 					id = validEditId;
 				} else {
 					id = new ObjectID();
@@ -180,7 +180,7 @@ function upsertClass(db, user, scheduleClass, callback) {
 
 				// Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
 				classdata.update({ _id: id }, insertClass, { upsert: true }, err => {
-					if(err) {
+					if (err) {
 						callback(new Error('There was a problem upserting the class into the database!'), null);
 						return;
 					}
@@ -213,24 +213,24 @@ function upsertClass(db, user, scheduleClass, callback) {
 
 function getClasses(db, user, callback) {
 	// I'll validate _your_ input baby ;)
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'), null);
 		return;
 	}
 
 	// Make sure valid user and get user id
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null);
 			return;
 		}
@@ -239,13 +239,13 @@ function getClasses(db, user, callback) {
 
 		// Get all classes under the specified user id
 		classdata.find({ user: userDoc['_id'] }).toArray((err, classes) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem querying the database!'), null);
 				return;
 			}
 
 			// Add 'textDark' to all of the classes based on color
-			for(const theClass of classes) {
+			for (const theClass of classes) {
 				theClass.textDark = prisma.shouldTextBeDark(theClass.color);
 			}
 
@@ -255,16 +255,16 @@ function getClasses(db, user, callback) {
 
 			function injectValues(i) {
 
-				if(i < classes.length) {
+				if (i < classes.length) {
 					// Set user to actual username
 					classes[i]['user'] = userDoc['user'];
 
 					// Set teacher to actual teacher
 					const teacherId = classes[i]['teacher'];
 
-					if(typeof teachersList[teacherId] === 'undefined') {
+					if (typeof teachersList[teacherId] === 'undefined') {
 						teachers.get(db, teacherId, (err, isTeacher, teacherDoc) => {
-							if(err) {
+							if (err) {
 								callback(err, null);
 								return;
 							}
@@ -309,15 +309,15 @@ function getClasses(db, user, callback) {
 
 function deleteClass(db, user, classId, callback) {
 	// Validate inputs
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'));
 		return;
 	}
@@ -332,18 +332,18 @@ function deleteClass(db, user, classId, callback) {
 
 	// Make sure valid user
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'));
 			return;
 		}
 
 		const classdata = db.collection('classes');
 		classdata.deleteMany({ _id: id, user: userDoc['_id'] }, err => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem deleting the class from the database!'));
 				return;
 			}

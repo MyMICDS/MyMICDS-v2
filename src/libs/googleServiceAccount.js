@@ -31,12 +31,12 @@ const impersonate = 'support@mymicds.net';
  */
 
 function createServiceAccount(callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
 	const jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, scopes, impersonate);
 
 	jwtClient.authorize(err => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem authorizing the Google Service Account!'), null);
 			return;
 		}

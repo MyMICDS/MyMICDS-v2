@@ -13,10 +13,10 @@ const portal = require(__dirname + '/../libs/portal.js');
 const user = process.argv[2];
 
 MongoClient.connect(config.mongodb.uri, (err, db) => {
-	if(err) throw err;
+	if (err) throw err;
 
 	portal.getClasses(db, user, (err, hasURL, classes) => {
-		if(!classes) throw 'Classes is null!';
+		if (!classes) throw 'Classes is null!';
 
 		console.log(classes);
 		console.log('');

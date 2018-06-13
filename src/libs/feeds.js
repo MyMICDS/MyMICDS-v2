@@ -23,9 +23,9 @@ const users  = require(__dirname + '/users.js');
  */
 
 function updateCanvasCache(db, user, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
@@ -33,23 +33,23 @@ function updateCanvasCache(db, user, callback) {
 	const canvasdata = db.collection('canvasFeeds');
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'));
 			return;
 		}
 
 		canvas.getUserCal(db, userDoc.user, (err, hasURL, events) => {
-			if(err) {
+			if (err) {
 				callback(err);
 				return;
 			}
 
 			canvasdata.deleteMany({ user: userDoc._id }, err => {
-				if(err) {
+				if (err) {
 					callback('There was an error removing the old events from the database!');
 					return;
 				}
@@ -57,7 +57,7 @@ function updateCanvasCache(db, user, callback) {
 				events.forEach(e => e.user = userDoc._id);
 
 				canvasdata.insertMany(events, err => {
-					if(err) {
+					if (err) {
 						callback('There was an error inserting events into the database!');
 						return;
 					}
@@ -85,19 +85,19 @@ function updateCanvasCache(db, user, callback) {
  */
 
 function addPortalQueue(db, user, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'));
 			return;
 		}
@@ -106,13 +106,13 @@ function addPortalQueue(db, user, callback) {
 		const userdata   = db.collection('users');
 
 		portal.getFromCal(db, user, (err, hasURL, events) => {
-			if(err) {
+			if (err) {
 				callback(err, null);
 				return;
 			}
-			if(_.isEmpty(events)) {
+			if (_.isEmpty(events)) {
 				userdata.update({ user }, { $set: { inPortalQueue: true } }, err => {
-					if(err) {
+					if (err) {
 						callback(new Error('There was an error adding the user to the queue!'), null);
 						return;
 					}
@@ -123,7 +123,7 @@ function addPortalQueue(db, user, callback) {
 			}
 
 			portaldata.deleteMany({ user: userDoc._id }, err => {
-				if(err) {
+				if (err) {
 					callback(new Error('There was an error removing the old events from the database!'), null);
 					return;
 				}
@@ -131,13 +131,13 @@ function addPortalQueue(db, user, callback) {
 				events.forEach(e => e.user = userDoc._id);
 
 				portaldata.insertMany(events, err => {
-					if(err) {
+					if (err) {
 						callback(new Error(`There was an error inserting events into the database! (${err})`), null);
 						return;
 					}
 
 					userdata.update({ user }, { $set: { inPortalQueue: false } }, err => {
-						if(err) {
+						if (err) {
 							callback(new Error('There was an error removing the user from the queue!'), null);
 							return;
 						}
@@ -164,9 +164,9 @@ function addPortalQueue(db, user, callback) {
  */
 
 function processPortalQueue(db, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
@@ -174,19 +174,19 @@ function processPortalQueue(db, callback) {
 	const userdata = db.collection('users');
 
 	userdata.find({ inPortalQueue: true }).toArray((err, queue) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem querying the database!'));
 			return;
 		}
 
 		function handleQueue(i) {
-			if(i >= queue.length) {
+			if (i >= queue.length) {
 				callback(null);
 				return;
 			}
 
 			addPortalQueue(db, queue[i].user, err => {
-				if(err) {
+				if (err) {
 					callback(err);
 					return;
 				}
@@ -219,18 +219,18 @@ function canvasCacheRetry(db, user, callback) {
 	if (typeof callback !== 'function') return;
 
 	canvas.getFromCache(db, user, (err, hasURL, events) => {
-		if(err) {
+		if (err) {
 			callback(err, null, null);
 			return;
 		}
-		if(!hasURL || !events || events.length > 0) {
+		if (!hasURL || !events || events.length > 0) {
 			callback(null, hasURL, events);
 			return;
 		}
 
 		// If the events are empty, there's a chance that we just didn't cache results yet
 		updateCanvasCache(db, user, err => {
-			if(err) {
+			if (err) {
 				callback(err, null, null);
 				return;
 			}

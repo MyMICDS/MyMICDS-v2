@@ -33,27 +33,27 @@ const validTeacherPrefixes = [
 
 function addTeacher(db, teacher, callback) {
 
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
-	if(typeof teacher !== 'object') {
+	if (typeof teacher !== 'object') {
 		callback(new Error('Invalid teacher object!'), null);
 		return;
 	}
-	if(!_.contains(validTeacherPrefixes, teacher.prefix)) {
+	if (!_.contains(validTeacherPrefixes, teacher.prefix)) {
 		callback(new Error('Invalid teacher prefix!'), null);
 		return;
 	}
-	if(typeof teacher.firstName !== 'string') {
+	if (typeof teacher.firstName !== 'string') {
 		callback(new Error('Invalid teacher first name!'), null);
 		return;
 	}
-	if(typeof teacher.lastName !== 'string') {
+	if (typeof teacher.lastName !== 'string') {
 		callback(new Error('Invalid teacher last name!'), null);
 		return;
 	}
@@ -61,14 +61,14 @@ function addTeacher(db, teacher, callback) {
 	const teacherdata = db.collection('teachers');
 	// Upsert teacher into collection
 	teacherdata.update(teacher, teacher, { upsert: true }, err => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem inserting the teacher into the database!'), null);
 			return;
 		}
 
 		// Get document of teacher we just added
 		teacherdata.find(teacher).toArray((err, docs) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem querying the database!'), null);
 				return;
 			}
@@ -98,13 +98,13 @@ function addTeacher(db, teacher, callback) {
  */
 
 function getTeacher(db, teacherId, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null, null);
 		return;
 	}
-	if(typeof teacherId !== 'object') {
+	if (typeof teacherId !== 'object') {
 		callback(new Error('Invalid teacher id object!'), null, null);
 		return;
 	}
@@ -112,12 +112,12 @@ function getTeacher(db, teacherId, callback) {
 	const teacherdata = db.collection('teachers');
 	// Query database to find possible teacher
 	teacherdata.find({ _id: teacherId }).toArray((err, docs) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem querying the database!'), null, null);
 			return;
 		}
 
-		if(docs.length === 0) {
+		if (docs.length === 0) {
 			callback(null, false, null);
 		} else {
 			callback(null, true, docs[0]);
@@ -143,9 +143,9 @@ function getTeacher(db, teacherId, callback) {
  */
 
 function listTeachers(db, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
@@ -153,7 +153,7 @@ function listTeachers(db, callback) {
 	const teacherdata = db.collection('teachers');
 
 	teacherdata.find({}).toArray((err, docs) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem querying the database!'), null, null);
 			return;
 		}
@@ -181,31 +181,31 @@ function listTeachers(db, callback) {
 
 function deleteTeacher(db, teacherId, callback) {
 
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
-	if(typeof teacherId !== 'object') {
+	if (typeof teacherId !== 'object') {
 		callback(new Error('Invalid teacher id object!'));
 		return;
 	}
 
 	// Don't delete teacher if there are classes it teaches!
 	teacherTeaches(db, teacherId, (err, classes) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
 
-		if(classes.length === 0) {
+		if (classes.length === 0) {
 			// Teacher doesn't have any classes. Delete.
 			const teacherdata = db.collection('teachers');
 			teacherdata.deleteMany({ _id: teacherId }, err => {
-				if(err) {
+				if (err) {
 					callback(new Error('There was a problem deleting the teacher from the database!'));
 					return;
 				}
@@ -238,13 +238,13 @@ function deleteTeacher(db, teacherId, callback) {
   */
 
 function teacherTeaches(db, teacherId, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
-	if(typeof teacherId !== 'object') {
+	if (typeof teacherId !== 'object') {
 		callback(new Error('Invalid teacher id object!'), null);
 		return;
 	}
@@ -252,7 +252,7 @@ function teacherTeaches(db, teacherId, callback) {
 	const classdata = db.collection('classes');
 
 	classdata.find({ teacher: teacherId }).toArray((err, docs) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem querying the database!'), null);
 			return;
 		}
@@ -278,10 +278,10 @@ function teacherTeaches(db, teacherId, callback) {
  */
 
 function deleteClasslessTeachers(db, callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
@@ -289,17 +289,17 @@ function deleteClasslessTeachers(db, callback) {
 	const teacherdata = db.collection('teachers');
 	// Find all teachers
 	teacherdata.find({}).toArray((err, docs) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem querying the database!'));
 			return;
 		}
 
 		// This delete function uses the power recursion so we can asynchronously delete teachers and provide a callback in the end
 		function deleteTeachers(i) {
-			if(i < docs.length) {
+			if (i < docs.length) {
 				const teacherId = docs[i]['_id'];
 				deleteTeacher(db, teacherId, err => {
-					if(err) {
+					if (err) {
 						callback(err);
 						return;
 					}

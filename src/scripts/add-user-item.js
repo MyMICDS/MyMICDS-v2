@@ -14,7 +14,7 @@ const MongoClient = require('mongodb').MongoClient;
 
 // Connect to database
 MongoClient.connect(config.mongodb.uri, (err, db) => {
-	if(err) throw err;
+	if (err) throw err;
 
 	const userdata = db.collection('users');
 
@@ -27,13 +27,13 @@ MongoClient.connect(config.mongodb.uri, (err, db) => {
 
 				// Generate unsubscribe email hash
 				crypto.randomBytes(16, (err, buf) => {
-					if(err) throw err;
+					if (err) throw err;
 
 					const unsubscribeHash = buf.toString('hex');
 
 					// Update user doc
 					userdata.update({ _id: userDoc._id }, { $set: { unsubscribeHash } }, err => {
-						if(err) throw err;
+						if (err) throw err;
 						console.log(`Successfully added unsubscribe hash for ${userDoc.user}!`);
 						addItem(++i);
 					});

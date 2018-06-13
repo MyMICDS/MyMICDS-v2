@@ -25,7 +25,7 @@ const crypto = require('crypto');
 
 function hashPassword(password, callback) {
 	bcrypt.hash(password, 10, (err, hash) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem hashing the password!'), null);
 			return;
 		}
@@ -45,17 +45,17 @@ function hashPassword(password, callback) {
 
 function safeCompare(a, b) {
 
-	if(typeof a !== 'string' || typeof b !== 'string') {
+	if (typeof a !== 'string' || typeof b !== 'string') {
 		return false;
 	}
 
 	let mismatch = (a.length === b.length ? 0 : 1);
-	if(mismatch) {
+	if (mismatch) {
 		b = a;
 	}
 
 	// NOTE: I don't think this can be converted to an ES6 for..of, so I'm keeping it as is.
-	for(let i = 0; i < a.length; ++i) {
+	for (let i = 0; i < a.length; ++i) {
 		const ac = a.charCodeAt(i);
 		const bc = b.charCodeAt(i);
 		mismatch |= (ac ^ bc);

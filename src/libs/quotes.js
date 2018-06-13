@@ -20,16 +20,16 @@
  */
 
 function getQuotes(db, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 	}
 
 	const quotesData = db.collection('quotes');
 
 	quotesData.find({}).toArray((err, quotes) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem getting all the quotes from the database!'), null);
 			return;
 		}
@@ -55,19 +55,19 @@ function getQuotes(db, callback) {
  */
 
 function insertQuote(db, author, quote, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
 
-	if(typeof author !== 'string') {
+	if (typeof author !== 'string') {
 		callback(new Error('Invalid author!'));
 		return;
 	}
 
-	if(typeof quote !== 'string') {
+	if (typeof quote !== 'string') {
 		callback(new Error('Invalid quote!'));
 		return;
 	}
@@ -78,7 +78,7 @@ function insertQuote(db, author, quote, callback) {
 		author,
 		quote
 	}, err => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem inserting the quote into the database!'));
 			return;
 		}

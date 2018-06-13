@@ -36,66 +36,66 @@ const aliasTypes = [
  */
 
 function addAlias(db, user, type, classString, classId, callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
-	if(!_.contains(aliasTypes, type)) {
+	if (!_.contains(aliasTypes, type)) {
 		callback(new Error('Invalid alias type!'), null);
 		return;
 	}
-	if(typeof classString !== 'string') {
+	if (typeof classString !== 'string') {
 		callback(new Error('Invalid class string!'), null);
 		return;
 	}
-	if(typeof classId !== 'string') {
+	if (typeof classId !== 'string') {
 		callback(new Error('Invalid class id!'), null);
 		return;
 	}
 
 	// Make sure valid user
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null);
 			return;
 		}
 
 		// Check if alias already exists
 		getAliasClass(db, user, type, classString, (err, hasAlias) => {
-			if(err) {
+			if (err) {
 				callback(err, null);
 				return;
 			}
-			if(hasAlias) {
+			if (hasAlias) {
 				callback(new Error('Alias already exists for a class!'), null);
 				return;
 			}
 
 			// Make sure class id is valid
 			classes.get(db, user, (err, classes) => {
-				if(err) {
+				if (err) {
 					callback(err, null);
 					return;
 				}
 
 				// Loop through classes and search for class with id specified
 				let validClassObject = null;
-				for(const classObject of classes) {
-					if(classObject._id.toHexString() === classId) {
+				for (const classObject of classes) {
+					if (classObject._id.toHexString() === classId) {
 						validClassObject = classObject;
 						break;
 					}
 				}
 
-				if(!validClassObject) {
+				if (!validClassObject) {
 					callback(new Error('Native class doesn\'t exist!'), null);
 					return;
 				}
@@ -112,7 +112,7 @@ function addAlias(db, user, type, classString, classId, callback) {
 				const aliasdata = db.collection('aliases');
 
 				aliasdata.insert(insertAlias, (err, results) => {
-					if(err) {
+					if (err) {
 						callback(new Error('There was a problem inserting the alias into the databse!'), null);
 						return;
 					}
@@ -143,24 +143,24 @@ function addAlias(db, user, type, classString, classId, callback) {
  */
 
 function listAliases(db, user, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'), null);
 		return;
 	}
 
 	// Make sure valid user
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null);
 			return;
 		}
@@ -168,7 +168,7 @@ function listAliases(db, user, callback) {
 		// Query database for all aliases under specific user
 		const aliasdata = db.collection('aliases');
 		aliasdata.find({ user: userDoc['_id'] }).toArray((err, aliases) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem querying the database!'), null);
 				return;
 			}
@@ -176,14 +176,14 @@ function listAliases(db, user, callback) {
 			const aliasList = {};
 
 			// Add array for all alias types
-			for(const aliasType of aliasTypes) {
+			for (const aliasType of aliasTypes) {
 				aliasList[aliasType] = [];
 			}
 
 			// Loop through aliases and organize them by type
-			for(const alias of aliases) {
+			for (const alias of aliases) {
 				// Make sure alias type exists
-				if(aliasList[alias.type]) {
+				if (aliasList[alias.type]) {
 					aliasList[alias.type].push(alias);
 				}
 			}
@@ -211,13 +211,13 @@ function listAliases(db, user, callback) {
  */
 
 function mapAliases(db, user, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'), null);
 		return;
 	}
@@ -230,7 +230,7 @@ function mapAliases(db, user, callback) {
 			classes.get(db, user, asyncCallback);
 		}
 	}, (err, results) => {
-		if(err) {
+		if (err) {
 			callback(err, null);
 			return;
 		}
@@ -239,17 +239,17 @@ function mapAliases(db, user, callback) {
 		const aliasMap = {};
 
 		// Organize classes by id
-		for(const scheduleClass of results.classes) {
+		for (const scheduleClass of results.classes) {
 			classMap[scheduleClass._id.toHexString()] = scheduleClass;
 		}
 
 		// Organize aliases by native class id
-		for(const type of aliasTypes) {
+		for (const type of aliasTypes) {
 			aliasMap[type] = {};
 
-			if(typeof results.aliases[type] !== 'object') continue;
+			if (typeof results.aliases[type] !== 'object') continue;
 
-			for(const aliasObject of results.aliases[type]) {
+			for (const aliasObject of results.aliases[type]) {
 				aliasMap[type][aliasObject.classRemote] = classMap[aliasObject.classNative.toHexString()];
 			}
 		}
@@ -276,35 +276,35 @@ function mapAliases(db, user, callback) {
  */
 
 function deleteAlias(db, user, type, aliasId, callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
-	if(!_.contains(aliasTypes, type)) {
+	if (!_.contains(aliasTypes, type)) {
 		callback(new Error('Invalid alias type!'));
 		return;
 	}
 
 	// Make sure valid alias
 	listAliases(db, user, (err, aliases) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
 
 		let validAliasId = null;
-		for(const alias of aliases[type]) {
-			if(aliasId === alias._id.toHexString()) {
+		for (const alias of aliases[type]) {
+			if (aliasId === alias._id.toHexString()) {
 				validAliasId = alias._id;
 				break;
 			}
 		}
 
-		if(!validAliasId) {
+		if (!validAliasId) {
 			callback(new Error('Invalid alias id!'));
 			return;
 		}
@@ -312,7 +312,7 @@ function deleteAlias(db, user, type, aliasId, callback) {
 		const aliasdata = db.collection('aliases');
 
 		aliasdata.deleteMany({ _id: validAliasId }, err => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem deleting the alias from the database!'));
 				return;
 			}
@@ -343,29 +343,29 @@ function deleteAlias(db, user, type, aliasId, callback) {
  */
 
 function getAliasClass(db, user, type, classInput, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
-	if(!_.contains(aliasTypes, type)) {
+	if (!_.contains(aliasTypes, type)) {
 		callback(new Error('Invalid alias type!'));
 		return;
 	}
 	// If class input is invalid, just return current value in case it is already a class object
-	if(typeof classInput !== 'string') {
+	if (typeof classInput !== 'string') {
 		callback(null, false, classInput);
 		return;
 	}
 
 	// Make sure valid user
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'));
 			return;
 		}
@@ -373,11 +373,11 @@ function getAliasClass(db, user, type, classInput, callback) {
 		const aliasdata = db.collection('aliases');
 
 		aliasdata.find({ user: userDoc['_id'], type, classRemote: classInput }).toArray((err, aliases) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem querying the database!'), null, null);
 				return;
 			}
-			if(aliases.length === 0) {
+			if (aliases.length === 0) {
 				callback(null, false, classInput);
 				return;
 			}
@@ -386,14 +386,14 @@ function getAliasClass(db, user, type, classInput, callback) {
 
 			// Now get class object
 			classes.get(db, user, (err, classes) => {
-				if(err) {
+				if (err) {
 					callback(err, null, null);
 					return;
 				}
 
 				// Search user's classes for valid class id
-				for(const classObject of classes) {
-					if(classId.toHexString() === classObject._id.toHexString()) {
+				for (const classObject of classes) {
+					if (classId.toHexString() === classObject._id.toHexString()) {
 						callback(null, true, classObject);
 						return;
 					}
@@ -422,11 +422,11 @@ function getAliasClass(db, user, type, classInput, callback) {
  */
 
 function deleteClasslessAliases(db, callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'));
 		return;
 	}
@@ -438,7 +438,7 @@ function deleteClasslessAliases(db, callback) {
 		// Get aliases
 		aliases: asyncCallback => {
 			aliasdata.find({}).toArray((err, docs) => {
-				if(err) {
+				if (err) {
 					asyncCallback(new Error('There was a problem querying the database!'), null);
 				} else {
 					asyncCallback(null, docs);
@@ -448,7 +448,7 @@ function deleteClasslessAliases(db, callback) {
 		// Get classes
 		classes: asyncCallback => {
 			classdata.find({}).toArray((err, docs) => {
-				if(err) {
+				if (err) {
 					asyncCallback(new Error('There was a problem querying the database!'), null);
 				} else {
 					asyncCallback(null, docs);
@@ -456,14 +456,14 @@ function deleteClasslessAliases(db, callback) {
 			});
 		}
 	}, (err, results) => {
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
 
 		// Loop through aliases asynchronously
 		function checkAlias(i) {
-			if(i >= results.aliases.length) {
+			if (i >= results.aliases.length) {
 				// Done looping through classes
 				callback(null);
 				return;
@@ -472,18 +472,18 @@ function deleteClasslessAliases(db, callback) {
 			const alias = results.aliases[i];
 
 			let validClass = false;
-			for(const dbClass of results.classes) {
+			for (const dbClass of results.classes) {
 				// Check if alias has a corresponding class id with the same user
-				if(alias.classNative.toHexString() === dbClass._id.toHexString()) {
+				if (alias.classNative.toHexString() === dbClass._id.toHexString()) {
 					validClass = true;
 					break;
 				}
 			}
 
 			// If there isn't a corresponding class with this alias, delete
-			if(!validClass) {
+			if (!validClass) {
 				aliasdata.deleteMany({ _id: alias._id, user: alias.user }, err => {
-					if(err) {
+					if (err) {
 						callback(new Error('There was a problem deleting an alias in the database!'));
 						return;
 					}

@@ -50,9 +50,9 @@ const portalRange = {
 
 function verifyURL(portalURL, callback) {
 
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof portalURL !== 'string') {
+	if (typeof portalURL !== 'string') {
 		callback(new Error('Invalid URL!'), null, null);
 		return;
 	}
@@ -61,7 +61,7 @@ function verifyURL(portalURL, callback) {
 	const parsedURL = url.parse(portalURL);
 	const queries = querystring.parse(parsedURL.query);
 
-	if(typeof queries.z !== 'string') {
+	if (typeof queries.z !== 'string') {
 		callback(null, 'URL does not contain calendar ID!', null);
 		return;
 	}
@@ -70,30 +70,30 @@ function verifyURL(portalURL, callback) {
 
 	// Not lets see if we can actually get any data from here
 	request(validURL, (err, response, body) => {
-		if(err) {
+		if (err) {
 			callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
 			return;
 		}
-		if(response.statusCode !== 200) {
+		if (response.statusCode !== 200) {
 			callback(null, 'Invalid URL!', null);
 			return;
 		}
 
 		// Look through every 'Day # (US/MS)' andd see how many events there are
 		const dayDates = {};
-		for(const calEvent of Object.values(ical.parseICS(body))) {
+		for (const calEvent of Object.values(ical.parseICS(body))) {
 			// If event doesn't have a summary, skip
-			if(typeof calEvent.summary !== 'string') continue;
+			if (typeof calEvent.summary !== 'string') continue;
 
 			// See if valid day
-			if(validDayRotation.test(calEvent.summary)) {
+			if (validDayRotation.test(calEvent.summary)) {
 				// Get actual day
 				const day = calEvent.summary.match(/[1-6]/)[0];
 				// Get date
 				const start = new Date(calEvent.start);
 
 				// Add to dayDates object
-				if(typeof dayDates[day] === 'undefined') {
+				if (typeof dayDates[day] === 'undefined') {
 					dayDates[day] = [];
 				}
 				dayDates[day].push({
@@ -104,7 +104,7 @@ function verifyURL(portalURL, callback) {
 			}
 		}
 
-		// if(_.isEmpty(dayDates)) {
+		// if (_.isEmpty(dayDates)) {
 		// 	callback(null, 'The calendar does not contain the information we need! Make sure you\'re copying your personal calendar!', null);
 		// 	return;
 		// }
@@ -134,30 +134,30 @@ function verifyURL(portalURL, callback) {
   */
 
 function setURL(db, user, url, callback) {
-	if(typeof callback !== 'function') {
+	if (typeof callback !== 'function') {
 		callback = () => {};
 	}
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null, null);
 		return;
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null, null);
 			return;
 		}
 
 		verifyURL(url, (err, isValid, validURL) => {
-			if(err) {
+			if (err) {
 				callback(err, null, null);
 				return;
-			} else if(isValid !== true) {
+			} else if (isValid !== true) {
 				callback(null, isValid, null);
 				return;
 			}
@@ -165,13 +165,13 @@ function setURL(db, user, url, callback) {
 			const userdata = db.collection('users');
 
 			userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, err => {
-				if(err) {
+				if (err) {
 					callback(new Error('There was a problem updating the URL to the database!'), null, null);
 					return;
 				}
 
 				feeds.addPortalQueue(db, user, err => {
-					if(err) {
+					if (err) {
 						callback(err, null, null);
 						return;
 					}
@@ -200,27 +200,27 @@ function setURL(db, user, url, callback) {
  */
 
 function getFromCache(db, user, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null, null);
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'), null, null);
 		return;
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null, null);
 			return;
 		}
-		if(typeof userDoc['portalURL'] !== 'string') {
+		if (typeof userDoc['portalURL'] !== 'string') {
 			callback(null, false, null);
 			return;
 		}
@@ -228,7 +228,7 @@ function getFromCache(db, user, callback) {
 		const portaldata = db.collection('portalFeeds');
 
 		portaldata.find({ user: userDoc._id }).toArray((err, events) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was an error retrieving Portal events!'), null, null);
 				return;
 			}
@@ -257,37 +257,37 @@ function getFromCache(db, user, callback) {
  */
 
 function getFromCal(db, user, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null, null);
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'), null, null);
 		return;
 	}
 
 	users.get(db, user, (err, isUser, userDoc) => {
-		if(err) {
+		if (err) {
 			callback(err, null, null);
 			return;
 		}
-		if(!isUser) {
+		if (!isUser) {
 			callback(new Error('User doesn\'t exist!'), null, null);
 			return;
 		}
-		if(typeof userDoc['portalURL'] !== 'string') {
+		if (typeof userDoc['portalURL'] !== 'string') {
 			callback(null, false, null);
 			return;
 		}
 
 		request(userDoc['portalURL'], (err, response, body) => {
-			if(err) {
+			if (err) {
 				callback(new Error('There was a problem fetching the day rotation!'), null);
 				return;
 			}
-			if(response.statusCode !== 200) {
+			if (response.statusCode !== 200) {
 				callback(new Error('Invalid URL!'), null, null);
 				return;
 			}
@@ -314,13 +314,13 @@ function getFromCal(db, user, callback) {
   */
 
 function getDayRotation(date, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
 	const scheduleDate = new Date(date);
 	const scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
 
 	request(urlPrefix + config.portal.dayRotation, (err, response, body) => {
-		if(err || response.statusCode !== 200) {
+		if (err || response.statusCode !== 200) {
 			callback(new Error('There was a problem fetching the day rotation!'), null);
 			return;
 		}
@@ -329,13 +329,13 @@ function getDayRotation(date, callback) {
 
 		// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
 		// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-		if(_.isEmpty(data)) {
+		if (_.isEmpty(data)) {
 			callback(new Error('There was a problem fetching the day rotation!'), null);
 			return;
 		}
 
-		for(const calEvent of Object.values(data)) {
-			if(typeof calEvent.summary !== 'string') continue;
+		for (const calEvent of Object.values(data)) {
+			if (typeof calEvent.summary !== 'string') continue;
 
 			const start = new Date(calEvent['start']);
 			const end = new Date(calEvent['end']);
@@ -344,9 +344,9 @@ function getDayRotation(date, callback) {
 			const endTime = end.getTime();
 
 			// Check if it's an all-day event
-			if(startTime <= scheduleDate.getTime() && scheduleNextDay.getTime() <= endTime) {
+			if (startTime <= scheduleDate.getTime() && scheduleNextDay.getTime() <= endTime) {
 				// See if valid day
-				if(validDayRotationPlain.test(calEvent.summary)) {
+				if (validDayRotationPlain.test(calEvent.summary)) {
 					// Get actual day
 					const day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
 					callback(null, day);
@@ -377,12 +377,12 @@ function getDayRotation(date, callback) {
   */
 
 function getDayRotations(callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
 	const days = {};
 
 	request(urlPrefix + config.portal.dayRotation, (err, response, body) => {
-		if(err || response.statusCode !== 200) {
+		if (err || response.statusCode !== 200) {
 			callback(new Error('There was a problem fetching the day rotation!'), null);
 			return;
 		}
@@ -391,13 +391,13 @@ function getDayRotations(callback) {
 
 		// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
 		// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-		if(_.isEmpty(data)) {
+		if (_.isEmpty(data)) {
 			callback(new Error('There was a problem fetching the day rotation!'), null);
 			return;
 		}
 
-		for(const calEvent of Object.values(data)) {
-			if(typeof calEvent.summary !== 'string') continue;
+		for (const calEvent of Object.values(data)) {
+			if (typeof calEvent.summary !== 'string') continue;
 
 			const start = new Date(calEvent['start']);
 
@@ -406,7 +406,7 @@ function getDayRotations(callback) {
 			const date = start.getDate();
 
 			// See if valid day
-			if(validDayRotationPlain.test(calEvent.summary)) {
+			if (validDayRotationPlain.test(calEvent.summary)) {
 				// Get actual day
 				const day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
 
@@ -446,23 +446,23 @@ function getDayRotations(callback) {
  */
 
 function getClasses(db, user, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null, null);
 		return;
 	}
-	if(typeof user !== 'string') {
+	if (typeof user !== 'string') {
 		callback(new Error('Invalid username!'), null, null);
 		return;
 	}
 
 	getFromCache(db, user, (err, hasURL, events) => {
-		if(err) {
+		if (err) {
 			callback(err, null, null);
 			return;
 		}
-		if(!hasURL) {
+		if (!hasURL) {
 			callback(null, false, null);
 			return;
 		}
@@ -489,9 +489,9 @@ function getClasses(db, user, callback) {
   */
 
 function parsePortalClasses(events, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof events !== 'object') {
+	if (typeof events !== 'object') {
 		callback(new Error('Invalid events array!'), null, null);
 		return;
 	}
@@ -499,7 +499,7 @@ function parsePortalClasses(events, callback) {
 	const classes = {};
 
 	// Go through each event and add to classes object with a count of how many times they occur
-	for(const calEvent of events) {
+	for (const calEvent of events) {
 		const start = moment(calEvent['start']);
 		const end = moment(calEvent['end']);
 
@@ -507,13 +507,13 @@ function parsePortalClasses(events, callback) {
 		const endDay = end.clone().startOf('day');
 
 		// Check if it's an all-day event
-		if(start.isSame(startDay) && end.isSame(endDay)) {
+		if (start.isSame(startDay) && end.isSame(endDay)) {
 			continue;
 		}
 
 		const className = calEvent.summary.trim();
 
-		if(className.length > 0 && typeof classes[className] !== 'undefined') {
+		if (className.length > 0 && typeof classes[className] !== 'undefined') {
 			classes[className]++;
 		} else {
 			classes[className] = 1;
@@ -523,7 +523,7 @@ function parsePortalClasses(events, callback) {
 	const uniqueClasses = Object.keys(classes);
 	const filteredClasses = [];
 
-	for(const uniqueClass of uniqueClasses) {
+	for (const uniqueClass of uniqueClasses) {
 		const occurrences = classes[uniqueClass];
 
 		// Remove all class names containing a certain keyword
@@ -531,19 +531,19 @@ function parsePortalClasses(events, callback) {
 			'US'
 		];
 
-		if(occurrences >= 10) {
+		if (occurrences >= 10) {
 
 			// Check if class contains any word blacklisted
 			let containsBlacklistedWord = false;
-			for(const keyword of classKeywordBlacklist) {
-				if(_.contains(uniqueClass, keyword)) {
+			for (const keyword of classKeywordBlacklist) {
+				if (_.contains(uniqueClass, keyword)) {
 					containsBlacklistedWord = true;
 					break;
 				}
 			}
 
 			// If doesn't contain keyword, push to array
-			if(!containsBlacklistedWord) {
+			if (!containsBlacklistedWord) {
 				filteredClasses.push(uniqueClass);
 			}
 		}

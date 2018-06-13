@@ -27,7 +27,7 @@ const schoolId = 231;
  */
 
 function login(callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
 	request.post({
 		url: 'https://api.superfanu.com/5.0.0/gen/login.php',
@@ -37,7 +37,7 @@ function login(callback) {
 		}
 	}, (err, res, body) => {
 		body = JSON.parse(body);
-		if(err || res.statusCode !== 200 || body.response !== 'ok') {
+		if (err || res.statusCode !== 200 || body.response !== 'ok') {
 			const error = body.error ? body.error : 'Unknown';
 			callback(new Error('There was a problem logging in the Rams Army app! Error: ' + error), null);
 			return;
@@ -64,10 +64,10 @@ function login(callback) {
  */
 
 function getScores(callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
 	login((err, loginKey) => {
-		if(err) {
+		if (err) {
 			callback(err, null);
 			return;
 		}
@@ -79,7 +79,7 @@ function getScores(callback) {
 			}
 		}, (err, res, body) => {
 			body = JSON.parse(body);
-			if(err || res.statusCode !== 200) {
+			if (err || res.statusCode !== 200) {
 				callback(new Error('There was a problem logging in the Rams Army app!'), null);
 				return;
 			}
