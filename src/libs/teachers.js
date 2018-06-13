@@ -206,7 +206,7 @@ async function teacherTeaches(db, teacherId) {
  */
 
 async function deleteClasslessTeachers(db) {
-	if (typeof db !== 'object') throw ew Error('Invalid database connection!');
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
 	const teacherdata = db.collection('teachers');
 

@@ -73,15 +73,15 @@ const validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
  * @param {Object} scheduleClass - Object of class inserted
  */
 
-function upsertClass(db, user, scheduleClass, callback) {
+async function upsertClass(db, user, scheduleClass) {
 	// Input validation best validation
-	if (typeof callback !== 'function') callback = () => {};
-	if (typeof db !== 'object') { callback(new Error('Invalid database connection!'), null); return; }
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 	if (typeof scheduleClass._id !== 'string') scheduleClass._id = '';
 
-	if (typeof user               !== 'string') { callback(new Error('Invalid username!'),     null); return; }
-	if (typeof scheduleClass      !== 'object') { callback(new Error('Invalid class object!'), null); return; }
-	if (typeof scheduleClass.name !== 'string') { callback(new Error('Invalid class name!'),   null); return; }
+	if (typeof user               !== 'string') throw new Error('Invalid username!');
+	if (typeof scheduleClass      !== 'object') throw new Error('Invalid class object!');
+	if (typeof scheduleClass.name !== 'string') throw new Error('Invalid class name!');
+
 	// If no valid block or type, default to 'other'
 	if (!_.contains(validBlocks, scheduleClass.block)) scheduleClass.block = 'other';
 	if (!_.contains(validTypes, scheduleClass.type))   scheduleClass.type  = 'other';
@@ -96,102 +96,88 @@ function upsertClass(db, user, scheduleClass, callback) {
 	}
 
 	// Make sure username is valid first
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(new Error('There was a problem connecting to the database!'), null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('Invalid username!'), null);
-			return;
-		}
+	const { isUser, userDoc } = await users.get(db, user);
 
-		// Add teacher to database
-		teachers.add(db, scheduleClass.teacher, (err, teacherDoc) => {
-			if (err) {
-				callback(err, null);
-				return;
+	if (!isUser) throw new Error('Invalid username!');
+
+	// Add teacher to database
+	const teacherDoc = await teachers.add(db, scheduleClass.teacher);
+
+	const classdata = db.collection('classes');
+
+	let classes;
+	try {
+		// Check for duplicate classes first
+		classes = await classdata.find({ user: userDoc['_id'] }).toArray();
+	} catch {
+		new Error('There was a problem querying the database!')
+	}
+
+	// Lets see if any of the classes are the one we are supposed to edit
+	let validEditId = false;
+	if (scheduleClass._id !== '') {
+		for (const theClass of classes) {
+			const classId = theClass['_id'];
+			if (scheduleClass._id === classId.toHexString()) {
+				validEditId = classId;
+				break;
+			}
+		}
+	}
+
+	// Now lets see if any of these classes are duplicate
+	const dupClassIds = [];
+	for (const classDoc of classes) {
+		// If duplicate class, push id to array
+		if (scheduleClass.name  === classDoc.name
+			&& teacherDoc['_id'].toHexString() === classDoc['teacher'].toHexString()
+			&& scheduleClass.block === classDoc.block
+			&& scheduleClass.color === classDoc.color
+			&& scheduleClass.type  === classDoc.type) {
+
+			dupClassIds.push(classDoc['_id'].toHexString());
+		}
+	}
+
+		// If any of the classes are duplicate, just give up.
+		if (dupClassIds.length > 0) {
+			// If the edit id matches one of the dup classes, maybe the student accidentally pressed 'save'.
+			// Since nothing changed in that case, just return no error
+			if (validEditId) {
+				return scheduleClass;
 			}
 
-			const classdata = db.collection('classes');
+			throw new Error('Tried to insert a duplicate class!');
+		}
 
-			// Check for duplicate classes first
-			classdata.find({ user: userDoc['_id'] }).toArray((err, classes) => {
-				let id;
-				if (err) {
-					callback(new Error('There was a problem querying the database!'), null);
-					return;
-				}
+		let id;
+		// Generate an Object ID, or use the id that we are editting
+		if (validEditId) {
+			id = validEditId;
+		} else {
+			id = new ObjectID();
+		}
 
-				// Lets see if any of the classes are the one we are supposed to edit
-				let validEditId = false;
-				if (scheduleClass._id !== '') {
-					for (const theClass of classes) {
-						const classId = theClass['_id'];
-						if (scheduleClass._id === classId.toHexString()) {
-							validEditId = classId;
-							break;
-						}
-					}
-				}
+		const insertClass = {
+			_id: id,
+			user: userDoc['_id'],
+			name: scheduleClass.name,
+			teacher: teacherDoc['_id'],
+			type: scheduleClass.type,
+			block: scheduleClass.block,
+			color: scheduleClass.color,
+		};
 
-				// Now lets see if any of these classes are duplicate
-				const dupClassIds = [];
-				for (const classDoc of classes) {
-					// If duplicate class, push id to array
-					if (scheduleClass.name  === classDoc.name
-						&& teacherDoc['_id'].toHexString() === classDoc['teacher'].toHexString()
-						&& scheduleClass.block === classDoc.block
-						&& scheduleClass.color === classDoc.color
-						&& scheduleClass.type  === classDoc.type) {
+		try {
+			// Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
+			await classdata.updateOne({ _id: id }, insertClass, { upsert: true });
+		} catch {
+			throw new Error('There was a problem upserting the class into the database!');
+		}
 
-						dupClassIds.push(classDoc['_id'].toHexString());
-					}
-				}
+	await teachers.deleteClasslessTeachers(db);
 
-				// If any of the classes are duplicate, just give up.
-				if (dupClassIds.length > 0) {
-					// If the edit id matches one of the dup classes, maybe the student accidentally pressed 'save'.
-					// Since nothing changed in that case, just return no error
-					if (validEditId) {
-						callback(null, scheduleClass);
-					} else {
-						callback(new Error('Tried to insert a duplicate class!'), null);
-					}
-					return;
-				}
-
-				// Generate an Object ID, or use the id that we are editting
-				if (validEditId) {
-					id = validEditId;
-				} else {
-					id = new ObjectID();
-				}
-
-				const insertClass = {
-					_id: id,
-					user: userDoc['_id'],
-					name: scheduleClass.name,
-					teacher: teacherDoc['_id'],
-					type: scheduleClass.type,
-					block: scheduleClass.block,
-					color: scheduleClass.color,
-				};
-
-				// Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
-				classdata.update({ _id: id }, insertClass, { upsert: true }, err => {
-					if (err) {
-						callback(new Error('There was a problem upserting the class into the database!'), null);
-						return;
-					}
-
-					callback(null, insertClass);
-					teachers.deleteClasslessTeachers(db);
-
-				});
-			});
-		});
-	});
+	return insertClass;
 }
 
 /**
@@ -211,83 +197,48 @@ function upsertClass(db, user, scheduleClass, callback) {
  * @param {Object} classes - Array of class documents with teacher documents injected in. Null if error.
  */
 
-function getClasses(db, user, callback) {
+async function getClasses(db, user) {
 	// I'll validate _your_ input baby ;)
-	if (typeof callback !== 'function') return;
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
-	}
-	if (typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null);
-		return;
-	}
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof user !== 'string') throw new Error('Invalid username!');
 
 	// Make sure valid user and get user id
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'), null);
-			return;
-		}
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
 
-		const classdata = db.collection('classes');
+	const classdata = db.collection('classes');
 
+	let classes;
+	try {
 		// Get all classes under the specified user id
-		classdata.find({ user: userDoc['_id'] }).toArray((err, classes) => {
-			if (err) {
-				callback(new Error('There was a problem querying the database!'), null);
-				return;
-			}
+		classes = await classdata.find({ user: userDoc['_id'] }).toArray();
+	} catch {
+		throw new Error('There was a problem querying the database!');
+	}
 
-			// Add 'textDark' to all of the classes based on color
-			for (const theClass of classes) {
-				theClass.textDark = prisma.shouldTextBeDark(theClass.color);
-			}
+	// Add 'textDark' to all of the classes based on color
+	for (const theClass of classes) {
+		theClass.textDark = prisma.shouldTextBeDark(theClass.color);
+	}
 
-			// Go through all events and set user to actual username, and teacher to actual teacher
-			// Save teachers in object so we don't have to query database more than we need to
-			const teachersList = {};
+	// Go through all events and set user to actual username, and teacher to actual teacher
+	// Save teachers in object so we don't have to query database more than we need to
+	const teachersList = {};
 
-			function injectValues(i) {
+	for (const theClass of classes) {
+		theClass.user = userDoc.user;
 
-				if (i < classes.length) {
-					// Set user to actual username
-					classes[i]['user'] = userDoc['user'];
+		const teacherId = theClass.teacher;
 
-					// Set teacher to actual teacher
-					const teacherId = classes[i]['teacher'];
+		if (typeof teachersList[teacherId] === 'undefined') {
+			const { teacherDoc } = await teachers.get(db, teacherId);
+			teachersList[teacherId] = teacherDoc;
+		}
 
-					if (typeof teachersList[teacherId] === 'undefined') {
-						teachers.get(db, teacherId, (err, isTeacher, teacherDoc) => {
-							if (err) {
-								callback(err, null);
-								return;
-							}
+		theClass.teacher = teachersList[teacherId];
+	}
 
-							teachersList[teacherId] = teacherDoc;
-							classes[i]['teacher'] = teachersList[teacherId];
-							injectValues(++i);
-						});
-					} else {
-						classes[i]['teacher'] = teachersList[teacherId];
-						injectValues(++i);
-					}
-
-				} else {
-					// Done through all events
-					callback(null, classes);
-
-				}
-			}
-			injectValues(0);
-
-		});
-	});
+	return classes;
 }
 
 /**
@@ -307,55 +258,34 @@ function getClasses(db, user, callback) {
  * @param {Object} err - Null if success, error object if failure
  */
 
-function deleteClass(db, user, classId, callback) {
+async function deleteClass(db, user, classId) {
 	// Validate inputs
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof user !== 'string') throw new Error('Invalid username!');
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
-	if (typeof user !== 'string') {
-		callback(new Error('Invalid username!'));
-		return;
-	}
 	// Try to create object id
 	let id;
 	try {
 		id = new ObjectID(classId);
-	} catch(e) {
-		callback(new Error('Invalid event id!'));
-		return;
+	} catch {
+		throw new Error('Invalid event id!');
 	}
 
 	// Make sure valid user
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'));
-			return;
-		}
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
 
-		const classdata = db.collection('classes');
-		classdata.deleteMany({ _id: id, user: userDoc['_id'] }, err => {
-			if (err) {
-				callback(new Error('There was a problem deleting the class from the database!'));
-				return;
-			}
+	const classdata = db.collection('classes');
 
-			callback(null);
-			// @TODO: Error handling if these fail
-			teachers.deleteClasslessTeachers(db);
-			aliases.deleteClasslessAliases(db, err => {
-				console.log('[' + new Date() + '] Error occured when deleting classless teachers! (' + err + ')');
-			});
-		});
-	});
+	try {
+		await classdata.deleteOne({ _id: id, user: userDoc['_id'] });
+	} catch {
+		throw new Error('There was a problem deleting the class from the database!');
+	}
+
+	// @TODO: Error handling if these fail
+	await teachers.deleteClasslessTeachers(db);
+	await aliases.deleteClasslessAliases(db);
 }
 
 module.exports.upsert = upsertClass;

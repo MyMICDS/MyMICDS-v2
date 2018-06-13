@@ -6,7 +6,7 @@
  */
 
 // const admins = require(__dirname + '/admins.js');
-const request = require('request');
+const request = require('request-promise-native');
 const cheerio = require('cheerio');
 const moment = require('moment');
 const utils = require(__dirname + '/utils.js');
@@ -31,43 +31,40 @@ const schools = ['Lower School', 'Middle School', 'Upper School'];
  * @param {Object} lunchJSON - JSON of lunch menu for the week. Null if error.
  */
 
-function getLunch(db, date, callback) {
-	if (typeof callback !== 'function') return;
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
-	}
+async function getLunch(db, date) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
 	const currentDay = moment(date).day('Wednesday');
 
-	// Send POST request to lunch website
-	request.post(lunchURL, { form: { 'current_day': currentDay.format() }}, (err, res, body) => {
-		if (err) {
-			callback(new Error('There was a problem fetching the lunch data!'), null);
-			return;
-		}
-		if (res.statusCode !== 200) {
+	let res;
+	try {
+		// Send POST request to lunch website
+		res = await request.post(lunchURL, {
+			form: { 'current_day': currentDay.format() },
+			resolveWithFullResponse: true
+			simple: false
+		});
+	} catch {
+		throw new Error('There was a problem fetching the lunch data!');
+	}
 
-			// Alert admins if lunch page has moved
-			// admins.sendEmail(db, {
-			// 	subject: 'Error Notification - Lunch Retrieval',
-			// 	html: 'There was a problem with the lunch URL.<br>Error message: ' + err
-			// }, err => {
-			// 	if (err) {
-			// 		console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
-			// 		return;
-			// 	}
-			// 	console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
-			// });
+	if (res.statusCode !== 200) throw new Error('It appears the lunch site is down. Check again later!')
 
-			// callback(new Error('There was a problem with the lunch URL!'), null);
-			callback(new Error('It appears the lunch site is down. Check again later!'), null);
-			return;
-		}
+		// Alert admins if lunch page has moved
+		// admins.sendEmail(db, {
+		// 	subject: 'Error Notification - Lunch Retrieval',
+		// 	html: 'There was a problem with the lunch URL.<br>Error message: ' + err
+		// }, err => {
+		// 	if (err) {
+		// 		console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
+		// 		return;
+		// 	}
+		// 	console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
+		// });
 
-		const lunchJSON = parseLunch(body);
-		callback(null, lunchJSON);
+		// callback(new Error('There was a problem with the lunch URL!'), null);
+
+	return parseLunch(body);
 	});
 }
 
