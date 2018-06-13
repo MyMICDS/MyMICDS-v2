@@ -74,6 +74,6 @@
   },
   "devDependencies": {
     "@mymicds/configs": "^1.0.0",
-    "eslint": "^3.19.0"
+    "eslint": "^4.19.1"
   }
 }

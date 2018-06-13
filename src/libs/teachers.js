@@ -31,52 +31,28 @@ const validTeacherPrefixes = [
  * @param {Object} teacher - Returns the document of the teacher we just added. Null if error
  */
 
-function addTeacher(db, teacher, callback) {
-
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
-	}
-	if (typeof teacher !== 'object') {
-		callback(new Error('Invalid teacher object!'), null);
-		return;
-	}
-	if (!_.contains(validTeacherPrefixes, teacher.prefix)) {
-		callback(new Error('Invalid teacher prefix!'), null);
-		return;
-	}
-	if (typeof teacher.firstName !== 'string') {
-		callback(new Error('Invalid teacher first name!'), null);
-		return;
-	}
-	if (typeof teacher.lastName !== 'string') {
-		callback(new Error('Invalid teacher last name!'), null);
-		return;
-	}
+async function addTeacher(db, teacher) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof teacher !== 'object') throw new Error('Invalid teacher object!');
+	if (!_.contains(validTeacherPrefixes, teacher.prefix)) throw new Error('Invalid teacher prefix!');
+	if (typeof teacher.firstName !== 'string') throw new Error('Invalid teacher first name!');
+	if (typeof teacher.lastName !== 'string') throw new Error('Invalid teacher last name!');
 
 	const teacherdata = db.collection('teachers');
-	// Upsert teacher into collection
-	teacherdata.update(teacher, teacher, { upsert: true }, err => {
-		if (err) {
-			callback(new Error('There was a problem inserting the teacher into the database!'), null);
-			return;
-		}
 
-		// Get document of teacher we just added
-		teacherdata.find(teacher).toArray((err, docs) => {
-			if (err) {
-				callback(new Error('There was a problem querying the database!'), null);
-				return;
-			}
+	try {
+		// Upsert teacher into collection
+		await teacherdata.updateOne(teacher, teacher, { upsert: true });
+	} catch (e) {
+		throw new Error('There was a problem inserting the teacher into the database!');
+	}
 
-			callback(null, docs[0]);
-
-		});
-	});
+	try {
+		const docs = await teacherdata.find(teacher).toArray();
+		return docs[0];
+	} catch (e) {
+		throw new Error('There was a problem querying the database!');
+	}
 }
 
 /**
@@ -97,33 +73,28 @@ function addTeacher(db, teacher, callback) {
  * @param {Object} teacher - Teacher document. Null if error or no valid teacher.
  */
 
-function getTeacher(db, teacherId, callback) {
-	if (typeof callback !== 'function') return;
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null, null);
-		return;
-	}
-	if (typeof teacherId !== 'object') {
-		callback(new Error('Invalid teacher id object!'), null, null);
-		return;
-	}
+async function getTeacher(db, teacherId) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof teacherId !== 'object') throw new Error('Invalid teacher id object!');
 
 	const teacherdata = db.collection('teachers');
-	// Query database to find possible teacher
-	teacherdata.find({ _id: teacherId }).toArray((err, docs) => {
-		if (err) {
-			callback(new Error('There was a problem querying the database!'), null, null);
-			return;
+
+	try {
+		// Query database to find possible teacher
+		const docs = await teacherdata.find({ _id: teacherId }).toArray();
+
+		let isTeacher = false;
+		let teacher = null;
+
+		if (docs.length !== 0) {
+			isTeacher = true;
+			teacher = docs[0];
 		}
 
-		if (docs.length === 0) {
-			callback(null, false, null);
-		} else {
-			callback(null, true, docs[0]);
-		}
-
-	});
+		return { isTeacher, teacher };
+	} catch (e) {
+		throw new Error('There was a problem querying the database!');
+	}
 }
 
 /**
@@ -142,25 +113,16 @@ function getTeacher(db, teacherId, callback) {
  * @param {Object} teachers - Array of teacher objects. Null if error.
  */
 
-function listTeachers(db, callback) {
-	if (typeof callback !== 'function') return;
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
-	}
+async function listTeachers(db) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
 	const teacherdata = db.collection('teachers');
 
-	teacherdata.find({}).toArray((err, docs) => {
-		if (err) {
-			callback(new Error('There was a problem querying the database!'), null, null);
-			return;
-		}
-
-		callback(null, docs);
-
-	});
+	try {
+		return teacherdata.find({}).toArray();
+	} catch (e) {
+		throw new Error('There was a problem querying the database!');
+	}
 }
 
 /**
@@ -179,45 +141,23 @@ function listTeachers(db, callback) {
  * @param {Object} err - Null if success, error object if failure
  */
 
-function deleteTeacher(db, teacherId, callback) {
-
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
-	if (typeof teacherId !== 'object') {
-		callback(new Error('Invalid teacher id object!'));
-		return;
-	}
+async function deleteTeacher(db, teacherId) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof teacherId !== 'object') throw new Error('Invalid teacher id object!');
 
 	// Don't delete teacher if there are classes it teaches!
-	teacherTeaches(db, teacherId, (err, classes) => {
-		if (err) {
-			callback(err);
-			return;
+	const classes = await teacherTeaches(db, teacherId);
+
+	if (classes.length === 0) {
+		// Teacher doesn't have any classes. Delete.
+		const teacherdata = db.collection('teachers');
+
+		try {
+			await teacherdata.deleteOne({ _id: teacherId });
+		} catch {
+			throw new Error('There was a problem deleting the teacher from the database!');
 		}
-
-		if (classes.length === 0) {
-			// Teacher doesn't have any classes. Delete.
-			const teacherdata = db.collection('teachers');
-			teacherdata.deleteMany({ _id: teacherId }, err => {
-				if (err) {
-					callback(new Error('There was a problem deleting the teacher from the database!'));
-					return;
-				}
-
-				callback(null);
-
-			});
-		} else {
-			// Teacher has other classes. Don't delete!
-			callback(null);
-		}
-	});
+	}
 }
 
 /**
@@ -237,29 +177,17 @@ function deleteTeacher(db, teacherId, callback) {
   * @param {Object} classes - Array of classes the teacher teaches. Empty array if teacher doesn't teach anything. Null if error.
   */
 
-function teacherTeaches(db, teacherId, callback) {
-	if (typeof callback !== 'function') return;
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
-	}
-	if (typeof teacherId !== 'object') {
-		callback(new Error('Invalid teacher id object!'), null);
-		return;
-	}
+async function teacherTeaches(db, teacherId) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof teacherId !== 'object') throw new Error('Invalid teacher id object!');
 
 	const classdata = db.collection('classes');
 
-	classdata.find({ teacher: teacherId }).toArray((err, docs) => {
-		if (err) {
-			callback(new Error('There was a problem querying the database!'), null);
-			return;
-		}
-
-		callback(null, docs);
-
-	});
+	try {
+		return classdata.find({ teacher: teacherId }).toArray();
+	} catch (e) {
+		throw new Error('There was a problem querying the database!');
+	}
 }
 
 /**
@@ -277,42 +205,21 @@ function teacherTeaches(db, teacherId, callback) {
  * @param {Object} err - Null if success, error object if failure
  */
 
-function deleteClasslessTeachers(db, callback) {
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
+async function deleteClasslessTeachers(db) {
+	if (typeof db !== 'object') throw ew Error('Invalid database connection!');
 
 	const teacherdata = db.collection('teachers');
-	// Find all teachers
-	teacherdata.find({}).toArray((err, docs) => {
-		if (err) {
-			callback(new Error('There was a problem querying the database!'));
-			return;
-		}
 
-		// This delete function uses the power recursion so we can asynchronously delete teachers and provide a callback in the end
-		function deleteTeachers(i) {
-			if (i < docs.length) {
-				const teacherId = docs[i]['_id'];
-				deleteTeacher(db, teacherId, err => {
-					if (err) {
-						callback(err);
-						return;
-					}
+	let docs;
 
-					deleteTeachers(++i);
-				});
-			} else {
-				// It's done iterating over the teachers, and there's no error!
-				callback(null);
-			}
-		}
-		deleteTeachers(0);
-	});
+	try {
+		// Find all teachers
+		docs = await teacherdata.find({}).toArray();
+	} catch {
+		throw new Error('There was a problem querying the database!');
+	}
+
+	await Promise.all(docs.map(doc => deleteTeacher(db, doc._id)));
 }
 
 module.exports.add = addTeacher;
