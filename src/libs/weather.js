@@ -33,17 +33,18 @@ const options = {
  * @param {Object} err - Null if success, error object if failure.
  * @param {Object} weatherJSON - JSON of current weather. Null if error.
  */
-function getWeather(callback) {
-	if (typeof callback !== 'function') return;
+function getWeather() {
+	return new Promise(resolve => {
+		fs.readJSON(JSONPath, (err, weatherJSON) => {
+			// If there's an error, most likely there's no existing JSON
+			if (err) {
+				updateWeather();
+				resolve();
+				return;
+			}
 
-	fs.readJSON(JSONPath, (err, weatherJSON) => {
-		// If there's an error, most likely there's no existing JSON
-		if (err) {
-			updateWeather(callback);
-			return;
-		}
-
-		callback(null, weatherJSON);
+			resolve(weatherJSON);
+		});
 	});
 }
 
@@ -62,32 +63,27 @@ function getWeather(callback) {
  * @param {Object} err - Null if success, error object if failure.
  * @param {Object} weatherJSON - JSON of current weather. Null if error.
  */
-function updateWeather(callback) {
-
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
-
+function updateWeather() {
 	// Create forecast object to query
 	const darksky = new DarkSky(options);
 
-	darksky.get(latitude, longitude, (err, res, data) => {
-		if (err) {
-			callback(new Error('There was a problem fetching the weather data!'), null);
-			return;
-		}
-
-		fs.outputJSON(JSONPath, data, { spaces: '\t' }, err => {
+	return new Promise((resolve, reject) => {
+		darksky.get(latitude, longitude, (err, res, data) => {
 			if (err) {
-				callback(new Error('There was a problem saving the weather data!'), null);
+				reject(new Error('There was a problem fetching the weather data!'));
 				return;
 			}
 
-			callback(null, data);
+			fs.outputJSON(JSONPath, data, { spaces: '\t' }, err => {
+				if (err) {
+					reject(new Error('There was a problem saving the weather data!'));
+					return;
+				}
 
+				resolve(data);
+			});
 		});
-	});
-
+	};
 }
 
 module.exports.get    = getWeather;

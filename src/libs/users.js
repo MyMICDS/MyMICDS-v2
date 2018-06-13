@@ -26,32 +26,29 @@ const moment = require('moment');
  * @param {Object} userDoc - Everything in the user's document. Null if error or no valid user.
  */
 
-function getUser(db, user, callback) {
-	if (typeof callback !== 'function') return;
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null, null);
-		return;
-	}
-	if (typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null, null);
-		return;
-	}
+async function getUser(db, user) {
+	if (typeof db !== 'object')	throw new Error('Invalid database connection!');
+	if (typeof user !== 'string') throw new Error('Invalid username!');
 
 	const userdata = db.collection('users');
-	// Query database to find possible user
-	userdata.find({ user }).toArray((err, docs) => {
-		if (err) {
-			callback(new Error('There was a problem querying the database!'), null, null);
-			return;
-		}
-		if (docs.length === 0) {
-			callback(null, false, null);
-		} else {
-			callback(null, true, docs[0]);
+
+	try {
+		// Query database to find possible user
+		const docs = await userdata.find({ user }).toArray();
+
+		let isUser = false;
+		let userDoc = null;
+
+		if (docs.length !== 0) {
+			isUser = true;
+			userDoc = docs[0];
 		}
 
-	});
+		return { isUser, userDoc };
+	} catch (e) {
+		throw new Error('There was a problem querying the database!')
+	}
+
 }
 
 /**
@@ -72,55 +69,40 @@ function getUser(db, user, callback) {
  * @param {Object} userInfo - Object containing information about the user. Null if error.
  */
 
-function getInfo(db, user, privateInfo, callback) {
-	if (typeof callback !== 'function') return;
+async function getInfo(db, user, privateInfo) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof privateInfo !== 'boolean') privateInfo = false;
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
+	const { isUser, userDoc } = await getUser(db, user);
+
+	if (!isUser) throw new Error('User doesn\'t exist!');
+
+	// Create userInfo object and manually move values from database.
+	// We don't want something accidentally being released to user.
+	const userInfo = {};
+	userInfo.user      = userDoc['user'];
+	userInfo.password  = 'Hunter2'; /** @TODO: Fix glitch? Shows up as ******* for me. */
+	userInfo.firstName = userDoc['firstName'];
+	userInfo.lastName  = userDoc['lastName'];
+	userInfo.gradYear  = userDoc['gradYear'];
+	userInfo.grade     = gradYearToGrade(userInfo['gradYear']);
+	userInfo.school    = gradeToSchool(userInfo['grade']);
+
+	if (privateInfo) {
+		if (typeof userDoc['canvasURL'] === 'string') {
+			userInfo.canvasURL = userDoc['canvasURL'];
+		} else {
+			userInfo.canvasURL = null;
+		}
+
+		if (typeof userDoc['portalURL'] === 'string') {
+			userInfo.portalURL = userDoc['portalURL'];
+		} else {
+			userInfo.portalURL = null;
+		}
 	}
-	if (typeof privateInfo !== 'boolean') {
-		privateInfo = false;
-	}
 
-	getUser(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'), null);
-			return;
-		}
-
-		// Create userInfo object and manually move values from database.
-		// We don't want something accidentally being released to user.
-		const userInfo = {};
-		userInfo.user      = userDoc['user'];
-		userInfo.password  = 'Hunter2'; /** @TODO: Fix glitch? Shows up as ******* for me. */
-		userInfo.firstName = userDoc['firstName'];
-		userInfo.lastName  = userDoc['lastName'];
-		userInfo.gradYear  = userDoc['gradYear'];
-		userInfo.grade     = gradYearToGrade(userInfo['gradYear']);
-		userInfo.school    = gradeToSchool(userInfo['grade']);
-
-		if (privateInfo) {
-			if (typeof userDoc['canvasURL'] === 'string') {
-				userInfo.canvasURL = userDoc['canvasURL'];
-			} else {
-				userInfo.canvasURL = null;
-			}
-
-			if (typeof userDoc['portalURL'] === 'string') {
-				userInfo.portalURL = userDoc['portalURL'];
-			} else {
-				userInfo.portalURL = null;
-			}
-		}
-
-		callback(null, userInfo);
-
-	});
+	return userInfo;
 }
 
 /**
@@ -143,63 +125,40 @@ function getInfo(db, user, privateInfo, callback) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-function changeInfo(db, user, info, callback) {
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
+async function changeInfo(db, user, info) {
+	if (typeof info !== 'object') throw new Error('Invalid information!');
 
-	if (typeof info !== 'object') {
-		callback(new Error('Invalid information!'));
-		return;
-	}
 	// I mean if they want nothing changed, I guess there's no error
-	if (_.isEmpty(info)) {
-		callback(null);
-		return;
+	if (_.isEmpty(info)) return;
+
+	const { isUser, userDoc } = await getUser(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
+
+	// See what information the user wants changed
+	const set = {};
+
+	if (typeof info.firstName === 'string') {
+		set.firstName = info.firstName;
+	}
+	if (typeof info.lastName === 'string') {
+		set.lastName = info.lastName;
+	}
+	if (info.gradYear === null) {
+		set.gradYear = null;
+	} else if (typeof info.gradYear === 'number' && info.gradYear % 1 === 0 && !_.isNaN(info.gradYear)) {
+		set.gradYear = info.gradYear;
 	}
 
-	getUser(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'));
-			return;
-		}
+	if (_.isEmpty(set)) return;
 
-		// See what information the user wants changed
-		const set = {};
+	// Update data
+	const userdata = db.collection('users');
 
-		if (typeof info.firstName === 'string') {
-			set.firstName = info.firstName;
-		}
-		if (typeof info.lastName === 'string') {
-			set.lastName = info.lastName;
-		}
-		if (info.gradYear === null) {
-			set.gradYear = null;
-		} else if (typeof info.gradYear === 'number' && info.gradYear % 1 === 0 && !_.isNaN(info.gradYear)) {
-			set.gradYear = info.gradYear;
-		}
-
-		if (_.isEmpty(set)) {
-			callback(null);
-			return;
-		}
-
-		// Update data
-		const userdata = db.collection('users');
-		userdata.update({ _id: userDoc['_id'], user }, { $set: set }, { upsert: true }, err => {
-			if (err) {
-				callback(new Error('There was a problem updating the databse!'));
-				return;
-			}
-
-			callback(null);
-
-		});
-	});
+	try {
+		await userdata.updateOne({ _id: userDoc['_id'], user }, { $set: set }, { upsert: true });
+	} catch (e) {
+		throw new Error('There was a problem updating the databse!');
+	}
 }
 
 /**
