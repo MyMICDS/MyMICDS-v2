@@ -32,64 +32,38 @@ const SCOPES = [
  * @param {Object} err - Null if successful, error object if failure
  */
 
-function unsubscribe(db, user, hash, scopes, callback) {
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
+async function unsubscribe(db, user, hash, scopes) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof user !== 'string') throw new Error('Invalid username!');
+	if (typeof hash !== 'string' && hash !== true) throw new Error('Invalid hash!');
+	if (typeof scopes !== 'string' && typeof scopes !== 'object') throw new Error('Invalid scope(s)!');
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
-	if (typeof user !== 'string') {
-		callback(new Error('Invalid username!'));
-		return;
-	}
-	if (typeof hash !== 'string' && hash !== true) {
-		callback(new Error('Invalid hash!'));
-		return;
-	}
-	if (typeof scopes !== 'string' && typeof scopes !== 'object') {
-		callback(new Error('Invalid scope(s)!'));
-		return;
-	}
-	if (typeof scopes === 'string') {
-		scopes = [scopes];
-	}
+	if (typeof scopes === 'string') scopes = [scopes];
 	for (const scope of scopes) {
 		if (!SCOPES.includes(scope)) {
-			callback(new Error(`"${scope}" is an invalid email type!`));
-			return;
+			throw new Error(`"${scope}" is an invalid email type!`);
 		}
 	}
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('Does doesn\'t exist!'));
-			return;
-		}
+	// Make sure valid user and get user id
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
 
-		const dbHash = userDoc['unsubscribeHash'];
+	const dbHash = userDoc['unsubscribeHash'];
 
-		if (hash === true || cryptoUtils.safeCompare(hash, dbHash)) {
-			// Hash matches, unsubscribe account!
-			const userdata = db.collection('users');
-			userdata.update({ user }, { $addToSet: { unsubscribed: { $each: scopes }}}, err => {
-				if (err) {
-					callback(new Error('There was a problem updating the database!'));
-					return;
-				}
-				callback(null);
-			});
-		} else {
-			// Hash does not match
-			callback(new Error('Hash not valid!'));
+	if (hash === true || cryptoUtils.safeCompare(hash, dbHash)) {
+		// Hash matches, unsubscribe account!
+		const userdata = db.collection('users');
+
+		try {
+			await userdata.updateOne({ user }, { $addToSet: { unsubscribed: { $each: scopes } } });
+		} catch (e) {
+			throw new Error('There was a problem updating the database!');
 		}
-	});
+	} else {
+		// Hash does not match
+		throw new Error('Hash not valid!');
+	}
 }
 
 module.exports.SCOPES = SCOPES;

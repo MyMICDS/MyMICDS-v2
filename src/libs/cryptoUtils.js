@@ -23,13 +23,15 @@ const crypto = require('crypto');
  * @param {string} hash - Encrypted password. Null if error.
  */
 
-function hashPassword(password, callback) {
-	bcrypt.hash(password, 10, (err, hash) => {
-		if (err) {
-			callback(new Error('There was a problem hashing the password!'), null);
-			return;
-		}
-		callback(null, hash);
+function hashPassword(password) {
+	return new Promise((resolve, reject) => {
+		bcrypt.hash(password, 10, (err, hash) => {
+			if (err) {
+				reject(new Error('There was a problem hashing the password!'));
+				return;
+			}
+			resolve(hash);
+		});
 	});
 }
 

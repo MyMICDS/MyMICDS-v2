@@ -36,39 +36,24 @@ const passwordBlacklist = [
  * @param {Boolean} confirmed - Whether or not the user has confirmed their account.
  */
 
-function passwordMatches(db, user, password, callback) {
-	if (typeof callback !== 'function') return;
+async function passwordMatches(db, user, password) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof password !== 'string') throw new Error('Invalid password!');
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null, null);
-		return;
-	}
-	if (typeof password !== 'string') {
-		callback(new Error('Invalid password!'), null, null);
-		return;
-	}
+	const { isUser, userDoc } = await users.get(db, user);
+	// If invalid user, we just want to say username / password doesn't match
+	if (!isUser) return { matches: false, confirmed: false };
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null, null);
-			return;
-		}
-		// If invalid user, we just want to say username / password doesn't match
-		if (!isUser) {
-			callback(null, false, false);
-			return;
-		}
+	const hash = userDoc['password'];
 
-		const hash = userDoc['password'];
-
+	return new Promise((resolve, reject) => {
 		bcrypt.compare(password, hash, (err, res) => {
 			if (err) {
-				callback(new Error('There was a problem comparing the passwords!'), null, null);
+				reject(new Error('There was a problem comparing the passwords!'));
 				return;
 			}
 
-			callback(null, res, !!userDoc['confirmed']);
-
+			resolve({ matches: res, confirmed: !!userDoc['confirmed'] });
 		});
 	});
 }
@@ -91,66 +76,31 @@ function passwordMatches(db, user, password, callback) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-function changePassword(db, user, oldPassword, newPassword, callback) {
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
+async function changePassword(db, user, oldPassword, newPassword) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof newPassword !== 'string') throw new Error('Invalid new password!');
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
 	if (typeof oldPassword !== 'string' || _.contains(passwordBlacklist, newPassword)) {
-		callback(new Error('Invalid old password!'));
-		return;
-	}
-	if (typeof newPassword !== 'string') {
-		callback(new Error('Invalid new password!'));
-		return;
+		throw new Error('Invalid old password!');
 	}
 
-	users.get(db, user, (err, isUser) => {
-		if (err) {
-			callback(err);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('Invalid user!'));
-			return;
-		}
+	const { isUser } = await users.get(db, user);
+	if (!isUser) throw new Error('Invalid user!');
 
-		// Compare oldPassword with password in database
-		passwordMatches(db, user, oldPassword, (err, matches) => {
-			if (err) {
-				callback(err);
-				return;
-			}
-			if (!matches) {
-				callback(new Error('Password does not match!'));
-				return;
-			}
+	// Compare oldPassword with password in database
+	const { matches } = await passwordMatches(db, user, oldPassword);
+	if (!matches) throw new Error('Password does not match!');
 
-			// Hash new password
-			cryptoUtils.hashPassword(newPassword, (err, hash) => {
-				if (err) {
-					callback(err);
-					return;
-				}
+	const hash = await cryptoUtils.hashPassword(newPassword);
 
-				// Update new password into database
-				const userdata = db.collection('users');
-				userdata.update({ user }, { $set: { password: hash }, $currentDate: { lastPasswordChange: true }}, err => {
-					if (err) {
-						callback(new Error('There was a problem updating the password in the database!'));
-						return;
-					}
+	// Update new password into database
+	const userdata = db.collection('users');
 
-					callback(null);
-
-				});
-			});
-		});
-	});
+	try {
+		await userdata.updateOne({ user }, { $set: { password: hash }, $currentDate: { lastPasswordChange: true } });
+	} catch (e) {
+		throw new Error('There was a problem updating the password in the database!');
+	}
 }
 
 /**
@@ -170,56 +120,56 @@ function changePassword(db, user, oldPassword, newPassword, callback) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-function resetPasswordEmail(db, user, callback) {
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
+async function resetPasswordEmail(db, user) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'));
-			return;
-		}
-
-		// Generate password hash for confirmation link
+	// Generate password hash for confirmation link
+	const buf = await new Promise((resolve, reject) => {
 		crypto.randomBytes(16, (err, buf) => {
 			if (err) {
-				callback(new Error('There was a problem generating a random confirmation hash!'));
+				reject(new Error('There was a problem generating a random confirmation hash!'));
 				return;
 			}
 
-			const hash = buf.toString('hex');
-			const hashedHash = cryptoUtils.shaHash(hash);
+			resolve(buf);
+		});
+	});
 
-			// Now let's insert the passwordChangeHash into the database
-			const userdata = db.collection('users');
-			userdata.update({ _id: userDoc['_id'], user: userDoc['user'] }, { $set: { passwordChangeHash: hashedHash }}, { upsert: true }, err => {
-				if (err) {
-					callback(new Error('There was a problem inserting the confirmation hash into the database!'));
-					return;
-				}
+	const hash = buf.toString('hex');
+	const hashedHash = cryptoUtils.shaHash(hash);
 
-				// Send confirmation email
-				const email = userDoc['user'] + '@micds.org';
-				const emailReplace = {
-					firstName: userDoc['firstName'],
-					lastName: userDoc['lastName'],
-					passwordLink: 'https://mymicds.net/reset-password/' + userDoc['user'] + '/' + hash
-				};
+	// Now let's insert the passwordChangeHash into the database
+	const userdata = db.collection('users');
 
-				// Send email confirmation
-				mail.sendHTML(email, 'Change Your Password', __dirname + '/../html/messages/password.html', emailReplace, callback);
+	try {
+		await userdata.updateOne({
+			_id: userDoc['_id'],
+			user: userDoc['user']
+		}, { $set: { passwordChangeHash: hashedHash } }, { upsert: true });
+	} catch (e) {
+		throw new Error('There was a problem inserting the confirmation hash into the database!');
+	}
 
-			});
+	// Send confirmation email
+	const email = userDoc['user'] + '@micds.org';
+	const emailReplace = {
+		firstName: userDoc['firstName'],
+		lastName: userDoc['lastName'],
+		passwordLink: 'https://mymicds.net/reset-password/' + userDoc['user'] + '/' + hash
+	};
+
+	// Send email confirmation
+	await new Promise((resolve, reject) => {
+		mail.sendHTML(email, 'Change Your Password', __dirname + '/../html/messages/password.html', emailReplace, err => {
+			if (err) {
+				reject(err);
+				return;
+			}
+
+			resolve();
 		});
 	});
 }
@@ -242,63 +192,39 @@ function resetPasswordEmail(db, user, callback) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-function resetPassword(db, user, password, hash, callback) {
-	if (typeof callback !== 'function') {
-		callback = () => {};
+async function resetPassword(db, user, password, hash) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof password !== 'string' || _.contains(passwordBlacklist, password)) throw new Error('Invalid password!');
+	if (typeof hash !== 'string') throw new Error('Invalid hash!');
+
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
+
+	if (typeof userDoc['passwordChangeHash'] !== 'string' || userDoc['passwordChangeHash'] === null) {
+		throw new Error('Password change email was never sent!');
 	}
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
-	if (typeof password !== 'string' || _.contains(passwordBlacklist, password)) {
-		callback(new Error('Invalid password!'));
-		return;
-	}
-	if (typeof hash !== 'string') {
-		callback(new Error('Invalid hash!'));
+	if (!cryptoUtils.safeCompareSHA(hash, userDoc['passwordChangeHash'])) {
+		// Hash is not valid
+		throw new Error('Invalid hash!');
 	}
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'));
-			return;
-		}
-		if (typeof userDoc['passwordChangeHash'] !== 'string' || userDoc['passwordChangeHash'] === null) {
-			callback(new Error('Password change email was never sent!'));
-			return;
-		}
+	// Change password
+	const hashedPassword = await cryptoUtils.hashPassword(password);
 
-		if (!cryptoUtils.safeCompareSHA(hash, userDoc['passwordChangeHash'])) {
-			// Hash is not valid
-			callback(new Error('Invalid hash!'));
-			return;
-		}
+	const userdata = db.collection('users');
 
-		// Change password
-		cryptoUtils.hashPassword(password, (err, hashedPassword) => {
-			if (err) {
-				callback(err);
-				return;
-			}
-
-			const userdata = db.collection('users');
-			// Update password in the database
-			userdata.update({ _id: userDoc['_id'], user: userDoc['user'] }, { $set: { password: hashedPassword, passwordChangeHash: null}, $currentDate: { lastPasswordChange: true }}, err => {
-				if (err) {
-					callback(new Error('There was a problem updating the password in the database!'));
-					return;
-				}
-
-				callback(null);
-
-			});
+	// Update password in the database
+	try {
+		await userdata.updateOne({ _id: userDoc['_id'], user: userDoc['user'] }, {
+			$set: {
+				password: hashedPassword,
+				passwordChangeHash: null
+			}, $currentDate: { lastPasswordChange: true }
 		});
-	});
+	} catch (e) {
+		throw new Error('There was a problem updating the password in the database!');
+	}
 }
 
 module.exports.passwordMatches    = passwordMatches;

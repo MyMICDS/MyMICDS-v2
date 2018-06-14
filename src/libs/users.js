@@ -32,23 +32,23 @@ async function getUser(db, user) {
 
 	const userdata = db.collection('users');
 
+	let docs;
 	try {
 		// Query database to find possible user
-		const docs = await userdata.find({ user }).toArray();
-
-		let isUser = false;
-		let userDoc = null;
-
-		if (docs.length !== 0) {
-			isUser = true;
-			userDoc = docs[0];
-		}
-
-		return { isUser, userDoc };
+		docs = await userdata.find({ user }).toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
 
+	let isUser = false;
+	let userDoc = null;
+
+	if (docs.length !== 0) {
+		isUser = true;
+		userDoc = docs[0];
+	}
+
+	return { isUser, userDoc };
 }
 
 /**

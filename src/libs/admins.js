@@ -20,25 +20,16 @@ const mail = require(__dirname + '/mail.js');
  * @param {Array} admins - Array of admin user objects if success, null if failure
  */
 
-function getAdmins(db, callback) {
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
-	}
+async function getAdmins(db) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
 	const userdata = db.collection('users');
 
-	userdata.find({scopes: ['admin']}).toArray((err, docs) => {
-		if (err) {
-			callback(new Error('There was a problem querying the database!'), null);
-			return;
-		}
-
-		callback(null, docs);
-	});
+	try {
+		return await userdata.find({ scopes: ['admin'] }).toArray();
+	} catch (e) {
+		throw new Error('There was a problem querying the database!');
+	}
 }
 
 /**
@@ -59,33 +50,28 @@ function getAdmins(db, callback) {
  * @param {Object} err - Null if success, error object if failure
  */
 
-function sendAdminEmail(db, message, callback) {
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
+async function sendAdminEmail(db, message) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
 	// Get admin objects
-	getAdmins(db, (err, admins) => {
-		if (err) {
-			callback(new Error('Error getting list of admins!'));
-			return;
-		}
-		if (admins.length < 1) {
-			callback(null);
-			return;
-		}
+	let admins;
+	try {
+		admins = await getAdmins(db);
+	} catch (e) {
+		throw new Error('Error getting list of admins!');
+	}
 
-		// Send email
+	if (admins.length < 1) return;
+
+	// Send email
+	return new Promise((resolve, reject) => {
 		mail.send(admins.map(a => a.user + '@micds.org'), message, err => {
 			if (err) {
-				callback(err);
+				reject(err);
+				return;
 			}
 
-			callback(null);
+			resolve();
 		});
 	});
 }

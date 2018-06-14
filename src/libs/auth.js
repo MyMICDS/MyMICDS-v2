@@ -8,7 +8,7 @@ const _ = require('underscore');
 const admins = require(__dirname + '/admins.js');
 const crypto = require('crypto');
 const cryptoUtils = require(__dirname + '/cryptoUtils.js');
-const jwt = require(__dirname + '/jwt.js');
+const jwt = require(__dirname + '/jwt.js'); // eslint-disable-line
 const mail = require(__dirname + '/mail.js');
 const passwords = require(__dirname + '/passwords.js');
 const users = require(__dirname + '/users.js');
@@ -35,57 +35,31 @@ const users = require(__dirname + '/users.js');
  * @param {string} jwt - JSON Web Token for user to make API calls with. Null if error, login invalid, or rememberMe is false.
  */
 
-function login(db, user, password, rememberMe, comment, callback) {
-	if (typeof callback !== 'function') return;
+async function login(db, user, password, rememberMe, comment) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof user !== 'string') throw new Error('Invalid username!');
+	if (typeof password !== 'string') throw new Error('Invalid password!');
+	if (typeof rememberMe !== 'boolean') rememberMe = true;
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null, null, null);
-		return;
+	user = user.toLowerCase();
+
+	const { matches: passwordMatches, confirmed } = await passwords.passwordMatches(db, user, password);
+	if (!confirmed) {
+		return { response: false, message: 'Account is not confirmed! Please check your email or register under the same username to resend the email.', jwt: null };
 	}
-	if (typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null, null, null);
-		return;
-	} else {
-		user = user.toLowerCase();
-	}
-	if (typeof password !== 'string') {
-		callback(new Error('Invalid password!'), null, null, null);
-		return;
-	}
-	if (typeof rememberMe !== 'boolean') {
-		rememberMe = true;
+	if (!passwordMatches) {
+		return { response: false, message: 'Invalid username / password!', jwt: null };
 	}
 
-	passwords.passwordMatches(db, user, password, (err, passwordMatches, confirmed) => {
-		if (err) {
-			callback(err, null, null, null);
-			return;
-		}
+	// Update lastLogin in database
+	const userdata = db.collection('users');
+	await userdata.updateOne({ user }, { $currentDate: { lastLogin: true }});
 
-		if (!confirmed) {
-			callback(null, false, 'Account is not confirmed! Please check your email or register under the same username to resend the email.', null);
-			return;
-		}
-		if (!passwordMatches) {
-			callback(null, false, 'Invalid username / password!', null);
-			return;
-		}
+	// Login successful!
+	// Now we need to create a JWT
+	const jwt = await jwt.generate(db, user, rememberMe, comment);
 
-		// Update lastLogin in database
-		const userdata = db.collection('users');
-		userdata.update({ user }, { $currentDate: { lastLogin: true }});
-
-		// Login successful!
-		// Now we need to create a JWT
-		jwt.generate(db, user, rememberMe, comment, (err, jwt) => {
-			if (err) {
-				callback(err, null, null, null);
-				return;
-			}
-
-			callback(null, true, 'Success!', jwt);
-		});
-	});
+	return { response: true, message: 'Success!', jwt };
 }
 
 /**
@@ -111,26 +85,21 @@ function login(db, user, password, rememberMe, comment, callback) {
  * @param {Object} err - Null if success, error object if failure
  */
 
-function register(db, user, callback) {
+async function register(db, user) {
 	// Validate inputs
-	if (typeof callback !== 'function') callback = () => {};
-	if (typeof db   !== 'object') { callback(new Error('Invalid database connection!')); return; }
-	if (typeof user !== 'object') { callback(new Error('Invalid user object!'));         return; }
-	if (typeof user.user !== 'string') {
-		callback(new Error('Invalid username!'));
-		return;
-	} else {
-		// Make sure username is lowercase
-		user.user = user.user.toLowerCase();
-	}
+	if (typeof db   !== 'object') throw new Error('Invalid database connection!');
+	if (typeof user !== 'object') throw new Error('Invalid user object!');
+	if (typeof user.user !== 'string') throw new Error('Invalid username!');
+
+	// Make sure username is lowercase
+	user.user = user.user.toLowerCase();
 
 	if (typeof user.password  !== 'string' || _.contains(passwords.passwordBlacklist, user.password)) {
-		callback(new Error('Invalid password!'));
-		return;
+		throw new Error('Invalid password!');
 	}
 
-	if (typeof user.firstName !== 'string') { callback(new Error('Invalid first name!')); return; }
-	if (typeof user.lastName  !== 'string') { callback(new Error('Invalid last name!'));  return; }
+	if (typeof user.firstName !== 'string') throw new Error('Invalid first name!');
+	if (typeof user.lastName  !== 'string') throw new Error('Invalid last name!');
 
 	// If gradYear not valid, default to faculty
 	if (typeof user.gradYear !== 'number' || user.gradYear % 1 !== 0 || _.isNaN(user.gradYear)) {
@@ -138,82 +107,91 @@ function register(db, user, callback) {
 	}
 
 	// Check if it's an already existing user
-	users.get(db, user.user, (err, isUser, data) => {
-		if (isUser && data.confirmed) {
-			callback(new Error('An account is already registered under the email ' + user.user + '@micds.org!'));
-			return;
-		}
+	const { isUser, userDoc: data } = await users.get(db, user.user);
 
-		const userdata = db.collection('users');
+	if (isUser && data.confirmed) throw new Error('An account is already registered under the email ' + user.user + '@micds.org!');
 
-		// Generate confirmation email hash
+	const userdata = db.collection('users');
+
+	// Generate confirmation email hash
+	const confirmationBuf = await new Promise((resolve, reject) => {
 		crypto.randomBytes(16, (err, buf) => {
 			if (err) {
-				callback(new Error('There was a problem generating a random confirmation hash!'));
+				reject(new Error('There was a problem generating a random confirmation hash!'));
 				return;
 			}
 
-			const confirmationHash = buf.toString('hex');
-
-			// Generate unsubscribe email hash
-			crypto.randomBytes(16, (err, buf) => {
-				if (err) {
-					callback(new Error('There was a problem generating a random email hash!'));
-					return;
-				}
-
-				const unsubscribeHash = buf.toString('hex');
-
-				// Hash Password
-				cryptoUtils.hashPassword(user.password, (err, hashedPassword) => {
-					if (err) {
-						callback(err);
-						return;
-					}
-
-					const newUser = {
-						user: user.user,
-						password: hashedPassword,
-						firstName: user.firstName,
-						lastName: user.lastName,
-						gradYear: user.gradYear,
-						confirmed: false,
-						registered: new Date(),
-						confirmationHash,
-						unsubscribeHash,
-						scopes: []
-					};
-
-					userdata.update({ user: newUser.user }, newUser, { upsert: true }, err => {
-						if (err) {
-							callback(new Error('There was a problem inserting the account into the database!'));
-							return;
-						}
-
-						const email = newUser.user + '@micds.org';
-						const emailReplace = {
-							firstName: newUser.firstName,
-							lastName: newUser.lastName,
-							confirmLink: 'https://mymicds.net/confirm/' + newUser.user + '/' + confirmationHash,
-						};
-
-						// Send confirmation email
-						mail.sendHTML(email, 'Confirm Your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
-
-						// Let's celebrate and the message throughout the land!
-						admins.sendEmail(db, {
-							subject: newUser.user + ' just created a 2.0 account!',
-							html: newUser.firstName + ' ' + newUser.lastName + ' (' + newUser.gradYear + ') just created an account with the username ' + newUser.user
-						}, err => {
-							if (err) {
-								console.log('[' + new Date() + '] Error occured when sending admin notification! (' + err + ')');
-							}
-						});
-					});
-				});
-			});
+			resolve(buf);
 		});
 	});
+
+	const confirmationHash = confirmationBuf.toString('hex');
+
+	// Generate unsubscribe email hash
+	const unsubscribeBuf = await new Promise((resolve, reject) => {
+		crypto.randomBytes(16, (err, buf) => {
+			if (err) {
+				reject(new Error('There was a problem generating a random email hash!'));
+				return;
+			}
+
+			resolve(buf);
+		});
+	});
+
+	const unsubscribeHash = unsubscribeBuf.toString('hex');
+
+	// Hash Password
+	const hashedPassword = await cryptoUtils.hashPassword(user.password);
+
+	const newUser = {
+		user: user.user,
+		password: hashedPassword,
+		firstName: user.firstName,
+		lastName: user.lastName,
+		gradYear: user.gradYear,
+		confirmed: false,
+		registered: new Date(),
+		confirmationHash,
+		unsubscribeHash,
+		scopes: []
+	};
+
+	try {
+		await userdata.updateOne({ user: newUser.user }, newUser, { upsert: true });
+	} catch (e) {
+		throw new Error('There was a problem inserting the account into the database!');
+	}
+
+	const email = newUser.user + '@micds.org';
+	const emailReplace = {
+		firstName: newUser.firstName,
+		lastName: newUser.lastName,
+		confirmLink: 'https://mymicds.net/confirm/' + newUser.user + '/' + confirmationHash,
+	};
+
+	// Send confirmation email
+
+	await new Promise((resolve, reject) => {
+		mail.sendHTML(email, 'Confirm Your Account', __dirname + '/../html/messages/register.html', emailReplace, err => {
+			if (err) {
+				reject(err);
+				return;
+			}
+
+			resolve();
+		});
+	});
+
+	// Let's celebrate and the message throughout the land!
+	try {
+		await admins.sendEmail(db, {
+			subject: newUser.user + ' just created a 2.0 account!',
+			html: newUser.firstName + ' ' + newUser.lastName + ' (' + newUser.gradYear + ') just created an account with the username ' + newUser.user
+		});
+	} catch (e) {
+		console.log('[' + new Date() + '] Error occured when sending admin notification! (' + e + ')');
+	}
 }
 
 /**
@@ -233,52 +211,29 @@ function register(db, user, callback) {
  * @param {Object} err - Null if successful, error object if failure
  */
 
-function confirm(db, user, hash, callback) {
+async function confirm(db, user, hash) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof user !== 'string') throw new Error('Invalid username!');
+	if (typeof hash !== 'string') throw new Error('Invalid hash!');
 
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
-	if (typeof user !== 'string') {
-		callback(new Error('Invalid username!'));
-		return;
-	}
-	if (typeof hash !== 'string') {
-		callback(new Error('Invalid hash!'));
-		return;
-	}
+	const dbHash = userDoc['confirmationHash'];
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err);
-			return;
+	if (cryptoUtils.safeCompare(hash, dbHash)) {
+		// Hash matches, confirm account!
+		const userdata = db.collection('users');
+
+		try {
+			await userdata.updateOne({ user }, { $set: { confirmed: true } });
+		} catch (e) {
+			throw new Error('There was a problem updating the database!');
 		}
-		if (!isUser) {
-			callback(new Error('Does doesn\'t exist!'));
-			return;
-		}
-
-		const dbHash = userDoc['confirmationHash'];
-
-		if (cryptoUtils.safeCompare(hash, dbHash)) {
-			// Hash matches, confirm account!
-			const userdata = db.collection('users');
-			userdata.update({ user }, {$set: { confirmed: true }}, err => {
-				if (err) {
-					callback(new Error('There was a problem updating the database!'));
-					return;
-				}
-				callback(null);
-			});
-		} else {
-			// Hash does not match
-			callback(new Error('Hash not valid!'));
-		}
-	});
+	} else {
+		// Hash does not match
+		throw new Error('Hash not valid!');
+	}
 }
 
 module.exports.login    = login;

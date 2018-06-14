@@ -56,7 +56,7 @@ function authorize(db) {
  */
 
 function isRevoked(db) {
-	return (req, payload, done) => {
+	return async (req, payload, done) => {
 
 		const ignoredRoutes = [
 			'/auth/logout'
@@ -86,45 +86,49 @@ function isRevoked(db) {
 			return;
 		}
 
-		users.get(db, payload.user, (err, isUser, userDoc) => {
-			if (err) {
-				done(err, true);
-				return;
-			}
-			if (!isUser) {
-				done(null, true);
-				return;
-			}
+		let isUser, userDoc;
+		try {
+			// I guess this requires parentheses?
+			({ isUser, userDoc } = await users.get(db, payload.user));
+		} catch (e) {
+			done(e, true);
+			return;
+		}
 
-			// Make sure token wasn't issued before last password change
-			/*
-			 * @TODO Automatically log user out in front-end on password change
-			 * or prevent session that changed password from expiring.
-			 */
-			/* if (typeof userDoc['lastPasswordChange'] === 'object' && (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
-				done(null, true);
-				return;
-			}*/
+		if (!isUser) {
+			done(null, true);
+			return;
+		}
 
-			// Make sure token isn't blacklisted (usually if logged out)
-			const jwt = req.get('Authorization').slice(7);
+		// Make sure token wasn't issued before last password change
+		/*
+		 * @TODO Automatically log user out in front-end on password change
+		 * or prevent session that changed password from expiring.
+		 */
+		/* if (typeof userDoc['lastPasswordChange'] === 'object' && (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
+			done(null, true);
+			return;
+		}*/
 
-			isBlacklisted(db, jwt, (err, blacklisted) => {
-				if (err) {
-					done(err, true);
-					return;
-				}
+		// Make sure token isn't blacklisted (usually if logged out)
+		const jwt = req.get('Authorization').slice(7);
 
-				// Update 'lastVisited' field in user document
-				const userdata = db.collection('users');
-				userdata.update(userDoc, { $currentDate: { lastVisited: true }});
+		let blacklisted;
+		try {
+			blacklisted = await isBlacklisted(db, jwt);
+		} catch (e) {
+			done(e, true);
+			return;
+		}
 
-				const jwtData = db.collection('jwtWhitelist');
-				jwtData.update({ user: userDoc._id, jwt }, { $currentDate: { lastUsed: true }});
+		// Update 'lastVisited' field in user document
+		const userdata = db.collection('users');
+		await userdata.updateOne(userDoc, { $currentDate: { lastVisited: true }});
 
-				done(null, blacklisted);
-			});
-		});
+		const jwtData = db.collection('jwtWhitelist');
+		await jwtData.updateOne({ user: userDoc._id, jwt }, { $currentDate: { lastUsed: true }});
+
+		done(null, blacklisted);
 	};
 }
 
@@ -205,65 +209,49 @@ function catchUnauthorized(err, req, res, next) {
  * @param {string} token - JWT token. Error if null.
  */
 
-function generate(db, user, rememberMe, comment, callback) {
-	if (typeof callback !== 'function') return;
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
-	}
+async function generate(db, user, rememberMe, comment) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
 	const expiration = rememberMe ? '30 days' : '12 hours';
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'), null);
-			return;
-		}
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
 
-		// Default scope
-		const scopes = {
-			'pleb': true
-		};
+	// Default scope
+	const scopes = {
+		'pleb': true
+	};
 
-		if (_.isArray(userDoc['scopes'])) {
-			for (const scope of userDoc['scopes']) {
-				scopes[scope] = true;
-			}
+	if (_.isArray(userDoc['scopes'])) {
+		for (const scope of userDoc['scopes']) {
+			scopes[scope] = true;
 		}
+	}
 
-		if (typeof comment !== 'string' || comment.length < 1) {
-			comment = 'Unknown';
-		}
+	if (typeof comment !== 'string' || comment.length < 1) {
+		comment = 'Unknown';
+	}
 
+	return new Promise((resolve, reject) => {
 		jwt.sign({
 			user, scopes
 		}, config.jwt.secret, {
-			subject  : 'MyMICDS API',
+			subject: 'MyMICDS API',
 			algorithm: 'HS256',
 			expiresIn: expiration,
-			audience : config.hostedOn,
-			issuer   : config.hostedOn
-
+			audience: config.hostedOn,
+			issuer: config.hostedOn
 		}, (err, token) => {
 			if (err) {
-				callback(new Error('There was a problem generating a JWT!'), null);
+				reject(new Error('There was a problem generating a JWT!'));
 				return;
 			}
 
 			const jwtData = db.collection('jwtWhitelist');
-			jwtData.insertOne({ user: userDoc._id, jwt: token, comment }, err => {
-				if (err) {
-					callback(new Error('There was a problem registering the JWT!'), null);
-					return;
-				}
 
-				callback(null, token);
-			});
+			jwtData.insertOne({ user: userDoc._id, jwt: token, comment })
+				.then(() => resolve(token))
+				.catch(() => reject(new Error('There was a problem registering the JWT!')));
 		});
 	});
 }
@@ -285,28 +273,21 @@ function generate(db, user, rememberMe, comment, callback) {
  * @param {Boolean} blacklisted - True if blacklisted, false if not. Null if error.
  */
 
-function isBlacklisted(db, jwt, callback) {
-	if (typeof callback !== 'function') return;
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
-	}
-	if (typeof jwt !== 'string') {
-		callback(new Error('Invalid JWT!'), null);
-		return;
-	}
+async function isBlacklisted(db, jwt) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof jwt !== 'string') throw new Error('Invalid JWT!');
 
 	const jwtData = db.collection('jwtWhitelist');
 
-	jwtData.find({ jwt }).toArray((err, docs) => {
-		if (err) {
-			callback(new Error('There was a problem querying the database!'), null);
-			return;
-		}
+	let docs;
 
-		callback(null, docs.length < 1);
-	});
+	try {
+		docs = await jwtData.find({ jwt }).toArray();
+	} catch (e) {
+		throw new Error('There was a problem querying the database!');
+	}
+
+	return docs.length < 1;
 }
 
 /**
@@ -326,45 +307,21 @@ function isBlacklisted(db, jwt, callback) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-function revoke(db, payload, jwt, callback) {
-	if (typeof callback !== 'function') {
-		callback = () => {};
+async function revoke(db, payload, jwt) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof payload !== 'object') throw new Error('Invalid payload!');
+	if (typeof jwt !== 'string') throw new Error('Invalid JWT!');
+
+	const { isUser, userDoc } = await users.get(db, payload.user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
+
+	const jwtData = db.collection('jwtWhitelist');
+
+	try {
+		await jwtData.deleteOne({ user: userDoc._id, jwt });
+	} catch (e) {
+		throw new Error('There was a problem revoking the JWT in the database!');
 	}
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
-	if (typeof payload !== 'object') {
-		callback(new Error('Invalid payload!'));
-		return;
-	}
-	if (typeof jwt !== 'string') {
-		callback(new Error('Invalid JWT!'));
-		return;
-	}
-
-	users.get(db, payload.user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'), null);
-			return;
-		}
-
-		const jwtData = db.collection('jwtWhitelist');
-
-		jwtData.deleteOne({ user: userDoc._id, jwt }, err => {
-			if (err) {
-				callback(new Error('There was a problem revoking the JWT in the database!'));
-				return;
-			}
-
-			callback(null);
-		});
-	});
 }
 
 module.exports.authorize         = authorize;
