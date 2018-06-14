@@ -41,31 +41,30 @@ async function getLunch(db, date) {
 		// Send POST request to lunch website
 		res = await request.post(lunchURL, {
 			form: { 'current_day': currentDay.format() },
-			resolveWithFullResponse: true
+			resolveWithFullResponse: true,
 			simple: false
 		});
-	} catch {
+	} catch (e) {
 		throw new Error('There was a problem fetching the lunch data!');
 	}
 
-	if (res.statusCode !== 200) throw new Error('It appears the lunch site is down. Check again later!')
+	if (res.statusCode !== 200) throw new Error('It appears the lunch site is down. Check again later!');
 
-		// Alert admins if lunch page has moved
-		// admins.sendEmail(db, {
-		// 	subject: 'Error Notification - Lunch Retrieval',
-		// 	html: 'There was a problem with the lunch URL.<br>Error message: ' + err
-		// }, err => {
-		// 	if (err) {
-		// 		console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
-		// 		return;
-		// 	}
-		// 	console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
-		// });
+	// Alert admins if lunch page has moved
+	// admins.sendEmail(db, {
+	// 	subject: 'Error Notification - Lunch Retrieval',
+	// 	html: 'There was a problem with the lunch URL.<br>Error message: ' + err
+	// }, err => {
+	// 	if (err) {
+	// 		console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
+	// 		return;
+	// 	}
+	// 	console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
+	// });
 
-		// callback(new Error('There was a problem with the lunch URL!'), null);
+	// callback(new Error('There was a problem with the lunch URL!'), null);
 
-	return parseLunch(body);
-	});
+	return parseLunch(res.body);
 }
 
 /**

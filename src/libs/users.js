@@ -46,7 +46,7 @@ async function getUser(db, user) {
 
 		return { isUser, userDoc };
 	} catch (e) {
-		throw new Error('There was a problem querying the database!')
+		throw new Error('There was a problem querying the database!');
 	}
 
 }

@@ -14,23 +14,23 @@ const SCOPES = [
 	'FEATURES'
 ];
 
- /**
-  * Unsubscribe a user from certain categories of emails
-  * @function unsubscribe
-  *
-  * @param {Object} db - Database connection
-  * @param {string} user - Username
-  * @param {string} hash - Unsubscribe hash from the database
-  * @param {string|string[]} scopes - Single scope or array of multiple valid scopes
-  * @param {unsubscribeCallback} callback - Callback
-  */
+/**
+ * Unsubscribe a user from certain categories of emails
+ * @function unsubscribe
+ *
+ * @param {Object} db - Database connection
+ * @param {string} user - Username
+ * @param {string} hash - Unsubscribe hash from the database
+ * @param {string|string[]} scopes - Single scope or array of multiple valid scopes
+ * @param {unsubscribeCallback} callback - Callback
+ */
 
- /**
-  * Callback after the account has is unsubscribed
-  * @callback unsubscribeCallback
-  *
-  * @param {Object} err - Null if successful, error object if failure
-  */
+/**
+ * Callback after the account has is unsubscribed
+ * @callback unsubscribeCallback
+ *
+ * @param {Object} err - Null if successful, error object if failure
+ */
 
 function unsubscribe(db, user, hash, scopes, callback) {
 	if (typeof callback !== 'function') {

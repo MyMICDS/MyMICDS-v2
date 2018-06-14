@@ -154,7 +154,7 @@ async function deleteTeacher(db, teacherId) {
 
 		try {
 			await teacherdata.deleteOne({ _id: teacherId });
-		} catch {
+		} catch (e) {
 			throw new Error('There was a problem deleting the teacher from the database!');
 		}
 	}
@@ -169,13 +169,13 @@ async function deleteTeacher(db, teacherId) {
  * @param {teacherTeachesCallback} callback - Callback
  */
 
- /**
-  * Returns an array of classes a teacher teaches
-  * @callback teacherTeachesCallback
-  *
-  * @param {Object} err - Null if success, error object if failure
-  * @param {Object} classes - Array of classes the teacher teaches. Empty array if teacher doesn't teach anything. Null if error.
-  */
+/**
+ * Returns an array of classes a teacher teaches
+ * @callback teacherTeachesCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Object} classes - Array of classes the teacher teaches. Empty array if teacher doesn't teach anything. Null if error.
+ */
 
 async function teacherTeaches(db, teacherId) {
 	if (typeof db !== 'object') throw new Error('Invalid database connection!');
@@ -215,7 +215,7 @@ async function deleteClasslessTeachers(db) {
 	try {
 		// Find all teachers
 		docs = await teacherdata.find({}).toArray();
-	} catch {
+	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
 

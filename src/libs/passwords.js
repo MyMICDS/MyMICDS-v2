@@ -153,22 +153,22 @@ function changePassword(db, user, oldPassword, newPassword, callback) {
 	});
 }
 
- /**
-  * Creates a password confirmation hash and sends an email to the user to change their password.
-  * You do not need to input a password yet, as that comes later when the user clicks on the link.
-  * @function resetPasswordEmail
-  *
-  * @param {Object} db - Database connection
-  * @param {string} user - Username
-  * @param {resetPasswordEmailCallback} callback - Callback
-  */
+/**
+ * Creates a password confirmation hash and sends an email to the user to change their password.
+ * You do not need to input a password yet, as that comes later when the user clicks on the link.
+ * @function resetPasswordEmail
+ *
+ * @param {Object} db - Database connection
+ * @param {string} user - Username
+ * @param {resetPasswordEmailCallback} callback - Callback
+ */
 
- /**
-  * Returns an error if any
-  * @callback resetPasswordEmailCallback
-  *
-  * @param {Object} err - Null if success, error object if failure.
-  */
+/**
+ * Returns an error if any
+ * @callback resetPasswordEmailCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ */
 
 function resetPasswordEmail(db, user, callback) {
 	if (typeof callback !== 'function') {
@@ -224,23 +224,23 @@ function resetPasswordEmail(db, user, callback) {
 	});
 }
 
- /**
-  * Changes the password if hash matches the user's passwordChangeHash
-  * @function resetPassword
-  *
-  * @param {Object} db - Database connection
-  * @param {string} user - Username
-  * @param {string} password - Plaintext password to change
-  * @param {string} hash - passwordChangeHash from confirmation email
-  * @param {resetPasswordCallback} callback - Callback
-  */
+/**
+ * Changes the password if hash matches the user's passwordChangeHash
+ * @function resetPassword
+ *
+ * @param {Object} db - Database connection
+ * @param {string} user - Username
+ * @param {string} password - Plaintext password to change
+ * @param {string} hash - passwordChangeHash from confirmation email
+ * @param {resetPasswordCallback} callback - Callback
+ */
 
- /**
-  * Returns an error (if any) about changing the user's password
-  * @callback resetPasswordCallback
-  *
-  * @param {Object} err - Null if success, error object if failure.
-  */
+/**
+ * Returns an error (if any) about changing the user's password
+ * @callback resetPasswordCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ */
 
 function resetPassword(db, user, password, hash, callback) {
 	if (typeof callback !== 'function') {

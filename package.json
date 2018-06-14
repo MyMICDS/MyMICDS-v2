@@ -74,7 +74,7 @@
     "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "@mymicds/configs": "^1.0.0",
+    "@mymicds/configs": "^1.1.0",
     "eslint": "^4.19.1"
   }
 }

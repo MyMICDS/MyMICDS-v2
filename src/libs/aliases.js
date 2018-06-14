@@ -5,7 +5,7 @@
  * @module alias
  */
 const _ = require('underscore');
-const classes = require(__dirname + '/classes.js');
+const classes = require(__dirname + '/classes.js'); // eslint-disable-line
 const users = require(__dirname + '/users.js');
 
 // Types of aliases
@@ -76,7 +76,7 @@ async function addAlias(db, user, type, classString, classId) {
 	let results;
 	try {
 		results = await aliasdata.insertOne(insertAlias);
-	} catch {
+	} catch (e) {
 		throw new Error('There was a problem inserting the alias into the database!');
 	}
 
@@ -115,7 +115,7 @@ async function listAliases(db, user) {
 	let aliases;
 	try {
 		aliases = await aliasdata.find({ user: userDoc['_id'] }).toArray();
-	} catch {
+	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
 
@@ -182,7 +182,7 @@ async function mapAliases(db, user) {
 		}
 	}
 
-	return aliasMap
+	return aliasMap;
 }
 
 /**
@@ -223,7 +223,7 @@ async function deleteAlias(db, user, type, aliasId) {
 
 	try {
 		await aliasdata.deleteOne({ _id: validAliasId });
-	} catch {
+	} catch (e) {
 		throw new Error('There was a problem deleting the alias from the database!');
 	}
 }
@@ -264,7 +264,7 @@ async function getAliasClass(db, user, type, classInput) {
 	let aliases;
 	try {
 		aliases = await aliasdata.find({ user: userDoc['_id'], type, classRemote: classInput }).toArray();
-	} catch {
+	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
 
@@ -314,7 +314,7 @@ async function deleteClasslessAliases(db) {
 			aliasdata.find({}).toArray(),
 			classdata.find({}).toArray()
 		]);
-	} catch {
+	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
 
@@ -332,7 +332,7 @@ async function deleteClasslessAliases(db) {
 		if (!validClass) {
 			try {
 				await aliasdata.deleteOne({ _id: alias._id, user: alias.user });
-			} catch {
+			} catch (e) {
 				throw new Error('There was a problem deleting an alias in the database!');
 			}
 		}

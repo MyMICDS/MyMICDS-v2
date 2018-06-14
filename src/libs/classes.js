@@ -109,8 +109,8 @@ async function upsertClass(db, user, scheduleClass) {
 	try {
 		// Check for duplicate classes first
 		classes = await classdata.find({ user: userDoc['_id'] }).toArray();
-	} catch {
-		new Error('There was a problem querying the database!')
+	} catch (e) {
+		throw new Error('There was a problem querying the database!');
 	}
 
 	// Lets see if any of the classes are the one we are supposed to edit
@@ -139,41 +139,41 @@ async function upsertClass(db, user, scheduleClass) {
 		}
 	}
 
-		// If any of the classes are duplicate, just give up.
-		if (dupClassIds.length > 0) {
-			// If the edit id matches one of the dup classes, maybe the student accidentally pressed 'save'.
-			// Since nothing changed in that case, just return no error
-			if (validEditId) {
-				return scheduleClass;
-			}
-
-			throw new Error('Tried to insert a duplicate class!');
-		}
-
-		let id;
-		// Generate an Object ID, or use the id that we are editting
+	// If any of the classes are duplicate, just give up.
+	if (dupClassIds.length > 0) {
+		// If the edit id matches one of the dup classes, maybe the student accidentally pressed 'save'.
+		// Since nothing changed in that case, just return no error
 		if (validEditId) {
-			id = validEditId;
-		} else {
-			id = new ObjectID();
+			return scheduleClass;
 		}
 
-		const insertClass = {
-			_id: id,
-			user: userDoc['_id'],
-			name: scheduleClass.name,
-			teacher: teacherDoc['_id'],
-			type: scheduleClass.type,
-			block: scheduleClass.block,
-			color: scheduleClass.color,
-		};
+		throw new Error('Tried to insert a duplicate class!');
+	}
 
-		try {
-			// Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
-			await classdata.updateOne({ _id: id }, insertClass, { upsert: true });
-		} catch {
-			throw new Error('There was a problem upserting the class into the database!');
-		}
+	let id;
+	// Generate an Object ID, or use the id that we are editting
+	if (validEditId) {
+		id = validEditId;
+	} else {
+		id = new ObjectID();
+	}
+
+	const insertClass = {
+		_id: id,
+		user: userDoc['_id'],
+		name: scheduleClass.name,
+		teacher: teacherDoc['_id'],
+		type: scheduleClass.type,
+		block: scheduleClass.block,
+		color: scheduleClass.color,
+	};
+
+	try {
+		// Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
+		await classdata.updateOne({ _id: id }, insertClass, { upsert: true });
+	} catch (e) {
+		throw new Error('There was a problem upserting the class into the database!');
+	}
 
 	await teachers.deleteClasslessTeachers(db);
 
@@ -212,7 +212,7 @@ async function getClasses(db, user) {
 	try {
 		// Get all classes under the specified user id
 		classes = await classdata.find({ user: userDoc['_id'] }).toArray();
-	} catch {
+	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
 
@@ -267,7 +267,7 @@ async function deleteClass(db, user, classId) {
 	let id;
 	try {
 		id = new ObjectID(classId);
-	} catch {
+	} catch (e) {
 		throw new Error('Invalid event id!');
 	}
 
@@ -279,7 +279,7 @@ async function deleteClass(db, user, classId) {
 
 	try {
 		await classdata.deleteOne({ _id: id, user: userDoc['_id'] });
-	} catch {
+	} catch (e) {
 		throw new Error('There was a problem deleting the class from the database!');
 	}
 

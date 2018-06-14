@@ -156,11 +156,11 @@ function requireLoggedIn(req, res, next) {
 	requireScope('pleb', 'You must be logged in to access this!')(req, res, next);
 }
 
- /**
-  * Route-specific middleware to require the user to have a specific scope
-  * @param {string} scope - Which scope the user needs to have
-  * @param {string} [message] - Optional. Custom error message to send back to client if they don't have the specified scope.
-  */
+/**
+ * Route-specific middleware to require the user to have a specific scope
+ * @param {string} scope - Which scope the user needs to have
+ * @param {string} [message] - Optional. Custom error message to send back to client if they don't have the specified scope.
+ */
 
 function requireScope(scope, message = 'You\'re not authorized in this part of the site, punk.') {
 	return (req, res, next) => {

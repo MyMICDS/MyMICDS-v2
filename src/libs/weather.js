@@ -83,7 +83,7 @@ function updateWeather() {
 				resolve(data);
 			});
 		});
-	};
+	});
 }
 
 module.exports.get    = getWeather;

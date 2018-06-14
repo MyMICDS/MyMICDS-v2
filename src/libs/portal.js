@@ -124,14 +124,14 @@ function verifyURL(portalURL, callback) {
  * @param {setUrlCallback} callback - Callback
  */
 
- /**
-  * Returns the valid url that was inserted into database
-  * @callback setUrlCallback
-  *
-  * @param {Object} err - Null if success, error object if failure
-  * @param {Boolean|string} isValid - True if valid URL, string describing problem if not valid. Null if error.
-  * @param {string} validURL - Valid url that was inserted into database. Null if error or url invalid.
-  */
+/**
+ * Returns the valid url that was inserted into database
+ * @callback setUrlCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Boolean|string} isValid - True if valid URL, string describing problem if not valid. Null if error.
+ * @param {string} validURL - Valid url that was inserted into database. Null if error or url invalid.
+ */
 
 function setURL(db, user, url, callback) {
 	if (typeof callback !== 'function') {
@@ -305,13 +305,13 @@ function getFromCal(db, user, callback) {
  * @param {getDayRotationCallback} callback - Callback
  */
 
- /**
-  * Returns an integer between 1 and 6 for what day it is
-  * @callback getDayRotationCallback
-  *
-  * @param {Object} err - Null if success, error object if failure.
-  * @param {scheduleDay} day - Integer between 1 and 6. Null if error or no available day.
-  */
+/**
+ * Returns an integer between 1 and 6 for what day it is
+ * @callback getDayRotationCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {scheduleDay} day - Integer between 1 and 6. Null if error or no available day.
+ */
 
 function getDayRotation(date, callback) {
 	if (typeof callback !== 'function') return;
@@ -368,13 +368,13 @@ function getDayRotation(date, callback) {
  * @param {getDayRotationCallback} callback - Callback
  */
 
- /**
-  * Returns an integer between 1 and 6 for what day it is
-  * @callback getDayRotationsCallback
-  *
-  * @param {Object} err - Null if success, error object if failure.
-  * @param {scheduleDay} days - Object containing integers 1-6 organized by year, month, and date (Ex. January 3rd, 2017 would be `day.2017.1.3`)
-  */
+/**
+ * Returns an integer between 1 and 6 for what day it is
+ * @callback getDayRotationsCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {scheduleDay} days - Object containing integers 1-6 organized by year, month, and date (Ex. January 3rd, 2017 would be `day.2017.1.3`)
+ */
 
 function getDayRotations(callback) {
 	if (typeof callback !== 'function') return;
@@ -479,14 +479,14 @@ function getClasses(db, user, callback) {
  * @param {parsePortalClassesCallback} callback - Callback
  */
 
- /**
-  * Returns array of classes from portal
-  * @callback parsePortalClassesCallback
-  *
-  * @param {Object} err - Null if success, error object if failure.
-  * @param {Boolean} hasURL - Whether or not the user has a Portal URL set. Null if error.
-  * @param {Array} classes - Array of classes from portal. Null if error.
-  */
+/**
+ * Returns array of classes from portal
+ * @callback parsePortalClassesCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Boolean} hasURL - Whether or not the user has a Portal URL set. Null if error.
+ * @param {Array} classes - Array of classes from portal. Null if error.
+ */
 
 function parsePortalClasses(events, callback) {
 	if (typeof callback !== 'function') return;
