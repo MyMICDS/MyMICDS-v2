@@ -12,7 +12,7 @@ const htmlParser = require(__dirname + '/htmlParser.js');
 const ical = require('ical');
 const prisma = require('prisma');
 const querystring = require('querystring');
-const request = require('request');
+const request = require('request-promise-native');
 const url = require('url');
 const users = require(__dirname + '/users.js');
 
@@ -36,14 +36,8 @@ const urlPrefix = 'https://micds.instructure.com/feeds/calendars/';
  * @param {string} url - Valid and formatted URL to our likings. Null if error or invalid url.
  */
 
-function verifyURL(canvasURL, callback) {
-
-	if (typeof callback !== 'function') return;
-
-	if (typeof canvasURL !== 'string') {
-		callback(new Error('Invalid URL!'), null, null);
-		return;
-	}
+async function verifyURL(canvasURL) {
+	if (typeof canvasURL !== 'string') throw new Error('Invalid URL!');
 
 	// Parse URL first
 	const parsedURL = url.parse(canvasURL);
@@ -51,8 +45,7 @@ function verifyURL(canvasURL, callback) {
 	// Check if pathname is valid
 	if (!parsedURL.pathname || !parsedURL.pathname.startsWith('/feeds/calendars/')) {
 		// Not a valid URL!
-		callback(null, 'Invalid URL path!', null);
-		return;
+		return { isValid: 'Invalid URL path!', url: null };
 	}
 
 	const pathParts = parsedURL.path.split('/');
@@ -61,18 +54,19 @@ function verifyURL(canvasURL, callback) {
 	const validURL = urlPrefix + userCalendar;
 
 	// Not lets see if we can actually get any data from here
-	request(validURL, (err, response) => {
-		if (err) {
-			callback(new Error('There was a problem fetching calendar data from the URL!'), null, null);
-			return;
-		}
-		if (response.statusCode !== 200) {
-			callback(null, 'Invalid URL!', null);
-			return;
-		}
+	let response;
+	try {
+		response = await request(validURL, {
+			resolveWithFullResponse: true,
+			simple: false
+		});
+	} catch (e) {
+		throw new Error('There was a problem fetching calendar data from the URL!');
+	}
 
-		callback(null, true, validURL);
-	});
+	if (response.statusCode !== 200) return { isValid: 'Invalid URL!', url: null };
+
+	return { isValid: true, url: validURL };
 }
 
 /**
@@ -94,54 +88,26 @@ function verifyURL(canvasURL, callback) {
  * @param {string} validURL - Valid url that was inserted into database. Null if error or url invalid.
  */
 
-function setURL(db, user, url, callback) {
-	if (typeof callback !== 'function') {
-		callback = () => {};
+async function setURL(db, user, url) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
+
+	const { isValid, url: validURL } = await verifyURL(url);
+	if (isValid !== true) return { isValid, validURL: null };
+
+	const userdata = db.collection('users');
+
+	try {
+		await userdata.updateOne({ _id: userDoc['_id'] }, { $set: { canvasURL: validURL } }, { upsert: true });
+	} catch (e) {
+		throw new Error('There was a problem updating the URL to the database!');
 	}
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null, null);
-		return;
-	}
+	await feeds.updateCanvasCache(db, user);
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null, null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'), null, null);
-			return;
-		}
-
-		verifyURL(url, (err, isValid, validURL) => {
-			if (err) {
-				callback(err, null, null);
-				return;
-			} else if (isValid !== true) {
-				callback(null, isValid, null);
-				return;
-			}
-
-			const userdata = db.collection('users');
-
-			userdata.update({ _id: userDoc['_id'] }, { $set: { canvasURL: validURL }}, { upsert: true }, err => {
-				if (err) {
-					callback(new Error('There was a problem updating the URL to the database!'), null, null);
-					return;
-				}
-
-				feeds.updateCanvasCache(db, user, err => {
-					if (err) {
-						callback(err, null, null);
-						return;
-					}
-
-					callback(null, true, validURL);
-				});
-			});
-		});
-	});
+	return { isValid: true, validURL };
 }
 
 /**
@@ -162,42 +128,26 @@ function setURL(db, user, url, callback) {
  * @param {Object} events - Array of all the events in the month. Null if failure.
  */
 
-function getUserCal(db, user, callback) {
-	if (typeof callback !== 'function') return;
+async function getUserCal(db, user) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null, null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'), null, null);
-			return;
-		}
+	if (typeof userDoc.canvasURL !== 'string') return { hasURL: false, events: null };
 
-		if (typeof userDoc.canvasURL !== 'string') {
-			callback(null, false, null);
-			return;
-		}
-
-		request(userDoc.canvasURL, (err, response, body) => {
-			if (err) {
-				callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
-				return;
-			}
-			if (response.statusCode !== 200) {
-				callback(new Error('Invalid URL!'), null, null);
-				return;
-			}
-
-			callback(null, true, Object.values(ical.parseICS(body)));
+	let response;
+	try {
+		response = await request(userDoc.canvasURL, {
+			resolveWithFullResponse: true,
+			simple: false
 		});
-	});
+	} catch (e) {
+		throw new Error('There was a problem fetching canvas data from the URL!');
+	}
+	if (response.statusCode !== 200) throw new Error('Invalid URL!');
+
+	return { hasURL: true, events: Object.values(ical.parseICS(response.body)) };
 }
 
 /**
@@ -286,70 +236,57 @@ function calendarToEvent(calLink) {
  * @param {Array} classes - Array of classes from canvas. Null if error or no Canvas URL set.
  */
 
-function getClasses(db, user, callback) {
-	if (typeof callback !== 'function') return;
+async function getClasses(db, user) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof user !== 'string') throw new Error('Invalid username!');
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null, null, null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'), null, null);
-			return;
-		}
-		if (typeof userDoc['canvasURL'] !== 'string') {
-			callback(null, false, null);
-			return;
-		}
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
 
-		function parseEvents(eventsToParse) {
-			const classes = [];
+	if (typeof userDoc['canvasURL'] !== 'string') return { hasURL: false, classes: null };
 
-			for (const calEvent of eventsToParse) {
-				// If event doesn't have a summary, skip
-				if (typeof calEvent.summary !== 'string') continue;
+	function parseEvents(eventsToParse) {
+		const classes = [];
 
-				const parsedEvent = parseCanvasTitle(calEvent.summary);
+		for (const calEvent of eventsToParse) {
+			// If event doesn't have a summary, skip
+			if (typeof calEvent.summary !== 'string') continue;
 
-				// If not already in classes array, push to array
-				if (parsedEvent.class.raw.length > 0 && !_.contains(classes, parsedEvent.class.raw)) {
-					classes.push(parsedEvent.class.raw);
-				}
+			const parsedEvent = parseCanvasTitle(calEvent.summary);
+
+			// If not already in classes array, push to array
+			if (parsedEvent.class.raw.length > 0 && !_.contains(classes, parsedEvent.class.raw)) {
+				classes.push(parsedEvent.class.raw);
 			}
-
-			callback(null, true, classes);
 		}
 
-		const canvasdata = db.collection('canvasFeeds');
+		return { hasURL: true, classes };
+	}
 
-		canvasdata.find({ user: userDoc._id }).toArray((err, events) => {
-			if (err) {
-				callback(new Error('There was an error retrieving Canvas events!'), null, null);
-				return;
-			}
+	const canvasdata = db.collection('canvasFeeds');
 
-			// If cache is empty, update it
-			if (events.length > 0) {
-				parseEvents(events);
-			} else {
-				feeds.updateCanvasCache(db, user, err => {
-					if (err) {
-						callback(err, null, null);
-						return;
-					}
+	let events;
+	try {
+		events = await canvasdata.find({ user: userDoc._id }).toArray();
+	} catch (e) {
+		throw new Error('There was an error retrieving Canvas events!');
+	}
 
-					canvasdata.find({ user: userDoc._id }).toArray((err, retryEvents) => {
-						if (err) {
-							callback(new Error('There was an error retrieving Canvas events!'), null, null);
-							return;
-						}
-						parseEvents(retryEvents);
-					});
-				});
-			}
-		});
-	});
+	// If cache is empty, update it
+	if (events.length > 0) {
+		return parseEvents(events);
+	} else {
+		await feeds.updateCanvasCache(db, user);
+
+		let retryEvents;
+		try {
+			retryEvents = await canvasdata.find({ user: userDoc._id }).toArray();
+		} catch (e) {
+			throw new Error('There was an error retrieving Canvas events!');
+		}
+
+		return parseEvents(retryEvents);
+	}
 }
 
 /**
@@ -368,139 +305,105 @@ function getClasses(db, user, callback) {
  * @param {Array} events - Array of events if success, null if failure.
  */
 
-function getFromCache(db, user, callback) {
-	if (typeof callback !== 'function') return;
+async function getFromCache(db, user) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof user !== 'string') throw new Error('Invalid username!');
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null, null, null);
-			return;
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
+
+	if (typeof userDoc['canvasURL'] !== 'string') return { hasURL: false, events: null };
+
+	const canvasdata = db.collection('canvasFeeds');
+
+	let events;
+	try {
+		events = await canvasdata.find({ user: userDoc._id }).toArray();
+	} catch (e) {
+		throw new Error('There was an error retrieving Canvas events!');
+	}
+
+	// Get which events are checked
+	const checkedEventsList = await checkedEvents.list(db, user);
+
+	// Loop through all of the events in the calendar feed and push events within month to validEvents
+	const validEvents = [];
+	// Cache class aliases
+	const classAliases = {};
+
+	// Function for getting class to insert according to canvas name
+	async function getCanvasClass(parsedEvent) {
+		const name = parsedEvent.class.raw;
+
+		// Check if alias is already cached
+		if (typeof classAliases[name] !== 'undefined') {
+			return classAliases[name];
 		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'), null, null);
-			return;
+
+		// Query aliases to see if possible class object exists
+		const { hasAlias, classObject: aliasClass } = await aliases.getClass(db, user, 'canvas', name);
+
+		// Backup object if Canvas class doesn't have alias
+		const defaultColor = '#34444F';
+		const canvasClass = {
+			_id: null,
+			canvas: true,
+			user,
+			name: parsedEvent.class.name,
+			teacher: {
+				_id: null,
+				prefix: '',
+				firstName: parsedEvent.class.teacher.firstName,
+				lastName: parsedEvent.class.teacher.lastName
+			},
+			type: 'other',
+			block: 'other',
+			color: defaultColor,
+			textDark: prisma.shouldTextBeDark(defaultColor)
+		};
+
+		if (hasAlias) {
+			classAliases[name] = aliasClass;
+		} else {
+			classAliases[name] = canvasClass;
 		}
-		if (typeof userDoc['canvasURL'] !== 'string') {
-			callback(null, false, null);
-			return;
+
+		return classAliases[name];
+	}
+
+	for (const canvasEvent of events) {
+		const parsedEvent = parseCanvasTitle(canvasEvent.summary);
+
+		// Check if alias for class first
+		const canvasClass = await getCanvasClass(parsedEvent);
+		const start = new Date(canvasEvent.start);
+		const end = new Date(canvasEvent.end);
+
+		// class will be null if error in getting class name.
+		const insertEvent = {
+			_id: canvasEvent.uid,
+			canvas: true,
+			user: userDoc.user,
+			class: canvasClass,
+			title: parsedEvent.assignment,
+			start,
+			end,
+			link: calendarToEvent(canvasEvent.url) || '',
+			checked: _.contains(checkedEventsList, canvasEvent.uid)
+		};
+
+		if (typeof canvasEvent['ALT-DESC'] === 'object') {
+			insertEvent.desc = canvasEvent['ALT-DESC'].val;
+			insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
+		} else {
+			insertEvent.desc = '';
+			insertEvent.descPlaintext = '';
 		}
 
-		const canvasdata = db.collection('canvasFeeds');
+		validEvents.push(insertEvent);
+	}
 
-		canvasdata.find({ user: userDoc._id }).toArray((err, events) => {
-			if (err) {
-				callback(new Error('There was an error retrieving Canvas events!'), null, null);
-				return;
-			}
-
-			// Get which events are checked
-			checkedEvents.list(db, user, (err, checkedEventsList) => {
-				if (err) {
-					callback(err, null, null);
-					return;
-				}
-
-				// Loop through all of the events in the calendar feed and push events within month to validEvents
-				const validEvents = [];
-				// Cache class aliases
-				const classAliases = {};
-
-				// Function for getting class to insert according to canvas name
-				function getCanvasClass(parsedEvent, classCallback) {
-					const name = parsedEvent.class.raw;
-
-					// Check if alias is already cached
-					if (typeof classAliases[name] !== 'undefined') {
-						classCallback(null, classAliases[name]);
-						return;
-					}
-
-					// Query aliases to see if possible class object exists
-					aliases.getClass(db, user, 'canvas', name, (err, hasAlias, aliasClassObject) => {
-						if (err) {
-							classCallback(err, null);
-							return;
-						}
-
-						// Backup object if Canvas class doesn't have alias
-						const defaultColor = '#34444F';
-						const canvasClass = {
-							_id: null,
-							canvas: true,
-							user,
-							name: parsedEvent.class.name,
-							teacher: {
-								_id: null,
-								prefix: '',
-								firstName: parsedEvent.class.teacher.firstName,
-								lastName: parsedEvent.class.teacher.lastName
-							},
-							type: 'other',
-							block: 'other',
-							color: defaultColor,
-							textDark: prisma.shouldTextBeDark(defaultColor)
-						};
-
-						if (hasAlias) {
-							classAliases[name] = aliasClassObject;
-						} else {
-							classAliases[name] = canvasClass;
-						}
-
-						classCallback(null, classAliases[name]);
-					});
-				}
-
-				// Function to iterate over classes asynchronously
-				function checkEvent(i) {
-					if (i < events.length) {
-						const canvasEvent = events[i];
-						const parsedEvent = parseCanvasTitle(canvasEvent.summary);
-
-						// Check if alias for class first
-						getCanvasClass(parsedEvent, (err, canvasClass) => {
-							if (err) {
-								callback(err, null, null);
-								return;
-							}
-
-							const start = new Date(canvasEvent.start);
-							const end = new Date(canvasEvent.end);
-
-							// class will be null if error in getting class name.
-							const insertEvent = {
-								_id: canvasEvent.uid,
-								canvas: true,
-								user: userDoc.user,
-								class: canvasClass,
-								title: parsedEvent.assignment,
-								start,
-								end,
-								link: calendarToEvent(canvasEvent.url) || '',
-								checked: _.contains(checkedEventsList, canvasEvent.uid)
-							};
-
-							if (typeof canvasEvent['ALT-DESC'] === 'object') {
-								insertEvent.desc = canvasEvent['ALT-DESC'].val;
-								insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
-							} else {
-								insertEvent.desc = '';
-								insertEvent.descPlaintext = '';
-							}
-
-							validEvents.push(insertEvent);
-							checkEvent(++i);
-						});
-					} else {
-						// All done! Call callback
-						callback(null, true, validEvents);
-					}
-				}
-				checkEvent(0);
-
-			});
-		});
-	});
+	return { hasURL: true, events: validEvents };
 }
 
 module.exports.verifyURL    = verifyURL;

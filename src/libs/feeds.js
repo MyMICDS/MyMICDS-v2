@@ -22,51 +22,31 @@ const users  = require(__dirname + '/users.js');
  * @param {Object} err - Null if success, error object if failure
  */
 
-function updateCanvasCache(db, user, callback) {
-	if (typeof callback !== 'function') return;
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
+async function updateCanvasCache(db, user) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
 	const canvasdata = db.collection('canvasFeeds');
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'));
-			return;
-		}
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
 
-		canvas.getUserCal(db, userDoc.user, (err, hasURL, events) => {
-			if (err) {
-				callback(err);
-				return;
-			}
+	const { events } = await canvas.getUserCal(db, userDoc.user);
 
-			canvasdata.deleteMany({ user: userDoc._id }, err => {
-				if (err) {
-					callback('There was an error removing the old events from the database!');
-					return;
-				}
+	try {
+		await canvasdata.deleteMany({ user: userDoc._id });
+	} catch (e) {
+		throw new Error('There was an error removing the old events from the database!');
+	}
 
-				events.forEach(e => e.user = userDoc._id);
+	for (const ev of events) {
+		ev.user = userDoc._id;
+	}
 
-				canvasdata.insertMany(events, err => {
-					if (err) {
-						callback('There was an error inserting events into the database!');
-						return;
-					}
-
-					callback(null);
-				});
-			});
-		});
-	});
+	try {
+		await canvasdata.insertMany(events);
+	} catch (e) {
+		throw new Error('There was an error inserting events into the database!');
+	}
 }
 
 /**
@@ -84,70 +64,50 @@ function updateCanvasCache(db, user, callback) {
  * @param {Array} events - Array of Portal events if success, null if failure
  */
 
-function addPortalQueue(db, user, callback) {
-	if (typeof callback !== 'function') return;
+async function addPortalQueue(db, user) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
+
+	const portaldata = db.collection('portalFeeds');
+	const userdata   = db.collection('users');
+
+	const { cal: events } = await portal.getFromCal(db, user);
+
+	if (_.isEmpty(events)) {
+		try {
+			await userdata.updateOne({ user }, { $set: { inPortalQueue: true } });
+		} catch (e) {
+			throw new Error('There was an error adding the user to the queue!');
+		}
+
+		return events;
 	}
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'));
-			return;
-		}
+	try {
+		await portaldata.deleteMany({ user: userDoc._id });
+	} catch (e) {
+		throw new Error('There was an error removing the old events from the database!');
+	}
 
-		const portaldata = db.collection('portalFeeds');
-		const userdata   = db.collection('users');
+	for (const ev of events) {
+		ev.user = userDoc._id;
+	}
 
-		portal.getFromCal(db, user, (err, hasURL, events) => {
-			if (err) {
-				callback(err, null);
-				return;
-			}
-			if (_.isEmpty(events)) {
-				userdata.update({ user }, { $set: { inPortalQueue: true } }, err => {
-					if (err) {
-						callback(new Error('There was an error adding the user to the queue!'), null);
-						return;
-					}
+	try {
+		await portaldata.insertMany(events);
+	} catch (e) {
+		new Error(`There was an error inserting events into the database! (${e})`);
+	}
 
-					callback(null, events);
-				});
-				return;
-			}
+	try {
+		await userdata.updateOne({ user }, { $set: { inPortalQueue: false } });
+	} catch (e) {
+		throw new Error('There was an error removing the user from the queue!');
+	}
 
-			portaldata.deleteMany({ user: userDoc._id }, err => {
-				if (err) {
-					callback(new Error('There was an error removing the old events from the database!'), null);
-					return;
-				}
-
-				events.forEach(e => e.user = userDoc._id);
-
-				portaldata.insertMany(events, err => {
-					if (err) {
-						callback(new Error(`There was an error inserting events into the database! (${err})`), null);
-						return;
-					}
-
-					userdata.update({ user }, { $set: { inPortalQueue: false } }, err => {
-						if (err) {
-							callback(new Error('There was an error removing the user from the queue!'), null);
-							return;
-						}
-
-						callback(null, events);
-					});
-				});
-			});
-		});
-	});
+	return events;
 }
 
 /**
@@ -163,40 +123,21 @@ function addPortalQueue(db, user, callback) {
  * @param {Object} err - Null if success, error object if failure
  */
 
-function processPortalQueue(db, callback) {
-	if (typeof callback !== 'function') return;
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
+async function processPortalQueue(db) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
 	const userdata = db.collection('users');
 
-	userdata.find({ inPortalQueue: true }).toArray((err, queue) => {
-		if (err) {
-			callback(new Error('There was a problem querying the database!'));
-			return;
-		}
+	let queue;
+	try {
+		queue = await userdata.find({ inPortalQueue: true }).toArray();
+	} catch (e) {
+		throw new Error('There was a problem querying the database!');
+	}
 
-		function handleQueue(i) {
-			if (i >= queue.length) {
-				callback(null);
-				return;
-			}
-
-			addPortalQueue(db, queue[i].user, err => {
-				if (err) {
-					callback(err);
-					return;
-				}
-
-				handleQueue(++i);
-			});
-		}
-
-		handleQueue(0);
-	});
+	for (const queueObj of queue) {
+		await addPortalQueue(db, queueObj.user);
+	}
 }
 
 /**
@@ -215,29 +156,15 @@ function processPortalQueue(db, callback) {
  * @param {Array} events - Array of events if success, null if failure.
  */
 
-function canvasCacheRetry(db, user, callback) {
-	if (typeof callback !== 'function') return;
+async function canvasCacheRetry(db, user) {
+	const { hasURL, events } = await canvas.getFromCache(db, user);
 
-	canvas.getFromCache(db, user, (err, hasURL, events) => {
-		if (err) {
-			callback(err, null, null);
-			return;
-		}
-		if (!hasURL || !events || events.length > 0) {
-			callback(null, hasURL, events);
-			return;
-		}
+	if (!hasURL || !events || events.length > 0) return { hasURL, events };
 
-		// If the events are empty, there's a chance that we just didn't cache results yet
-		updateCanvasCache(db, user, err => {
-			if (err) {
-				callback(err, null, null);
-				return;
-			}
+	// If the events are empty, there's a chance that we just didn't cache results yet
+	await updateCanvasCache(db, user);
 
-			canvas.getFromCache(db, user, callback);
-		});
-	});
+	return canvas.getFromCache(db, user);
 }
 
 module.exports.updateCanvasCache  = updateCanvasCache;

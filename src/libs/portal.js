@@ -11,7 +11,7 @@ const feeds = require(__dirname + '/feeds.js');
 const ical = require('ical');
 const moment = require('moment');
 const querystring = require('querystring');
-const request = require('request');
+const request = require('request-promise-native');
 const url = require('url');
 const users = require(__dirname + '/users.js');
 
@@ -48,70 +48,55 @@ const portalRange = {
  * @param {string} url - Valid and formatted URL to our likings. Null if error or invalid url.
  */
 
-function verifyURL(portalURL, callback) {
-
-	if (typeof callback !== 'function') return;
-
-	if (typeof portalURL !== 'string') {
-		callback(new Error('Invalid URL!'), null, null);
-		return;
-	}
+async function verifyURL(portalURL) {
+	if (typeof portalURL !== 'string') throw new Error('Invalid URL!');
 
 	// Parse URL first
 	const parsedURL = url.parse(portalURL);
 	const queries = querystring.parse(parsedURL.query);
 
-	if (typeof queries.z !== 'string') {
-		callback(null, 'URL does not contain calendar ID!', null);
-		return;
-	}
+	if (typeof queries.z !== 'string') return { isValid: 'URL does not contain calendar ID!', url: null };
 
 	const validURL = urlPrefix + queries.z;
 
 	// Not lets see if we can actually get any data from here
-	request(validURL, (err, response, body) => {
-		if (err) {
-			callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
-			return;
-		}
-		if (response.statusCode !== 200) {
-			callback(null, 'Invalid URL!', null);
-			return;
-		}
+	let response;
+	try {
+		response = await request(validURL, {
+			resolveWithFullResponse: true,
+			simple: false
+		});
+	} catch (e) {
+		throw new Error('There was a problem fetching portal data from the URL!');
+	}
+	if (response.statusCode !== 200) throw new Error('Invalid URL!');
 
-		// Look through every 'Day # (US/MS)' andd see how many events there are
-		const dayDates = {};
-		for (const calEvent of Object.values(ical.parseICS(body))) {
-			// If event doesn't have a summary, skip
-			if (typeof calEvent.summary !== 'string') continue;
+	// Look through every 'Day # (US/MS)' andd see how many events there are
+	const dayDates = {};
+	for (const calEvent of Object.values(ical.parseICS(response.body))) {
+		// If event doesn't have a summary, skip
+		if (typeof calEvent.summary !== 'string') continue;
 
-			// See if valid day
-			if (validDayRotation.test(calEvent.summary)) {
-				// Get actual day
-				const day = calEvent.summary.match(/[1-6]/)[0];
-				// Get date
-				const start = new Date(calEvent.start);
+		// See if valid day
+		if (validDayRotation.test(calEvent.summary)) {
+			// Get actual day
+			const day = calEvent.summary.match(/[1-6]/)[0];
+			// Get date
+			const start = new Date(calEvent.start);
 
-				// Add to dayDates object
-				if (typeof dayDates[day] === 'undefined') {
-					dayDates[day] = [];
-				}
-				dayDates[day].push({
-					year : start.getFullYear(),
-					month: start.getMonth() + 1,
-					day  : start.getDate()
-				});
+			// Add to dayDates object
+			if (typeof dayDates[day] === 'undefined') {
+				dayDates[day] = [];
 			}
+			dayDates[day].push({
+				year : start.getFullYear(),
+				month: start.getMonth() + 1,
+				day  : start.getDate()
+			});
 		}
+	}
 
-		// if (_.isEmpty(dayDates)) {
-		// 	callback(null, 'The calendar does not contain the information we need! Make sure you\'re copying your personal calendar!', null);
-		// 	return;
-		// }
-
-		callback(null, true, validURL);
-
-	});
+	return { isValid: true, url: validURL };
 }
 
 /**
@@ -133,54 +118,26 @@ function verifyURL(portalURL, callback) {
  * @param {string} validURL - Valid url that was inserted into database. Null if error or url invalid.
  */
 
-function setURL(db, user, url, callback) {
-	if (typeof callback !== 'function') {
-		callback = () => {};
+async function setURL(db, user, url) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
+
+	const { isValid, url: validURL } = await verifyURL(url);
+	if (isValid !== true) return { isValid, validURL: null };
+
+	const userdata = db.collection('users');
+
+	try {
+		await userdata.updateOne({ _id: userDoc['_id'] }, { $set: { portalURL: validURL } }, { upsert: true });
+	} catch (e) {
+		throw new Error('There was a problem updating the URL to the database!');
 	}
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null, null);
-		return;
-	}
+	await feeds.addPortalQueue(db, user);
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null, null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'), null, null);
-			return;
-		}
-
-		verifyURL(url, (err, isValid, validURL) => {
-			if (err) {
-				callback(err, null, null);
-				return;
-			} else if (isValid !== true) {
-				callback(null, isValid, null);
-				return;
-			}
-
-			const userdata = db.collection('users');
-
-			userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, err => {
-				if (err) {
-					callback(new Error('There was a problem updating the URL to the database!'), null, null);
-					return;
-				}
-
-				feeds.addPortalQueue(db, user, err => {
-					if (err) {
-						callback(err, null, null);
-						return;
-					}
-
-					callback(null, true, validURL);
-				});
-			});
-		});
-	});
+	return { isValid: true, validURL };
 }
 
 /**
@@ -199,43 +156,25 @@ function setURL(db, user, url, callback) {
  * @param {Array} events - Array of events if success, null if failure.
  */
 
-function getFromCache(db, user, callback) {
-	if (typeof callback !== 'function') return;
+async function getFromCache(db, user) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof user !== 'string') throw new Error('Invalid username!');
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null, null);
-		return;
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
+
+	if (typeof userDoc['portalURL'] !== 'string') return { hasURL: false, events: null };
+
+	const portaldata = db.collection('portalFeeds');
+
+	let events;
+	try {
+		events = await portaldata.find({ user: userDoc._id }).toArray();
+	} catch (e) {
+		throw new Error('There was an error retrieving Portal events!');
 	}
-	if (typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null, null);
-		return;
-	}
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null, null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'), null, null);
-			return;
-		}
-		if (typeof userDoc['portalURL'] !== 'string') {
-			callback(null, false, null);
-			return;
-		}
-
-		const portaldata = db.collection('portalFeeds');
-
-		portaldata.find({ user: userDoc._id }).toArray((err, events) => {
-			if (err) {
-				callback(new Error('There was an error retrieving Portal events!'), null, null);
-				return;
-			}
-
-			callback(null, true, events);
-		});
-	});
+	return { hasURL: true, events };
 }
 
 /**
@@ -256,45 +195,28 @@ function getFromCache(db, user, callback) {
  * @param {Object} cal - Parsed iCal feed. Null if error.
  */
 
-function getFromCal(db, user, callback) {
-	if (typeof callback !== 'function') return;
+async function getFromCal(db, user) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof user !== 'string') throw new Error('Invalid username!');
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null, null);
-		return;
-	}
-	if (typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null, null);
-		return;
-	}
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null, null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'), null, null);
-			return;
-		}
-		if (typeof userDoc['portalURL'] !== 'string') {
-			callback(null, false, null);
-			return;
-		}
+	if (typeof userDoc['portalURL'] !== 'string') return { hasURL: false, cal: null };
 
-		request(userDoc['portalURL'], (err, response, body) => {
-			if (err) {
-				callback(new Error('There was a problem fetching the day rotation!'), null);
-				return;
-			}
-			if (response.statusCode !== 200) {
-				callback(new Error('Invalid URL!'), null, null);
-				return;
-			}
-
-			callback(null, true, Object.values(ical.parseICS(body)).filter(e => typeof e.summary === 'string'));
+	let response;
+	try {
+		response = await request(userDoc['portalURL'], {
+			resolveWithFullResponse: true,
+			simple: false
 		});
-	});
+	} catch (e) {
+		throw new Error('There was a problem fetching the day rotation!');
+	}
+
+	if (response.statusCode !== 200) throw new Error('Invalid URL!');
+
+	return { hasURL: true, cal: Object.values(ical.parseICS(response.body)).filter(e => typeof e.summary === 'string') };
 }
 
 /**
@@ -313,51 +235,44 @@ function getFromCal(db, user, callback) {
  * @param {scheduleDay} day - Integer between 1 and 6. Null if error or no available day.
  */
 
-function getDayRotation(date, callback) {
-	if (typeof callback !== 'function') return;
-
+async function getDayRotation(date) {
 	const scheduleDate = new Date(date);
 	const scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
 
-	request(urlPrefix + config.portal.dayRotation, (err, response, body) => {
-		if (err || response.statusCode !== 200) {
-			callback(new Error('There was a problem fetching the day rotation!'), null);
-			return;
-		}
+	let body;
+	try {
+		body = await request(urlPrefix + config.portal.dayRotation);
+	} catch (e) {
+		throw new Error('There was a problem fetching the day rotation!');
+	}
 
-		const data = ical.parseICS(body);
+	const data = ical.parseICS(body);
 
-		// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-		// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-		if (_.isEmpty(data)) {
-			callback(new Error('There was a problem fetching the day rotation!'), null);
-			return;
-		}
+	// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+	// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+	if (_.isEmpty(data)) throw new Error('There was a problem fetching the day rotation!');
 
-		for (const calEvent of Object.values(data)) {
-			if (typeof calEvent.summary !== 'string') continue;
+	for (const calEvent of Object.values(data)) {
+		if (typeof calEvent.summary !== 'string') continue;
 
-			const start = new Date(calEvent['start']);
-			const end = new Date(calEvent['end']);
+		const start = new Date(calEvent['start']);
+		const end = new Date(calEvent['end']);
 
-			const startTime = start.getTime();
-			const endTime = end.getTime();
+		const startTime = start.getTime();
+		const endTime = end.getTime();
 
-			// Check if it's an all-day event
-			if (startTime <= scheduleDate.getTime() && scheduleNextDay.getTime() <= endTime) {
-				// See if valid day
-				if (validDayRotationPlain.test(calEvent.summary)) {
-					// Get actual day
-					const day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
-					callback(null, day);
-					return;
-				}
+		// Check if it's an all-day event
+		if (startTime <= scheduleDate.getTime() && scheduleNextDay.getTime() <= endTime) {
+			// See if valid day
+			if (validDayRotationPlain.test(calEvent.summary)) {
+				// Get actual day
+				const day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
+				return day;
 			}
 		}
+	}
 
-		callback(null, null);
-
-	});
+	return null;
 }
 
 
@@ -376,55 +291,49 @@ function getDayRotation(date, callback) {
  * @param {scheduleDay} days - Object containing integers 1-6 organized by year, month, and date (Ex. January 3rd, 2017 would be `day.2017.1.3`)
  */
 
-function getDayRotations(callback) {
-	if (typeof callback !== 'function') return;
-
+async function getDayRotations() {
 	const days = {};
 
-	request(urlPrefix + config.portal.dayRotation, (err, response, body) => {
-		if (err || response.statusCode !== 200) {
-			callback(new Error('There was a problem fetching the day rotation!'), null);
-			return;
-		}
+	let body;
+	try {
+		body = await request(urlPrefix + config.portal.dayRotation);
+	} catch (e) {
+		throw new Error('There was a problem fetching the day rotation!');
+	}
 
-		const data = ical.parseICS(body);
+	const data = ical.parseICS(body);
 
-		// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-		// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-		if (_.isEmpty(data)) {
-			callback(new Error('There was a problem fetching the day rotation!'), null);
-			return;
-		}
+	// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+	// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+	if (_.isEmpty(data)) throw new Error('There was a problem fetching the day rotation!');
 
-		for (const calEvent of Object.values(data)) {
-			if (typeof calEvent.summary !== 'string') continue;
+	for (const calEvent of Object.values(data)) {
+		if (typeof calEvent.summary !== 'string') continue;
 
-			const start = new Date(calEvent['start']);
+		const start = new Date(calEvent['start']);
 
-			const year = start.getFullYear();
-			const month = start.getMonth() + 1;
-			const date = start.getDate();
+		const year = start.getFullYear();
+		const month = start.getMonth() + 1;
+		const date = start.getDate();
 
-			// See if valid day
-			if (validDayRotationPlain.test(calEvent.summary)) {
-				// Get actual day
-				const day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
+		// See if valid day
+		if (validDayRotationPlain.test(calEvent.summary)) {
+			// Get actual day
+			const day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
 
-				if (typeof days[year] !== 'object') {
-					days[year] = {};
-				}
-
-				if (typeof days[year][month] !== 'object') {
-					days[year][month] = {};
-				}
-
-				days[year][month][date] = day;
+			if (typeof days[year] !== 'object') {
+				days[year] = {};
 			}
+
+			if (typeof days[year][month] !== 'object') {
+				days[year][month] = {};
+			}
+
+			days[year][month][date] = day;
 		}
+	}
 
-		callback(null, days);
-
-	});
+	return days;
 }
 
 /**
@@ -445,30 +354,14 @@ function getDayRotations(callback) {
  * @param {Array} classes - Array of classes from portal. Null if error.
  */
 
-function getClasses(db, user, callback) {
-	if (typeof callback !== 'function') return;
+async function getClasses(db, user) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof user !== 'string') throw new Error('Invalid username!');
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null, null);
-		return;
-	}
-	if (typeof user !== 'string') {
-		callback(new Error('Invalid username!'), null, null);
-		return;
-	}
+	const { hasURL, events } = await getFromCache(db, user);
+	if (!hasURL) return { hasURL: false, classes: null };
 
-	getFromCache(db, user, (err, hasURL, events) => {
-		if (err) {
-			callback(err, null, null);
-			return;
-		}
-		if (!hasURL) {
-			callback(null, false, null);
-			return;
-		}
-
-		parsePortalClasses(events, callback);
-	});
+	return { hasURL: true, classes: parsePortalClasses(events) };
 }
 
 /**
@@ -488,13 +381,8 @@ function getClasses(db, user, callback) {
  * @param {Array} classes - Array of classes from portal. Null if error.
  */
 
-function parsePortalClasses(events, callback) {
-	if (typeof callback !== 'function') return;
-
-	if (typeof events !== 'object') {
-		callback(new Error('Invalid events array!'), null, null);
-		return;
-	}
+function parsePortalClasses(events) {
+	if (typeof events !== 'object') throw new Error('Invalid events array!');
 
 	const classes = {};
 
@@ -549,7 +437,7 @@ function parsePortalClasses(events, callback) {
 		}
 	}
 
-	callback(null, true, filteredClasses);
+	return filteredClasses;
 }
 
 /**
