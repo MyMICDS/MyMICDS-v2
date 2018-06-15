@@ -5,9 +5,8 @@
  * @module planner
  */
 const _ = require('underscore');
-const asyncLib = require('async');
 const checkedEvents = require(__dirname + '/checkedEvents.js');
-const classes = require(__dirname + '/classes.js');
+const classes = require(__dirname + '/classes.js'); // eslint-disable-line
 const htmlParser = require(__dirname + '/htmlParser.js');
 const ObjectID = require('mongodb').ObjectID;
 const users = require(__dirname + '/users.js');
@@ -38,113 +37,84 @@ const users = require(__dirname + '/users.js');
  * @param {Object} plannerEvent - Object of event that was upserted. Null if error.
  */
 
-function upsertEvent(db, user, plannerEvent, callback) {
-
+async function upsertEvent(db, user, plannerEvent) {
 	// Validate inputs
-	if (typeof callback !== 'function') callback = () => {};
+	if (typeof db   !== 'object') throw new Error('Invalid database connection!');
+	if (typeof user !== 'string') throw new Error('Invalid user!');
 
-	if (typeof db   !== 'object') { callback(new Error('Invalid database connection!'), null); return; }
-	if (typeof user !== 'string') { callback(new Error('Invalid user!'),                null); return; }
-
-	if (typeof plannerEvent         !== 'object') { callback(new Error('Invalid event object!'), null); return; }
+	if (typeof plannerEvent         !== 'object') throw new Error('Invalid event object!');
 	if (typeof plannerEvent._id     !== 'string') plannerEvent._id = '';
-	if (typeof plannerEvent.title   !== 'string') { callback(new Error('Invalid event title!'), null); return; }
+	if (typeof plannerEvent.title   !== 'string') throw new Error('Invalid event title!');
 	if (typeof plannerEvent.desc    !== 'string') plannerEvent.desc = '';
-	if (typeof plannerEvent.classId !== 'string') { plannerEvent.classId = null; }
-	if (typeof plannerEvent.start   !== 'object') { callback(new Error('Invalid event start!'), null); return; }
-	if (typeof plannerEvent.end     !== 'object') { callback(new Error('Invalid event end!'),   null); return; }
+	if (typeof plannerEvent.classId !== 'string') plannerEvent.classId = null;
+	if (typeof plannerEvent.start   !== 'object') throw new Error('Invalid event start!');
+	if (typeof plannerEvent.end     !== 'object') throw new Error('Invalid event end!');
 	if (typeof plannerEvent.link    !== 'string') plannerEvent.link = '';
 
 	// Made sure start time and end time are consecutive or the same
-	if (plannerEvent.start.getTime() > plannerEvent.end.getTime()) {
-		callback(new Error('Start and end time are not consecutive!'), null);
-		return;
+	if (plannerEvent.start.getTime() > plannerEvent.end.getTime()) throw new Error('Start and end time are not consecutive!');
+
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('Invalid username!');
+
+	const classes = await classes.get(db, user);
+
+	// Check if class id is valid if it isn't null already
+	let validClassId = null;
+	if (plannerEvent.classId !== null) {
+		for (const theClass of classes) {
+			const classId = theClass['_id'];
+			if (plannerEvent.classId === classId.toHexString()) {
+				validClassId = classId;
+				break;
+			}
+		}
 	}
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null);
-			return;
+	const plannerdata = db.collection('planner');
+
+	let validEditId = false;
+	if (plannerEvent._id !== '') {
+		// Check if edit id is valid
+		let events;
+		try {
+			events = await plannerdata.find({ user: userDoc['_id'] }).toArray();
+		} catch (e) {
+			throw new Error('There was a problem querying the database!');
 		}
-		if (!isUser) {
-			callback(new Error('Invalid username!'), null);
-			return;
+
+		// Look through all events if id is valid
+		for (const event of events) {
+			const eventId = event['_id'];
+			if (plannerEvent._id === eventId.toHexString()) {
+				validEditId = eventId;
+				break;
+			}
 		}
+	}
 
-		classes.get(db, user, (err, classes) => {
-			if (err) {
-				callback(err, null);
-				return;
-			}
+	// Generate an Object ID, or use the id that we are editting
+	const id = validEditId ? validEditId : new ObjectID();
 
-			// Check if class id is valid if it isn't null already
-			let validClassId = null;
-			if (plannerEvent.classId !== null) {
-				for (const theClass of classes) {
-					const classId = theClass['_id'];
-					if (plannerEvent.classId === classId.toHexString()) {
-						validClassId = classId;
-						break;
-					}
-				}
-			}
+	const insertEvent = {
+		_id: id,
+		user: userDoc['_id'],
+		class: validClassId,
+		title: plannerEvent.title,
+		desc: plannerEvent.desc,
+		start: plannerEvent.start,
+		end: plannerEvent.end,
+		link: plannerEvent.link
+	};
 
-			const plannerdata = db.collection('planner');
+	// Insert event into database
+	try {
+		await plannerdata.updateOne({ _id: id }, insertEvent, { upsert: true });
+	} catch (e) {
+		throw new Error('There was a problem inserting the event into the database!');
+	}
 
-			let validEditId = false;
-			if (plannerEvent._id === '') {
-				// Just insert event if no id is provided
-				insertEvent();
-			} else {
-				// Check if edit id is valid
-				plannerdata.find({ user: userDoc['_id'] }).toArray((err, events) => {
-					if (err) {
-						callback(new Error('There was a problem querying the database!'), null);
-						return;
-					}
-
-					// Look through all events if id is valid
-					for (const event of events) {
-						const eventId = event['_id'];
-						if (plannerEvent._id === eventId.toHexString()) {
-							validEditId = eventId;
-							break;
-						}
-					}
-					insertEvent();
-				});
-			}
-
-			// Just skip to function if no edit id is provided
-			function insertEvent() {
-
-				// Generate an Object ID, or use the id that we are editting
-				const id = validEditId ? validEditId : new ObjectID();
-
-				const insertEvent = {
-					_id: id,
-					user: userDoc['_id'],
-					class: validClassId,
-					title: plannerEvent.title,
-					desc: plannerEvent.desc,
-					start: plannerEvent.start,
-					end: plannerEvent.end,
-					link: plannerEvent.link
-				};
-
-				// Insert event into database
-				plannerdata.update({ _id: id }, insertEvent, { upsert: true }, err => {
-					if (err) {
-						callback(new Error('There was a problem inserting the event into the database!'), null);
-						return;
-					}
-
-					callback(null, insertEvent);
-
-				});
-			}
-		});
-	});
+	return insertEvent;
 }
 
 /**
@@ -164,50 +134,30 @@ function upsertEvent(db, user, plannerEvent, callback) {
  * @param {Object} err - Null if success, error object if failure
  */
 
-function deleteEvent(db, user, eventId, callback) {
-
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
+async function deleteEvent(db, user, eventId) {
+	if (typeof db   !== 'object') throw new Error('Invalid database connection!');
+	if (typeof user !== 'string') throw new Error('Invalid user!');
 
 	// Try to create object id
 	let id;
 	try {
 		id = new ObjectID(eventId);
-	} catch(e) {
-		callback(new Error('Invalid event id!'));
-		return;
+	} catch (e) {
+		throw new Error('Invalid event id!');
 	}
 
 	// Make sure valid user and get user id
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('Invalid username!'));
-			return;
-		}
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('Invalid username!');
 
-		const plannerdata = db.collection('planner');
+	const plannerdata = db.collection('planner');
 
-		// Delete all events with specified id
-		plannerdata.deleteMany({ _id: id, user: userDoc['_id'] }, err => {
-			if (err) {
-				callback(new Error('There was a problem deleting the event from the database!'));
-				return;
-			}
-
-			callback(null);
-
-		});
-	});
+	// Delete all events with specified id
+	try {
+		await plannerdata.deleteMany({ _id: id, user: userDoc['_id'] });
+	} catch (e) {
+		throw new Error('There was a problem deleting the event from the database!');
+	}
 }
 
 /**
@@ -227,82 +177,50 @@ function deleteEvent(db, user, eventId, callback) {
  * @param {Array} events - Array of documents of events, with teacher documents injected. Null if error.
  */
 
-function getEvents(db, user, callback) {
-	if (typeof callback !== 'function') return;
+async function getEvents(db, user) {
+	if (typeof db   !== 'object') throw new Error('Invalid database connection!');
+	if (typeof user !== 'string') throw new Error('Invalid user!');
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
-	}
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('User doesn\'t exist!');
 
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('User doesn\'t exist!'), null);
-			return;
-		}
+	const plannerdata = db.collection('planner');
 
-		const plannerdata = db.collection('planner');
+	const [events, checkedEventsList, classes] = await Promise.all([
+		plannerdata.find({ user: userDoc['_id'] }).toArray().catch(() => {
+			throw new Error('There was a problem querying the database!');
+		}),
+		checkedEvents.list(db, user),
+		classes.get(db, user)
+	]);
 
-		asyncLib.parallel([
-			asyncCallback => {
-				plannerdata.find({ user: userDoc['_id'] }).toArray((err, events) => {
-					if (err) {
-						asyncCallback(new Error('There was a problem querying the database!'), null);
-					} else {
-						asyncCallback(null, events);
-					}
-				});
-			},
-			asyncCallback => {
-				checkedEvents.list(db, user, asyncCallback);
-			},
-			asyncCallback => {
-				classes.get(db, user, asyncCallback);
-			}
-		],
-		(err, data) => {
-			if (err) {
-				callback(err, null);
-				return;
-			}
+	// Format all events
+	for (const event of events) {
+		// Determine if event should be checked or not
+		event.checked = _.contains(checkedEventsList, event._id.toHexString());
 
-			const events = data[0];
-			const checkedEventsList = data[1];
-			const classes = data[2];
+		// Set user to username
+		event['user'] = userDoc['user'];
 
-			// Format all events
-			for (const event of events) {
-				// Determine if event should be checked or not
-				event.checked = _.contains(checkedEventsList, event._id.toHexString());
+		// Have a plaintext description too
+		event.descPlaintext = htmlParser.htmlToText(event.desc);
 
-				// Set user to username
-				event['user'] = userDoc['user'];
-
-				// Have a plaintext description too
-				event.descPlaintext = htmlParser.htmlToText(event.desc);
-
-				// Default class to null
-				const classId = event['class'];
-				event['class'] = null;
-				// Go through each class to search for matching id
-				if (classId !== null) {
-					const classIdHex = classId.toHexString();
-					for (const theClass of classes) {
-						if (classIdHex === theClass['_id'].toHexString()) {
-							event['class'] = theClass;
-							break;
-						}
-					}
+		// Default class to null
+		const classId = event['class'];
+		event['class'] = null;
+		// Go through each class to search for matching id
+		if (classId !== null) {
+			const classIdHex = classId.toHexString();
+			for (const theClass of classes) {
+				if (classIdHex === theClass['_id'].toHexString()) {
+					event['class'] = theClass;
+					break;
 				}
 			}
+		}
+	}
 
-			callback(null, events);
-		});
-	});
+	return events;
 }
 
 module.exports.upsert = upsertEvent;
