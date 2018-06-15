@@ -8,6 +8,8 @@ const config = require(__dirname + '/config.js');
 const DarkSky = require('forecast.io');
 const fs = require('fs-extra');
 
+const { promisify } = require('util');
+
 const JSONPath = __dirname + '/../api/weather.json';
 
 // Coordinates for MICDS
@@ -33,19 +35,15 @@ const options = {
  * @param {Object} err - Null if success, error object if failure.
  * @param {Object} weatherJSON - JSON of current weather. Null if error.
  */
-function getWeather() {
-	return new Promise(resolve => {
-		fs.readJSON(JSONPath, (err, weatherJSON) => {
-			// If there's an error, most likely there's no existing JSON
-			if (err) {
-				updateWeather();
-				resolve();
-				return;
-			}
+async function getWeather() {
+	let weatherJSON;
+	try {
+		weatherJSON = await promisify(fs.readJSON)(JSONPath);
+	} catch (e) {
+		weatherJSON = await updateWeather();
+	}
 
-			resolve(weatherJSON);
-		});
-	});
+	return weatherJSON;
 }
 
 
@@ -63,27 +61,28 @@ function getWeather() {
  * @param {Object} err - Null if success, error object if failure.
  * @param {Object} weatherJSON - JSON of current weather. Null if error.
  */
-function updateWeather() {
+async function updateWeather() {
 	// Create forecast object to query
 	const darksky = new DarkSky(options);
 
-	return new Promise((resolve, reject) => {
+	const data = await new Promise((resolve, reject) => {
 		darksky.get(latitude, longitude, (err, res, data) => {
 			if (err) {
 				reject(new Error('There was a problem fetching the weather data!'));
 				return;
 			}
 
-			fs.outputJSON(JSONPath, data, { spaces: '\t' }, err => {
-				if (err) {
-					reject(new Error('There was a problem saving the weather data!'));
-					return;
-				}
-
-				resolve(data);
-			});
+			resolve(data);
 		});
 	});
+
+	try {
+		await promisify(fs.outputJSON)(JSONPath, data, { spaces: '\t' });
+	} catch (e) {
+		throw new Error('There was a problem saving the weather data!');
+	}
+
+	return data;
 }
 
 module.exports.get    = getWeather;

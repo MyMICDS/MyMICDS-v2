@@ -11,6 +11,8 @@ const cryptoUtils = require(__dirname + '/cryptoUtils.js');
 const mail = require(__dirname + '/mail.js');
 const users = require(__dirname + '/users.js');
 
+const { promisify } = require('util');
+
 // Passwords not allowed
 const passwordBlacklist = [
 	'', // Empty string
@@ -46,16 +48,14 @@ async function passwordMatches(db, user, password) {
 
 	const hash = userDoc['password'];
 
-	return new Promise((resolve, reject) => {
-		bcrypt.compare(password, hash, (err, res) => {
-			if (err) {
-				reject(new Error('There was a problem comparing the passwords!'));
-				return;
-			}
+	let res;
+	try {
+		res = await promisify(bcrypt.compare)(password, hash);
+	} catch (e) {
+		throw new Error('There was a problem comparing the passwords!');
+	}
 
-			resolve({ matches: res, confirmed: !!userDoc['confirmed'] });
-		});
-	});
+	return { matches: res, confirmed: !!userDoc['confirmed'] };
 }
 
 /**
@@ -127,16 +127,12 @@ async function resetPasswordEmail(db, user) {
 	if (!isUser) throw new Error('User doesn\'t exist!');
 
 	// Generate password hash for confirmation link
-	const buf = await new Promise((resolve, reject) => {
-		crypto.randomBytes(16, (err, buf) => {
-			if (err) {
-				reject(new Error('There was a problem generating a random confirmation hash!'));
-				return;
-			}
-
-			resolve(buf);
-		});
-	});
+	let buf;
+	try {
+		buf = await promisify(crypto.randomBytes)(16);
+	} catch (e) {
+		throw new Error('There was a problem generating a random confirmation hash!');
+	}
 
 	const hash = buf.toString('hex');
 	const hashedHash = cryptoUtils.shaHash(hash);
@@ -162,16 +158,8 @@ async function resetPasswordEmail(db, user) {
 	};
 
 	// Send email confirmation
-	await new Promise((resolve, reject) => {
-		mail.sendHTML(email, 'Change Your Password', __dirname + '/../html/messages/password.html', emailReplace, err => {
-			if (err) {
-				reject(err);
-				return;
-			}
 
-			resolve();
-		});
-	});
+	return mail.sendHTML(email, 'Change Your Password', __dirname + '/../html/messages/password.html', emailReplace);
 }
 
 /**

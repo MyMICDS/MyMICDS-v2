@@ -13,6 +13,8 @@ const expressJWT = require('express-jwt');
 const jwt = require('jsonwebtoken');
 const users = require(__dirname + '/users.js');
 
+const { promisify } = require('util');
+
 /**
  * Express middleware to verify the JWT token (if any) and assigns it to req.user
  * @function authorize
@@ -232,8 +234,9 @@ async function generate(db, user, rememberMe, comment) {
 		comment = 'Unknown';
 	}
 
-	return new Promise((resolve, reject) => {
-		jwt.sign({
+	let token;
+	try {
+		token = await promisify(jwt.sign)({
 			user, scopes
 		}, config.jwt.secret, {
 			subject: 'MyMICDS API',
@@ -241,19 +244,20 @@ async function generate(db, user, rememberMe, comment) {
 			expiresIn: expiration,
 			audience: config.hostedOn,
 			issuer: config.hostedOn
-		}, (err, token) => {
-			if (err) {
-				reject(new Error('There was a problem generating a JWT!'));
-				return;
-			}
-
-			const jwtData = db.collection('jwtWhitelist');
-
-			jwtData.insertOne({ user: userDoc._id, jwt: token, comment })
-				.then(() => resolve(token))
-				.catch(() => reject(new Error('There was a problem registering the JWT!')));
 		});
-	});
+	} catch (e) {
+		throw new Error('There was a problem generating a JWT!');
+	}
+
+	const jwtData = db.collection('jwtWhitelist');
+
+	try {
+		await jwtData.insertOne({ user: userDoc._id, jwt: token, comment });
+	} catch (e) {
+		throw new Error('There was a problem registering the JWT!');
+	}
+
+	return token;
 }
 
 /**

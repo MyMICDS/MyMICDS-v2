@@ -13,6 +13,8 @@ const mail = require(__dirname + '/mail.js');
 const passwords = require(__dirname + '/passwords.js');
 const users = require(__dirname + '/users.js');
 
+const { promisify } = require('util');
+
 /**
  * Validates a user's credentials and updates the 'lastLogin' field.
  * @function login
@@ -113,31 +115,21 @@ async function register(db, user) {
 
 	const userdata = db.collection('users');
 
-	// Generate confirmation email hash
-	const confirmationBuf = await new Promise((resolve, reject) => {
-		crypto.randomBytes(16, (err, buf) => {
-			if (err) {
-				reject(new Error('There was a problem generating a random confirmation hash!'));
-				return;
-			}
-
-			resolve(buf);
-		});
-	});
+	let confirmationBuf;
+	try {
+		confirmationBuf = await promisify(crypto.randomBytes)(16);
+	} catch (e) {
+		throw new Error('There was a problem generating a random confirmation hash!');
+	}
 
 	const confirmationHash = confirmationBuf.toString('hex');
 
-	// Generate unsubscribe email hash
-	const unsubscribeBuf = await new Promise((resolve, reject) => {
-		crypto.randomBytes(16, (err, buf) => {
-			if (err) {
-				reject(new Error('There was a problem generating a random email hash!'));
-				return;
-			}
-
-			resolve(buf);
-		});
-	});
+	let unsubscribeBuf;
+	try {
+		unsubscribeBuf = await promisify(crypto.randomBytes)(16);
+	} catch (e) {
+		throw new Error('There was a problem generating a random email hash!');
+	}
 
 	const unsubscribeHash = unsubscribeBuf.toString('hex');
 
@@ -171,17 +163,7 @@ async function register(db, user) {
 	};
 
 	// Send confirmation email
-
-	await new Promise((resolve, reject) => {
-		mail.sendHTML(email, 'Confirm Your Account', __dirname + '/../html/messages/register.html', emailReplace, err => {
-			if (err) {
-				reject(err);
-				return;
-			}
-
-			resolve();
-		});
-	});
+	await mail.sendHTML(email, 'Confirm Your Account', __dirname + '/../html/messages/register.html', emailReplace);
 
 	// Let's celebrate and the message throughout the land!
 	try {

@@ -7,6 +7,8 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
+const { promisify } = require('util');
+
 /**
  * Hashes a given password
  * @function hashPassword
@@ -23,16 +25,12 @@ const crypto = require('crypto');
  * @param {string} hash - Encrypted password. Null if error.
  */
 
-function hashPassword(password) {
-	return new Promise((resolve, reject) => {
-		bcrypt.hash(password, 10, (err, hash) => {
-			if (err) {
-				reject(new Error('There was a problem hashing the password!'));
-				return;
-			}
-			resolve(hash);
-		});
-	});
+async function hashPassword(password) {
+	try {
+		return await promisify(bcrypt.hash)(password, 10);
+	} catch (e) {
+		throw new Error('There was a problem hashing the password!');
+	}
 }
 
 /**

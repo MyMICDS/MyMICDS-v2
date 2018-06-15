@@ -9,6 +9,8 @@ const config = require(__dirname + '/config.js');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 
+const { promisify } = require('util');
+
 /**
  * Sends mail to the desired user
  * @function send
@@ -29,29 +31,12 @@ const nodemailer = require('nodemailer');
  * @param {Object} err - Null if success, error object if failure
  */
 
-function send(users, message, callback, transporter) {
-
+async function send(users, message, transporter) {
 	// Validate inputs
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
-
-	if (typeof users !== 'string' && typeof users !== 'object') {
-		callback(new Error('Invalid user(s)!'));
-		return;
-	}
-	if (typeof message !== 'object') {
-		callback(new Error('Invalid message object!'));
-		return;
-	}
-	if (typeof message.subject !== 'string') {
-		callback(new Error('Invalid mail subject!'));
-		return;
-	}
-	if (typeof message.html !== 'string') {
-		callback(new Error('Invalid mail html!'));
-		return;
-	}
+	if (typeof users !== 'string' && typeof users !== 'object') throw new Error('Invalid user(s)!');
+	if (typeof message !== 'object') throw new Error('Invalid message object!');
+	if (typeof message.subject !== 'string') throw new Error('Invalid mail subject!');
+	if (typeof message.html !== 'string') throw new Error('Invalid mail html!');
 
 	if (typeof transporter !== 'object') {
 		transporter = nodemailer.createTransport(config.email.URI);
@@ -64,15 +49,11 @@ function send(users, message, callback, transporter) {
 		html: message.html,
 	};
 
-	transporter.sendMail(mailOptions, err => {
-		if (err) {
-			callback(new Error(`There was a problem sending the mail! (${err.message})`));
-			return;
-		}
-
-		callback(null);
-
-	});
+	try {
+		await promisify(transporter.sendMail)(mailOptions);
+	} catch (e) {
+		throw new Error(`There was a problem sending the mail! (${e.message})`);
+	}
 }
 
 /**
@@ -94,39 +75,28 @@ function send(users, message, callback, transporter) {
  * @param {Object} err - Null if successful, error object if failure
  */
 
-function sendHTML(users, subject, file, data, callback, transporter) {
+async function sendHTML(users, subject, file, data, transporter) {
+	if (typeof file !== 'string') throw new Error('Invalid mail file path!');
+	if (typeof data !== 'object') data = {};
 
-	// Validate inputs
-	if (typeof callback !== 'function') {
-		callback = () => {};
+	let body;
+	try {
+		body = await promisify(fs.readFile)(file, 'utf8');
+	} catch (e) {
+		throw new Error('There was a problem reading the HTML path for the mail!');
 	}
 
-	if (typeof file !== 'string') {
-		callback(new Error('Invalid mail file path!'));
-		return;
-	}
-	if (typeof data !== 'object') {
-		data = {};
+	// Replace JSON Key values with custom data
+	for (const key of Object.keys(data)) {
+		body = body.replace('{{' + key + '}}', data[key]);
 	}
 
-	fs.readFile(file, 'utf8', (err, body) => {
-		if (err) {
-			callback(new Error('There was a problem reading the HTML path for the mail!'));
-			return;
-		}
+	const mesesage = {
+		subject,
+		html: body,
+	};
 
-		// Replace JSON Key values with custom data
-		for (const key of Object.keys(data)) {
-			body = body.replace('{{' + key + '}}', data[key]);
-		}
-
-		const mesesage = {
-			subject,
-			html: body,
-		};
-
-		send(users, mesesage, callback, transporter);
-	});
+	return send(users, mesesage, transporter);
 }
 
 module.exports.send     = send;

@@ -136,36 +136,27 @@ function getSchoolYear(date) {
  * @param {Object} breaks - Object of breaks. Null if failure.
  */
 
-function getDaysOff(callback) {
-	if (typeof callback !== 'function') {
-		return;
+async function getDaysOff() {
+	const days = await portal.getDayRotations();
+
+	const dayPointer = moment().startOf('day').subtract(portal.portalRange.previous, 'months');
+	const dayMax = moment().startOf('day').add(portal.portalRange.upcoming, 'months');
+
+	// Array of moment.js objects which we have a day off
+	const daysOff = [];
+
+	// Go through all days
+	while (dayPointer.isSameOrBefore(dayMax)) {
+
+		// Check if there's no rotation day and that it isn't the weekend
+		if (!(days[dayPointer.year()] && days[dayPointer.year()][dayPointer.month() + 1] && days[dayPointer.year()][dayPointer.month() + 1][dayPointer.date()])) {
+			daysOff.push(dayPointer.clone());
+		}
+
+		dayPointer.add(1, 'day');
 	}
 
-	portal.getDayRotations((err, days) => {
-		if (err) {
-			callback(err, null);
-			return;
-		}
-
-		const dayPointer = moment().startOf('day').subtract(portal.portalRange.previous, 'months');
-		const dayMax = moment().startOf('day').add(portal.portalRange.upcoming, 'months');
-
-		// Array of moment.js objects which we have a day off
-		const daysOff = [];
-
-		// Go through all days
-		while (dayPointer.isSameOrBefore(dayMax)) {
-
-			// Check if there's no rotation day and that it isn't the weekend
-			if (!(days[dayPointer.year()] && days[dayPointer.year()][dayPointer.month() + 1] && days[dayPointer.year()][dayPointer.month() + 1][dayPointer.date()])) {
-				daysOff.push(dayPointer.clone());
-			}
-
-			dayPointer.add(1, 'day');
-		}
-
-		callback(null, daysOff);
-	});
+	return daysOff;
 }
 
 /**
@@ -182,97 +173,87 @@ function getDaysOff(callback) {
  * @param {Object} breaks - Object containing breaks. Null if error.
  */
 
-function getBreaks(callback) {
-	if (typeof callback !== 'function') {
-		return;
+async function getBreaks() {
+	// Get array of days that have no day rotation
+	const days = await getDaysOff();
+
+	// Group days off into arrays
+	let i = 0;
+	const groupedDays = days.reduce((stack, b) => {
+		const cur = stack[i];
+		const a = cur ? cur[cur.length - 1] : 0;
+
+		if (b - a > 86400000) {
+			i++;
+		}
+
+		if (!stack[i]) {
+			stack[i] = [];
+		}
+
+		stack[i].push(b);
+
+		return stack;
+	}, []);
+	// For some reason first element is always undefined or something
+	groupedDays.shift();
+
+	/*
+	 * Categorize breaks
+	 *
+	 * Weekends - Breaks that are exclusively Saturday and Sunday
+	 * Long Weekends - Breaks that include Saturday and Sunday. Can include weekdays but cannot be more than a week (7 days).
+	 * Vacations - Breaks that are more than a week (7 days).
+	 * Other - For some reason if there's a day off in the middle of the week.
+	 */
+
+	const categorizedBreaks = {
+		weekends: [],
+		longWeekends: [],
+		vacations: [],
+		other: []
+	};
+
+	for (const group of groupedDays) {
+		// Check if weekend
+		if (group.length === 2 && group[0].day() === 6 && group[1].day() === 0) {
+			categorizedBreaks.weekends.push({
+				start: group[0],
+				end: group[group.length - 1]
+			});
+			continue;
+		}
+
+		// Check if Saturday / Sunday are included in break
+		let weekendIncluded = false;
+		for (const dayObj of group) {
+			if (dayObj.day() === 6 || dayObj.day() === 0) {
+				weekendIncluded = true;
+			}
+		}
+
+		if (weekendIncluded) {
+			if (group.length < 7) {
+				categorizedBreaks.longWeekends.push({
+					start: group[0],
+					end: group[group.length - 1]
+				});
+			} else {
+				categorizedBreaks.vacations.push({
+					start: group[0],
+					end: group[group.length - 1]
+				});
+			}
+		} else {
+			categorizedBreaks.other.push({
+				start: group[0],
+				end: group[group.length - 1]
+			});
+		}
+
 	}
 
-	// Get array of days that have no day rotation
-	getDaysOff((err, days) => {
-		if (err) {
-			callback(err, null);
-			return;
-		}
-
-		// Group days off into arrays
-		let i = 0;
-		const groupedDays = days.reduce((stack, b) => {
-			const cur = stack[i];
-			const a = cur ? cur[cur.length - 1] : 0;
-
-			if (b - a > 86400000) {
-				i++;
-			}
-
-			if (!stack[i]) {
-				stack[i] = [];
-			}
-
-			stack[i].push(b);
-
-			return stack;
-
-		}, []);
-		// For some reason first element is always undefined or something
-		groupedDays.shift();
-
-		/*
-		 * Categorize breaks
-		 *
-		 * Weekends - Breaks that are exclusively Saturday and Sunday
-		 * Long Weekends - Breaks that include Saturday and Sunday. Can include weekdays but cannot be more than a week (7 days).
-		 * Vacations - Breaks that are more than a week (7 days).
-		 * Other - For some reason if there's a day off in the middle of the week.
-		 */
-
-		const categorizedBreaks = {
-			weekends: [],
-			longWeekends: [],
-			vacations: [],
-			other: []
-		};
-
-		for (const group of groupedDays) {
-			// Check if weekend
-			if (group.length === 2 && group[0].day() === 6 && group[1].day() === 0) {
-				categorizedBreaks.weekends.push({
-					start: group[0],
-					end: group[group.length - 1]
-				});
-				continue;
-			}
-
-			// Check if Saturday / Sunday are included in break
-			let weekendIncluded = false;
-			for (const dayObj of group) {
-				if (dayObj.day() === 6 || dayObj.day() === 0) {
-					weekendIncluded = true;
-				}
-			}
-
-			if (weekendIncluded) {
-				if (group.length < 7) {
-					categorizedBreaks.longWeekends.push({
-						start: group[0],
-						end: group[group.length - 1]
-					});
-				} else {
-					categorizedBreaks.vacations.push({
-						start: group[0],
-						end: group[group.length - 1]
-					});
-				}
-			} else {
-				categorizedBreaks.other.push({
-					start: group[0],
-					end: group[group.length - 1]
-				});
-			}
-
-		}
-
-		callback(null, categorizedBreaks);
-	});
+	return categorizedBreaks;
 }
 
 module.exports.thirdWednesdayAugust = thirdWednesdayAugust;

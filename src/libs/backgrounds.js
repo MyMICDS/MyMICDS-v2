@@ -13,6 +13,8 @@ const multer = require('multer');
 const path = require('path');
 const utils = require(__dirname + '/utils.js');
 
+const { promisify } = require('util');
+
 // Valid MIME Types for image backgrounds
 const validMimeTypes = {
 	'image/png': 'png',
@@ -120,60 +122,47 @@ function uploadBackground() {
  * @param {string} extension - String containing extension of user background. Contains the dot (.) at the beginning of the extension. Null if error or user doesn't have background.
  */
 
-function getCurrentFiles(user, callback) {
-	if (typeof callback !== 'function') return;
+async function getCurrentFiles(user) {
+	if (typeof user !== 'string' || !utils.validFilename(user)) throw new Error('Invalid username!');
 
-	if (typeof user !== 'string' || !utils.validFilename(user)) {
-		callback(new Error('Invalid username!'), null);
-		return;
+	let userDirs;
+	try {
+		userDirs = await promisify(fs.readdir)(userBackgroundsDir);
+	} catch (e) {
+		throw new Error('There was a problem reading the user backgrounds directory!');
 	}
 
-	fs.readdir(userBackgroundsDir, (err, userDirs) => {
-		if (err) {
-			callback(new Error('There was a problem reading the user backgrounds directory!'), null, null);
-			return;
+	// Look through all the directories
+	let userDir = null;
+	for (const _dir of userDirs) {
+		const dir = path.parse(_dir);
+		const dirname = dir.name;
+		const dirnameSplit = dirname.split('-');
+
+		// Check directory isn't deleted
+		if (dirnameSplit[0] === 'deleted') {
+			continue;
 		}
 
-		// Look through all the directories
-		let userDir = null;
-		for (const _dir of userDirs) {
-			const dir = path.parse(_dir);
-			const dirname = dir.name;
-			const dirnameSplit = dirname.split('-');
+		// Get rid of timestamp and get name
+		dirnameSplit.pop();
 
-			// Check directory isn't deleted
-			if (dirnameSplit[0] === 'deleted') {
-				continue;
-			}
+		// Directory owner's username (which may have dashes in it)
+		const directoryOwner = dirnameSplit.join('-');
 
-			// Get rid of timestamp and get name
-			dirnameSplit.pop();
-
-			// Directory owner's username (which may have dashes in it)
-			const directoryOwner = dirnameSplit.join('-');
-
-			// Check if background belongs to user
-			if (directoryOwner === user) {
-				userDir = dirname;
-				break;
-			}
+		// Check if background belongs to user
+		if (directoryOwner === user) {
+			userDir = dirname;
+			break;
 		}
+	}
 
-		// User doesn't have any background
-		if (userDir === null) {
-			callback(null, null, null);
-			return;
-		}
+	// User doesn't have any background
+	if (userDir === null) return { dirname: null, extension: null };
 
-		getDirExtension(userDir, (err, extension) => {
-			if (err) {
-				callback(err, null, null);
-				return;
-			}
+	const extension = await getDirExtension(userDir);
 
-			callback(null, userDir, extension);
-		});
-	});
+	return { dirname: userDir, extension };
 }
 
 /**
@@ -191,41 +180,23 @@ function getCurrentFiles(user, callback) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-function deleteBackground(user, callback) {
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
-
-	if (typeof user !== 'string' || !utils.validFilename(user)) {
-		callback(new Error('Invalid user!'));
-		return;
-	}
+async function deleteBackground(user) {
+	if (typeof user !== 'string' || !utils.validFilename(user)) throw new Error('Invalid username!');
 
 	// Find out user's current directory
-	getCurrentFiles(user, (err, dirname, extension) => {
-		if (err) {
-			callback(err);
-			return;
-		}
-		// Check if no existing background
-		if (dirname === null || extension === null) {
-			callback(null);
-			return;
-		}
+	const { dirname, extension } = await getCurrentFiles(user);
 
-		const currentPath = userBackgroundsDir + '/' + dirname;
-		const deletedPath = userBackgroundsDir + '/deleted-' + dirname;
+	// Check if no existing background
+	if (dirname === null || extension === null) return;
 
-		fs.rename(currentPath, deletedPath, err => {
-			if (err) {
-				callback(new Error('There was a problem deleting the directory!'));
-				return;
-			}
+	const currentPath = userBackgroundsDir + '/' + dirname;
+	const deletedPath = userBackgroundsDir + '/deleted-' + dirname;
 
-			callback(null);
-
-		});
-	});
+	try {
+		await promisify(fs.rename)(currentPath, deletedPath);
+	} catch (e) {
+		throw new Error('There was a problem deleting the directory!');
+	}
 }
 
 /**
@@ -245,32 +216,21 @@ function deleteBackground(user, callback) {
  * @param {Boolean} hasDefault - Whether or not user has default background.
  */
 
-function getBackground(user, callback) {
-	if (typeof callback !== 'function') return;
-	if (typeof user !== 'string' || !utils.validFilename(user)) {
-		callback(null, defaultVariants, true);
-		return;
-	}
+async function getBackground(user) {
+	if (typeof user !== 'string' || !utils.validFilename(user))	return { variants: defaultVariants, hasDefault: true };
 
 	// Get user's extension
-	getCurrentFiles(user, (err, dirname, extension) => {
-		if (err) {
-			callback(err, defaultVariants, true);
-			return;
-		}
-		// Fallback to default background if no custom extension
-		if (dirname === null || extension === null) {
-			callback(null, defaultVariants, true);
-			return;
-		}
+	const { dirname, extension } = await getCurrentFiles(user);
 
-		const backgroundURLs = {
-			normal: userBackgroundUrl + '/' + dirname + '/normal' + extension,
-			blur: userBackgroundUrl + '/' + dirname + '/blur' + extension
-		};
+	// Fallback to default background if no custom extension
+	if (dirname === null || extension === null) return { variants: defaultVariants, hasDefault: true };
 
-		callback(null, backgroundURLs, false);
-	});
+	const backgroundURLs = {
+		normal: userBackgroundUrl + '/' + dirname + '/normal' + extension,
+		blur: userBackgroundUrl + '/' + dirname + '/blur' + extension
+	};
+
+	return { variants: backgroundURLs, hasDefault: false };
 }
 
 /**
@@ -289,101 +249,85 @@ function getBackground(user, callback) {
  * @param {Object} backgrounds - Object of all users and backgrounds
  */
 
-function getAllBackgrounds(db, callback) {
-	if (typeof callback !== 'function') return;
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
+async function getAllBackgrounds(db) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+
+	let userDirs;
+	try {
+		userDirs = await promisify(fs.readdir)(userBackgroundsDir);
+	} catch (e) {
+		throw new Error('There was a problem reading the user backgrounds directory!');
 	}
 
-	fs.readdir(userBackgroundsDir, (err, userDirs) => {
-		if (err) {
-			callback(new Error('There was a problem reading the user backgrounds directory!'), null, null);
-			return;
-		}
+	const userdata = db.collection('users');
 
-		const userdata = db.collection('users');
-		userdata.find({ confirmed: true }).toArray((err, users) => {
-			if (err) {
-				callback(new Error('There was a problem querying the database!'), null);
-				return;
+	let users;
+	try {
+		users = await userdata.find({ confirmed: true }).toArray();
+	} catch (e) {
+		throw new Error('There was a problem querying the database!');
+	}
+
+	const remainingUsers = users.map(u => u.user);
+	const result = {};
+
+	for (const userDir of userDirs) {
+		const dirname = path.parse(userDir).name;
+		const dirnameSplit = dirname.split('-');
+
+		if (dirnameSplit[0] === 'deleted' || dirnameSplit[0] === 'default') continue;
+
+		// Remove timestamp
+		dirnameSplit.pop();
+
+		// User might have dashes in their name (i.e. bhollander-bodie)
+		const user = dirnameSplit.join('-');
+
+		const extension = await getDirExtension(dirname);
+
+		result[user] = {
+			hasDefault: false,
+			variants: {
+				normal: userBackgroundUrl + '/' + dirname + '/normal' + extension,
+				blur: userBackgroundUrl + '/' + dirname + '/blur' + extension
 			}
+		};
+		// Remove user from list of people that don't have backgrounds
+		remainingUsers.splice(remainingUsers.indexOf(user), 1);
+	}
 
-			const remainingUsers = users.map(u => u.user);
-			const result = {};
+	for (const user of remainingUsers) {
+		result[user] = {
+			hasDefault: true,
+			variants: defaultVariants
+		};
+	}
 
-			function handleDir(i) {
-				if (i < userDirs.length) {
-					const dirname = path.parse(userDirs[i]).name;
-					const dirnameSplit = dirname.split('-');
-
-					if (dirnameSplit[0] === 'deleted' || dirnameSplit[0] === 'default') {
-						handleDir(++i);
-						return;
-					}
-
-					// Remove timestamp
-					dirnameSplit.pop();
-
-					// User might have dashes in their name (i.e. bhollander-bodie)
-					const user = dirnameSplit.join('-');
-
-					getDirExtension(dirname, (err, extension) => {
-						if (err) {
-							callback(err, null);
-							return;
-						}
-
-						result[user] = {
-							hasDefault: false,
-							variants: {
-								normal: userBackgroundUrl + '/' + dirname + '/normal' + extension,
-								blur: userBackgroundUrl + '/' + dirname + '/blur' + extension
-							}
-						};
-						// Remove user from list of people that don't have backgrounds
-						remainingUsers.splice(remainingUsers.indexOf(user), 1);
-
-						handleDir(++i);
-					});
-				} else {
-					for (const user of remainingUsers) {
-						result[user] = {
-							hasDefault: true,
-							variants: defaultVariants
-						};
-					}
-					callback(null, result);
-				}
-			}
-			handleDir(0);
-		});
-	});
+	return result;
 }
 
-function getDirExtension(userDir, callback) {
-	fs.readdir(userBackgroundsDir + '/' + userDir, (err, userImages) => {
-		if (err) {
-			callback(new Error('There was a problem reading the user\'s background directory!'), null);
-			return;
+async function getDirExtension(userDir) {
+	let userImages;
+	try {
+		userImages = await promisify(fs.readdir)(userBackgroundsDir + '/' + userDir);
+	} catch (e) {
+		throw new Error('There was a problem reading the user\'s background directory!');
+	}
+
+	// Loop through all valid files until there's either a .png or .jpg extention
+	let userExtension = null;
+	for (const _file of userImages) {
+		const file = path.parse(_file);
+		const extension = file.ext;
+
+		// If valid extension, just break out of loop and return that
+		if (_.contains(validExtensions, extension)) {
+			userExtension = extension;
+			break;
 		}
+	}
 
-		// Loop through all valid files until there's either a .png or .jpg extention
-		let userExtension = null;
-		for (const _file of userImages) {
-			const file = path.parse(_file);
-			const extension = file.ext;
-
-			// If valid extension, just break out of loop and return that
-			if (_.contains(validExtensions, extension)) {
-				userExtension = extension;
-				break;
-			}
-		}
-
-		callback(null, userExtension);
-
-	});
+	return userExtension;
 }
 
 /**
@@ -403,38 +347,25 @@ function getDirExtension(userDir, callback) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-function addBlur(fromPath, toPath, blurRadius, callback) {
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
-
-	if (typeof fromPath !== 'string') {
-		callback(new Error('Invalid path to original image!'));
-		return;
-	}
-	if (typeof toPath !== 'string') {
-		callback(new Error('Invalid path to blurred image!'));
-		return;
-	}
+async function addBlur(fromPath, toPath, blurRadius) {
+	if (typeof fromPath !== 'string') throw new Error('Invalid path to original image!');
+	if (typeof toPath !== 'string') throw new Error('Invalid path to blurred image!');
 	if (typeof blurRadius !== 'number') {
 		blurRadius = defaultBlurRadius;
 	}
 
-	Jimp.read(fromPath, (err, image) => {
-		if (err) {
-			callback(new Error('There was a problem reading the image!'));
-			return;
-		}
+	let image;
+	try {
+		image = await Jimp.read(fromPath);
+	} catch (e) {
+		throw new Error('There was a problem reading the image!');
+	}
 
-		image.blur(blurRadius).write(toPath, err => {
-			if (err) {
-				callback(new Error('There was a problem saving the image!'));
-				return;
-			}
-
-			callback(null);
-		});
-	});
+	try {
+		await promisify(image.blur(blurRadius).write)(toPath);
+	} catch (e) {
+		throw new Error('There was a problem saving the image!');
+	}
 }
 
 /**
@@ -452,39 +383,18 @@ function addBlur(fromPath, toPath, blurRadius, callback) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-function blurUser(user, callback) {
-	if (typeof callback !== 'function') {
-		callback = () => {};
-	}
+async function blurUser(user) {
+	if (typeof user !== 'string' || !utils.validFilename(user)) throw new Error('Invalid username!');
 
-	if (typeof user !== 'string' || !utils.validFilename(user)) {
-		callback(new Error('Invalid username!'));
-		return;
-	}
+	const { dirname, extension } = await getCurrentFiles(user);
 
-	getCurrentFiles(user, (err, dirname, extension) => {
-		if (err) {
-			callback(err);
-			return;
-		}
-		if (dirname === null || extension === null) {
-			callback(null);
-			return;
-		}
+	if (dirname === null || extension === null) return;
 
-		const userDir = userBackgroundsDir + '/' + dirname;
-		const fromPath = userDir + '/normal' + extension;
-		const toPath = userDir + '/blur' + extension;
+	const userDir = userBackgroundsDir + '/' + dirname;
+	const fromPath = userDir + '/normal' + extension;
+	const toPath = userDir + '/blur' + extension;
 
-		addBlur(fromPath, toPath, defaultBlurRadius, err => {
-			if (err) {
-				callback(err);
-				return;
-			}
-
-			callback(null);
-		});
-	});
+	return addBlur(fromPath, toPath, defaultBlurRadius);
 }
 
 module.exports.get    	= getBackground;

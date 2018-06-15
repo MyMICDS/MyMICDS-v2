@@ -64,16 +64,7 @@ async function sendAdminEmail(db, message) {
 	if (admins.length < 1) return;
 
 	// Send email
-	return new Promise((resolve, reject) => {
-		mail.send(admins.map(a => a.user + '@micds.org'), message, err => {
-			if (err) {
-				reject(err);
-				return;
-			}
-
-			resolve();
-		});
-	});
+	return mail.send(admins.map(a => a.user + '@micds.org'), message);
 }
 
 module.exports.get = getAdmins;
