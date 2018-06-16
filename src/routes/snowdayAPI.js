@@ -7,10 +7,13 @@ const snowdayCalculator = require(__dirname + '/../libs/snowdayCalculator.js');
 
 module.exports = (app, db) => {
 
-	app.get('/snowday', (req, res) => {
-		snowdayCalculator.calculate(db, (err, data) => {
-			api.respond(res, err, { data });
-		});
+	app.get('/snowday', async (req, res) => {
+		try {
+			const data = await snowdayCalculator.calculate(db);
+			api.success(res, { data });
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
 };

@@ -10,12 +10,12 @@ module.exports = (app, db, socketIO) => {
 
 	app.get('/user/grad-year-to-grade', (req, res) => {
 		const grade = users.gradYearToGrade(parseInt(req.query.year));
-		api.respond(res, null, { grade });
+		api.success(res, { grade });
 	});
 
 	app.get('/user/grade-to-grad-year', (req, res) => {
 		const gradYear = users.gradeToGradYear(parseInt(req.query.grade));
-		api.respond(res, null, { year: gradYear });
+		api.success(res, { year: gradYear });
 	});
 
 	app.get('/user/grade-range', (req, res) => {
@@ -28,16 +28,19 @@ module.exports = (app, db, socketIO) => {
 		}
 		// Put most recent years first
 		gradYears.reverse();
-		api.respond(res, null, { gradYears });
+		api.success(res, { gradYears });
 	});
 
-	app.get('/user/info', jwt.requireLoggedIn, (req, res) => {
-		users.getInfo(db, req.apiUser, true, (err, userInfo) => {
-			api.respond(res, err, { user: userInfo });
-		});
+	app.get('/user/info', jwt.requireLoggedIn, async (req, res) => {
+		try {
+			const userInfo = await users.getInfo(db, req.apiUser, true);
+			api.success(res, { user: userInfo });
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.patch('/user/info', jwt.requireLoggedIn, (req, res) => {
+	app.patch('/user/info', jwt.requireLoggedIn, async (req, res) => {
 		const info = {};
 
 		if (typeof req.body.firstName === 'string' && req.body.firstName !== '') {
@@ -53,12 +56,13 @@ module.exports = (app, db, socketIO) => {
 			info.gradYear = parseInt(req.body.gradYear);
 		}
 
-		users.changeInfo(db, req.apiUser, info, err => {
-			if (!err) {
-				socketIO.user(req.apiUser, 'user', 'change-info', info);
-			}
-			api.respond(res, err);
-		});
+		try {
+			await users.changeInfo(db, req.apiUser, info);
+			socketIO.user(req.apiUser, 'user', 'change-info', info);
+			api.success(res);
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
 };

@@ -9,9 +9,9 @@ const passwords = require(__dirname + '/../libs/passwords.js');
 
 module.exports = (app, db) => {
 
-	app.post('/auth/login', (req, res) => {
+	app.post('/auth/login', async (req, res) => {
 		if (req.user) {
-			api.respond(res, null, {
+			api.success(res, {
 				success: true,
 				message: 'You\'re already logged in, silly!',
 				jwt    : null
@@ -21,25 +21,30 @@ module.exports = (app, db) => {
 
 		const rememberMe = typeof req.body.remember !== 'undefined';
 
-		auth.login(db, req.body.user, req.body.password, rememberMe, req.body.comment, (err, success, message, jwt) => {
-			api.respond(res, err, { success, message, jwt });
-		});
+		try {
+			const responseObj = await auth.login(db, req.body.user, req.body.password, rememberMe, req.body.comment);
+			api.success(res, responseObj);
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.post('/auth/logout', (req, res) => {
+	app.post('/auth/logout', async (req, res) => {
 		let token = req.get('Authorization');
 		// If there's a token, we need to get rid of the 'Bearer ' at the beginning
 		if (token) {
 			token = token.slice(7);
 		}
 
-		jwt.revoke(db, req.user, token, err => {
-			api.respond(res, err);
-		});
+		try {
+			await jwt.revoke(db, req.user, token);
+			api.success(res);
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.post('/auth/register', (req, res) => {
-
+	app.post('/auth/register', async (req, res) => {
 		const user = {
 			user: req.body.user,
 			password: req.body.password,
@@ -52,50 +57,64 @@ module.exports = (app, db) => {
 			user.gradYear = null;
 		}
 
-		auth.register(db, user, err => {
-			api.respond(res, err);
-		});
+		try {
+			await auth.register(db, user);
+			api.success(res);
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.post('/auth/confirm', (req, res) => {
-		auth.confirm(db, req.body.user, req.body.hash, err => {
-			api.respond(res, err);
-		});
+	app.post('/auth/confirm', async (req, res) => {
+		try {
+			await auth.confirm(db, req.body.user, req.body.hash);
+			api.success(res);
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.put('/auth/change-password', jwt.requireLoggedIn, (req, res) => {
-		passwords.changePassword(db, req.apiUser, req.body.oldPassword, req.body.newPassword, err => {
-			api.respond(res, err);
-		});
+	app.put('/auth/change-password', jwt.requireLoggedIn, async (req, res) => {
+		try {
+			await passwords.changePassword(db, req.apiUser, req.body.oldPassword, req.body.newPassword);
+			api.success(res);
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.post('/auth/forgot-password', (req, res) => {
+	app.post('/auth/forgot-password', async (req, res) => {
 		if (req.apiUser) {
-			api.respond(res, 'You are already logged in, silly!');
+			api.error(res, 'You are already logged in, silly!');
 			return;
 		}
-		passwords.resetPasswordEmail(db, req.body.user, err => {
-			api.respond(res, err);
-		});
+		try {
+			await passwords.resetPasswordEmail(db, req.body.user);
+			api.success(res);
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.put('/auth/reset-password', (req, res) => {
+	app.put('/auth/reset-password', async (req, res) => {
 		if (req.apiUser) {
-			api.respond(res, 'You are already logged in, silly!');
+			api.error(res, 'You are already logged in, silly!');
 			return;
 		}
-		passwords.resetPassword(db, req.body.user, req.body.password, req.body.hash, err => {
-			api.respond(res, err);
-		});
+		try {
+			await passwords.resetPassword(db, req.body.user, req.body.password, req.body.hash);
+			api.success(res);
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
 	app.get('/auth/verify', (req, res) => {
 		if (!req.user.user) {
-			res.json({ error: 'JWT not provided!' });
+			api.error(res, 'JWT not provided!');
 			return;
 		}
-		res.json({
-			error: null,
+		api.success(res, {
 			payload: req.user
 		});
 	});

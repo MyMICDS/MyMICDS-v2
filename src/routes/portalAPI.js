@@ -7,31 +7,42 @@ const jwt = require(__dirname + '/../libs/jwt.js');
 const portal = require(__dirname + '/../libs/portal.js');
 
 module.exports = (app, db, socketIO) => {
-	app.post('/portal/test', (req, res) => {
-		portal.verifyURL(req.body.url, (err, isValid, url) => {
-			api.respond(res, err, { valid: isValid, url });
-		});
+
+	app.post('/portal/test', async (req, res) => {
+		try {
+			const { isValid, url } = await portal.verifyURL(req.body.url);
+			api.success(res, { valid: isValid, url });
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.put('/portal/url', jwt.requireLoggedIn, (req, res) => {
-		portal.setURL(db, req.apiUser, req.body.url, (err, isValid, validURL) => {
-			if (!err) {
-				socketIO.user(req.apiUser, 'portal', 'set-url', validURL);
-			}
-			api.respond(res, err, { valid: isValid, url: validURL });
-		});
+	app.put('/portal/url', jwt.requireLoggedIn, async (req, res) => {
+		try {
+			const { isValid, validURL } = await portal.setURL(db, req.apiUser, req.body.url);
+			socketIO.user(req.apiUser, 'portal', 'set-url', validURL);
+			api.success(res, { valid: isValid, url: validURL });
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.get('/portal/classes', jwt.requireLoggedIn, (req, res) => {
-		portal.getClasses(db, req.apiUser, (err, hasURL, classes) => {
-			api.respond(res, err, { hasURL, classes });
-		});
+	app.get('/portal/classes', jwt.requireLoggedIn, async (req, res) => {
+		try {
+			const responseObj = await portal.getClasses(db, req.apiUser);
+			api.success(res, responseObj);
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.get('/portal/day-rotation', (req, res) => {
-		portal.getDayRotations((err, days) => {
-			api.respond(res, err, { days });
-		});
+	app.get('/portal/day-rotation', async (req, res) => {
+		try {
+			const days = await portal.getDayRotations();
+			api.success(res, { days });
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
 };

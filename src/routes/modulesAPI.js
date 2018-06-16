@@ -7,30 +7,37 @@ const modules = require(__dirname + '/../libs/modules.js');
 
 module.exports = (app, db) => {
 
-	app.get('/modules', (req, res) => {
-		modules.get(db, req.apiUser, (err, modules) => {
-			api.respond(res, err, { modules });
-		});
+	app.get('/modules', async (req, res) => {
+		try {
+			const modulesResult = await modules.get(db, req.apiUser);
+			api.success(res, { modules: modulesResult });
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.get('/modules/all', (req, res) => {
-		modules.getAll(db, (err, modules) => {
-			api.respond(res, err, { modules });
-		});
+	app.get('/modules/all', async (req, res) => {
+		try {
+			const modulesResult = await modules.getAll(db);
+			api.success(res, { modules: modulesResult });
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.put('/modules', (req, res) => {
-		modules.upsert(db, req.apiUser, req.body.modules, err => {
-			if (err) {
-				api.respond(res, err);
-				return;
-			}
+	app.put('/modules', async (req, res) => {
+		try {
+			await modules.upsert(db, req.apiUser, req.body.modules);
+		} catch (err) {
+			api.error(res, err);
+		}
 
-			// Return new modules + ids
-			modules.get(db, req.apiUser, (err, modules) => {
-				api.respond(res, err, { modules });
-			});
-		});
+		try {
+			const modulesResult = await modules.get(db, req.apiUser);
+			api.success(res, { modules: modulesResult });
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
 };

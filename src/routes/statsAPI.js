@@ -7,10 +7,13 @@ const stats = require(__dirname + '/../libs/stats.js');
 
 module.exports = (app, db) => {
 
-	app.get('/stats', (req, res) => {
-		stats.get(db, (err, statsObj) => {
-			api.respond(res, err, { stats: statsObj });
-		});
+	app.get('/stats', async (req, res) => {
+		try {
+			const statsObj = await stats.get(db);
+			api.success(res, { stats: statsObj });
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
 };

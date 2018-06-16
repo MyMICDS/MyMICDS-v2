@@ -8,17 +8,20 @@ const dates = require(__dirname + '/../libs/dates.js');
 module.exports = app => {
 
 	app.get('/dates/school-starts', (req, res) => {
-		api.respond(res, null, { date: dates.schoolEnds() });
+		api.success(res, { date: dates.schoolEnds() });
 	});
 
 	app.get('/dates/school-ends', (req, res) => {
-		api.respond(res, null, { date: dates.schoolEnds() });
+		api.success(res, { date: dates.schoolEnds() });
 	});
 
-	app.get('/dates/breaks', (req, res) => {
-		dates.getBreaks((err, breaks) => {
-			api.respond(res, err, { breaks });
-		});
+	app.get('/dates/breaks', async (req, res) => {
+		try {
+			const breaks = await dates.getBreaks();
+			api.success(res, { breaks });
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
 };

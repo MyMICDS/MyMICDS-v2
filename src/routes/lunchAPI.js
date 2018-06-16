@@ -7,7 +7,7 @@ const lunch = require(__dirname + '/../libs/lunch.js');
 
 module.exports = (app, db) => {
 
-	app.get('/lunch', (req, res) => {
+	app.get('/lunch', async (req, res) => {
 
 		const current = new Date();
 
@@ -17,9 +17,12 @@ module.exports = (app, db) => {
 
 		const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
-		lunch.get(db, date, (err, lunchJSON) => {
-			api.respond(res, err, { lunch: lunchJSON });
-		});
+		try {
+			const lunchJSON = await lunch.get(db, date);
+			api.success(res, { lunch: lunchJSON });
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
 };

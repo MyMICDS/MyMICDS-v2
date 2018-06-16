@@ -32,7 +32,7 @@ const { promisify } = require('util');
  * @callback loginCallback
  *
  * @param {Object} err - Null if successful, error object if failure.
- * @param {Boolean} response - True if credentials match in database, false if not. Null if error.
+ * @param {Boolean} success - True if credentials match in database, false if not. Null if error.
  * @param {string} message - Message containing details for humans. Null if error.
  * @param {string} jwt - JSON Web Token for user to make API calls with. Null if error, login invalid, or rememberMe is false.
  */
@@ -45,12 +45,12 @@ async function login(db, user, password, rememberMe, comment) {
 
 	user = user.toLowerCase();
 
-	const { matches: passwordMatches, confirmed } = await passwords.passwordMatches(db, user, password);
+	const { matches, confirmed } = await passwords.passwordMatches(db, user, password);
 	if (!confirmed) {
-		return { response: false, message: 'Account is not confirmed! Please check your email or register under the same username to resend the email.', jwt: null };
+		return { success: false, message: 'Account is not confirmed! Please check your email or register under the same username to resend the email.', jwt: null };
 	}
-	if (!passwordMatches) {
-		return { response: false, message: 'Invalid username / password!', jwt: null };
+	if (!matches) {
+		return { success: false, message: 'Invalid username / password!', jwt: null };
 	}
 
 	// Update lastLogin in database
@@ -61,7 +61,7 @@ async function login(db, user, password, rememberMe, comment) {
 	// Now we need to create a JWT
 	const jwt = await jwt.generate(db, user, rememberMe, comment);
 
-	return { response: true, message: 'Success!', jwt };
+	return { success: true, message: 'Success!', jwt };
 }
 
 /**

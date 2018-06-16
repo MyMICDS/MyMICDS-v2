@@ -7,7 +7,7 @@
 let config;
 try {
 	config = require(__dirname + '/libs/config.js');
-} catch(e) {
+} catch (e) {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }
 
@@ -63,8 +63,7 @@ const socketIO = require(__dirname + '/libs/socket.io.js')(io);
 require(__dirname + '/routes/assets.js')(app, express);
 
 // Connect to database
-MongoClient.connect(config.mongodb.uri, (err, db) => {
-	if(err) throw err;
+MongoClient.connect(config.mongodb.uri).then(db => {
 
 	// Enable JWT authentication middleware
 	app.use(jwt.authorize(db));
@@ -98,6 +97,8 @@ MongoClient.connect(config.mongodb.uri, (err, db) => {
 	require(__dirname + '/routes/userAPI.js')(app, db, socketIO);
 	require(__dirname + '/routes/weatherAPI.js')(app, db, socketIO);
 	require(__dirname + '/routes/stickynotesAPI.js')(app, db);
+}).catch(err => {
+	throw err;
 });
 
 app.get('/', (req, res) => {

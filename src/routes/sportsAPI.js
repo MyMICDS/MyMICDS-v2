@@ -7,10 +7,13 @@ const sports = require(__dirname + '/../libs/sports.js');
 
 module.exports = app => {
 
-	app.get('/sports', (req, res) => {
-		sports.scores((err, scores) => {
-			api.respond(res, err, { scores });
-		});
+	app.get('/sports', async (req, res) => {
+		try {
+			const scores = await sports.scores();
+			api.success(res, { scores });
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
 };

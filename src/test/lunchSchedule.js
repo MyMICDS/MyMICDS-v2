@@ -3,7 +3,7 @@
 let config;
 try {
 	config = require(__dirname + '/../libs/config.js');
-} catch(e) {
+} catch (e) {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }
 
@@ -11,31 +11,18 @@ const moment = require('moment');
 const MongoClient = require('mongodb').MongoClient;
 const schedule = require(__dirname + '/../libs/schedule.js');
 
+const times = 7;
+const user = 'alhuber';
+const date = moment().add(5, 'days');
 
-let times = 7;
+MongoClient.connect(config.mongodb.uri).then(async db => {
+	for (let i = 0; i < times; i++) {
+		const { schedule: scheduleObj } = await schedule.get(db, user, date);
 
-MongoClient.connect(config.mongodb.uri, (err, db) => {
-	if (err) throw err;
+		const names = scheduleObj.classes.map(b => b.class.name);
 
-	function testSchedule(date, user) {
-		if (times-- > 0) {
-			date = date || moment().add(5, 'days');
-			user = user || 'alhuber';
-			schedule.get(db, user, date, (err, hasURL, schedule) => {
-				if (err) throw err;
-				// console.log(schedule);
-
-				const names = [];
-				schedule.classes.forEach(block => {
-					names.push(block.class.name);
-				});
-
-				console.log(names);
-
-				// testSchedule(date.add(1, 'day'));
-				testSchedule(date, 'mgira');
-			});
-		}
+		console.log(names);
 	}
-	testSchedule();
+}).catch(err => {
+	throw err;
 });

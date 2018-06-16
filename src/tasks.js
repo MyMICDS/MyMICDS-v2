@@ -7,7 +7,7 @@
 let config;
 try {
 	config = require(__dirname + '/libs/config.js');
-} catch(e) {
+} catch (e) {
 	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
 }
 
@@ -20,159 +20,140 @@ const weather       = require(__dirname + '/libs/weather.js');
 
 // Only run these intervals in production so we don't waste our API calls
 if (config.production) {
-
 	console.log('Starting tasks server!');
 
-	MongoClient.connect(config.mongodb.uri, (err, db) => {
-		if (err) throw err;
-
+	MongoClient.connect(config.mongodb.uri).then(db => {
 		const fiveMinuteInterval = later.parse.text('every 5 min');
 
 		/*
 		 * Get Daily Bulletin every 5 minutes
 		 */
 
-		later.setInterval(() => {
+		later.setInterval(async () => {
 			console.log(`[${new Date()}] Check for latest Daily Bulletin`);
 
-			dailyBulletin.queryLatest(err => {
-				if (err) {
-					console.log(`[${new Date()}] Error occured for Daily Bulletin! (${err})`);
+			try {
+				await dailyBulletin.queryLatest();
 
-					// Alert admins if there's an error querying the Daily Bulletin
-					admins.sendEmail(db, {
+				console.log(`[${new Date()}] Successfully got latest Daily Bulletin!`);
+			} catch (err) {
+				console.log(`[${new Date()}] Error occured for Daily Bulletin! (${err})`);
+
+				// Alert admins if there's an error querying the Daily Bulletin
+				try {
+					await admins.sendEmail(db, {
 						subject: 'Error Notification - Daily Bulletin Retrieval',
 						html: 'There was an error when retrieving the daily bulletin.<br>Error message: ' + err
-					}, err => {
-						if (err) {
-							console.log(`[${new Date()}] Error occured when sending admin error notifications! (${err})`);
-							return;
-						}
-						console.log(`[${new Date()}] Alerted admins of error! (${err})`);
 					});
-				} else {
-					console.log(`[${new Date()}] Successfully got latest Daily Bulletin!`);
-				}
-			});
 
+					console.log(`[${new Date()}] Alerted admins of error! (${err})`);
+				} catch (err) {
+					console.log(`[${new Date()}] Error occured when sending admin error notifications! (${err})`);
+				}
+			}
 		}, fiveMinuteInterval);
 
 		/*
 		 * Get new weather info every 5 minutes
 		 */
 
-		later.setInterval(() => {
+		later.setInterval(async () => {
 			console.log(`[${new Date()}] Update Weather`);
 
-			weather.update(err => {
-				if (err) {
-					console.log(`[${new Date()}] Error occured for weather! (${err})`);
+			try {
+				await weather.update();
 
-					// Alert admins if problem getting weather
-					admins.sendEmail(db, {
+				console.log(`[${new Date()}] Successfully updated weather!`);
+			} catch (err) {
+				console.log(`[${new Date()}] Error occured for weather! (${err})`);
+
+				// Alert admins if problem getting weather
+				try {
+					await admins.sendEmail(db, {
 						subject: 'Error Notification - Weather Retrieval',
 						html: 'There was an error when retrieving the weather.<br>Error message: ' + err
-					}, err => {
-						if (err) {
-							console.log(`[${new Date()}] Error occured when sending admin error notifications! (${err})`);
-							return;
-						}
-						console.log(`[${new Date()}] Alerted admins of error! (${err})`);
 					});
-				} else {
-					console.log(`[${new Date()}] Successfully updated weather!`);
-				}
-			});
 
+					console.log(`[${new Date()}] Alerted admins of error! (${err})`);
+				} catch (err) {
+					console.log(`[${new Date()}] Error occured when sending admin error notifications! (${err})`);
+				}
+			}
 		}, fiveMinuteInterval);
 
 		/*
 		 * Process Portal queue every 15 minutes
 		 */
 
-		later.setInterval(() => {
+		later.setInterval(async () => {
 			console.log(`[${new Date()}] Process Portal queue`);
 
-			feeds.processPortalQueue(db, err => {
-				if (err) {
-					console.log(`[${new Date()}] Error occurred processing Portal queue! (${err})`);
+			try {
+				await feeds.processPortalQueue(db);
 
-					// Alert admins if there's an error processing the Portal queue
-					admins.sendEmail(db, {
+				console.log(`[${new Date()}] Successfully processed Portal queue!`);
+			} catch (err) {
+				console.log(`[${new Date()}] Error occurred processing Portal queue! (${err})`);
+
+				// Alert admins if there's an error processing the Portal queue
+				try {
+					await admins.sendEmail(db, {
 						subject: 'Error Notification - Portal Queue',
 						html: 'There was an error when processing the Portal queue.<br>Error message: ' + err
-					}, err => {
-						if (err) {
-							console.log(`[${new Date()}] Error occured when sending admin error notifications! (${err})`);
-							return;
-						}
-						console.log(`[${new Date()}] Alerted admins of error! (${err})`);
 					});
-				} else {
-					console.log(`[${new Date()}] Successfully processed Portal queue!`);
+
+					console.log(`[${new Date()}] Alerted admins of error! (${err})`);
+				} catch (err) {
+					console.log(`[${new Date()}] Error occured when sending admin error notifications! (${err})`);
 				}
-			});
+			}
 		}, later.parse.text('every 15 min'));
 
 		/*
 		 * Update everyone's Canvas cache over the course of 6 hours
 		 */
 
-		later.setInterval(() => {
+		later.setInterval(async () => {
 			const userdata = db.collection('users');
 
-			userdata.find({ confirmed: true }).toArray((err, users) => {
-				function updateCache(i) {
-					if (i >= users.length) return;
+			const users = await userdata.find({ confirmed: true }).toArray();
 
-					setTimeout(() => {
-						const user = users[i].user;
+			for (const user of users) {
+				setTimeout(async () => {
+					try {
+						await feeds.updateCanvasCache(db, user);
 
-						feeds.updateCanvasCache(db, user, err => {
-							if (err) {
-								console.log(`[${new Date()}] Error occurred updating ${user}'s Canvas cache! (${err})`);
-							} else {
-								console.log(`[${new Date()}] Successfully updated ${user}'s Canvas cache!`);
-							}
-
-							updateCache(++i);
-						});
-					}, (6 * 60 * 60 * 1000) / users.length);
-				}
-
-				updateCache(0);
-			});
+						console.log(`[${new Date()}] Successfully updated ${user}'s Canvas cache!`);
+					} catch (err) {
+						console.log(`[${new Date()}] Error occurred updating ${user}'s Canvas cache! (${err})`);
+					}
+				}, (6 * 60 * 60 * 1000) / users.length);
+			}
 		}, later.parse.text('every 6 hours'));
 
 		/*
 		 * Add everyone to the Portal queue over the course of 6 hours, but triggered every 24 hours
 		 */
 
-		later.setInterval(() => {
+		later.setInterval(async () => {
 			const userdata = db.collection('users');
 
-			userdata.find({ confirmed: true }).toArray((err, users) => {
-				function addToQueue(i) {
-					if (i >= users.length) return;
+			const users = await userdata.find({ confirmed: true }).toArray();
 
-					setTimeout(() => {
-						const user = users[i].user;
+			for (const user of users) {
+				setTimeout(async () => {
+					try {
+						await feeds.addPortalQueue(db, user);
 
-						feeds.addPortalQueue(db, user, err => {
-							if (err) {
-								console.log(`[${new Date()}] Error occurred adding ${user} to the Portal queue! (${err})`);
-							} else {
-								console.log(`[${new Date()}] Successfully added ${user} to the Portal queue!`);
-							}
-
-							addToQueue(++i);
-						});
-					}, (6 * 60 * 60 * 1000) / users.length);
-				}
-
-				addToQueue(0);
-			});
+						console.log(`[${new Date()}] Successfully added ${user} to the Portal queue!`);
+					} catch (err) {
+						console.log(`[${new Date()}] Error occurred adding ${user} to the Portal queue! (${err})`);
+					}
+				}, (6 * 60 * 60 * 1000) / users.length);
+			}
 		}, later.parse.text('every 24 hours'));
+	}).catch(err => {
+		throw err;
 	});
 } else {
 	console.log('Not starting tasks server because we are not on production.');

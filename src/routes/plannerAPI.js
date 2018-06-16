@@ -8,13 +8,16 @@ const planner = require(__dirname + '/../libs/planner.js');
 
 module.exports = (app, db, socketIO) => {
 
-	app.get('/planner', (req, res) => {
-		planner.get(db, req.apiUser, (err, events) => {
-			api.respond(res, err, { events });
-		});
+	app.get('/planner', async (req, res) => {
+		try {
+			const events = await planner.get(db, req.apiUser);
+			api.success(res, { events });
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.post('/planner', (req, res) => {
+	app.post('/planner', async (req, res) => {
 
 		let start = new Date();
 		if (req.body.start) {
@@ -35,45 +38,49 @@ module.exports = (app, db, socketIO) => {
 			end
 		};
 
-		planner.upsert(db, req.apiUser, insertEvent, (err, plannerEvent) => {
-			if (err) {
-				api.respond(res, err);
-				return;
-			}
-
+		try {
+			const plannerEvent = await planner.upsert(db, req.apiUser, insertEvent);
 			socketIO.user(req.apiUser, 'planner', 'add', plannerEvent);
 
-			planner.get(db, req.apiUser, (err, events) => {
-				api.respond(res, err, { events });
-			});
-		});
+			try {
+				const events = await planner.get(db, req.apiUser);
+				api.success(res, { events });
+			} catch (err) {
+				api.error(res, err);
+			}
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.delete('/planner', (req, res) => {
-		planner.delete(db, req.apiUser, req.body.id, err => {
-			if (!err) {
-				socketIO.user(req.apiUser, 'planner', 'delete', req.body.id);
-			}
-			api.respond(res, err);
-		});
+	app.delete('/planner', async (req, res) => {
+		try {
+			await planner.delete(db, req.apiUser, req.body.id);
+			socketIO.user(req.apiUser, 'planner', 'delete', req.body.id);
+			api.success(res);
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.patch('/planner/check', (req, res) => {
-		checkedEvents.check(db, req.apiUser, req.body.id, err => {
-			if (!err) {
-				socketIO.user(req.apiUser, 'planner', 'check', req.body.id);
-			}
-			api.respond(res, err);
-		});
+	app.patch('/planner/check', async (req, res) => {
+		try {
+			await checkedEvents.check(db, req.apiUser, req.body.id);
+			socketIO.user(req.apiUser, 'planner', 'check', req.body.id);
+			api.success(res);
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.patch('/planner/uncheck', (req, res) => {
-		checkedEvents.uncheck(db, req.apiUser, req.body.id, err => {
-			if (!err) {
-				socketIO.user(req.apiUser, 'planner', 'uncheck', req.body.id);
-			}
-			api.respond(res, err);
-		});
+	app.patch('/planner/uncheck', async (req, res) => {
+		try {
+			await checkedEvents.uncheck(db, req.apiUser, req.body.id);
+			socketIO.user(req.apiUser, 'planner', 'uncheck', req.body.id);
+			api.success(res);
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
 };

@@ -35,15 +35,31 @@ function adminOverride(req, res, next) {
 }
 
 /**
- * Responds to the Express request in the proper format
- * @param {Object} res - Express 'response' object for the route
- * @param {Object|string} error - Error (if any) of the request. Can be either a string, error object, or null. Defaults to null.
- * @param {Object} data - Any data the API endpoint should respond with. Is null if there's an error.
- * @param {string} action - Action (if any) for the front-end client to perform. Must be one of the strings in the `ACTIONS` array or null. Defaults to null.
+ * Responds in the proper API format
+ * @param {Object} res - Express response object
+ * @param {Object} data - Any data the API should respond with
+ * @param {?string} [action] - Action (if any) for the front-end client to perform. Must be one of the strings in the `ACTIONS` array or null. Defaults to null.
  */
+function respondSuccess(res, data = {}, action = null) {
+	// Make sure it's a valid action
+	if (!ACTIONS.includes(action)) {
+		action = null;
+	}
 
-function respond(res, error = null, data = {}, action = null) {
+	res.json({
+		error: null,
+		action,
+		data
+	});
+}
 
+/**
+ * Responds with an error in the proper API format
+ * @param {Object} res - Express response object
+ * @param {Object} err - Error object for the API to respond with
+ * @param {?string} [action] - Action (if any) for the front-end client to perform. Must be one of the strings in the `ACTIONS` array or null. Defaults to null.
+ */
+function respondError(res, error, action = null) {
 	// Check for different types of errors
 	let err = null;
 	if (error !== null && typeof error === 'object' && typeof error.message === 'string') {
@@ -53,20 +69,13 @@ function respond(res, error = null, data = {}, action = null) {
 		err = error;
 	}
 
-	// If there's an error, data should be null
-	if (err !== null) {
-		data = null;
-	}
-
 	// Make sure it's a valid action
 	if (!ACTIONS.includes(action)) {
 		action = null;
 	}
 
-	// If there's an error, that's gonna be a fat L
-	if (err) {
-		res.status(500);
-	}
+	// Since it's an error, we gotta let the people know
+	res.status(500);
 
 	// If unauthorized, add proper HTTP header
 	if (['LOGIN_EXPIRED', 'UNAUTHORIZED', 'NOT_LOGGED_IN'].includes(action)) {
@@ -76,10 +85,11 @@ function respond(res, error = null, data = {}, action = null) {
 	res.json({
 		error: err,
 		action,
-		data
+		data: null
 	});
 }
 
 module.exports.ACTIONS = ACTIONS;
 module.exports.adminOverride = adminOverride;
-module.exports.respond = respond;
+module.exports.success = respondSuccess;
+module.exports.error = respondError;

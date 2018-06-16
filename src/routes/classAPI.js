@@ -8,13 +8,16 @@ const jwt = require(__dirname + '/../libs/jwt.js');
 
 module.exports = (app, db, socketIO) => {
 
-	app.get('/classes', jwt.requireLoggedIn, (req, res) => {
-		classes.get(db, req.apiUser, (err, classes) => {
-			api.respond(res, err, { classes });
-		});
+	app.get('/classes', jwt.requireLoggedIn, async (req, res) => {
+		try {
+			const classResult = await classes.get(db, req.apiUser);
+			api.success(res, { classes: classResult });
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.post('/classes', jwt.requireLoggedIn, (req, res) => {
+	app.post('/classes', jwt.requireLoggedIn, async (req, res) => {
 		const user = req.apiUser;
 		const scheduleClass = {
 			_id: req.body.id,
@@ -29,21 +32,23 @@ module.exports = (app, db, socketIO) => {
 			}
 		};
 
-		classes.upsert(db, user, scheduleClass, (err, scheduleClass) => {
-			if (!err) {
-				socketIO.user(req.apiUser, 'classes', 'add', scheduleClass);
-			}
-			api.respond(res, err, { id: scheduleClass ? scheduleClass._id : null });
-		});
+		try {
+			const classResult = await classes.upsert(db, user, scheduleClass);
+			api.success(res, { id: classResult ? classResult._id : null });
+			socketIO.user(req.apiUser, 'classes', 'add', scheduleClass);
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
-	app.delete('/classes', jwt.requireLoggedIn, (req, res) => {
-		classes.delete(db, req.apiUser, req.body.id, err => {
-			if (!err) {
-				socketIO.user(req.apiUser, 'classes', 'delete', req.body.id);
-			}
-			api.respond(res, err);
-		});
+	app.delete('/classes', jwt.requireLoggedIn, async (req, res) => {
+		try {
+			await classes.delete(db, req.apiUser, req.body.id);
+			socketIO.user(req.apiUser, 'classes', 'delete', req.body.id);
+			api.success(res);
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
 
 };
