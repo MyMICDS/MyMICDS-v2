@@ -39,7 +39,7 @@ const query = 'label:us-daily-bulletin';
 
 async function queryLatest() {
 	// Get Google Service Account
-	const jwtClient = await promisify(googleServiceAccount.create)();
+	const jwtClient = await googleServiceAccount.create();
 
 	// Get list of messages
 	let messageList;
@@ -135,7 +135,7 @@ async function queryLatest() {
 async function queryAll() {
 	console.log('Trying to query all the Daily Bulletins in existence. This may take a bit of time...');
 
-	const jwtClient = await promisify(googleServiceAccount.create)();
+	const jwtClient = await googleServiceAccount.create();
 
 	// Array to store all message ids
 	console.log('Get Daily Bulletin message ids...');

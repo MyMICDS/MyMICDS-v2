@@ -9,6 +9,8 @@ const key = config.googleServiceAccount;
 
 const google = require('googleapis');
 
+const { promisify } = require('util');
+
 // Any Google scopes the Service Account uses
 const scopes = [
 	'https://www.googleapis.com/auth/gmail.readonly'
@@ -30,19 +32,16 @@ const impersonate = 'support@mymicds.net';
  * @param {Object} jwtClient - Authorized Google Service Account client. Null if error.
  */
 
-function createServiceAccount(callback) {
-	if (typeof callback !== 'function') return;
-
+async function createServiceAccount() {
 	const jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, scopes, impersonate);
 
-	jwtClient.authorize(err => {
-		if (err) {
-			callback(new Error('There was a problem authorizing the Google Service Account!'), null);
-			return;
-		}
+	try {
+		await promisify(jwtClient.authorize)();
+	} catch (e) {
+		throw new Error('There was a problem authorizing the Google Service Account!');
+	}
 
-		callback(null, jwtClient);
-	});
+	return jwtClient;
 }
 
 module.exports.create = createServiceAccount;

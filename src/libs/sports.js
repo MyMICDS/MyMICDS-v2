@@ -6,8 +6,7 @@
  */
 const config = require(__dirname + '/config.js');
 
-const _ = require('underscore');
-const request = require('request');
+const request = require('request-promise-native');
 
 const schoolId = 231;
 
@@ -26,26 +25,27 @@ const schoolId = 231;
  * @param {string} loginKey - Login key to be passed in with all API requests to Rams Army app. Null if error.
  */
 
-function login(callback) {
-	if (typeof callback !== 'function') return;
+async function login() {
+	let err, body;
+	try {
+		body = await request.post({
+			url: 'https://api.superfanu.com/5.0.0/gen/login.php',
+			form: {
+				user: config.ramsArmy.user,
+				pass: config.ramsArmy.pass
+			}
+		});
+	} catch (e) {
+		err = e;
+	}
 
-	request.post({
-		url: 'https://api.superfanu.com/5.0.0/gen/login.php',
-		form: {
-			user: config.ramsArmy.user,
-			pass: config.ramsArmy.pass
-		}
-	}, (err, res, body) => {
-		body = JSON.parse(body);
-		if (err || res.statusCode !== 200 || body.response !== 'ok') {
-			const error = body.error ? body.error : 'Unknown';
-			callback(new Error('There was a problem logging in the Rams Army app! Error: ' + error), null);
-			return;
-		}
+	body = JSON.parse(body);
+	if (err || body.response !== 'ok') {
+		const error = body.error ? body.error : 'Unknown';
+		throw new Error('There was a problem logging in the Rams Army app! Error: ' + error);
+	}
 
-		callback(null, body.loginkey);
-
-	});
+	return body.loginkey;
 }
 
 /**
@@ -63,43 +63,27 @@ function login(callback) {
  * @param {Object} scores - Scores for MICDS games. Null if error.
  */
 
-function getScores(callback) {
-	if (typeof callback !== 'function') return;
+async function getScores() {
+	const loginKey = await login();
 
-	login((err, loginKey) => {
-		if (err) {
-			callback(err, null);
-			return;
-		}
-
-		request.post({
+	let body;
+	try {
+		body = await request.post({
 			url: 'https://api.superfanu.com/5.0.0/gen/get_scores.php?nid=' + schoolId,
 			form: {
 				'login_key': loginKey
 			}
-		}, (err, res, body) => {
-			body = JSON.parse(body);
-			if (err || res.statusCode !== 200) {
-				callback(new Error('There was a problem logging in the Rams Army app!'), null);
-				return;
-			}
-
-			const scores = {};
-			scores.scores = [];
-			scores.events = [];
-
-			// Push all events to scores object
-			_.each(body.scores, value => {
-				scores.scores.push(value);
-			});
-			_.each(body.events, value => {
-				scores.events.push(value);
-			});
-
-			callback(null, scores);
 		});
+	} catch (e) {
+		throw new Error('There was a problem logging in the Rams Army app!');
+	}
 
-	});
+	const scores = {
+		scores: body.scores,
+		events: body.events
+	};
+
+	return scores;
 }
 
 module.exports.scores = getScores;

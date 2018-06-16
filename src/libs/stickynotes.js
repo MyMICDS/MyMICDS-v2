@@ -1,83 +1,35 @@
 const users = require('./users');
 
-function getNotes(db, user, moduleId, callback) {
-	if (typeof callback !== 'function') return;
+async function getNotes(db, user, moduleId) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof moduleId !== 'string') throw new Error('Invalid moduleId!');
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('Invalid username!');
+
+	const stickynotes = db.collection('stickynotes');
+
+	const notes = await stickynotes.find({ user: userDoc._id, moduleId }).toArray();
+
+	// Create a new stickynote if nothing exits under the module Id
+	if (notes.length === 0) {
+		return '';
 	}
 
-	if (typeof moduleId !== 'string') {
-		callback(new Error('Invalid moduleId!'), null);
-		return;
-	}
-
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('Invalid username!'));
-			return;
-		}
-
-		const stickynotes = db.collection('stickynotes');
-
-		stickynotes.find({ user: userDoc._id, moduleId }).toArray((err, notes) => {
-			if (err) {
-				callback(new Error(err), null);
-				return;
-			}
-
-			// Create a new stickynote if nothing exits under the module Id
-			if (notes.length === 0) {
-				callback(null, '');
-			} else {
-				callback(null, notes[0]);
-			}
-		});
-	});
+	return notes[0];
 }
 
-function postNote(db, user, moduleId, text, callback) {
-	if (typeof callback !== 'function') return;
+async function postNote(db, user, moduleId, text) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof moduleId !== 'string') throw new Error('Invalid moduleId!');
+	if (typeof text !== 'string') throw new Error('Invalid note text!');
 
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) throw new Error('Invalid username!');
 
-	if (typeof moduleId !== 'string') {
-		callback(new Error('Invalid moduleId!'));
-		return;
-	}
+	const stickynotes = db.collection('stickynotes');
 
-	if (typeof text !== 'string') {
-		callback(new Error('Invalid note text!'));
-		return;
-	}
-
-	users.get(db, user, (err, isUser, userDoc) => {
-		if (err) {
-			callback(err, null);
-			return;
-		}
-		if (!isUser) {
-			callback(new Error('Invalid username!'));
-			return;
-		}
-
-		const stickynotes = db.collection('stickynotes');
-
-		stickynotes.update({ user: userDoc._id, moduleId }, { $set: { user: userDoc._id, text }}, { upsert: true }, (err) => {
-			if (err) {
-				callback(new Error(err));
-			}
-			callback(null);
-		});
-	});
+	return stickynotes.updateOne({ user: userDoc._id, moduleId }, { $set: { user: userDoc._id, text } }, { upsert: true });
 }
 
 module.exports.get = getNotes;

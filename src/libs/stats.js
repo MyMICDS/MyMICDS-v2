@@ -22,13 +22,8 @@ const moment = require('moment');
  * @param {Object} statistics - Object containing statistics. Null if error.
  */
 
-function getStats(db, callback) {
-	if (typeof callback !== 'function') return;
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-		return;
-	}
+async function getStats(db) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
 	const stats = {
 		registered: {
@@ -44,66 +39,66 @@ function getStats(db, callback) {
 	const userdata = db.collection('users');
 
 	// Get all users
-	userdata.find({ confirmed: true }).toArray((err, userDocs) => {
-		if (err) {
-			callback(new Error('There was a problem querying the users from the database!'), null);
-			return;
+	let userDocs;
+	try {
+		userDocs = await userdata.find({ confirmed: true }).toArray();
+	} catch (e) {
+		throw new Error('There was a problem querying the users from the database!');
+	}
+
+	// Get user registered count
+	stats.registered.total = userDocs.length;
+
+	// Get array of unique gradYears
+	const gradYears = [];
+	for (const userDoc of userDocs) {
+		let gradYear = userDoc.gradYear;
+
+		// If gradYear is null, it's a teacher
+		if (gradYear === null) {
+			gradYear = 'teacher';
 		}
 
-		// Get user registered count
-		stats.registered.total = userDocs.length;
+		// If gradYear isn't in the array yet, push to gradYears
+		if (!gradYears.includes(gradYear)) {
+			gradYears.push(gradYear);
+		}
+	}
 
-		// Get array of unique gradYears
-		const gradYears = [];
-		for (const userDoc of userDocs) {
-			let gradYear = userDoc.gradYear;
+	// First off, set every graduation year to 0 or empty object
+	for (const gradYear of gradYears) {
+		stats.registered.gradYears[gradYear] = {};
+		stats.visitedToday.gradYears[gradYear] = 0;
+	}
 
-			// If gradYear is null, it's a teacher
-			if (gradYear === null) {
-				gradYear = 'teacher';
-			}
-
-			// If gradYear isn't in the array yet, push to gradYears
-			if (!gradYears.includes(gradYear)) {
-				gradYears.push(gradYear);
-			}
+	// Loop through all the users for when they registered and last time they visited the site
+	const today = moment();
+	for (const userDoc of userDocs) {
+		// If gradYear is null, it's a teacher
+		let gradYear = userDoc.gradYear;
+		if (gradYear === null) {
+			gradYear = 'teacher';
 		}
 
-		// First off, set every graduation year to 0 or empty object
-		for (const gradYear of gradYears) {
-			stats.registered.gradYears[gradYear] = {};
-			stats.visitedToday.gradYears[gradYear] = 0;
+		// Get day user registered
+		const registered = moment(userDoc.registered);
+		const formatRegistered = registered.format('YYYY-MM-DD');
+
+		// Check if user registered today
+		if (today.isSame(registered, 'day')) {
+			stats.registered.today++;
 		}
 
-		// Loop through all the users for when they registered and last time they visited the site
-		const today = moment();
-		for (const userDoc of userDocs) {
-			// If gradYear is null, it's a teacher
-			let gradYear = userDoc.gradYear;
-			if (gradYear === null) {
-				gradYear = 'teacher';
-			}
+		stats.registered.gradYears[gradYear][formatRegistered] = stats.registered.gradYears[gradYear][formatRegistered] + 1 || 1;
 
-			// Get day user registered
-			const registered = moment(userDoc.registered);
-			const formatRegistered = registered.format('YYYY-MM-DD');
-
-			// Check if user registered today
-			if (today.isSame(registered, 'day')) {
-				stats.registered.today++;
-			}
-
-			stats.registered.gradYears[gradYear][formatRegistered] = stats.registered.gradYears[gradYear][formatRegistered] + 1 || 1;
-
-			// Check if user visited today
-			if (today.isSame(userDoc.lastVisited, 'day')) {
-				stats.visitedToday.total++;
-				stats.visitedToday.gradYears[gradYear]++;
-			}
+		// Check if user visited today
+		if (today.isSame(userDoc.lastVisited, 'day')) {
+			stats.visitedToday.total++;
+			stats.visitedToday.gradYears[gradYear]++;
 		}
+	}
 
-		callback(null, stats);
-	});
+	return stats;
 }
 
 module.exports.get = getStats;

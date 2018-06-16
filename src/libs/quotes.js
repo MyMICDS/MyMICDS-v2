@@ -19,22 +19,16 @@
  * @param {Object} quotes - Array of quotes from database. Null if error.
  */
 
-function getQuotes(db, callback) {
-	if (typeof callback !== 'function') return;
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'), null);
-	}
+async function getQuotes(db) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
 	const quotesData = db.collection('quotes');
 
-	quotesData.find({}).toArray((err, quotes) => {
-		if (err) {
-			callback(new Error('There was a problem getting all the quotes from the database!'), null);
-			return;
-		}
-		callback(null, quotes);
-	});
+	try {
+		return await quotesData.find({}).toArray();
+	} catch (e) {
+		throw new Error('There was a problem getting all the quotes from the database!');
+	}
 }
 
 /**
@@ -54,36 +48,21 @@ function getQuotes(db, callback) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-function insertQuote(db, author, quote, callback) {
-	if (typeof callback !== 'function') return;
-
-	if (typeof db !== 'object') {
-		callback(new Error('Invalid database connection!'));
-		return;
-	}
-
-	if (typeof author !== 'string') {
-		callback(new Error('Invalid author!'));
-		return;
-	}
-
-	if (typeof quote !== 'string') {
-		callback(new Error('Invalid quote!'));
-		return;
-	}
+async function insertQuote(db, author, quote) {
+	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof author !== 'string') throw new Error('Invalid author!');
+	if (typeof quote !== 'string') throw new Error('Invalid quote!');
 
 	const quotesData = db.collection('quotes');
 
-	quotesData.insertOne({
-		author,
-		quote
-	}, err => {
-		if (err) {
-			callback(new Error('There was a problem inserting the quote into the database!'));
-			return;
-		}
-		callback(null);
-	});
+	try {
+		await quotesData.insertOne({
+			author,
+			quote
+		});
+	} catch (e) {
+		throw new Error('There was a problem inserting the quote into the database!');
+	}
 }
 
 module.exports.get = getQuotes;
