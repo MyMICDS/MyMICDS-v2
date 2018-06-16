@@ -6,7 +6,7 @@
  */
 const _ = require('underscore');
 const aliases = require(__dirname + '/aliases.js');
-const classes = require(__dirname + '/classes.js'); // eslint-disable-line
+const classes = require(__dirname + '/classes.js');
 const feeds = require(__dirname + '/feeds.js');
 const moment = require('moment');
 const users = require(__dirname + '/users.js');
@@ -214,12 +214,12 @@ async function getSchedule(db, user, date, portalBroke = false) {
 	if (portalBroke || typeof userDoc['portalURL'] !== 'string') {
 		// If user is logged in, but hasn't configured their Portal URL
 		// We would know their grade, and therefore their generic block schedule, as well as any classes they configured
-		const classes = await classes.get(db, user);
+		const theClasses = await classes.get(db, user);
 
 		// Assign each class to it's block
 		const blocks = JSON.parse(JSON.stringify(genericBlocks));
 		// const blockTypeMap = {};
-		for (const block of classes) {
+		for (const block of theClasses) {
 			blocks[block.block] = block; // Very descriptive
 			// blockTypeMap[block.block] = block.type;
 		}

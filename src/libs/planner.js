@@ -6,7 +6,7 @@
  */
 const _ = require('underscore');
 const checkedEvents = require(__dirname + '/checkedEvents.js');
-const classes = require(__dirname + '/classes.js'); // eslint-disable-line
+const classes = require(__dirname + '/classes.js');
 const htmlParser = require(__dirname + '/htmlParser.js');
 const ObjectID = require('mongodb').ObjectID;
 const users = require(__dirname + '/users.js');
@@ -57,12 +57,12 @@ async function upsertEvent(db, user, plannerEvent) {
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) throw new Error('Invalid username!');
 
-	const classes = await classes.get(db, user);
+	const theClasses = await classes.get(db, user);
 
 	// Check if class id is valid if it isn't null already
 	let validClassId = null;
 	if (plannerEvent.classId !== null) {
-		for (const theClass of classes) {
+		for (const theClass of theClasses) {
 			const classId = theClass['_id'];
 			if (plannerEvent.classId === classId.toHexString()) {
 				validClassId = classId;
@@ -186,12 +186,12 @@ async function getEvents(db, user) {
 
 	const plannerdata = db.collection('planner');
 
-	const [events, checkedEventsList, classes] = await Promise.all([
+	const [events, checkedEventsList, theClasses] = await Promise.all([
 		plannerdata.find({ user: userDoc['_id'] }).toArray().catch(() => {
 			throw new Error('There was a problem querying the database!');
 		}),
 		checkedEvents.list(db, user),
-		classes.get(db, user)
+		theClasses.get(db, user)
 	]);
 
 	// Format all events
@@ -211,7 +211,7 @@ async function getEvents(db, user) {
 		// Go through each class to search for matching id
 		if (classId !== null) {
 			const classIdHex = classId.toHexString();
-			for (const theClass of classes) {
+			for (const theClass of theClasses) {
 				if (classIdHex === theClass['_id'].toHexString()) {
 					event['class'] = theClass;
 					break;

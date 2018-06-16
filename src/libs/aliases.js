@@ -5,7 +5,7 @@
  * @module alias
  */
 const _ = require('underscore');
-const classes = require(__dirname + '/classes.js'); // eslint-disable-line
+const classes = require(__dirname + '/classes.js');
 const users = require(__dirname + '/users.js');
 
 // Types of aliases
@@ -49,11 +49,11 @@ async function addAlias(db, user, type, classString, classId) {
 	if (hasAlias) throw new Error('Alias already exists for a class!');
 
 	// Make sure class id is valid
-	const classes = await classes.get(db, user);
+	const theClasses = await classes.get(db, user);
 
 	// Loop through classes and search for class with id specified
 	let validClassObject = null;
-	for (const classObject of classes) {
+	for (const classObject of theClasses) {
 		if (classObject._id.toHexString() === classId) {
 			validClassObject = classObject;
 			break;
@@ -158,7 +158,7 @@ async function mapAliases(db, user) {
 	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 	if (typeof user !== 'string') throw new Error('Invalid username!');
 
-	const [aliases, classes] = await Promise.all([
+	const [aliases, theClasses] = await Promise.all([
 		listAliases(db, user),
 		classes.get(db, user)
 	]);
@@ -167,7 +167,7 @@ async function mapAliases(db, user) {
 	const aliasMap = {};
 
 	// Organize classes by id
-	for (const scheduleClass of classes) {
+	for (const scheduleClass of theClasses) {
 		classMap[scheduleClass._id.toHexString()] = scheduleClass;
 	}
 
@@ -273,10 +273,10 @@ async function getAliasClass(db, user, type, classInput) {
 	const classId = aliases[0].classNative;
 
 	// Now get class object
-	const classes = await classes.get(db, user);
+	const theClasses = await classes.get(db, user);
 
 	// Search user's classes for valid class id
-	for (const classObject of classes) {
+	for (const classObject of theClasses) {
 		if (classId.toHexString() === classObject._id.toHexString()) {
 			return { hasAlias: true, classObject };
 		}
@@ -307,10 +307,10 @@ async function deleteClasslessAliases(db) {
 	const aliasdata = db.collection('aliases');
 	const classdata = db.collection('classes');
 
-	let aliases, classes;
+	let aliases, theClasses;
 
 	try {
-		[aliases, classes] = await Promise.all([
+		[aliases, theClasses] = await Promise.all([
 			aliasdata.find({}).toArray(),
 			classdata.find({}).toArray()
 		]);
@@ -320,7 +320,7 @@ async function deleteClasslessAliases(db) {
 
 	for (const alias of aliases) {
 		let validClass = false;
-		for (const dbClass of classes) {
+		for (const dbClass of theClasses) {
 			// Check if alias has a corresponding class id with the same user
 			if (alias.classNative.toHexString() === dbClass._id.toHexString()) {
 				validClass = true;

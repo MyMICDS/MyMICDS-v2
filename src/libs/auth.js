@@ -8,7 +8,7 @@ const _ = require('underscore');
 const admins = require(__dirname + '/admins.js');
 const crypto = require('crypto');
 const cryptoUtils = require(__dirname + '/cryptoUtils.js');
-const jwt = require(__dirname + '/jwt.js'); // eslint-disable-line
+const jwt = require(__dirname + '/jwt.js');
 const mail = require(__dirname + '/mail.js');
 const passwords = require(__dirname + '/passwords.js');
 const users = require(__dirname + '/users.js');
@@ -59,9 +59,9 @@ async function login(db, user, password, rememberMe, comment) {
 
 	// Login successful!
 	// Now we need to create a JWT
-	const jwt = await jwt.generate(db, user, rememberMe, comment);
+	const token = await jwt.generate(db, user, rememberMe, comment);
 
-	return { success: true, message: 'Success!', jwt };
+	return { success: true, message: 'Success!', jwt: token };
 }
 
 /**
