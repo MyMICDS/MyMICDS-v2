@@ -191,7 +191,7 @@ async function getEvents(db, user) {
 			throw new Error('There was a problem querying the database!');
 		}),
 		checkedEvents.list(db, user),
-		theClasses.get(db, user)
+		classes.get(db, user)
 	]);
 
 	// Format all events
