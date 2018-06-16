@@ -126,71 +126,6 @@ async function listTeachers(db) {
 }
 
 /**
- * Deletes a teacher if no other person has it
- * @function deleteTeacher
- *
- * @param {Object} db - Database connection
- * @param {Object} teacherId - Id of teacher
- * @param {deleteTeacherCallback} [callback] - Callback
- */
-
-/**
- * Callback after deletes a teacher
- * @callback deleteTeacherCallback
- *
- * @param {Object} err - Null if success, error object if failure
- */
-
-async function deleteTeacher(db, teacherId) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof teacherId !== 'object') throw new Error('Invalid teacher id object!');
-
-	// Don't delete teacher if there are classes it teaches!
-	const classes = await teacherTeaches(db, teacherId);
-
-	if (classes.length === 0) {
-		// Teacher doesn't have any classes. Delete.
-		const teacherdata = db.collection('teachers');
-
-		try {
-			await teacherdata.deleteOne({ _id: teacherId });
-		} catch (e) {
-			throw new Error('There was a problem deleting the teacher from the database!');
-		}
-	}
-}
-
-/**
- * Determines whether any classes are using a teacher with a given id.
- * @function teacherTeaches
- *
- * @param {Object} db - Database connection
- * @param {Object} teacherId - Id of teacher to Check
- * @param {teacherTeachesCallback} callback - Callback
- */
-
-/**
- * Returns an array of classes a teacher teaches
- * @callback teacherTeachesCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Object} classes - Array of classes the teacher teaches. Empty array if teacher doesn't teach anything. Null if error.
- */
-
-async function teacherTeaches(db, teacherId) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof teacherId !== 'object') throw new Error('Invalid teacher id object!');
-
-	const classdata = db.collection('classes');
-
-	try {
-		return classdata.find({ teacher: teacherId }).toArray();
-	} catch (e) {
-		throw new Error('There was a problem querying the database!');
-	}
-}
-
-/**
  * Deletes all teachers that are not linked to any class
  * @function deleteClasslessTeachers
  *
@@ -213,13 +148,35 @@ async function deleteClasslessTeachers(db) {
 	let docs;
 
 	try {
-		// Find all teachers
-		docs = await teacherdata.find({}).toArray();
+		// Find all teachers with 0 classes
+		docs = await teacherdata.aggregate([
+			// Stage 1
+			{
+				$lookup: {
+					from: 'classes',
+					localField: '_id',
+					foreignField: 'teacher',
+					as: 'classes'
+				}
+			},
+			// Stage 2
+			{
+				$match: {
+					classes: {
+						$size: 0
+					}
+				}
+			}
+		]).toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
 
-	await Promise.all(docs.map(doc => deleteTeacher(db, doc._id)));
+	try {
+		await Promise.all(docs.map(t => teacherdata.deleteOne({ _id: t._id })));
+	} catch (e) {
+		throw new Error('There was a problem deleting classless teachers!');
+	}
 }
 
 module.exports.add = addTeacher;
