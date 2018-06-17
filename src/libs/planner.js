@@ -4,8 +4,6 @@
  * @file Functions for dealing with planner data
  * @module planner
  */
-const _ = require('underscore');
-const checkedEvents = require(__dirname + '/checkedEvents.js');
 const classes = require(__dirname + '/classes.js');
 const htmlParser = require(__dirname + '/htmlParser.js');
 const ObjectID = require('mongodb').ObjectID;
@@ -186,38 +184,73 @@ async function getEvents(db, user) {
 
 	const plannerdata = db.collection('planner');
 
-	const [events, checkedEventsList, theClasses] = await Promise.all([
-		plannerdata.find({ user: userDoc['_id'] }).toArray().catch(() => {
-			throw new Error('There was a problem querying the database!');
-		}),
-		checkedEvents.list(db, user),
-		classes.get(db, user)
-	]);
+	let events;
+	try {
+		events = await plannerdata.aggregate(
+			[
+				// Stage 1
+				// Get planner events for user
+				{
+					$match: {
+						user: userDoc['_id']
+					}
+				},
+				// Stage 2
+				// Get associated checked events
+				{
+					$lookup: {
+						from: 'checkedEvents',
+						localField: '_id',
+						foreignField: 'eventId',
+						as: 'checked'
+					}
+				},
+				// Stage 3
+				// Get associated classes
+				{
+					$lookup: {
+						from: 'classes',
+						localField: 'class',
+						foreignField: '_id',
+						as: 'class'
+					}
+				},
+				// Stage 4
+				// Unwrap class array
+				{
+					$unwind: {
+						path: '$class',
+						preserveNullAndEmptyArrays: true
+					}
+				},
+				// Stage 5
+				// Additional fields
+				{
+					$addFields: {
+						// If there's no associated checked events, the event is not checked
+						checked: {
+							$ne: [0, {
+								$size: '$checked'
+							}]
+						},
+						// Add username
+						user,
+						// If no class document was unwound, just make it null
+						class: {
+							$ifNull: ['$class', null]
+						}
+					}
+				}
+			]
+		).toArray();
+	} catch (e) {
+		throw new Error('There was a problem querying the database!');
+	}
 
 	// Format all events
 	for (const event of events) {
-		// Determine if event should be checked or not
-		event.checked = _.contains(checkedEventsList, event._id.toHexString());
-
-		// Set user to username
-		event['user'] = userDoc['user'];
-
 		// Have a plaintext description too
 		event.descPlaintext = htmlParser.htmlToText(event.desc);
-
-		// Default class to null
-		const classId = event['class'];
-		event['class'] = null;
-		// Go through each class to search for matching id
-		if (classId !== null) {
-			const classIdHex = classId.toHexString();
-			for (const theClass of theClasses) {
-				if (classIdHex === theClass['_id'].toHexString()) {
-					event['class'] = theClass;
-					break;
-				}
-			}
-		}
 	}
 
 	return events;
