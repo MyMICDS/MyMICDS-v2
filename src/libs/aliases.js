@@ -305,37 +305,37 @@ async function deleteClasslessAliases(db) {
 	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
 	const aliasdata = db.collection('aliases');
-	const classdata = db.collection('classes');
 
-	let aliases, theClasses;
+	let classless;
 
 	try {
-		[aliases, theClasses] = await Promise.all([
-			aliasdata.find({}).toArray(),
-			classdata.find({}).toArray()
-		]);
+		classless = await aliasdata.aggregate([
+			// Stage 1
+			{
+				$lookup: {
+					from: 'classes',
+					localField: 'classNative',
+					foreignField: '_id',
+					as: 'classes'
+				}
+			},
+			// Stage 2
+			{
+				$match: {
+					classes: {
+						$size: 0
+					}
+				}
+			},
+		]).toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
 
-	for (const alias of aliases) {
-		let validClass = false;
-		for (const dbClass of theClasses) {
-			// Check if alias has a corresponding class id with the same user
-			if (alias.classNative.toHexString() === dbClass._id.toHexString()) {
-				validClass = true;
-				break;
-			}
-		}
-
-		// If there isn't a corresponding class with this alias, delete
-		if (!validClass) {
-			try {
-				await aliasdata.deleteOne({ _id: alias._id, user: alias.user });
-			} catch (e) {
-				throw new Error('There was a problem deleting an alias in the database!');
-			}
-		}
+	try {
+		await Promise.all(classless.map(alias => aliasdata.deleteOne({ _id: alias._id, user: alias.user })));
+	} catch (e) {
+		throw new Error('There was a problem deleting aliases in the database!');
 	}
 }
 
