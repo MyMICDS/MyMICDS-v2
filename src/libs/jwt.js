@@ -171,7 +171,7 @@ function requireLoggedIn(req, res, next) {
 function requireScope(scope, message = 'You\'re not authorized in this part of the site, punk.') {
 	return (req, res, next) => {
 		if (!req.user || !req.user.scopes[scope]) {
-			api.respond(res, message, null, 'NOT_LOGGED_IN');
+			api.error(res, message, 'NOT_LOGGED_IN');
 		} else {
 			next();
 		}
@@ -185,7 +185,7 @@ function requireScope(scope, message = 'You\'re not authorized in this part of t
 
 function catchUnauthorized(err, req, res, next) {
 	if (err.name === 'UnauthorizedError') {
-		api.respond(res, err, null, 'UNAUTHORIZED');
+		api.error(res, err, 'UNAUTHORIZED');
 		return;
 	}
 	next();
