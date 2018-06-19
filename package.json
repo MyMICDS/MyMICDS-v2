@@ -19,12 +19,14 @@
   "main": "src/index.js",
   "scripts": {
     "build": "mjml -r src/email/* -o src/html/messages",
-    "start": "npm run build && node src/index.js",
-    "prod": "npm run build && pm2 start src/index.js -i max --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds\"",
-    "tasks": "pm2 start src/tasks.js --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds-tasks\"",
+    "start": "npm run build && node dist/index.js",
+    "prod": "npm run build && pm2 start dist/index.js -i max --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds\"",
+    "tasks": "pm2 start dist/tasks.js --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds-tasks\"",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "docs": "jsdoc -c jsdoc_conf.json . && echo Docs built in ./docs folder",
-    "lint": "eslint src/**/*.js"
+    "ts": "tsc",
+    "ts:watch": "tsc -w",
+    "docs": "typedoc --out ./docs --mode file ./src",
+    "lint": "tslint --project tsconfig.json --exclude \"src/libs/config.js\" \"src/**/*.ts\""
   },
   "repository": {
     "type": "git",
@@ -74,6 +76,14 @@
   },
   "devDependencies": {
     "@mymicds/configs": "^1.1.0",
-    "eslint": "^4.19.1"
+    "@mymicds/sdk": "^1.2.1",
+    "@types/mongodb": "^3.0.21",
+    "@types/nodemailer": "^4.6.1",
+    "@types/request-promise-native": "^1.0.15",
+    "@types/underscore": "^1.8.8",
+    "eslint": "^4.19.1",
+    "tslint": "^5.10.0",
+    "typedoc": "^0.11.1",
+    "typescript": "^2.9.2"
   }
 }

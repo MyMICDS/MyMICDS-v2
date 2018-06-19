@@ -1,9 +1,0 @@
-{
-	"source": {
-		"exclude": ["node_modules"]
-	},
-	"opts": {
-		"destination": "./docs/",
-		"recurse": true
-	}
-}
