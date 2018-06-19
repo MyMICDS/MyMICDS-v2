@@ -1,5 +1,6 @@
 docs
 node_modules
+dist
 *.log
 
 .idea
@@ -7,7 +8,7 @@ node_modules
 
 src/api
 src/html/messages/*.html
-src/libs/config.js
+src/libs/config.ts
 src/public/daily-bulletin
 src/public/user-backgrounds/*
 !src/public/user-backgrounds/default
