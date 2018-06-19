@@ -210,8 +210,37 @@ async function getClasses(db, user) {
 
 	let classes;
 	try {
-		// Get all classes under the specified user id
-		classes = await classdata.find({ user: userDoc['_id'] }).toArray();
+		classes = await classdata.aggregate([
+			// Stage 1
+			// Get all classes under the specified user id
+			{
+				$match: {
+					user: userDoc['_id']
+				}
+			},
+			// Stage 2
+			// Replace teacher id with array of teacher object
+			{
+				$lookup: {
+					from: 'teachers',
+					localField: 'teacher',
+					foreignField: '_id',
+					as: 'teacher'
+				}
+			},
+			// Stage 3
+			// Flatten the teacher object array
+			{
+				$unwind: {
+					path: '$teacher',
+				}
+			},
+			// Stage 4
+			// Replace user ObjectID with actual username
+			{
+				$addFields: { user }
+			}
+		]).toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
@@ -219,23 +248,6 @@ async function getClasses(db, user) {
 	// Add 'textDark' to all of the classes based on color
 	for (const theClass of classes) {
 		theClass.textDark = prisma.shouldTextBeDark(theClass.color);
-	}
-
-	// Go through all events and set user to actual username, and teacher to actual teacher
-	// Save teachers in object so we don't have to query database more than we need to
-	const teachersList = {};
-
-	for (const theClass of classes) {
-		theClass.user = userDoc.user;
-
-		const teacherId = theClass.teacher;
-
-		if (typeof teachersList[teacherId] === 'undefined') {
-			const { teacherDoc } = await teachers.get(db, teacherId);
-			teachersList[teacherId] = teacherDoc;
-		}
-
-		theClass.teacher = teachersList[teacherId];
 	}
 
 	return classes;
