@@ -77,8 +77,10 @@
   "devDependencies": {
     "@mymicds/configs": "^1.1.0",
     "@mymicds/sdk": "^1.2.1",
+    "@types/htmlparser2": "^3.7.31",
     "@types/mongodb": "^3.0.21",
     "@types/nodemailer": "^4.6.1",
+    "@types/random-js": "^1.0.30",
     "@types/request-promise-native": "^1.0.15",
     "@types/underscore": "^1.8.8",
     "eslint": "^4.19.1",

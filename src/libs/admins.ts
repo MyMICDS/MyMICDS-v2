@@ -1,8 +1,3 @@
-/**
- * @file Manages information and functions regarding the MyMICDS admins
- * @module admins
- */
-
 import * as mail from './mail';
 
 import { Db } from 'mongodb';

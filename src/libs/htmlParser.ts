@@ -1,10 +1,4 @@
-'use strict';
-
-/**
- * @file A bunch of utilities dealing with the parsing and manipulating of HTML strings
- * @module htmlParser
- */
-const htmlparser = require('htmlparser2');
+import * as htmlparser from 'htmlparser2';
 
 /**
  * Converts an HTML file to plaintext.
@@ -13,7 +7,7 @@ const htmlparser = require('htmlparser2');
  * @returns {string}
  */
 
-function htmlToText(html) {
+export function htmlToText(html: string) {
 	let plaintext = '';
 
 	const parser = new htmlparser.Parser({
@@ -31,5 +25,3 @@ function htmlToText(html) {
 	parser.parseComplete(html);
 	return plaintext;
 }
-
-module.exports.htmlToText = htmlToText;

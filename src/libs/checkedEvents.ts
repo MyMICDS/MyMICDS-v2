@@ -1,8 +1,5 @@
-/**
- * @file Manages checked and unchecked events
- * @module checkedEvents
- */
-const users = require(__dirname + '/users.js');
+import { Db, ObjectID } from 'mongodb';
+import * as users from './users';
 
 /**
  * Marks an event as complete
@@ -21,21 +18,21 @@ const users = require(__dirname + '/users.js');
  * @param {Object} err - Null if success, error object if failure.
  */
 
-async function checkEvent(db, user, eventId) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof user !== 'string') throw new Error('Invalid username!');
-	if (typeof eventId !== 'string') throw new Error('Invalid event id!');
+async function checkEvent(db: Db, user: string, eventId: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
+	if (typeof eventId !== 'string') { throw new Error('Invalid event id!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
 	const checked = await getChecked(db, user, eventId);
 	// If already checked, just return null
-	if (checked) return null;
+	if (checked) { return null; }
 
 	// Insert check into database
 	const insertChecked = {
-		user: userDoc['_id'],
+		user: userDoc!._id,
 		eventId,
 		checkedTime: new Date()
 	};
@@ -67,19 +64,19 @@ async function checkEvent(db, user, eventId) {
  * @param {Boolean} checked - Whether or not event is checked or not
  */
 
-async function getChecked(db, user, eventId) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof user !== 'string') throw new Error('Invalid username!');
-	if (typeof eventId !== 'string') throw new Error('Invalid event id!');
+async function getChecked(db: Db, user: string, eventId: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
+	if (typeof eventId !== 'string') { throw new Error('Invalid event id!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
 	const checkedEventsData = db.collection('checkedEvents');
 
 	let checkedEvents;
 	try {
-		checkedEvents = await checkedEventsData.find({ user: userDoc['_id'], eventId }).toArray();
+		checkedEvents = await checkedEventsData.find({ user: userDoc!._id, eventId }).toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
@@ -104,18 +101,18 @@ async function getChecked(db, user, eventId) {
  * @param {Object} checkedEventsList - Array of event ids checked
  */
 
-async function listChecked(db, user) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof user !== 'string') throw new Error('Invalid username!');
+async function listChecked(db: Db, user: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	const checkedEventsData = db.collection('checkedEvents');
+	const checkedEventsData = db.collection<CheckedEvent>('checkedEvents');
 
-	let checkedEvents;
+	let checkedEvents: CheckedEvent[];
 	try {
-		checkedEvents = await checkedEventsData.find({ user: userDoc['_id'] }).toArray();
+		checkedEvents = await checkedEventsData.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
@@ -141,22 +138,36 @@ async function listChecked(db, user) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-async function uncheckEvent(db, user, eventId) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof user !== 'string') throw new Error('Invalid username!');
-	if (typeof eventId !== 'string') throw new Error('Invalid event id!');
+async function uncheckEvent(db: Db, user: string, eventId: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
+	if (typeof eventId !== 'string') { throw new Error('Invalid event id!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
 	const checkedEventsData = db.collection('checkedEvents');
 
 	try {
-		await checkedEventsData.deleteMany({ user: userDoc['_id'], eventId });
+		await checkedEventsData.deleteMany({ user: userDoc!._id, eventId });
 	} catch (e) {
 		throw new Error('There was a problem uncrossing the event in the database!');
 	}
 }
+
+export interface CheckedEvent {
+	_id: ObjectID;
+	user: ObjectID;
+	eventId: string;
+	checkedTime: Date;
+}
+
+export {
+	checkEvent as check,
+	getChecked as get,
+	listChecked as list,
+	uncheckEvent as uncheck
+};
 
 module.exports.check   = checkEvent;
 module.exports.get     = getChecked;

@@ -3,6 +3,7 @@ import { Db, ObjectID } from 'mongodb';
 import config from './config';
 
 import * as ical from 'ical';
+
 import moment from 'moment';
 import request from 'request-promise-native';
 import * as _ from 'underscore';
@@ -295,7 +296,8 @@ export async function getDayRotation(date: Date) {
  * @callback getDayRotationsCallback
  *
  * @param {Object} err - Null if success, error object if failure.
- * @param {scheduleDay} days - Object containing integers 1-6 organized by year, month, and date (Ex. January 3rd, 2017 would be `day.2017.1.3`)
+ * @param {scheduleDay} days - Object containing integers 1-6 organized by year, month, and date
+ * 							   (Ex. January 3rd, 2017 would be `day.2017.1.3`)
  */
 
 export async function getDayRotations() {

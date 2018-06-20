@@ -1,10 +1,6 @@
-'use strict';
-
-/**
- * @file Functions for managing teachers
- * @module teachers
- */
-const _ = require('underscore');
+import { Teacher } from '@mymicds/sdk';
+import { Db, ObjectID } from 'mongodb';
+import { Omit } from './utils';
 
 const validTeacherPrefixes = [
 	'Mr.',
@@ -31,14 +27,14 @@ const validTeacherPrefixes = [
  * @param {Object} teacher - Returns the document of the teacher we just added. Null if error
  */
 
-async function addTeacher(db, teacher) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof teacher !== 'object') throw new Error('Invalid teacher object!');
-	if (!_.contains(validTeacherPrefixes, teacher.prefix)) throw new Error('Invalid teacher prefix!');
-	if (typeof teacher.firstName !== 'string') throw new Error('Invalid teacher first name!');
-	if (typeof teacher.lastName !== 'string') throw new Error('Invalid teacher last name!');
+async function addTeacher(db: Db, teacher: Omit<Teacher, '_id'>) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof teacher !== 'object') { throw new Error('Invalid teacher object!'); }
+	if (!validTeacherPrefixes.includes(teacher.prefix)) { throw new Error('Invalid teacher prefix!'); }
+	if (typeof teacher.firstName !== 'string') { throw new Error('Invalid teacher first name!'); }
+	if (typeof teacher.lastName !== 'string') { throw new Error('Invalid teacher last name!'); }
 
-	const teacherdata = db.collection('teachers');
+	const teacherdata = db.collection<Teacher>('teachers');
 
 	try {
 		// Upsert teacher into collection
@@ -73,18 +69,18 @@ async function addTeacher(db, teacher) {
  * @param {Object} teacher - Teacher document. Null if error or no valid teacher.
  */
 
-async function getTeacher(db, teacherId) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof teacherId !== 'object') throw new Error('Invalid teacher id object!');
+async function getTeacher(db: Db, teacherId: ObjectID) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof teacherId !== 'object') { throw new Error('Invalid teacher id object!'); }
 
-	const teacherdata = db.collection('teachers');
+	const teacherdata = db.collection<Teacher>('teachers');
 
 	try {
 		// Query database to find possible teacher
 		const docs = await teacherdata.find({ _id: teacherId }).toArray();
 
 		let isTeacher = false;
-		let teacher = null;
+		let teacher: Teacher | null = null;
 
 		if (docs.length !== 0) {
 			isTeacher = true;
@@ -113,13 +109,13 @@ async function getTeacher(db, teacherId) {
  * @param {Object} teachers - Array of teacher objects. Null if error.
  */
 
-async function listTeachers(db) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+async function listTeachers(db: Db) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
-	const teacherdata = db.collection('teachers');
+	const teacherdata = db.collection<Teacher>('teachers');
 
 	try {
-		return teacherdata.find({}).toArray();
+		return await teacherdata.find({}).toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
@@ -140,12 +136,12 @@ async function listTeachers(db) {
  * @param {Object} err - Null if success, error object if failure
  */
 
-async function deleteClasslessTeachers(db) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+async function deleteClasslessTeachers(db: Db) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
-	const teacherdata = db.collection('teachers');
+	const teacherdata = db.collection<Teacher>('teachers');
 
-	let docs;
+	let docs: Teacher[];
 
 	try {
 		// Find all teachers with 0 classes
@@ -178,6 +174,13 @@ async function deleteClasslessTeachers(db) {
 		throw new Error('There was a problem deleting classless teachers!');
 	}
 }
+
+export {
+	addTeacher as add,
+	getTeacher as get,
+	listTeachers as list,
+	deleteClasslessTeachers
+};
 
 module.exports.add = addTeacher;
 module.exports.get = getTeacher;
