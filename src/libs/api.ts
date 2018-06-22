@@ -1,15 +1,5 @@
-'use strict';
-
-/**
- * @file Util functions relating to the REST API
- * @module api
- */
-
-const ACTIONS = [
-	'LOGIN_EXPIRED', // Client should display the log in page to refresh the JWT
-	'NOT_LOGGED_IN', // Client is not logged in but should be. Display login screen.
-	'UNAUTHORIZED' // Tell the client to he*ck off
-];
+import { Action } from '@mymicds/sdk';
+import { NextFunction, Request, Response } from 'express';
 
 /**
  * Express middleware to allow admins to perform any action on behalf of another user
@@ -18,7 +8,7 @@ const ACTIONS = [
  * @param {Function} next - Calls the next function in the middleware chain
  */
 
-function adminOverride(req, res, next) {
+export function adminOverride(req: ProcessedRequest, res: Response, next: NextFunction) {
 	req.apiUser = null;
 	if (req.user) {
 		req.apiUser = req.user.user;
@@ -38,11 +28,12 @@ function adminOverride(req, res, next) {
  * Responds in the proper API format
  * @param {Object} res - Express response object
  * @param {Object} data - Any data the API should respond with
- * @param {?string} [action] - Action (if any) for the front-end client to perform. Must be one of the strings in the `ACTIONS` array or null. Defaults to null.
+ * @param {?string} [action] - Action (if any) for the front-end client to perform.
+ * 							   Must be one of the strings in the `ACTIONS` array or null. Defaults to null.
  */
-function respondSuccess(res, data = {}, action = null) {
+function respondSuccess(res: Response, data: any = {}, action: Action | null = null) {
 	// Make sure it's a valid action
-	if (!ACTIONS.includes(action)) {
+	if (!Object.values(Action).includes(action)) {
 		action = null;
 	}
 
@@ -57,9 +48,10 @@ function respondSuccess(res, data = {}, action = null) {
  * Responds with an error in the proper API format
  * @param {Object} res - Express response object
  * @param {Object} err - Error object for the API to respond with
- * @param {?string} [action] - Action (if any) for the front-end client to perform. Must be one of the strings in the `ACTIONS` array or null. Defaults to null.
+ * @param {?string} [action] - Action (if any) for the front-end client to perform.
+ * 							   Must be one of the strings in the `ACTIONS` array or null. Defaults to null.
  */
-function respondError(res, error, action = null) {
+function respondError(res: Response, error: Error | string | null, action: Action | null = null) {
 	// Check for different types of errors
 	let err = null;
 	if (error !== null && typeof error === 'object' && typeof error.message === 'string') {
@@ -70,7 +62,7 @@ function respondError(res, error, action = null) {
 	}
 
 	// Make sure it's a valid action
-	if (!ACTIONS.includes(action)) {
+	if (!Object.values(Action).includes(action)) {
 		action = null;
 	}
 
@@ -78,7 +70,7 @@ function respondError(res, error, action = null) {
 	res.status(500);
 
 	// If unauthorized, add proper HTTP header
-	if (['LOGIN_EXPIRED', 'UNAUTHORIZED', 'NOT_LOGGED_IN'].includes(action)) {
+	if ([Action.LOGIN_EXPIRED, Action.UNAUTHORIZED, Action.NOT_LOGGED_IN].includes(action!)) {
 		res.status(401);
 	}
 
@@ -89,7 +81,11 @@ function respondError(res, error, action = null) {
 	});
 }
 
-module.exports.ACTIONS = ACTIONS;
-module.exports.adminOverride = adminOverride;
-module.exports.success = respondSuccess;
-module.exports.error = respondError;
+export interface ProcessedRequest extends Request {
+	apiUser: string | null;
+}
+
+export {
+	respondSuccess as success,
+	respondError as error
+};

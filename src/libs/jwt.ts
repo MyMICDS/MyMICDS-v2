@@ -1,19 +1,15 @@
-'use strict';
-
-/**
- * @file Manages Json Web Token authentication for our API
- * @module jwt
- */
-
-const config = require(__dirname + '/config.js');
-
-const _ = require('underscore');
-const api = require(__dirname + '/api.js');
-const expressJWT = require('express-jwt');
-const jwt = require('jsonwebtoken');
-const users = require(__dirname + '/users.js');
-
-const { promisify } = require('util');
+import { Action } from '@mymicds/sdk';
+import { NextFunction, Request, Response } from 'express';
+import expressJWT, { IsRevokedCallback } from 'express-jwt';
+import { SignOptions } from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
+import { Db, ObjectID } from 'mongodb';
+import * as _ from 'underscore';
+import { promisify } from 'util';
+import * as api from './api';
+import config from './config';
+import { UserDoc } from './users';
+import * as users from './users';
 
 /**
  * Express middleware to verify the JWT token (if any) and assigns it to req.user
@@ -22,7 +18,7 @@ const { promisify } = require('util');
  * @returns {function}
  */
 
-function authorize(db) {
+export function authorize(db: Db) {
 	return expressJWT({
 		credentialsRequired: false, // We have our own way of handling if user is authorized or not
 		secret   : config.jwt.secret,
@@ -57,7 +53,7 @@ function authorize(db) {
  * @param {Boolean} revoked - True if the JWT is revoked, false otherwise.
  */
 
-function isRevoked(db) {
+function isRevoked(db: Db): IsRevokedCallback {
 	return async (req, payload, done) => {
 
 		const ignoredRoutes = [
@@ -88,7 +84,8 @@ function isRevoked(db) {
 			return;
 		}
 
-		let isUser, userDoc;
+		let isUser: boolean;
+		let userDoc: UserDoc | null;
 		try {
 			// I guess this requires parentheses?
 			({ isUser, userDoc } = await users.get(db, payload.user));
@@ -107,17 +104,18 @@ function isRevoked(db) {
 		 * @TODO Automatically log user out in front-end on password change
 		 * or prevent session that changed password from expiring.
 		 */
-		/* if (typeof userDoc['lastPasswordChange'] === 'object' && (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
+		/* if (typeof userDoc['lastPasswordChange'] === 'object'
+				&& (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
 			done(null, true);
 			return;
 		}*/
 
 		// Make sure token isn't blacklisted (usually if logged out)
-		const jwt = req.get('Authorization').slice(7);
+		const authJwt = req.get('Authorization')!.slice(7);
 
 		let blacklisted;
 		try {
-			blacklisted = await isBlacklisted(db, jwt);
+			blacklisted = await isBlacklisted(db, authJwt);
 		} catch (e) {
 			done(e, true);
 			return;
@@ -125,10 +123,10 @@ function isRevoked(db) {
 
 		// Update 'lastVisited' field in user document
 		const userdata = db.collection('users');
-		await userdata.updateOne(userDoc, { $currentDate: { lastVisited: true }});
+		await userdata.updateOne(userDoc!, { $currentDate: { lastVisited: true }});
 
 		const jwtData = db.collection('jwtWhitelist');
-		await jwtData.updateOne({ user: userDoc._id, jwt }, { $currentDate: { lastUsed: true }});
+		await jwtData.updateOne({ user: userDoc!._id, jwt: authJwt }, { $currentDate: { lastUsed: true }});
 
 		done(null, blacklisted);
 	};
@@ -143,7 +141,7 @@ function isRevoked(db) {
  * @param {function} next - Callback with no parameters
  */
 
-function fallback(req, res, next) {
+export function fallback(req: Request, res: Response, next: NextFunction) {
 	// If user doesn't exist or is invalid, default req.user to false
 	if (typeof req.user === 'undefined') {
 		req.user = false;
@@ -158,20 +156,21 @@ function fallback(req, res, next) {
  * @param {function} next - Callback with no parameters
  */
 
-function requireLoggedIn(req, res, next) {
+export function requireLoggedIn(req: Request, res: Response, next: NextFunction) {
 	requireScope('pleb', 'You must be logged in to access this!')(req, res, next);
 }
 
 /**
  * Route-specific middleware to require the user to have a specific scope
  * @param {string} scope - Which scope the user needs to have
- * @param {string} [message] - Optional. Custom error message to send back to client if they don't have the specified scope.
+ * @param {string} [message] - Optional.
+ * 							   Custom error message to send back to client if they don't have the specified scope.
  */
 
-function requireScope(scope, message = 'You\'re not authorized in this part of the site, punk.') {
-	return (req, res, next) => {
+export function requireScope(scope: string, message = 'You\'re not authorized in this part of the site, punk.') {
+	return (req: Request, res: Response, next: NextFunction) => {
 		if (!req.user || !req.user.scopes[scope]) {
-			api.error(res, message, 'NOT_LOGGED_IN');
+			api.error(res, message, Action.NOT_LOGGED_IN);
 		} else {
 			next();
 		}
@@ -183,9 +182,9 @@ function requireScope(scope, message = 'You\'re not authorized in this part of t
  * @function catchUnauthorized
  */
 
-function catchUnauthorized(err, req, res, next) {
+export function catchUnauthorized(err: Error, req: Request, res: Response, next: NextFunction) {
 	if (err.name === 'UnauthorizedError') {
-		api.error(res, err, 'UNAUTHORIZED');
+		api.error(res, err, Action.UNAUTHORIZED);
 		return;
 	}
 	next();
@@ -211,21 +210,21 @@ function catchUnauthorized(err, req, res, next) {
  * @param {string} token - JWT token. Error if null.
  */
 
-async function generate(db, user, rememberMe, comment) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+export async function generate(db: Db, user: string, rememberMe: boolean, comment: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
 	const expiration = rememberMe ? '30 days' : '12 hours';
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
 	// Default scope
-	const scopes = {
-		'pleb': true
+	const scopes: { [scope: string]: true } = {
+		pleb: true
 	};
 
-	if (_.isArray(userDoc['scopes'])) {
-		for (const scope of userDoc['scopes']) {
+	if (_.isArray(userDoc!.scopes)) {
+		for (const scope of userDoc!.scopes) {
 			scopes[scope] = true;
 		}
 	}
@@ -236,7 +235,8 @@ async function generate(db, user, rememberMe, comment) {
 
 	let token;
 	try {
-		token = await promisify(jwt.sign)({
+		// I have to specify the type arguments cause TS is having trouble with inferring them here
+		token = await promisify<object, string, SignOptions, string>(jwt.sign)({
 			user, scopes
 		}, config.jwt.secret, {
 			subject: 'MyMICDS API',
@@ -252,7 +252,7 @@ async function generate(db, user, rememberMe, comment) {
 	const jwtData = db.collection('jwtWhitelist');
 
 	try {
-		await jwtData.insertOne({ user: userDoc._id, jwt: token, comment });
+		await jwtData.insertOne({ user: userDoc!._id, jwt: token, comment });
 	} catch (e) {
 		throw new Error('There was a problem registering the JWT!');
 	}
@@ -277,16 +277,16 @@ async function generate(db, user, rememberMe, comment) {
  * @param {Boolean} blacklisted - True if blacklisted, false if not. Null if error.
  */
 
-async function isBlacklisted(db, jwt) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof jwt !== 'string') throw new Error('Invalid JWT!');
+export async function isBlacklisted(db: Db, checkJwt: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof checkJwt !== 'string') { throw new Error('Invalid JWT!'); }
 
-	const jwtData = db.collection('jwtWhitelist');
+	const jwtData = db.collection<JWTDoc>('jwtWhitelist');
 
-	let docs;
+	let docs: JWTDoc[];
 
 	try {
-		docs = await jwtData.find({ jwt }).toArray();
+		docs = await jwtData.find({ jwt: checkJwt }).toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
@@ -311,27 +311,27 @@ async function isBlacklisted(db, jwt) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-async function revoke(db, payload, jwt) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof payload !== 'object') throw new Error('Invalid payload!');
-	if (typeof jwt !== 'string') throw new Error('Invalid JWT!');
+export async function revoke(db: Db, payload: any, revokeJwt: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof payload !== 'object') { throw new Error('Invalid payload!'); }
+	if (typeof revokeJwt !== 'string') { throw new Error('Invalid JWT!'); }
 
 	const { isUser, userDoc } = await users.get(db, payload.user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
 	const jwtData = db.collection('jwtWhitelist');
 
 	try {
-		await jwtData.deleteOne({ user: userDoc._id, jwt });
+		await jwtData.deleteOne({ user: userDoc!._id, jwt: revokeJwt });
 	} catch (e) {
 		throw new Error('There was a problem revoking the JWT in the database!');
 	}
 }
 
-module.exports.authorize         = authorize;
-module.exports.fallback          = fallback;
-module.exports.requireLoggedIn   = requireLoggedIn;
-module.exports.requireScope      = requireScope;
-module.exports.catchUnauthorized = catchUnauthorized;
-module.exports.generate          = generate;
-module.exports.revoke            = revoke;
+export interface JWTDoc {
+	_id: ObjectID;
+	user: ObjectID;
+	jwt: string;
+	comment: string;
+	lastUsed: Date;
+}

@@ -1,20 +1,13 @@
-'use strict';
-
-/**
- * @file User management functions
- * @module users
- */
-const _ = require('underscore');
-const bcrypt = require('bcrypt');
-const crypto = require('crypto');
-const cryptoUtils = require(__dirname + '/cryptoUtils.js');
-const mail = require(__dirname + '/mail.js');
-const users = require(__dirname + '/users.js');
-
-const { promisify } = require('util');
+import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+import { Db } from 'mongodb';
+import { promisify } from 'util';
+import * as cryptoUtils from './cryptoUtils';
+import * as mail from './mail';
+import * as users from './users';
 
 // Passwords not allowed
-const passwordBlacklist = [
+export const passwordBlacklist = [
 	'', // Empty string
 	'Nick is not a nerd' // Because he is
 ];
@@ -38,24 +31,24 @@ const passwordBlacklist = [
  * @param {Boolean} confirmed - Whether or not the user has confirmed their account.
  */
 
-async function passwordMatches(db, user, password) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof password !== 'string') throw new Error('Invalid password!');
+export async function passwordMatches(db: Db, user: string, password: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof password !== 'string') { throw new Error('Invalid password!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
 	// If invalid user, we just want to say username / password doesn't match
-	if (!isUser) return { matches: false, confirmed: false };
+	if (!isUser) { return { matches: false, confirmed: false }; }
 
-	const hash = userDoc['password'];
+	const hash = userDoc!.password;
 
-	let res;
+	let res: boolean;
 	try {
 		res = await promisify(bcrypt.compare)(password, hash);
 	} catch (e) {
 		throw new Error('There was a problem comparing the passwords!');
 	}
 
-	return { matches: res, confirmed: !!userDoc['confirmed'] };
+	return { matches: res, confirmed: !!userDoc!.confirmed };
 }
 
 /**
@@ -76,20 +69,20 @@ async function passwordMatches(db, user, password) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-async function changePassword(db, user, oldPassword, newPassword) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof newPassword !== 'string') throw new Error('Invalid new password!');
+export async function changePassword(db: Db, user: string, oldPassword: string, newPassword: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof newPassword !== 'string') { throw new Error('Invalid new password!'); }
 
-	if (typeof oldPassword !== 'string' || _.contains(passwordBlacklist, newPassword)) {
+	if (typeof oldPassword !== 'string' || passwordBlacklist.includes(newPassword)) {
 		throw new Error('Invalid old password!');
 	}
 
 	const { isUser } = await users.get(db, user);
-	if (!isUser) throw new Error('Invalid user!');
+	if (!isUser) { throw new Error('Invalid user!'); }
 
 	// Compare oldPassword with password in database
 	const { matches } = await passwordMatches(db, user, oldPassword);
-	if (!matches) throw new Error('Password does not match!');
+	if (!matches) { throw new Error('Password does not match!'); }
 
 	const hash = await cryptoUtils.hashPassword(newPassword);
 
@@ -120,14 +113,14 @@ async function changePassword(db, user, oldPassword, newPassword) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-async function resetPasswordEmail(db, user) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+export async function resetPasswordEmail(db: Db, user: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
 	// Generate password hash for confirmation link
-	let buf;
+	let buf: Buffer;
 	try {
 		buf = await promisify(crypto.randomBytes)(16);
 	} catch (e) {
@@ -142,19 +135,19 @@ async function resetPasswordEmail(db, user) {
 
 	try {
 		await userdata.updateOne({
-			_id: userDoc['_id'],
-			user: userDoc['user']
+			_id: userDoc!._id,
+			user: userDoc!.user
 		}, { $set: { passwordChangeHash: hashedHash } }, { upsert: true });
 	} catch (e) {
 		throw new Error('There was a problem inserting the confirmation hash into the database!');
 	}
 
 	// Send confirmation email
-	const email = userDoc['user'] + '@micds.org';
+	const email = userDoc!.user + '@micds.org';
 	const emailReplace = {
-		firstName: userDoc['firstName'],
-		lastName: userDoc['lastName'],
-		passwordLink: 'https://mymicds.net/reset-password/' + userDoc['user'] + '/' + hash
+		firstName: userDoc!.firstName,
+		lastName: userDoc!.lastName,
+		passwordLink: 'https://mymicds.net/reset-password/' + userDoc!.user + '/' + hash
 	};
 
 	// Send email confirmation
@@ -180,19 +173,19 @@ async function resetPasswordEmail(db, user) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-async function resetPassword(db, user, password, hash) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof password !== 'string' || _.contains(passwordBlacklist, password)) throw new Error('Invalid password!');
-	if (typeof hash !== 'string') throw new Error('Invalid hash!');
+export async function resetPassword(db: Db, user: string, password: string, hash: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof password !== 'string' || passwordBlacklist.includes(password)) { throw new Error('Invalid password!'); }
+	if (typeof hash !== 'string') { throw new Error('Invalid hash!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	if (typeof userDoc['passwordChangeHash'] !== 'string' || userDoc['passwordChangeHash'] === null) {
+	if (typeof userDoc!.passwordChangeHash !== 'string' || userDoc!.passwordChangeHash === null) {
 		throw new Error('Password change email was never sent!');
 	}
 
-	if (!cryptoUtils.safeCompareSHA(hash, userDoc['passwordChangeHash'])) {
+	if (!cryptoUtils.safeCompareSHA(hash, userDoc!.passwordChangeHash!)) {
 		// Hash is not valid
 		throw new Error('Invalid hash!');
 	}
@@ -204,7 +197,7 @@ async function resetPassword(db, user, password, hash) {
 
 	// Update password in the database
 	try {
-		await userdata.updateOne({ _id: userDoc['_id'], user: userDoc['user'] }, {
+		await userdata.updateOne({ _id: userDoc!._id, user: userDoc!.user }, {
 			$set: {
 				password: hashedPassword,
 				passwordChangeHash: null
@@ -214,9 +207,3 @@ async function resetPassword(db, user, password, hash) {
 		throw new Error('There was a problem updating the password in the database!');
 	}
 }
-
-module.exports.passwordMatches    = passwordMatches;
-module.exports.passwordBlacklist  = passwordBlacklist;
-module.exports.changePassword     = changePassword;
-module.exports.resetPasswordEmail = resetPasswordEmail;
-module.exports.resetPassword      = resetPassword;

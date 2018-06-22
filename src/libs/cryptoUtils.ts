@@ -1,13 +1,6 @@
-'use strict';
-
-/**
- * @file Defines some general cryptography and authorization functions
- * @module cryptoUtils
- */
-const bcrypt = require('bcrypt');
-const crypto = require('crypto');
-
-const { promisify } = require('util');
+import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+import { promisify } from 'util';
 
 /**
  * Hashes a given password
@@ -25,7 +18,7 @@ const { promisify } = require('util');
  * @param {string} hash - Encrypted password. Null if error.
  */
 
-async function hashPassword(password) {
+export async function hashPassword(password: string) {
 	try {
 		return await promisify(bcrypt.hash)(password, 10);
 	} catch (e) {
@@ -43,7 +36,7 @@ async function hashPassword(password) {
  * @returns {Boolean} res- True if strings match, false if strings do not match or are invalid strings
  */
 
-function safeCompare(a, b) {
+export function safeCompare(a: string, b: string) {
 
 	if (typeof a !== 'string' || typeof b !== 'string') {
 		return false;
@@ -74,7 +67,7 @@ function safeCompare(a, b) {
  * @returns {string}
  */
 
-function shaHash(str) {
+export function shaHash(str: string) {
 	return crypto.createHash('sha256').update(str).digest('hex');
 }
 
@@ -86,12 +79,7 @@ function shaHash(str) {
  * @param {string} hash - SHA-256 hash
  */
 
-function safeCompareSHA(str, hash) {
+export function safeCompareSHA(str: string, hash: string) {
 	const hashedStr = shaHash(str);
 	return safeCompare(hashedStr, hash);
 }
-
-module.exports.hashPassword   = hashPassword;
-module.exports.safeCompare    = safeCompare;
-module.exports.shaHash        = shaHash;
-module.exports.safeCompareSHA = safeCompareSHA;

@@ -1,22 +1,16 @@
-'use strict';
-
-/**
- * @file Background management functions
- * @module backgrounds
- */
-const config = require(__dirname + '/config.js');
-
-const _ = require('underscore');
-const fs = require('fs-extra');
-const Jimp = require('jimp');
-const multer = require('multer');
-const path = require('path');
-const utils = require(__dirname + '/utils.js');
-
-const { promisify } = require('util');
+import * as fs from 'fs-extra';
+import * as Jimp from 'jimp';
+import { Db } from 'mongodb';
+import multer from 'multer';
+import * as path from 'path';
+import { promisify } from 'util';
+import { ProcessedRequest } from './api';
+import config from './config';
+import { UserDoc } from './users';
+import * as utils from './utils';
 
 // Valid MIME Types for image backgrounds
-const validMimeTypes = {
+const validMimeTypes: { [mime: string]: string } = {
 	'image/png': 'png',
 	'image/jpeg': 'jpg'
 };
@@ -55,27 +49,27 @@ const defaultBlurRadius = 10;
 function uploadBackground() {
 
 	const storage = multer.diskStorage({
-		destination: (req, file, cb) => {
+		async destination(req, file, cb) {
+			const ourReq = req as ProcessedRequest;
 			// Delete current background
-			deleteBackground(req.apiUser, err => {
+			try {
+				await deleteBackground(ourReq.apiUser!);
+			} catch (err) {
+				cb(err, '');
+				return;
+			}
+
+			// Make sure directory is created for user backgrounds
+			const userDir = userBackgroundsDir + '/' + ourReq.apiUser + '-' + Date.now();
+			fs.ensureDir(userDir, err => {
 				if (err) {
-					cb(err, null);
+					cb(new Error('There was a problem ensuring the image directory!'), '');
 					return;
 				}
-
-				// Make sure directory is created for user backgrounds
-				const userDir = userBackgroundsDir + '/' + req.apiUser + '-' + Date.now();
-				fs.ensureDir(userDir, err => {
-					if (err) {
-						cb(new Error('There was a problem ensuring the image directory!'), null);
-						return;
-					}
-					cb(null, userDir);
-				});
+				cb(null, userDir);
 			});
 		},
-
-		filename: (req, file, cb) => {
+		filename(req, file, cb) {
 			// Get valid extension
 			const extension = validMimeTypes[file.mimetype];
 			// Set base file name to username
@@ -87,14 +81,14 @@ function uploadBackground() {
 
 	const upload = multer({
 		storage,
-		fileFilter: (req, file, cb) => {
-			if (!req.apiUser) {
-				cb(new Error('You must be logged in!'), null);
+		fileFilter(req, file, cb) {
+			if (!(req as ProcessedRequest).apiUser) {
+				cb(new Error('You must be logged in!'), false);
 				return;
 			}
 			const extension = validMimeTypes[file.mimetype];
 			if (typeof extension !== 'string') {
-				cb(new Error('Invalid file type!'), null);
+				cb(new Error('Invalid file type!'), false);
 				return;
 			}
 
@@ -119,13 +113,14 @@ function uploadBackground() {
  *
  * @param {Object} err - Null if success, error object if failure.
  * @param {string} dirname - Name of directory containing background. Null if error or user doesn't have background.
- * @param {string} extension - String containing extension of user background. Contains the dot (.) at the beginning of the extension. Null if error or user doesn't have background.
+ * @param {string} extension - String containing extension of user background.
+ * 							   Contains the dot (.) at the beginning of the extension. Null if error or user doesn't have background.
  */
 
-async function getCurrentFiles(user) {
-	if (typeof user !== 'string' || !utils.validFilename(user)) throw new Error('Invalid username!');
+async function getCurrentFiles(user: string) {
+	if (typeof user !== 'string' || !utils.validFilename(user)) { throw new Error('Invalid username!'); }
 
-	let userDirs;
+	let userDirs: string[];
 	try {
 		userDirs = await promisify(fs.readdir)(userBackgroundsDir);
 	} catch (e) {
@@ -158,7 +153,7 @@ async function getCurrentFiles(user) {
 	}
 
 	// User doesn't have any background
-	if (userDir === null) return { dirname: null, extension: null };
+	if (userDir === null) { return { dirname: null, extension: null }; }
 
 	const extension = await getDirExtension(userDir);
 
@@ -180,14 +175,14 @@ async function getCurrentFiles(user) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-async function deleteBackground(user) {
-	if (typeof user !== 'string' || !utils.validFilename(user)) throw new Error('Invalid username!');
+async function deleteBackground(user: string) {
+	if (typeof user !== 'string' || !utils.validFilename(user)) { throw new Error('Invalid username!'); }
 
 	// Find out user's current directory
 	const { dirname, extension } = await getCurrentFiles(user);
 
 	// Check if no existing background
-	if (dirname === null || extension === null) return;
+	if (dirname === null || extension === null) { return; }
 
 	const currentPath = userBackgroundsDir + '/' + dirname;
 	const deletedPath = userBackgroundsDir + '/deleted-' + dirname;
@@ -216,14 +211,14 @@ async function deleteBackground(user) {
  * @param {Boolean} hasDefault - Whether or not user has default background.
  */
 
-async function getBackground(user) {
-	if (typeof user !== 'string' || !utils.validFilename(user))	return { variants: defaultVariants, hasDefault: true };
+async function getBackground(user: string): Promise<BackgroundObject> {
+	if (typeof user !== 'string' || !utils.validFilename(user)) { return { variants: defaultVariants, hasDefault: true }; }
 
 	// Get user's extension
 	const { dirname, extension } = await getCurrentFiles(user);
 
 	// Fallback to default background if no custom extension
-	if (dirname === null || extension === null) return { variants: defaultVariants, hasDefault: true };
+	if (dirname === null || extension === null) { return { variants: defaultVariants, hasDefault: true }; }
 
 	const backgroundURLs = {
 		normal: userBackgroundUrl + '/' + dirname + '/normal' + extension,
@@ -249,19 +244,19 @@ async function getBackground(user) {
  * @param {Object} backgrounds - Object of all users and backgrounds
  */
 
-async function getAllBackgrounds(db) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+async function getAllBackgrounds(db: Db) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
-	let userDirs;
+	let userDirs: string[];
 	try {
 		userDirs = await promisify(fs.readdir)(userBackgroundsDir);
 	} catch (e) {
 		throw new Error('There was a problem reading the user backgrounds directory!');
 	}
 
-	const userdata = db.collection('users');
+	const userdata = db.collection<UserDoc>('users');
 
-	let users;
+	let users: UserDoc[];
 	try {
 		users = await userdata.find({ confirmed: true }).toArray();
 	} catch (e) {
@@ -269,13 +264,13 @@ async function getAllBackgrounds(db) {
 	}
 
 	const remainingUsers = users.map(u => u.user);
-	const result = {};
+	const result: { [user: string]: BackgroundObject } = {};
 
 	for (const userDir of userDirs) {
 		const dirname = path.parse(userDir).name;
 		const dirnameSplit = dirname.split('-');
 
-		if (dirnameSplit[0] === 'deleted' || dirnameSplit[0] === 'default') continue;
+		if (dirnameSplit[0] === 'deleted' || dirnameSplit[0] === 'default') { continue; }
 
 		// Remove timestamp
 		dirnameSplit.pop();
@@ -306,8 +301,8 @@ async function getAllBackgrounds(db) {
 	return result;
 }
 
-async function getDirExtension(userDir) {
-	let userImages;
+async function getDirExtension(userDir: string) {
+	let userImages: string[];
 	try {
 		userImages = await promisify(fs.readdir)(userBackgroundsDir + '/' + userDir);
 	} catch (e) {
@@ -315,13 +310,13 @@ async function getDirExtension(userDir) {
 	}
 
 	// Loop through all valid files until there's either a .png or .jpg extention
-	let userExtension = null;
+	let userExtension: string | null = null;
 	for (const _file of userImages) {
 		const file = path.parse(_file);
 		const extension = file.ext;
 
 		// If valid extension, just break out of loop and return that
-		if (_.contains(validExtensions, extension)) {
+		if (validExtensions.includes(extension)) {
 			userExtension = extension;
 			break;
 		}
@@ -347,14 +342,14 @@ async function getDirExtension(userDir) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-async function addBlur(fromPath, toPath, blurRadius) {
-	if (typeof fromPath !== 'string') throw new Error('Invalid path to original image!');
-	if (typeof toPath !== 'string') throw new Error('Invalid path to blurred image!');
+async function addBlur(fromPath: string, toPath: string, blurRadius: number) {
+	if (typeof fromPath !== 'string') { throw new Error('Invalid path to original image!'); }
+	if (typeof toPath !== 'string') { throw new Error('Invalid path to blurred image!'); }
 	if (typeof blurRadius !== 'number') {
 		blurRadius = defaultBlurRadius;
 	}
 
-	let image;
+	let image: any; // There is a `Jimp` type but there's like two different ones that conflict I guess?
 	try {
 		image = await Jimp.read(fromPath);
 	} catch (e) {
@@ -383,12 +378,12 @@ async function addBlur(fromPath, toPath, blurRadius) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-async function blurUser(user) {
-	if (typeof user !== 'string' || !utils.validFilename(user)) throw new Error('Invalid username!');
+export async function blurUser(user: string) {
+	if (typeof user !== 'string' || !utils.validFilename(user)) { throw new Error('Invalid username!'); }
 
 	const { dirname, extension } = await getCurrentFiles(user);
 
-	if (dirname === null || extension === null) return;
+	if (dirname === null || extension === null) { return; }
 
 	const userDir = userBackgroundsDir + '/' + dirname;
 	const fromPath = userDir + '/normal' + extension;
@@ -397,8 +392,14 @@ async function blurUser(user) {
 	return addBlur(fromPath, toPath, defaultBlurRadius);
 }
 
-module.exports.get    	= getBackground;
-module.exports.upload	= uploadBackground;
-module.exports.delete 	= deleteBackground;
-module.exports.getAll	= getAllBackgrounds;
-module.exports.blurUser = blurUser;
+export interface BackgroundObject {
+	variants: Record<'normal' | 'blur', string>;
+	hasDefault: boolean;
+}
+
+export {
+	getBackground as get,
+	uploadBackground as upload,
+	deleteBackground as delete,
+	getAllBackgrounds as getAll
+};
