@@ -1,16 +1,15 @@
 import { GetPortalDayRotationResponse } from '@mymicds/sdk';
 import { Db, ObjectID } from 'mongodb';
 import config from './config';
+import * as feeds from './feeds';
+import * as users from './users';
 
 import * as ical from 'ical';
-
 import moment from 'moment';
+import * as querystring from 'querystring';
 import request from 'request-promise-native';
 import * as _ from 'underscore';
 import * as url from 'url';
-
-import * as feeds from './feeds';
-import * as users from './users';
 
 // URL Calendars come from
 const urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?z=';
@@ -50,7 +49,7 @@ export async function verifyURL(portalURL: string) {
 
 	// Parse URL first
 	const parsedURL = url.parse(portalURL);
-	const queries = querystring.parse(parsedURL.query);
+	const queries = querystring.parse(parsedURL.query!);
 
 	if (typeof queries.z !== 'string') { return { isValid: 'URL does not contain calendar ID!', url: null }; }
 
@@ -171,7 +170,7 @@ export async function getFromCache(db: Db, user: string) {
 
 	if (typeof userDoc!.portalURL !== 'string') { return { hasURL: false, events: null }; }
 
-	const portaldata = db.collection<PortalCacheEventEvent>('portalFeeds');
+	const portaldata = db.collection<PortalCacheEvent>('portalFeeds');
 
 	let events: PortalCacheEvent[];
 	try {
@@ -212,7 +211,7 @@ export async function getFromCal(db: Db, user: string) {
 
 	let response;
 	try {
-		response = await request(userDoc!.portalURL, {
+		response = await request(userDoc!.portalURL!, {
 			resolveWithFullResponse: true,
 			simple: false
 		});
@@ -476,7 +475,10 @@ export interface PortalCalendarEvent {
 	categories: ['podium', 'events'];
 }
 
-export interface PortalCacheEvent extends PortalCalendarEvent {
-	_id: ObjectID;
+export interface PortalCalendarWithUser extends PortalCalendarEvent {
 	user: ObjectID;
+}
+
+export interface PortalCacheEvent extends PortalCalendarWithUser {
+	_id: ObjectID;
 }

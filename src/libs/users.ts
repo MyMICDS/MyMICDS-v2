@@ -54,7 +54,8 @@ async function getUser(db: Db, user: string) {
  *
  * @param {Object} db - Database connection
  * @param {string} user - Username
- * @param {Boolean} privateInfo - Whether to include sensitive information such as canvasURL and portalURL. Set to true if only the user is viewing it. Defaults to false.
+ * @param {Boolean} privateInfo - Whether to include sensitive information such as canvasURL and portalURL.
+ * 								  Set to true if only the user is viewing it. Defaults to false.
  * @param {getInfoCallback} callback - Callback
  */
 
@@ -152,7 +153,7 @@ export async function changeInfo(db: Db, user: string, info: ChangeUserInfoParam
 	const userdata = db.collection('users');
 
 	try {
-		await userdata.updateOne({ _id: userDoc._id, user }, { $set: set }, { upsert: true });
+		await userdata.updateOne({ _id: userDoc!._id, user }, { $set: set }, { upsert: true });
 	} catch (e) {
 		throw new Error('There was a problem updating the databse!');
 	}
@@ -160,13 +161,14 @@ export async function changeInfo(db: Db, user: string, info: ChangeUserInfoParam
 
 /**
  * Converts a graduation year to a grade.
- * If the grade is Junior-Kindergarten (JK) or Senior-Kindergarten (SK) then the respective -1 and 0 integers are returned.
+ * If the grade is Junior-Kindergarten (JK) or Senior-Kindergarten (SK)
+ * then the respective -1 and 0 integers are returned.
  * @function gradYearToGrade
  * @param {Number} gradYear - Graduation year
  * @returns {Number}
  */
 
-export function gradYearToGrade(gradYear: number) {
+export function gradYearToGrade(gradYear: number | null) {
 	if (typeof gradYear !== 'number' || gradYear % 1 !== 0) { return null; }
 
 	const current = moment();
@@ -184,13 +186,14 @@ export function gradYearToGrade(gradYear: number) {
 
 /**
  * Converts a grade to a graduation year.
- * If you want to enter the grade Junior-Kindergarten (JK) or Senior-Kindergarten (SK) then insert the respective integers -1 and 0.
+ * If you want to enter the grade Junior-Kindergarten (JK) or Senior-Kindergarten (SK)
+ * then insert the respective integers -1 and 0.
  * @function gradeToGradYear
  * @param {Number} grade - Grade
  * @returns {Number}
  */
 
-export function gradeToGradYear(grade: number) {
+export function gradeToGradYear(grade: number | null) {
 	if (typeof grade !== 'number' || grade % 1 !== 0) { return null; }
 
 	const current = moment();
@@ -206,14 +209,15 @@ export function gradeToGradYear(grade: number) {
 }
 
 /**
- * Determines which school a grade belongs to. If grade is above 12, returns 'upperschool'. If grade is below -1, returns 'lowerschool'.
+ * Determines which school a grade belongs to. If grade is above 12, returns 'upperschool'.
+ * If grade is below -1, returns 'lowerschool'.
  * Also if grade isn't a number, it will also default to 'upperschool'.
  * @function gradeToSchool
  * @param {Number} grade - Grade
  * @returns {string}
  */
 
-export function gradeToSchool(grade: number): School {
+export function gradeToSchool(grade: number | null): School {
 	if (typeof grade !== 'number' || grade >= 9) { return 'upperschool'; }
 	if (grade < 5) { return 'lowerschool'; }
 	return 'middleschool';

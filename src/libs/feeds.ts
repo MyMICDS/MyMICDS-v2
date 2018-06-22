@@ -1,12 +1,11 @@
-/**
- * @file Manages Canvas and Portal feeds for caching purposes
- * @module feeds
- */
-
-const _      = require('underscore');
-const canvas = require(__dirname + '/canvas.js');
-const portal = require(__dirname + '/portal.js');
-const users  = require(__dirname + '/users.js');
+import { Db, ObjectID } from 'mongodb';
+import * as _ from 'underscore';
+import { CanvasCalendarWithUser } from './canvas';
+import * as canvas from './canvas';
+import { PortalCalendarEvent, PortalCalendarWithUser } from './portal';
+import * as portal from './portal';
+import { UserDoc } from './users';
+import * as users from './users';
 
 /**
  * Update cached Canvas feed for a user
@@ -22,28 +21,28 @@ const users  = require(__dirname + '/users.js');
  * @param {Object} err - Null if success, error object if failure
  */
 
-async function updateCanvasCache(db, user) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+export async function updateCanvasCache(db: Db, user: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
 	const canvasdata = db.collection('canvasFeeds');
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	const { events } = await canvas.getUserCal(db, userDoc.user);
+	const { events } = await canvas.getUserCal(db, userDoc!.user);
 
 	try {
-		await canvasdata.deleteMany({ user: userDoc._id });
+		await canvasdata.deleteMany({ user: userDoc!._id });
 	} catch (e) {
 		throw new Error('There was an error removing the old events from the database!');
 	}
 
-	for (const ev of events) {
-		ev.user = userDoc._id;
+	for (const ev of events!) {
+		(ev as any).user = userDoc!._id;
 	}
 
 	try {
-		await canvasdata.insertMany(events);
+		await canvasdata.insertMany(events as CanvasCalendarWithUser[]);
 	} catch (e) {
 		throw new Error('There was an error inserting events into the database!');
 	}
@@ -64,41 +63,43 @@ async function updateCanvasCache(db, user) {
  * @param {Array} events - Array of Portal events if success, null if failure
  */
 
-async function addPortalQueue(db, user) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+export async function addPortalQueue(db: Db, user: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
 	const portaldata = db.collection('portalFeeds');
 	const userdata   = db.collection('users');
 
 	const { cal: events } = await portal.getFromCal(db, user);
 
-	if (_.isEmpty(events)) {
+	if (_.isEmpty(events!)) {
 		try {
 			await userdata.updateOne({ user }, { $set: { inPortalQueue: true } });
 		} catch (e) {
 			throw new Error('There was an error adding the user to the queue!');
 		}
 
-		return events;
+		return events!;
 	}
 
 	try {
-		await portaldata.deleteMany({ user: userDoc._id });
+		await portaldata.deleteMany({ user: userDoc!._id });
 	} catch (e) {
 		throw new Error('There was an error removing the old events from the database!');
 	}
 
-	for (const ev of events) {
-		ev.user = userDoc._id;
+	for (const ev of events!) {
+		(ev as any).user = userDoc!._id;
 	}
 
+	const newEvents = events as PortalCalendarWithUser[];
+
 	try {
-		await portaldata.insertMany(events);
+		await portaldata.insertMany(newEvents);
 	} catch (e) {
-		new Error(`There was an error inserting events into the database! (${e})`);
+		throw new Error(`There was an error inserting events into the database! (${e})`);
 	}
 
 	try {
@@ -107,7 +108,7 @@ async function addPortalQueue(db, user) {
 		throw new Error('There was an error removing the user from the queue!');
 	}
 
-	return events;
+	return newEvents;
 }
 
 /**
@@ -123,12 +124,12 @@ async function addPortalQueue(db, user) {
  * @param {Object} err - Null if success, error object if failure
  */
 
-async function processPortalQueue(db) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+export async function processPortalQueue(db: Db) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
-	const userdata = db.collection('users');
+	const userdata = db.collection<UserDoc>('users');
 
-	let queue;
+	let queue: UserDoc[];
 	try {
 		queue = await userdata.find({ inPortalQueue: true }).toArray();
 	} catch (e) {
@@ -156,18 +157,13 @@ async function processPortalQueue(db) {
  * @param {Array} events - Array of events if success, null if failure.
  */
 
-async function canvasCacheRetry(db, user) {
+export async function canvasCacheRetry(db: Db, user: string) {
 	const { hasURL, events } = await canvas.getFromCache(db, user);
 
-	if (!hasURL || !events || events.length > 0) return { hasURL, events };
+	if (!hasURL || !events || events.length > 0) { return { hasURL, events }; }
 
 	// If the events are empty, there's a chance that we just didn't cache results yet
 	await updateCanvasCache(db, user);
 
 	return canvas.getFromCache(db, user);
 }
-
-module.exports.updateCanvasCache  = updateCanvasCache;
-module.exports.addPortalQueue     = addPortalQueue;
-module.exports.processPortalQueue = processPortalQueue;
-module.exports.canvasCacheRetry  = canvasCacheRetry;

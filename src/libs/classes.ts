@@ -51,8 +51,8 @@ async function upsertClass(db: Db, user: string, scheduleClass: {
 	_id?: string,
 	name: string,
 	color?: string,
-	block?: string,
-	type?: string,
+	block?: Block,
+	type?: ClassType,
 	teacher: Teacher
 }) {
 	// Input validation best validation
@@ -64,10 +64,10 @@ async function upsertClass(db: Db, user: string, scheduleClass: {
 	if (typeof scheduleClass.name !== 'string') { throw new Error('Invalid class name!'); }
 
 	// If no valid block or type, default to 'other'
-	if (!validBlocks.includes(scheduleClass.block)) { scheduleClass.block = Block.OTHER; }
-	if (!validTypes.includes(scheduleClass.type)) {   scheduleClass.type  = ClassType.OTHER; }
+	if (!(scheduleClass.block && validBlocks.includes(scheduleClass.block))) { scheduleClass.block = Block.OTHER; }
+	if (!(scheduleClass.type && validTypes.includes(scheduleClass.type))) {    scheduleClass.type  = ClassType.OTHER; }
 	// If not valid color, generate random
-	if (!validColor.test(scheduleClass.color)) {
+	if (!(scheduleClass.color && validColor.test(scheduleClass.color))) {
 		// You think we're playing around here? No. This is MyMICDS.
 		// We are going to cryptographically generate a color as random as human intelligence can get us.
 		scheduleClass.color = '#' + Random.hex(true)(engine, 6);

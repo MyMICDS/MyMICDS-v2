@@ -90,7 +90,8 @@ async function addAlias(db: Db, user: string, type: AliasType, classString: stri
  * @callback listAliasesCallback
  *
  * @param {Object} err - Null if success, error object if failure.
- * @param {Object} aliases - An object containing a key for each alias type, and the value an array of the aliases. Null if error.
+ * @param {Object} aliases - An object containing a key for each alias type, and the value an array of the aliases.
+ * 							 Null if error.
  */
 
 async function listAliases(db: Db, user: string) {
@@ -293,7 +294,7 @@ async function getAliasClass(db: Db, user: string, type: AliasType, classInput: 
  * @param {Object} err - Null if success, error object if failure
  */
 
-async function deleteClasslessAliases(db: Db) {
+export async function deleteClasslessAliases(db: Db) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
 	const aliasdata = db.collection<AliasWithIDs>('aliases');
@@ -344,6 +345,5 @@ export {
 	listAliases as list,
 	mapAliases as mapList,
 	deleteAlias as delete,
-	getAliasClass as getClass,
-	deleteClasslessAliases
+	getAliasClass as getClass
 };

@@ -1,20 +1,17 @@
-'use strict';
-
-/**
- * @file Reads Canvas calendar and retrieves events to integrate in our planner
- * @module canvas
- */
-const _ = require('underscore');
-const aliases = require(__dirname + '/aliases.js');
-const checkedEvents = require(__dirname + '/checkedEvents.js');
-const feeds = require(__dirname + '/feeds.js');
-const htmlParser = require(__dirname + '/htmlParser.js');
-const ical = require('ical');
-const prisma = require('prisma');
-const querystring = require('querystring');
-const request = require('request-promise-native');
-const url = require('url');
-const users = require(__dirname + '/users.js');
+import { AliasType, Block, CanvasEvent, ClassType, DefaultCanvasClass } from '@mymicds/sdk';
+import * as ical from 'ical';
+import { Db, ObjectID } from 'mongodb';
+import * as prisma from 'prisma';
+import * as querystring from 'querystring';
+import request from 'request-promise-native';
+import * as _ from 'underscore';
+import * as url from 'url';
+import * as aliases from './aliases';
+import * as checkedEvents from './checkedEvents';
+import { MyMICDSClassWithIDs } from './classes';
+import * as feeds from './feeds';
+import * as htmlParser from './htmlParser';
+import * as users from './users';
 
 // URL Calendars come from
 const urlPrefix = 'https://micds.instructure.com/feeds/calendars/';
@@ -36,8 +33,8 @@ const urlPrefix = 'https://micds.instructure.com/feeds/calendars/';
  * @param {string} url - Valid and formatted URL to our likings. Null if error or invalid url.
  */
 
-async function verifyURL(canvasURL) {
-	if (typeof canvasURL !== 'string') throw new Error('Invalid URL!');
+export async function verifyURL(canvasURL: string) {
+	if (typeof canvasURL !== 'string') { throw new Error('Invalid URL!'); }
 
 	// Parse URL first
 	const parsedURL = url.parse(canvasURL);
@@ -48,7 +45,7 @@ async function verifyURL(canvasURL) {
 		return { isValid: 'Invalid URL path!', url: null };
 	}
 
-	const pathParts = parsedURL.path.split('/');
+	const pathParts = parsedURL.path!.split('/');
 	const userCalendar = pathParts[pathParts.length - 1];
 
 	const validURL = urlPrefix + userCalendar;
@@ -64,7 +61,7 @@ async function verifyURL(canvasURL) {
 		throw new Error('There was a problem fetching calendar data from the URL!');
 	}
 
-	if (response.statusCode !== 200) return { isValid: 'Invalid URL!', url: null };
+	if (response.statusCode !== 200) { return { isValid: 'Invalid URL!', url: null }; }
 
 	return { isValid: true, url: validURL };
 }
@@ -88,19 +85,19 @@ async function verifyURL(canvasURL) {
  * @param {string} validURL - Valid url that was inserted into database. Null if error or url invalid.
  */
 
-async function setURL(db, user, url) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+export async function setURL(db: Db, user: string, calUrl: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	const { isValid, url: validURL } = await verifyURL(url);
-	if (isValid !== true) return { isValid, validURL: null };
+	const { isValid, url: validURL } = await verifyURL(calUrl);
+	if (isValid !== true) { return { isValid, validURL: null }; }
 
 	const userdata = db.collection('users');
 
 	try {
-		await userdata.updateOne({ _id: userDoc['_id'] }, { $set: { canvasURL: validURL } }, { upsert: true });
+		await userdata.updateOne({ _id: userDoc!._id }, { $set: { canvasURL: validURL } }, { upsert: true });
 	} catch (e) {
 		throw new Error('There was a problem updating the URL to the database!');
 	}
@@ -128,26 +125,26 @@ async function setURL(db, user, url) {
  * @param {Object} events - Array of all the events in the month. Null if failure.
  */
 
-async function getUserCal(db, user) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+export async function getUserCal(db: Db, user: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	if (typeof userDoc.canvasURL !== 'string') return { hasURL: false, events: null };
+	if (typeof userDoc!.canvasURL !== 'string') { return { hasURL: false, events: null }; }
 
 	let response;
 	try {
-		response = await request(userDoc.canvasURL, {
+		response = await request(userDoc!.canvasURL!, {
 			resolveWithFullResponse: true,
 			simple: false
 		});
 	} catch (e) {
 		throw new Error('There was a problem fetching canvas data from the URL!');
 	}
-	if (response.statusCode !== 200) throw new Error('Invalid URL!');
+	if (response.statusCode !== 200) { throw new Error('Invalid URL!'); }
 
-	return { hasURL: true, events: Object.values(ical.parseICS(response.body)) };
+	return { hasURL: true, events: Object.values<CanvasCalendarEvent>(ical.parseICS(response.body)) };
 }
 
 /**
@@ -158,13 +155,13 @@ async function getUserCal(db, user) {
  * @returns {Object}
  */
 
-function parseCanvasTitle(title) {
+function parseCanvasTitle(title: string) {
 	const classTeacherRegex = /\[.+]/g;
 	const teacherRegex = /:[A-Z]{5}$/g;
 	const firstLastBrackets = /(^\[)|(]$)/g;
 
 	// Get what's in the square brackets, including square brackets
-	const classTeacher = _.last(title.match(classTeacherRegex)) || '';
+	const classTeacher = _.last(Array.from(title.match(classTeacherRegex))) || '';
 	const classTeacherNoBrackets = classTeacher.replace(firstLastBrackets, '');
 	// Subtract the class/teacher from the Canvas title
 	const assignmentName = title.replace(classTeacherRegex, '').trim();
@@ -199,15 +196,16 @@ function parseCanvasTitle(title) {
  * @returns {string}
  */
 
-function calendarToEvent(calLink) {
-	// Example calendar link: https://micds.instructure.com/calendar?include_contexts=course_XXXXXXX&month=XX&year=XXXX#assignment_XXXXXXX
+function calendarToEvent(calLink: string) {
+	// Example calendar link:
+	// https://micds.instructure.com/calendar?include_contexts=course_XXXXXXX&month=XX&year=XXXX#assignment_XXXXXXX
 	// 'assignment' can also be 'calendar_event'
 	const calObject = url.parse(calLink);
 
-	const courseId = querystring.parse(calObject.query)['include_contexts'].replace('_', 's/');
+	const courseId = querystring.parse(calObject.query!).include_contexts.replace('_', 's/');
 
 	// Remove hash sign and switch to event URL format
-	const eventString = calObject.hash.slice(1);
+	const eventString = calObject.hash!.slice(1);
 	let eventId;
 	if (eventString.includes('assignment')) {
 		eventId = eventString.replace('assignment_', 'assignments/');
@@ -236,21 +234,21 @@ function calendarToEvent(calLink) {
  * @param {Array} classes - Array of classes from canvas. Null if error or no Canvas URL set.
  */
 
-async function getClasses(db, user) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof user !== 'string') throw new Error('Invalid username!');
+export async function getClasses(db: Db, user: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	if (typeof userDoc['canvasURL'] !== 'string') return { hasURL: false, classes: null };
+	if (typeof userDoc!.canvasURL !== 'string') { return { hasURL: false, classes: null }; }
 
-	function parseEvents(eventsToParse) {
-		const classes = [];
+	function parseEvents(eventsToParse: CanvasCacheEvent[]) {
+		const classes: string[] = [];
 
 		for (const calEvent of eventsToParse) {
 			// If event doesn't have a summary, skip
-			if (typeof calEvent.summary !== 'string') continue;
+			if (typeof calEvent.summary !== 'string') { continue; }
 
 			const parsedEvent = parseCanvasTitle(calEvent.summary);
 
@@ -263,11 +261,11 @@ async function getClasses(db, user) {
 		return { hasURL: true, classes };
 	}
 
-	const canvasdata = db.collection('canvasFeeds');
+	const canvasdata = db.collection<CanvasCacheEvent>('canvasFeeds');
 
 	let events;
 	try {
-		events = await canvasdata.find({ user: userDoc._id }).toArray();
+		events = await canvasdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
 		throw new Error('There was an error retrieving Canvas events!');
 	}
@@ -305,20 +303,20 @@ async function getClasses(db, user) {
  * @param {Array} events - Array of events if success, null if failure.
  */
 
-async function getFromCache(db, user) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof user !== 'string') throw new Error('Invalid username!');
+export async function getFromCache(db: Db, user: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	if (typeof userDoc['canvasURL'] !== 'string') return { hasURL: false, events: null };
+	if (typeof userDoc!.canvasURL !== 'string') { return { hasURL: false, events: null }; }
 
-	const canvasdata = db.collection('canvasFeeds');
+	const canvasdata = db.collection<CanvasCacheEvent>('canvasFeeds');
 
 	let events;
 	try {
-		events = await canvasdata.find({ user: userDoc._id }).toArray();
+		events = await canvasdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
 		throw new Error('There was an error retrieving Canvas events!');
 	}
@@ -327,12 +325,12 @@ async function getFromCache(db, user) {
 	const checkedEventsList = await checkedEvents.list(db, user);
 
 	// Loop through all of the events in the calendar feed and push events within month to validEvents
-	const validEvents = [];
+	const validEvents: CanvasEvent[] = [];
 	// Cache class aliases
-	const classAliases = {};
+	const classAliases: { [name: string]: DefaultCanvasClass | MyMICDSClassWithIDs } = {};
 
 	// Function for getting class to insert according to canvas name
-	async function getCanvasClass(parsedEvent) {
+	async function getCanvasClass(parsedEvent: ReturnType<typeof parseCanvasTitle>) {
 		const name = parsedEvent.class.raw;
 
 		// Check if alias is already cached
@@ -341,11 +339,11 @@ async function getFromCache(db, user) {
 		}
 
 		// Query aliases to see if possible class object exists
-		const { hasAlias, classObject: aliasClass } = await aliases.getClass(db, user, 'canvas', name);
+		const { hasAlias, classObject: aliasClass } = await aliases.getClass(db, user, AliasType.CANVAS, name);
 
 		// Backup object if Canvas class doesn't have alias
 		const defaultColor = '#34444F';
-		const canvasClass = {
+		const canvasClass: DefaultCanvasClass = {
 			_id: null,
 			canvas: true,
 			user,
@@ -356,8 +354,8 @@ async function getFromCache(db, user) {
 				firstName: parsedEvent.class.teacher.firstName,
 				lastName: parsedEvent.class.teacher.lastName
 			},
-			type: 'other',
-			block: 'other',
+			type: ClassType.OTHER,
+			block: Block.OTHER,
 			color: defaultColor,
 			textDark: prisma.shouldTextBeDark(defaultColor)
 		};
@@ -380,10 +378,10 @@ async function getFromCache(db, user) {
 		const end = new Date(canvasEvent.end);
 
 		// class will be null if error in getting class name.
-		const insertEvent = {
+		const insertEvent: Partial<CanvasEvent> = {
 			_id: canvasEvent.uid,
 			canvas: true,
-			user: userDoc.user,
+			user: userDoc!.user,
 			class: canvasClass,
 			title: parsedEvent.assignment,
 			start,
@@ -393,21 +391,44 @@ async function getFromCache(db, user) {
 		};
 
 		if (typeof canvasEvent['ALT-DESC'] === 'object') {
-			insertEvent.desc = canvasEvent['ALT-DESC'].val;
+			insertEvent.desc = canvasEvent['ALT-DESC']!.val;
 			insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
 		} else {
 			insertEvent.desc = '';
 			insertEvent.descPlaintext = '';
 		}
 
-		validEvents.push(insertEvent);
+		validEvents.push(insertEvent as CanvasEvent);
 	}
 
 	return { hasURL: true, events: validEvents };
 }
 
-module.exports.verifyURL    = verifyURL;
-module.exports.setURL       = setURL;
-module.exports.getFromCache = getFromCache;
-module.exports.getUserCal   = getUserCal;
-module.exports.getClasses   = getClasses;
+export interface CanvasCalendarEvent {
+	type: 'VEVENT';
+	params: string[]; // empty
+	description?: string;
+	end: Date;
+	dtstamp: string;
+	start: Date;
+	class: 'PUBLIC';
+	location?: string;
+	sequence: '0';
+	summary: string;
+	uid: string;
+	url: string;
+	'ALT-DESC'?: {
+		params: {
+			FMTTYPE: 'text/html'
+		},
+		val: string
+	};
+}
+
+export interface CanvasCalendarWithUser extends CanvasCalendarEvent {
+	user: ObjectID;
+}
+
+export interface CanvasCacheEvent extends CanvasCalendarWithUser {
+	_id: ObjectID;
+}

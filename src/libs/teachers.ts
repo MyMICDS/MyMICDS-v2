@@ -34,7 +34,7 @@ async function addTeacher(db: Db, teacher: Omit<Teacher, '_id'>) {
 	if (typeof teacher.firstName !== 'string') { throw new Error('Invalid teacher first name!'); }
 	if (typeof teacher.lastName !== 'string') { throw new Error('Invalid teacher last name!'); }
 
-	const teacherdata = db.collection<Teacher>('teachers');
+	const teacherdata = db.collection<TeacherWithID>('teachers');
 
 	try {
 		// Upsert teacher into collection
@@ -136,7 +136,7 @@ async function listTeachers(db: Db) {
  * @param {Object} err - Null if success, error object if failure
  */
 
-async function deleteClasslessTeachers(db: Db) {
+export async function deleteClasslessTeachers(db: Db) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
 	const teacherdata = db.collection<Teacher>('teachers');
@@ -178,9 +178,15 @@ async function deleteClasslessTeachers(db: Db) {
 export {
 	addTeacher as add,
 	getTeacher as get,
-	listTeachers as list,
-	deleteClasslessTeachers
+	listTeachers as list
 };
+
+export interface TeacherWithID {
+	_id: ObjectID;
+	prefix: string;
+	firstName: string;
+	lastName: string;
+}
 
 module.exports.add = addTeacher;
 module.exports.get = getTeacher;
