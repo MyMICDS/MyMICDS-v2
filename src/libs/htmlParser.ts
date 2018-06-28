@@ -11,16 +11,16 @@ export function htmlToText(html: string) {
 	let plaintext = '';
 
 	const parser = new htmlparser.Parser({
-		onopentag: () => {
+		onopentag() {
 			// Do nothing
 		},
-		ontext: text => {
+		ontext(text) {
 			plaintext += text;
 		},
-		onclosetag: () => {
+		onclosetag() {
 			// Do nothing
 		}
-	}, {decodeEntities: true});
+	}, { decodeEntities: true });
 
 	parser.parseComplete(html);
 	return plaintext;

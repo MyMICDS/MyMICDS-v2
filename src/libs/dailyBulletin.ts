@@ -1,25 +1,22 @@
-'use strict';
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import * as _ from 'underscore';
+import config from './config';
+import * as utils from './utils';
 
-/**
- * @file Manages the fetching and parsing of Daily Bulletins.
- * @module dailyBulletin
- */
-const config = require(__dirname + '/config.js');
+import { promisify } from 'util';
 
-const _     = require('underscore');
-const fs    = require('fs-extra');
-const path  = require('path');
-const utils = require(__dirname + '/utils.js');
+// TODO: Refactor this file so that the google-batch module is not needed.
+// It's not compatible with more recent versions of googleapis that have TypeScript and Promise support built in.
+// This would allow us to get rid of all the `any` types here and replace them with defined types from googleapis.
+import * as googleBatch from 'google-batch';
+import * as googleServiceAccount from './googleServiceAccount';
 
-const { promisify } = require('util');
-
-const googleServiceAccount = require(__dirname + '/googleServiceAccount.js');
-const googleBatch          = require('google-batch');
-const google               = googleBatch.require('googleapis');
-const gmail                = google.gmail('v1');
+const google = googleBatch.require('googleapis');
+const gmail  = google.gmail('v1');
 
 // Where public accesses backgrounds
-const dailyBulletinUrl = config.hostedOn + '/daily-bulletin';
+export const baseURL = config.hostedOn + '/daily-bulletin';
 // Where to save Daily Bulletin PDFs
 const bulletinPDFDir = __dirname + '/../public/daily-bulletin';
 // Query to retrieve emails from Gmail
@@ -37,7 +34,7 @@ const query = 'label:us-daily-bulletin';
  * @param {Object} err - Null if success, error object if failure.
  */
 
-async function queryLatest() {
+export async function queryLatest(): Promise<void> {
 	// Get Google Service Account
 	const jwtClient = await googleServiceAccount.create();
 
@@ -70,8 +67,8 @@ async function queryLatest() {
 
 	// Search through the email for any PDF
 	const parts = recentMessage.payload.parts;
-	let attachmentId = null;
-	let originalFilename = null;
+	let attachmentId: string | null = null;
+	let originalFilename: path.ParsedPath | null = null;
 	for (const part of parts) {
 		// If part contains PDF attachment, we're done boys.
 		if (part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
@@ -81,7 +78,9 @@ async function queryLatest() {
 		}
 	}
 
-	if (attachmentId === null) throw new Error('The most recent Daily Bulletin email did not contain any PDF attachment!');
+	if (attachmentId === null) {
+		throw new Error('The most recent Daily Bulletin email did not contain any PDF attachment!');
+	}
 
 	// Get PDF attachment with attachment id
 	let attachment;
@@ -99,22 +98,22 @@ async function queryLatest() {
 	// PDF Contents
 	const pdf = Buffer.from(attachment.data, 'base64');
 	// Get PDF name
-	const bulletinName = parseFilename(originalFilename.name);
+	const bulletinName = parseFilename(originalFilename!.name);
 
 	// If bulletinName is null, we are unable to parse bulletin and should skip
 	// This probably means it's not a bulletin
-	if (!bulletinName) return;
+	if (!bulletinName) { return; }
 
 	// Make sure directory for Daily Bulletin exists
 	try {
-		await promisify(fs.ensureDir)(bulletinPDFDir);
+		await fs.ensureDir(bulletinPDFDir);
 	} catch (e) {
 		throw new Error('There was a problem ensuring directory for Daily Bulletins!');
 	}
 
 	// Write PDF to file
 	try {
-		await promisify(fs.writeFile)(bulletinPDFDir + '/' + bulletinName, pdf);
+		await fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf);
 	} catch (e) {
 		throw new Error('There was a problem writing the PDF!');
 	}
@@ -132,16 +131,17 @@ async function queryLatest() {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-async function queryAll() {
+export async function queryAll() {
+	// tslint:disable:no-console
 	console.log('Trying to query all the Daily Bulletins in existence. This may take a bit of time...');
 
 	const jwtClient = await googleServiceAccount.create();
 
 	// Array to store all message ids
 	console.log('Get Daily Bulletin message ids...');
-	let messageIds = [];
+	let messageIds: any[] = [];
 
-	async function getPage(nextPageToken) {
+	async function getPage(nextPageToken?: string) {
 		const listQuery = {
 			auth: jwtClient,
 			userId: 'me',
@@ -149,7 +149,7 @@ async function queryAll() {
 			q: query
 		};
 		if (typeof nextPageToken === 'string') {
-			listQuery.pageToken = nextPageToken;
+			(listQuery as any).pageToken = nextPageToken;
 		}
 
 		let messageList;
@@ -174,7 +174,7 @@ async function queryAll() {
 			batch.setAuth(jwtClient);
 
 			// Array to store all the email information
-			let getMessages = [];
+			let getMessages: any[] = [];
 
 			console.log('Get detailed information about messages...');
 
@@ -222,7 +222,7 @@ async function queryAll() {
 						const attachmentId = part.body.attachmentId;
 						attachments.push({
 							emailId: response.body.id,
-							attachmentId: attachmentId
+							attachmentId
 						});
 						attachmentIdFilenames.push(part.filename);
 						break;
@@ -232,7 +232,7 @@ async function queryAll() {
 
 			// Finally, make batch requests to get the actual PDF attachments
 			console.log('Downloading Daily Bulletins...');
-			let dailyBulletins = [];
+			let dailyBulletins: any[] = [];
 
 			let inSecondBatch = 0;
 			for (const attachment of attachments) {
@@ -266,7 +266,7 @@ async function queryAll() {
 
 			// Make sure directory for Daily Bulletin exists
 			try {
-				await promisify(fs.ensureDir)(bulletinPDFDir);
+				await fs.ensureDir(bulletinPDFDir);
 			} catch (e) {
 				throw new Error('There was a problem ensuring directory for Daily Bulletins!');
 			}
@@ -282,11 +282,11 @@ async function queryAll() {
 
 				// If bulletinName is null, we are unable to parse bulletin and should skip
 				// This probably means it's not a bulletin
-				if (!bulletinName) continue;
+				if (!bulletinName) { continue; }
 
 				// Write PDF to file
 				try {
-					await promisify(fs.writeFile)(bulletinPDFDir + '/' + bulletinName, pdf);
+					await fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf);
 				} catch (e) {
 					throw new Error('There was a problem writing the PDF!');
 				}
@@ -295,6 +295,7 @@ async function queryAll() {
 			console.log('Done!');
 		}
 	}
+	// tslint:enable:no-console
 
 	return getPage();
 }
@@ -313,23 +314,23 @@ async function queryAll() {
  * @param {Object} bulletins - Array of bulletins from newest to oldest. Null if error.
  */
 
-async function getList() {
+export async function getList() {
 	// Read directory
 	try {
-		await promisify(fs.ensureDir)(bulletinPDFDir)();
+		await fs.ensureDir(bulletinPDFDir);
 	} catch (e) {
 		throw new Error('There was a problem ensuring the bulletin directory exists!');
 	}
 
-	let files;
+	let files: string[];
 	try {
-		files = await promisify(fs.readdir)(bulletinPDFDir);
+		files = await fs.readdir(bulletinPDFDir);
 	} catch (e) {
 		throw new Error('There was a problem reading the bulletin directory!');
 	}
 
 	// Only return files that are a PDF
-	const bulletins = [];
+	const bulletins: string[] = [];
 	for (const _file of files) {
 		const file = path.parse(_file);
 		if (file.ext === '.pdf') {
@@ -350,7 +351,7 @@ async function getList() {
  * @returns {string}
  */
 
-function parseFilename(filename) {
+function parseFilename(filename: string): string | null {
 	const cleanedName = /([0-9]+.)+[0-9]+/.exec(filename);
 	if (!cleanedName || !cleanedName[0]) {
 		return null;
@@ -359,10 +360,8 @@ function parseFilename(filename) {
 	if (_.isNaN(date.getTime())) {
 		return null;
 	}
-	return `${utils.leadingZeros(date.getFullYear())}-${utils.leadingZeros(date.getMonth() + 1)}-${utils.leadingZeros(date.getDate())}.pdf`;
-}
 
-module.exports.baseURL     = dailyBulletinUrl;
-module.exports.queryLatest = queryLatest;
-module.exports.queryAll    = queryAll;
-module.exports.getList     = getList;
+	const [year, month, day] = [date.getFullYear(), date.getMonth() + 1, date.getDate()].map(utils.leadingZeros);
+
+	return `${year}-${month}-${day}.pdf`;
+}

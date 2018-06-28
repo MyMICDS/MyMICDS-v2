@@ -1,3 +1,6 @@
+import { Quote } from '@mymicds/sdk';
+import { Db } from 'mongodb';
+
 /**
  * @file Functions for distributing our wisdom throughout the world. One API call at a time.
  * @module quotes
@@ -19,10 +22,10 @@
  * @param {Object} quotes - Array of quotes from database. Null if error.
  */
 
-async function getQuotes(db) {
+async function getQuotes(db: Db) {
 	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 
-	const quotesData = db.collection('quotes');
+	const quotesData = db.collection<Quote>('quotes');
 
 	try {
 		return await quotesData.find({}).toArray();
@@ -48,7 +51,7 @@ async function getQuotes(db) {
  * @param {Object} err - Null if success, error object if failure.
  */
 
-async function insertQuote(db, author, quote) {
+async function insertQuote(db: Db, author: string, quote: string) {
 	if (typeof db !== 'object') throw new Error('Invalid database connection!');
 	if (typeof author !== 'string') throw new Error('Invalid author!');
 	if (typeof quote !== 'string') throw new Error('Invalid quote!');
@@ -65,5 +68,7 @@ async function insertQuote(db, author, quote) {
 	}
 }
 
-module.exports.get = getQuotes;
-module.exports.insert = insertQuote;
+export {
+	getQuotes as get,
+	insertQuote as insert
+};

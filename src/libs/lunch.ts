@@ -1,15 +1,10 @@
-'use strict';
-
-/**
- * @file Scraps the lunch from the school website
- * @module lunch
- */
-
-// const admins = require(__dirname + '/admins.js');
-const request = require('request-promise-native');
-const cheerio = require('cheerio');
-const moment = require('moment');
-const utils = require(__dirname + '/utils.js');
+import { GetLunchResponse, School } from '@mymicds/sdk';
+import * as cheerio from 'cheerio';
+import moment from 'moment';
+import { Db } from 'mongodb';
+import { Response } from 'request';
+import request from 'request-promise-native';
+import * as utils from './utils';
 
 const lunchURL = 'http://myschooldining.com/MICDS/calendarWeek';
 const schools = ['Lower School', 'Middle School', 'Upper School'];
@@ -31,16 +26,16 @@ const schools = ['Lower School', 'Middle School', 'Upper School'];
  * @param {Object} lunchJSON - JSON of lunch menu for the week. Null if error.
  */
 
-async function getLunch(db, date) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+async function getLunch(db: Db, date: Date) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
 	const currentDay = moment(date).day('Wednesday');
 
-	let res;
+	let res: Response;
 	try {
 		// Send POST request to lunch website
 		res = await request.post(lunchURL, {
-			form: { 'current_day': currentDay.format() },
+			form: { current_day: currentDay.format() },
 			resolveWithFullResponse: true,
 			simple: false
 		});
@@ -48,7 +43,7 @@ async function getLunch(db, date) {
 		throw new Error('There was a problem fetching the lunch data!');
 	}
 
-	if (res.statusCode !== 200) throw new Error('It appears the lunch site is down. Check again later!');
+	if (res.statusCode !== 200) { throw new Error('It appears the lunch site is down. Check again later!'); }
 
 	// Alert admins if lunch page has moved
 	// admins.sendEmail(db, {
@@ -64,7 +59,7 @@ async function getLunch(db, date) {
 
 	// callback(new Error('There was a problem with the lunch URL!'), null);
 
-	return parseLunch(res.body);
+	return parseLunch(res.body as string);
 }
 
 /**
@@ -75,19 +70,20 @@ async function getLunch(db, date) {
  * @returns {Object}
  */
 
-function parseLunch(body) {
+function parseLunch(body: string) {
 	// Clean up HTML to prevent cheerio from becoming confused
 	body.replace('<<', '&lt;&lt;');
 	body.replace('>>', '&gt;&gt;');
 
 	const $ = cheerio.load(body);
-	const json = {};
+	const json: GetLunchResponse['lunch'] = {};
 
 	const table = $('table#table_calendar_week');
 	const weekColumns = table.find('td');
 
-	weekColumns.each(function() {
-
+	weekColumns.each(function(this: any) {
+		// I'm having trouble importing some of the Cheerio types, but we're only using the `this` value here
+		// so it doesn't really matter exactly what type it is
 		const day = $(this);
 		const date = day.attr('this_date');
 		const dateObject = new Date(date);
@@ -100,18 +96,16 @@ function parseLunch(body) {
 
 			// Make sure it's not the weekend
 			if (schoolLunch.length > 0) {
-
 				const lunchTitle = schoolLunch.find('span.period-value').text().trim();
 				const categories = schoolLunch.find('div.category-week');
 
-				categories.each(function() {
-
+				categories.each(function(this: any) {
 					const category = $(this);
-					const food = [];
+					const food: string[] = [];
 					const categoryTitle = category.find('span.category-value').text().trim();
 					const items = category.find('div.item-week');
 
-					items.each(function() {
+					items.each(function(this: any) {
 						food.push($(this).text().trim());
 					});
 
@@ -119,20 +113,18 @@ function parseLunch(body) {
 					json[dateString] = json[dateString] || {};
 					json[dateString][schoolFilter(school)] = json[dateString][schoolFilter(school)] || {};
 
-					json[dateString][schoolFilter(school)]['title'] = lunchTitle;
-					json[dateString][schoolFilter(school)]['categories'] = json[dateString][schoolFilter(school)]['categories'] || {};
-					json[dateString][schoolFilter(school)]['categories'][categoryTitle] = json[dateString][schoolFilter(school)]['categories'][categoryTitle] || [];
+					json[dateString][schoolFilter(school)].title = lunchTitle;
+					json[dateString][schoolFilter(school)].categories =
+						json[dateString][schoolFilter(school)].categories || {};
+					json[dateString][schoolFilter(school)].categories[categoryTitle] =
+						json[dateString][schoolFilter(school)].categories[categoryTitle] || [];
 
 					for (const f of food) {
-						json[dateString][schoolFilter(school)]['categories'][categoryTitle].push(f);
+						json[dateString][schoolFilter(school)].categories[categoryTitle].push(f);
 					}
-
 				});
-
 			}
-
 		}
-
 	});
 
 	return json;
@@ -145,9 +137,11 @@ function parseLunch(body) {
  * @returns {string}
  */
 
-function schoolFilter(school) {
-	return school.replace(/\s+/g, '').toLowerCase();
+function schoolFilter(school: string) {
+	return school.replace(/\s+/g, '').toLowerCase() as School;
 }
 
-module.exports.get   = getLunch;
-module.exports.parse = parseLunch;
+export {
+	getLunch as get,
+	parseLunch as parse
+};

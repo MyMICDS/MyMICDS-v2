@@ -1,19 +1,16 @@
-/**
- * @file Manages a bunch of miscellaneous realtime events
- * @module realtime
- */
+import { Server } from 'socket.io';
 
-module.exports = io => {
+export default (io: Server) => {
 	io.on('connection', socket => {
-		socket.pressingProgressLabel = false;
+		(socket as any).pressingProgressLabel = false;
 
 		socket.on('progress label click', pressed => {
-			socket.pressingProgressLabel = pressed;
+			(socket as any).pressingProgressLabel = pressed;
 			calcProgressSpin();
 		});
 
 		socket.on('disconnect', () => {
-			socket.pressingProgressLabel = false;
+			(socket as any).pressingProgressLabel = false;
 			calcProgressSpin();
 		});
 	});
@@ -26,8 +23,8 @@ module.exports = io => {
 	function calcProgressSpin() {
 		let anyPressing = false;
 
-		for (const socket of io.sockets.connected) {
-			if (socket.pressingProgressLabel) {
+		for (const socket of Object.values(io.sockets.connected)) {
+			if ((socket as any).pressingProgressLabel) {
 				anyPressing = true;
 				break;
 			}

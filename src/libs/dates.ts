@@ -173,7 +173,7 @@ async function getDaysOff() {
  * @param {Object} breaks - Object containing breaks. Null if error.
  */
 
-async function getBreaks() {
+export async function getBreaks() {
 	// Get array of days that have no day rotation
 	const days = await getDaysOff();
 
@@ -253,10 +253,3 @@ async function getBreaks() {
 
 	return categorizedBreaks;
 }
-
-module.exports.thirdWednesdayAugust = thirdWednesdayAugust;
-module.exports.schoolStarts         = schoolStarts;
-module.exports.lastFridayMay        = lastFridayMay;
-module.exports.schoolEnds           = schoolEnds;
-module.exports.getSchoolYear        = getSchoolYear;
-module.exports.getBreaks            = getBreaks;

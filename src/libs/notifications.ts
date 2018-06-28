@@ -1,18 +1,12 @@
-'use strict';
+import { Db } from 'mongodb';
+import * as cryptoUtils from './cryptoUtils';
+import * as users from './users';
 
-/**
- * @file Notification management functions
- * @module unsubscribe
- */
-
-const users = require(__dirname + '/users.js');
-const cryptoUtils = require(__dirname + '/cryptoUtils.js');
-
-const SCOPES = [
-	'ALL',
-	'ANNOUNCEMENTS',
-	'FEATURES'
-];
+export enum Scope {
+	ALL = 'ALL',
+	ANNOUNCEMENTS = 'ANNOUNCEMENTS',
+	FEATURES = 'FEATURES'
+}
 
 /**
  * Unsubscribe a user from certain categories of emails
@@ -32,24 +26,24 @@ const SCOPES = [
  * @param {Object} err - Null if successful, error object if failure
  */
 
-async function unsubscribe(db, user, hash, scopes) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof user !== 'string') throw new Error('Invalid username!');
-	if (typeof hash !== 'string' && hash !== true) throw new Error('Invalid hash!');
-	if (typeof scopes !== 'string' && typeof scopes !== 'object') throw new Error('Invalid scope(s)!');
+export async function unsubscribe(db: Db, user: string, hash: string | boolean, scopes: Scope | Scope[]) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
+	if (typeof hash !== 'string' && hash !== true) { throw new Error('Invalid hash!'); }
+	if (typeof scopes !== 'string' && typeof scopes !== 'object') { throw new Error('Invalid scope(s)!'); }
 
-	if (typeof scopes === 'string') scopes = [scopes];
+	if (typeof scopes === 'string') { scopes = [scopes]; }
 	for (const scope of scopes) {
-		if (!SCOPES.includes(scope)) {
+		if (!Object.values(Scope).includes(scope)) {
 			throw new Error(`"${scope}" is an invalid email type!`);
 		}
 	}
 
 	// Make sure valid user and get user id
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	const dbHash = userDoc['unsubscribeHash'];
+	const dbHash = userDoc!.unsubscribeHash!;
 
 	if (hash === true || cryptoUtils.safeCompare(hash, dbHash)) {
 		// Hash matches, unsubscribe account!
@@ -65,6 +59,3 @@ async function unsubscribe(db, user, hash, scopes) {
 		throw new Error('Hash not valid!');
 	}
 }
-
-module.exports.SCOPES = SCOPES;
-module.exports.unsubscribe = unsubscribe;

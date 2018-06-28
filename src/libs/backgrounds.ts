@@ -122,7 +122,7 @@ async function getCurrentFiles(user: string) {
 
 	let userDirs: string[];
 	try {
-		userDirs = await promisify(fs.readdir)(userBackgroundsDir);
+		userDirs = await fs.readdir(userBackgroundsDir);
 	} catch (e) {
 		throw new Error('There was a problem reading the user backgrounds directory!');
 	}
@@ -188,7 +188,7 @@ async function deleteBackground(user: string) {
 	const deletedPath = userBackgroundsDir + '/deleted-' + dirname;
 
 	try {
-		await promisify(fs.rename)(currentPath, deletedPath);
+		await fs.rename(currentPath, deletedPath);
 	} catch (e) {
 		throw new Error('There was a problem deleting the directory!');
 	}
@@ -249,7 +249,7 @@ async function getAllBackgrounds(db: Db) {
 
 	let userDirs: string[];
 	try {
-		userDirs = await promisify(fs.readdir)(userBackgroundsDir);
+		userDirs = await fs.readdir(userBackgroundsDir);
 	} catch (e) {
 		throw new Error('There was a problem reading the user backgrounds directory!');
 	}
@@ -304,7 +304,7 @@ async function getAllBackgrounds(db: Db) {
 async function getDirExtension(userDir: string) {
 	let userImages: string[];
 	try {
-		userImages = await promisify(fs.readdir)(userBackgroundsDir + '/' + userDir);
+		userImages = await fs.readdir(userBackgroundsDir + '/' + userDir);
 	} catch (e) {
 		throw new Error('There was a problem reading the user\'s background directory!');
 	}

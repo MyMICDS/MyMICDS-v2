@@ -1,106 +1,87 @@
-'use strict';
+import { MyMICDSModule, MyMICDSModuleType } from '@mymicds/sdk';
+import { Db, ObjectID } from 'mongodb';
+import * as _ from 'underscore';
+import * as users from './users';
+import { StringDict } from './utils';
 
-/**
- * @file Functions dealing with the homepage module system
- * @module modules
- */
+// Custom enum types
+enum CountdownMode {
+	TIME_OFF = 'TIME_OFF',
+	START = 'START',
+	END = 'END',
+	VACATION = 'VACATION',
+	LONG_WEEKEND = 'LONG_WEEKEND',
+	WEEKEND = 'WEEKEND',
+	CUSTOM = 'CUSTOM'
+}
 
-const _ = require('underscore');
-const { ObjectID } = require('mongodb');
-const users = require(__dirname + '/users.js');
+enum Color {
+	GRAY = 'GRAY',
+	ORANGE = 'ORANGE',
+	PINK = 'PINK',
+	TEAL = 'TEAL',
+	WHITE = 'WHITE',
+	YELLOW = 'YELLOW'
+}
 
-// All allowed modules
-const moduleList = [
-	'bookmarks',
-	'countdown',
-	'progress',
-	'schedule',
-	'simplifiedLunch',
-	'simplifiedSchedule',
-	'snowday',
-	'stickynotes',
-	'twitter',
-	'weather'
-];
 // Module options. Can be either `boolean`, `number`, or `string`
-const modulesConfig = {
-	bookmarks: {
+const modulesConfig: { [t: MyMICDSModuleType]: any } = {
+	[MyMICDSModuleType.BOOKMARKS]: {
 		label: {
-			type: 'string',
+			type: String,
 			default: 'Really Cool Site'
 		},
 		icon: {
-			type: 'string',
+			type: String,
 			default: 'fa-bookmark'
 		},
 		url: {
-			type: 'string',
+			type: String,
 			default: 'https://mymicds.net'
 		}
 	},
-	countdown: {
+	[MyMICDSModuleType.COUNTDOWN]: {
 		mode: {
-			type: 'COUNTDOWN_MODE',
-			default: 'END'
+			type: CountdownMode,
+			default: CountdownMode.END
 		},
 		schoolDays: {
-			type: 'boolean',
+			type: Boolean,
 			default: true
 		},
 		shake: {
-			type: 'boolean',
+			type: Boolean,
 			default: true
 		},
 		countdownTo: {
-			type: 'Date',
+			type: Date,
 			optional: true,
 			default: null
 		},
 		eventLabel: {
-			type: 'string',
+			type: String,
 			optional: true,
 			default: 'Countdown'
 		}
 	},
-	progress: {
+	[MyMICDSModuleType.PROGRESS]: {
 		showDate: {
-			type: 'boolean',
+			type: Boolean,
 			default: true
 		}
 	},
-	stickynotes: {
+	[MyMICDSModuleType.STICKY_NOTES]: {
 		color: {
-			type: 'COLOR',
-			default: 'WHITE'
+			type: Color,
+			default: Color.WHITE
 		}
 	},
-	weather: {
+	[MyMICDSModuleType.WEATHER]: {
 		metric: {
-			type: 'boolean',
+			type: Boolean,
 			default: false
 		}
 	}
-};
-
-// Delcare your own enum types and use just like any other module option type!
-const enumTypes = {
-	COUNTDOWN_MODE: [
-		'TIME_OFF',
-		'START',
-		'END',
-		'VACATION',
-		'LONG_WEEKEND',
-		'WEEKEND',
-		'CUSTOM'
-	],
-	COLOR: [
-		'GRAY',
-		'ORANGE',
-		'PINK',
-		'TEAL',
-		'WHITE',
-		'YELLOW'
-	]
 };
 
 // Range column indexes start at (inclusive)
@@ -112,29 +93,29 @@ const columnsPerRow = 4;
 const rowStarts = 0;
 
 // Modules to give user if none found
-const defaultModules = [
+const defaultModules: MyMICDSModule[] = [
 	{
-		type: 'progress',
+		type: MyMICDSModuleType.PROGRESS,
 		row: 0,
 		column: 0,
 		width: columnsPerRow,
 		height: 3,
-		options: getDefaultOptions('progress')
+		options: getDefaultOptions(MyMICDSModuleType.PROGRESS)
 	},
 	{
-		type: 'schedule',
+		type: MyMICDSModuleType.SCHEDULE,
 		row: 3,
 		column: 0,
 		width: columnsPerRow / 2,
 		height: 2
 	},
 	{
-		type: 'weather',
+		type: MyMICDSModuleType.WEATHER,
 		row: 3,
 		column: columnsPerRow / 2,
 		width: columnsPerRow / 2,
 		height: 2,
-		options: getDefaultOptions('weather')
+		options: getDefaultOptions(MyMICDSModuleType.WEATHER)
 	}
 ];
 
@@ -144,13 +125,13 @@ const defaultModules = [
  * @returns {Object}
  */
 
-function getDefaultOptions(type) {
-	const moduleConfig = modulesConfig[type];
+function getDefaultOptions(type: MyMICDSModuleType): any {
+	const moduleConfig = modulesConfig[type as MyMICDSModuleType];
 	if (typeof moduleConfig === 'undefined') {
 		return {};
 	}
 
-	const defaults = {};
+	const defaults: StringDict = {};
 	for (const optionKey of Object.keys(moduleConfig)) {
 		defaults[optionKey] = moduleConfig[optionKey].default;
 	}
@@ -172,19 +153,19 @@ function getDefaultOptions(type) {
  * @param {Array} modules - Array of user's currently active modules if success, null ir error
  */
 
-async function getModules(db, user) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof user !== 'string') throw new Error('Invalid username!');
+async function getModules(db: Db, user: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
 
 	// Check for user validity, get ID
 	const { isUser, userDoc } = await users.get(db, user);
 
 	// If user doesn't exist, return default modules
-	if (!isUser) return defaultModules;
+	if (!isUser) { return defaultModules; }
 
-	const moduledata = db.collection('modules');
+	const moduledata = db.collection<MyMICDSModuleWithIDs>('modules');
 
-	const modules = await moduledata.find({ user: userDoc['_id'] }).toArray();
+	const modules = await moduledata.find({ user: userDoc!._id }).toArray();
 
 	if (modules) {
 		for (const mod of modules) {
@@ -200,9 +181,9 @@ async function getModules(db, user) {
 			mod.options = Object.assign({}, defaultOptions, mod.options);
 
 			// Get rid of excess options
-			for (const optionKey of Object.keys(mod.options)) {
+			for (const optionKey of Object.keys(mod.options!)) {
 				if (!defaultKeys.includes(optionKey)) {
-					delete mod.options[optionKey];
+					delete mod.options![optionKey];
 				}
 			}
 
@@ -231,13 +212,15 @@ async function getModules(db, user) {
  * @param {Object} err - Null if success, error object if null
  */
 
-async function upsertModules(db, user, modules) {
+async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 	// Input validation
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof user !== 'string') throw new Error('Invalid username!');
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
 
-	if (!_.isArray(modules)) throw new Error('Modules is not an array!');
-	if (!modules.every(m => _.contains(moduleList, m.type))) throw new Error('Invalid module type!');
+	if (!_.isArray(modules)) { throw new Error('Modules is not an array!'); }
+	if (!modules.every(m => Object.values(MyMICDSModuleType).includes(m.type))) {
+		throw new Error('Invalid module type!');
+	}
 
 	for (const mod of modules) {
 		const optionsConfig = modulesConfig[mod.type];
@@ -257,9 +240,9 @@ async function upsertModules(db, user, modules) {
 		const optionKeys = Object.keys(optionsConfig);
 
 		// Remove any extra options
-		for (const modOptionKey of Object.keys(mod.options)) {
+		for (const modOptionKey of Object.keys(mod.options!)) {
 			if (!optionKeys.includes(modOptionKey)) {
-				delete mod.options[modOptionKey];
+				delete mod.options![modOptionKey];
 			}
 		}
 
@@ -269,25 +252,21 @@ async function upsertModules(db, user, modules) {
 			const optional = optionsConfig[optionKey].optional;
 
 			const moduleValue = mod.options[optionKey];
-			let moduleValueType = null;
-			if (moduleValue !== null) {
-				moduleValueType = typeof moduleValue === 'object' ? moduleValue.constructor.name : typeof moduleValue;
-			}
 
 			let valid = false;
 
 			// Convert iso strings to date objects
-			if (configType === 'Date') {
+			if (configType === Date) {
 				mod.options[optionKey] = new Date(moduleValue);
 				if (isNaN(mod.options[optionKey].getTime())) {
 					valid = false;
 				} else {
 					valid = true;
 				}
-			} else if (enumTypes[configType] && enumTypes[configType].includes(moduleValue)) {
+			} else if (!configType.prototype && Object.values(configType).includes(moduleValue)) {
 				// Check if custom enum type
 				valid = true;
-			} else if (moduleValueType === configType) {
+			} else if (moduleValue instanceof configType) {
 				// Check if native type
 				valid = true;
 			}
@@ -301,8 +280,8 @@ async function upsertModules(db, user, modules) {
 			}
 		}
 	}
-	if (!modules.every(m => m.width > 0)) throw new Error('Modules must be at least 1 cell wide!');
-	if (!modules.every(m => m.height > 0)) throw new Error('Modules must be at least 1 cell tall!');
+	if (!modules.every(m => m.width > 0)) { throw new Error('Modules must be at least 1 cell wide!'); }
+	if (!modules.every(m => m.height > 0)) { throw new Error('Modules must be at least 1 cell tall!'); }
 
 	if (!modules.every(m => (columnStarts <= m.column) && (m.column + m.width - columnStarts <= columnsPerRow))) {
 		throw new Error(`Module column exceeds range between ${columnStarts} - ${columnsPerRow}!`);
@@ -313,47 +292,54 @@ async function upsertModules(db, user, modules) {
 
 	// Check for user validity, get ID
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) throw new Error('User doesn\'t exist!');
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	const moduleGrid = [];
+	const moduleGrid: boolean[][] = [];
 
 	for (const mod of modules) {
 		for (let j = mod.row; j <= mod.row + mod.height - 1; j++) {
-			if (typeof moduleGrid[j] !== 'object') moduleGrid[j] = [];
+			if (typeof moduleGrid[j] !== 'object') { moduleGrid[j] = []; }
 
 			for (let k = mod.column; k <= mod.column + mod.width - 1; k++) {
-				if (moduleGrid[j][k]) throw new Error('Modules overlap!');
+				if (moduleGrid[j][k]) { throw new Error('Modules overlap!'); }
 
 				moduleGrid[j][k] = true;
 			}
 		}
 	}
 
-	const moduledata = db.collection('modules');
+	const moduledata = db.collection<MyMICDSModuleWithIDs>('modules');
 
 	// Delete all modules not included in new upsert request
-	await moduledata.deleteMany({ _id: { $nin: modules.map(m => new ObjectID(m['_id'])) }, user: userDoc['_id'] });
+	await moduledata.deleteMany({ _id: { $nin: modules.map(m => new ObjectID(m._id)) }, user: userDoc!._id });
 
 	// Find all remaining modules so we know which id's are real or not
-	const dbModules = await moduledata.find({ user: userDoc['_id'] }).toArray();
+	const dbModules = await moduledata.find({ user: userDoc!._id }).toArray();
 
-	const dbModuleIds = dbModules.map(m => m['_id'].toHexString());
+	const dbModuleIds = dbModules.map(m => m._id.toHexString());
 
-	for (const mod of modules) {
+	for (const mod of (modules as Array<MyMICDSModule & { _id: ObjectID | string }>)) {
 		// If _id doesn't exist or is invalid, create a new one
-		if (!mod['_id'] || !dbModuleIds.includes(mod['_id'])) {
-			mod['_id'] = new ObjectID();
+		if (!mod._id || !dbModuleIds.includes(mod._id as string)) {
+			mod._id = new ObjectID();
 		} else {
 			// Current id is valid. All we need to do is convert it to a Mongo id object
-			mod['_id'] = new ObjectID(mod['_id']);
+			mod._id = new ObjectID(mod._id);
 		}
 
 		// Make sure user is an ObjectID and not a string
-		mod['user'] = userDoc['_id'];
+		(mod as any).user = userDoc!._id;
 
-		await moduledata.updateOne({ _id: mod['_id'], user: userDoc['_id'] }, { $set: mod }, { upsert: true });
+		await moduledata.updateOne({ _id: mod._id, user: userDoc!._id }, { $set: mod }, { upsert: true });
 	}
 }
 
-module.exports.get = getModules;
-module.exports.upsert = upsertModules;
+export interface MyMICDSModuleWithIDs extends MyMICDSModule {
+	_id: ObjectID;
+	user: ObjectID;
+}
+
+export {
+	getModules as get,
+	upsertModules as upsert
+};
