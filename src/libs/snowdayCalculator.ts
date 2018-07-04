@@ -1,13 +1,7 @@
-'use strict';
-
-/**
- * @file Queries the Snowday Calculator
- * @module snowdayCalculator
- */
-
-const $ = require('cheerio');
-const moment = require('moment');
-const request = require('request-promise-native');
+import { GetSnowdayResponse, Snowday } from '@mymicds/sdk';
+import $ from 'cheerio';
+import moment from 'moment';
+import request from 'request-promise-native';
 
 const zipcode = 63124;
 // PHP back-end was throwing an error sometimes if school id was inputted
@@ -30,8 +24,8 @@ const snowdays = 0;
  * @param {Object} data - Returns object containing data for the next two days from Snowday Calculator. Null if error.
  */
 
-async function calculate() {
-	let body;
+export async function calculate() {
+	let body: string;
 	try {
 		body = await request.get({
 			url: 'http://www.snowdaycalculator.com/Apps/jsPred.php',
@@ -80,24 +74,24 @@ async function calculate() {
 	};
 
 	// Loop through all matches of Javascript variables and assign to data object
-	const data = {};
+	const data: GetSnowdayResponse['data'] = {};
 	for (const variable of variables) {
 		// Split variable into the two parts on either side of equals
 		const parts = variable.split(' = ');
 
 		// Get variable name and date
 		const varName = parts[0];
-		const name = varName.match(/[a-zA-Z]+(?=\[)/);
+		const name = varName.match(/[a-zA-Z]+(?=\[)/) as any;
 		const dateString = varName.match(/(?!\[)\d+(?=\])/);
 
 		// If variable name isn't mapped, we don't care about it
-		if (!labels[name]) continue;
+		if (!labels[name as keyof typeof labels]) { continue; }
 
 		// Get value of variable (we need `eval` in order to parse concatenated strings)
-		let value = eval(parts[1]); // eslint-disable-line
+		let value = eval(parts[1]); // tslint:disable-line
 
 		// Get date (which is index of array)
-		const date = moment(dateString, 'YYYYMMDD');
+		const date = moment(dateString as any, 'YYYYMMDD');
 		const formatDate = date.format('YYYY-MM-DD');
 
 		// If value is string, strip away HTML and remove redundant whitespaces
@@ -108,12 +102,10 @@ async function calculate() {
 
 		// Set to data object
 		if (!data[formatDate]) {
-			data[formatDate] = {};
+			data[formatDate] = {} as Snowday;
 		}
-		data[formatDate][labels[name]] = value;
+		data[formatDate][labels[name as keyof typeof labels] as keyof Snowday] = value;
 	}
 
 	return data;
 }
-
-module.exports.calculate = calculate;

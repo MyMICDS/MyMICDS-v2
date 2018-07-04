@@ -1,4 +1,4 @@
-import { AliasType, MyMICDSClass } from '@mymicds/sdk';
+import { AliasType, MyMICDSClass, PortalClass } from '@mymicds/sdk';
 import { Db, InsertOneWriteOpResult, ObjectID } from 'mongodb';
 import { MyMICDSClassWithIDs } from './classes';
 import * as classes from './classes';
@@ -175,7 +175,7 @@ async function mapAliases(db: Db, user: string) {
 		}
 	}
 
-	return aliasMap as Record<AliasType, { [id: string]: MyMICDSClassWithIDs }>;
+	return aliasMap as Record<AliasType, { [id: string]: MyMICDSClassWithIDs | PortalClass }>;
 }
 
 /**
