@@ -1,6 +1,14 @@
 import { Action } from '@mymicds/sdk';
 import { NextFunction, Request, Response } from 'express';
 
+declare global {
+	namespace Express {
+		interface Request {
+			apiUser: string | null;
+		}
+	}
+}
+
 /**
  * Express middleware to allow admins to perform any action on behalf of another user
  * @param {Object} req - Express request object
@@ -8,7 +16,7 @@ import { NextFunction, Request, Response } from 'express';
  * @param {Function} next - Calls the next function in the middleware chain
  */
 
-export function adminOverride(req: ProcessedRequest, res: Response, next: NextFunction) {
+export function adminOverride(req: Request, res: Response, next: NextFunction) {
 	req.apiUser = null;
 	if (req.user) {
 		req.apiUser = req.user.user;
@@ -79,10 +87,6 @@ function respondError(res: Response, error: Error | string | null, action: Actio
 		action,
 		data: null
 	});
-}
-
-export interface ProcessedRequest extends Request {
-	apiUser: string | null;
 }
 
 export {

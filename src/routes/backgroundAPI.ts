@@ -1,15 +1,12 @@
-/**
- * @file Manages Background API endpoints
- */
+import * as api from '../libs/api';
+import * as backgrounds from '../libs/backgrounds';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const backgrounds = require(__dirname + '/../libs/backgrounds.js');
-
-module.exports = (app, db, socketIO) => {
+export default ((app, db, socketIO) => {
 
 	app.get('/background', async (req, res) => {
 		try {
-			const responseObj = await backgrounds.get(req.apiUser);
+			const responseObj = await backgrounds.get(req.apiUser!);
 			api.success(res, responseObj);
 		} catch (err) {
 			api.error(res, err);
@@ -35,16 +32,16 @@ module.exports = (app, db, socketIO) => {
 
 			// Add blurred version of image
 			try {
-				await backgrounds.blurUser(req.apiUser);
+				await backgrounds.blurUser(req.apiUser!);
 				api.success(res);
 			} catch (err) {
 				api.error(res, err);
 			}
 
-			socketIO.user(req.apiUser, 'background', 'upload');
+			socketIO.user(req.apiUser!, 'background', 'upload');
 
 			try {
-				const responseObj = await backgrounds.get(req.apiUser);
+				const responseObj = await backgrounds.get(req.apiUser!);
 				api.success(res, responseObj);
 			} catch (err) {
 				api.error(res, err);
@@ -54,18 +51,18 @@ module.exports = (app, db, socketIO) => {
 
 	app.delete('/background', async (req, res) => {
 		try {
-			await backgrounds.delete(req.apiUser);
+			await backgrounds.delete(req.apiUser!);
 			api.success(res);
 		} catch (err) {
 			api.error(res, err);
 		}
 
 		try {
-			const responseObj = await backgrounds.get(req.apiUser);
+			const responseObj = await backgrounds.get(req.apiUser!);
 			api.success(res, responseObj);
 		} catch (err) {
 			api.error(res, err);
 		}
 	});
 
-};
+}) as RoutesFunction;

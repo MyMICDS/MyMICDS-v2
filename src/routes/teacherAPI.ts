@@ -1,12 +1,9 @@
-/**
- * @file Manages teachers API endpoints
- */
+import * as api from '../libs/api';
+import * as jwt from '../libs/jwt';
+import * as teachers from '../libs/teachers';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const teachers = require(__dirname + '/../libs/teachers.js');
-const jwt = require(__dirname + '/../libs/jwt.js');
-
-module.exports = (app, db) => {
+export default ((app, db) => {
 
 	app.get('/teachers', jwt.requireLoggedIn, async (req, res) => {
 		try {
@@ -17,4 +14,4 @@ module.exports = (app, db) => {
 		}
 	});
 
-};
+}) as RoutesFunction;

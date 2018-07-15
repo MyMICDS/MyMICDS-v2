@@ -1,14 +1,11 @@
-/**
- * @file Manages quotes API endpoints
- */
+import * as api from '../libs/api';
+import * as quotes from '../libs/quotes';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const quotes = require(__dirname + '/../libs/quotes.js');
-
-const Random = require('random-js');
+import * as Random from 'random-js';
 const engine = Random.engines.mt19937().autoSeed();
 
-module.exports = (app, db) => {
+export default ((app, db) => {
 
 	app.get('/quote', async (req, res) => {
 		try {
@@ -29,4 +26,4 @@ module.exports = (app, db) => {
 		}
 	});
 
-};
+}) as RoutesFunction;

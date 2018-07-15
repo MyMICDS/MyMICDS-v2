@@ -1,21 +1,13 @@
-/**
- * @file Add a property to existing users
- */
+// tslint:disable:no-console
 
-let config;
-try {
-	config = require(__dirname + '/../libs/config');
-} catch (e) {
-	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
-}
-
-const crypto = require('crypto');
-const MongoClient = require('mongodb').MongoClient;
-
-const { promisify } = require('util');
+import * as crypto from 'crypto';
+import { MongoClient } from 'mongodb';
+import { promisify } from 'util';
+import config from '../libs/config';
 
 // Connect to database
-MongoClient.connect(config.mongodb.uri).then(async db => {
+(MongoClient.connect as (uri: string) => Promise<MongoClient>)(config.mongodb.uri).then(async client => {
+	const db = client.db();
 	const userdata = db.collection('users');
 
 	// Get all users

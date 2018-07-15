@@ -1,11 +1,8 @@
-/**
- * @file Manages sports API endpoints
- */
+import * as api from '../libs/api';
+import * as sports from '../libs/sports';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const sports = require(__dirname + '/../libs/sports.js');
-
-module.exports = app => {
+export default (app => {
 
 	app.get('/sports', async (req, res) => {
 		try {
@@ -16,4 +13,4 @@ module.exports = app => {
 		}
 	});
 
-};
+}) as RoutesFunction;

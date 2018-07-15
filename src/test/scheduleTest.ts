@@ -1,7 +1,7 @@
-'use strict';
+// tslint:disable:no-console
 
-const schedule = require(__dirname + '/../libs/schedule.js');
-const moment = require('moment');
+import moment from 'moment';
+import * as schedule from '../libs/schedule';
 
 // Array containing classes to test
 const tests = [
@@ -73,7 +73,7 @@ const tests = [
 
 for (let i = 0; i < tests.length; i++) {
 	const test = tests[i];
-	const results = schedule.ordine(test.base, test.add);
+	const results = schedule.ordine(test.base, test.add as any[]); // Too lazy to do type gymnastics right now
 
 	// Convert moment.js objects to readable strings
 	for (const result of results) {

@@ -1,13 +1,10 @@
-/**
- * @file Manages login API endpoints
- */
+import * as api from '../libs/api';
+import * as auth from '../libs/auth';
+import * as jwt from '../libs/jwt';
+import * as passwords from '../libs/passwords';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const auth = require(__dirname + '/../libs/auth.js');
-const jwt = require(__dirname + '/../libs/jwt.js');
-const passwords = require(__dirname + '/../libs/passwords.js');
-
-module.exports = (app, db) => {
+export default ((app, db) => {
 
 	app.post('/auth/login', async (req, res) => {
 		if (req.user) {
@@ -37,7 +34,7 @@ module.exports = (app, db) => {
 		}
 
 		try {
-			await jwt.revoke(db, req.user, token);
+			await jwt.revoke(db, req.user, token!);
 			api.success(res);
 		} catch (err) {
 			api.error(res, err);
@@ -45,12 +42,12 @@ module.exports = (app, db) => {
 	});
 
 	app.post('/auth/register', async (req, res) => {
-		const user = {
+		const user: any = {
 			user: req.body.user,
 			password: req.body.password,
 			firstName: req.body.firstName,
 			lastName: req.body.lastName,
-			gradYear: parseInt(req.body.gradYear)
+			gradYear: parseInt(req.body.gradYear, 10)
 		};
 
 		if (typeof req.body.teacher !== 'undefined' && req.body.teacher !== false) {
@@ -76,7 +73,7 @@ module.exports = (app, db) => {
 
 	app.put('/auth/change-password', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			await passwords.changePassword(db, req.apiUser, req.body.oldPassword, req.body.newPassword);
+			await passwords.changePassword(db, req.apiUser!, req.body.oldPassword, req.body.newPassword);
 			api.success(res);
 		} catch (err) {
 			api.error(res, err);
@@ -119,4 +116,4 @@ module.exports = (app, db) => {
 		});
 	});
 
-};
+}) as RoutesFunction;

@@ -1,12 +1,9 @@
-/**
- * @file Manages weather API endpoints
- */
+import * as api from '../libs/api';
+import * as jwt from '../libs/jwt';
+import * as weather from '../libs/weather';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const jwt = require(__dirname + '/../libs/jwt.js');
-const weather = require(__dirname + '/../libs/weather.js');
-
-module.exports = (app, db, socketIO) => {
+export default ((app, db, socketIO) => {
 
 	app.get('/weather', async (req, res) => {
 		try {
@@ -27,4 +24,4 @@ module.exports = (app, db, socketIO) => {
 		}
 	});
 
-};
+}) as RoutesFunction;

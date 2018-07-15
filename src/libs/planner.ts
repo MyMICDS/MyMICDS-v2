@@ -3,6 +3,7 @@ import { Db, ObjectID } from 'mongodb';
 import * as classes from './classes';
 import * as htmlParser from './htmlParser';
 import * as users from './users';
+import { Omit } from './utils';
 
 /**
  * Add/edit event to planner
@@ -30,7 +31,8 @@ import * as users from './users';
  * @param {Object} plannerEvent - Object of event that was upserted. Null if error.
  */
 
-async function upsertEvent(db: Db, user: string, plannerEvent: PlannerInputEvent) {
+// tslint:disable-next-line:max-line-length
+async function upsertEvent(db: Db, user: string, plannerEvent: Omit<PlannerInputEvent, 'user' | 'link'> & { link?: string }) {
 	// Validate inputs
 	if (typeof db   !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid user!'); }

@@ -1,11 +1,8 @@
-/**
- * @file Manages stickynotes API endpoints
- */
+import * as api from '../libs/api';
+import * as stickynotes from '../libs/stickynotes';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const stickynotes = require(__dirname + '/../libs/stickynotes.js');
-
-module.exports = (app, db) => {
+export default ((app, db) => {
 
 	app.get('/stickynotes', async (req, res) => {
 		try {
@@ -25,4 +22,4 @@ module.exports = (app, db) => {
 		}
 	});
 
-};
+}) as RoutesFunction;

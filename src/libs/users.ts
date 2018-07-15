@@ -242,13 +242,7 @@ export interface UserDoc {
 	portalURL?: string;
 	canvasURL?: string;
 	inPortalQueue?: boolean;
+	unsubscribed?: string[];
 }
 
 export { getUser as get };
-
-module.exports.get        	   = getUser;
-module.exports.getInfo         = getInfo;
-module.exports.changeInfo      = changeInfo;
-module.exports.gradYearToGrade = gradYearToGrade;
-module.exports.gradeToGradYear = gradeToGradYear;
-module.exports.gradeToSchool   = gradeToSchool;

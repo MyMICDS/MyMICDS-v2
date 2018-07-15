@@ -1,16 +1,13 @@
-/**
- * @file Manages planner API endpoints
- */
+import * as api from '../libs/api';
+import * as checkedEvents from '../libs/checkedEvents';
+import * as planner from '../libs/planner';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const checkedEvents = require(__dirname + '/../libs/checkedEvents.js');
-const planner = require(__dirname + '/../libs/planner.js');
-
-module.exports = (app, db, socketIO) => {
+export default ((app, db, socketIO) => {
 
 	app.get('/planner', async (req, res) => {
 		try {
-			const events = await planner.get(db, req.apiUser);
+			const events = await planner.get(db, req.apiUser!);
 			api.success(res, { events });
 		} catch (err) {
 			api.error(res, err);
@@ -39,11 +36,11 @@ module.exports = (app, db, socketIO) => {
 		};
 
 		try {
-			const plannerEvent = await planner.upsert(db, req.apiUser, insertEvent);
-			socketIO.user(req.apiUser, 'planner', 'add', plannerEvent);
+			const plannerEvent = await planner.upsert(db, req.apiUser!, insertEvent);
+			socketIO.user(req.apiUser!, 'planner', 'add', plannerEvent);
 
 			try {
-				const events = await planner.get(db, req.apiUser);
+				const events = await planner.get(db, req.apiUser!);
 				api.success(res, { events });
 			} catch (err) {
 				api.error(res, err);
@@ -55,8 +52,8 @@ module.exports = (app, db, socketIO) => {
 
 	app.delete('/planner', async (req, res) => {
 		try {
-			await planner.delete(db, req.apiUser, req.body.id);
-			socketIO.user(req.apiUser, 'planner', 'delete', req.body.id);
+			await planner.delete(db, req.apiUser!, req.body.id);
+			socketIO.user(req.apiUser!, 'planner', 'delete', req.body.id);
 			api.success(res);
 		} catch (err) {
 			api.error(res, err);
@@ -65,8 +62,8 @@ module.exports = (app, db, socketIO) => {
 
 	app.patch('/planner/check', async (req, res) => {
 		try {
-			await checkedEvents.check(db, req.apiUser, req.body.id);
-			socketIO.user(req.apiUser, 'planner', 'check', req.body.id);
+			await checkedEvents.check(db, req.apiUser!, req.body.id);
+			socketIO.user(req.apiUser!, 'planner', 'check', req.body.id);
 			api.success(res);
 		} catch (err) {
 			api.error(res, err);
@@ -75,12 +72,12 @@ module.exports = (app, db, socketIO) => {
 
 	app.patch('/planner/uncheck', async (req, res) => {
 		try {
-			await checkedEvents.uncheck(db, req.apiUser, req.body.id);
-			socketIO.user(req.apiUser, 'planner', 'uncheck', req.body.id);
+			await checkedEvents.uncheck(db, req.apiUser!, req.body.id);
+			socketIO.user(req.apiUser!, 'planner', 'uncheck', req.body.id);
 			api.success(res);
 		} catch (err) {
 			api.error(res, err);
 		}
 	});
 
-};
+}) as RoutesFunction;

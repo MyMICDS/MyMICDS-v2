@@ -1,6 +1,6 @@
 import config from './config';
 
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as nodemailer from 'nodemailer';
 
 import { promisify } from 'util';
@@ -58,7 +58,8 @@ export async function send(users: string | string[], message: Message, transport
  * @param {string|Object} users - Single email string, OR an array of multiple emails
  * @param {string} subject - Subject of email
  * @param {string} file - Path to HTML file
- * @param {Object} data - JSON of custom data. (Ex. Replace '{{firstName}}' in HTML by putting 'firstName: Michael' in the JSON).
+ * @param {Object} data - JSON of custom data.
+ * 						  (Ex. Replace '{{firstName}}' in HTML by putting 'firstName: Michael' in the JSON).
  * 						  Set to empty object if there's no data.
  * @param {sendHTMLCallback} callback - Callback
  * @param [Object] transporter - Optional transporter so we don't have to log in again
@@ -78,7 +79,7 @@ export async function sendHTML(users: string | string[], subject: string, file: 
 
 	let body;
 	try {
-		body = await promisify(fs.readFile)(file, 'utf8');
+		body = await fs.readFile(file, 'utf8');
 	} catch (e) {
 		throw new Error('There was a problem reading the HTML path for the mail!');
 	}

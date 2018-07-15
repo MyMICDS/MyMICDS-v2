@@ -1,14 +1,7 @@
-/**
- * @file Sends an email to all users
- * PLEASE USE THIS WITH CAUTION
- */
+// tslint:disable:no-console max-line-length
+// USE WITH CAUTION
 
-let config;
-try {
-	config = require(__dirname + '/../libs/config');
-} catch (e) {
-	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
-}
+import config from '../libs/config';
 
 const messageType = 'announcements';
 const subject = 'We need your help!';
@@ -25,21 +18,21 @@ const DEBUG = true;
 // const debugList = ['mgira', 'nclifford', 'jcai'];
 const debugList = ['mgira'];
 
-const fs = require('fs-extra');
-const moment = require('moment');
-const MongoClient = require('mongodb').MongoClient;
-const mail = require(__dirname + '/../libs/mail');
-const nodemailer = require('nodemailer');
-const { SCOPES } = require(__dirname + '/../libs/notifications');
-const { promisify } = require('util');
+import * as fs from 'fs-extra';
+import moment from 'moment';
+import { MongoClient } from 'mongodb';
+import * as nodemailer from 'nodemailer';
+import * as mail from '../libs/mail';
+import { Scope } from '../libs/notifications';
+import { UserDoc } from '../libs/users';
 
-if (!SCOPES.includes(messageType.toUpperCase())) {
+if (!Object.values(Scope).includes(messageType.toUpperCase())) {
 	console.log(`"${messageType}" is an invalid message type! Refer to \`/src/libs/notifications.js\` for list of valid types.`);
 	process.exit();
 }
 
 if (!DEBUG && !I_REALLY_WANT_TO_DO_THIS) {
-	console.log('Are you sure you really want to do this? Set `I_REALLY_WANT_TO_DO_THIS` to true on line 21. Make sure to set back to false before committing.');
+	console.log('Are you sure you really want to do this? Set `I_REALLY_WANT_TO_DO_THIS` to true on line 14. Make sure to set back to false before committing.');
 	process.exit();
 }
 
@@ -49,11 +42,18 @@ getBlacklist().then(async blacklist => {
 	const transporter = nodemailer.createTransport(config.email.URI);
 
 	// Connect to database
-	const db = await MongoClient.connect(config.mongodb.uri);
-	const userdata = db.collection('users');
+	const client = await (MongoClient.connect as (uri: string) => Promise<MongoClient>)(config.mongodb.uri);
+	const db = client.db();
+	const userdata = db.collection<UserDoc>('users');
 
 	// Get all confirmed users that are either teachers or not graduated yet
-	const userDocs = userdata.find({ confirmed: true, $or: [{gradYear: { $gte: 2019 }}, { gradYear: null }]}).toArray();
+	const userDocs = await userdata.find({
+		confirmed: true,
+		$or: [
+			{ gradYear: { $gte: 2019 } },
+			{ gradYear: null }
+		]
+	}).toArray();
 
 	const startTime = Date.now();
 
@@ -114,11 +114,11 @@ getBlacklist().then(async blacklist => {
  * Prevent user from being sent mail
  */
 
-async function blacklistUser(user) {
+async function blacklistUser(user: string) {
 	const blacklist = await getBlacklist();
 	blacklist[user] = Date.now();
 
-	await promisify(fs.outputJson)(blacklistPath, blacklist, { spaces: '\t' });
+	await fs.outputJson(blacklistPath, blacklist, { spaces: '\t' });
 
 	return blacklist;
 }
@@ -128,17 +128,13 @@ async function blacklistUser(user) {
  */
 
 async function getBlacklist() {
-	await promisify(fs.ensureFile)(blacklistPath);
+	await fs.ensureFile(blacklistPath);
 
-	const data = await promisify(fs.readFile)(blacklistPath, 'utf8');
+	const data = await fs.readFile(blacklistPath, 'utf8');
 
-	let blacklist = {};
+	let blacklist: { [user: string]: number } = {};
 	if (0 < data.length) {
-		try {
-			blacklist = JSON.parse(data);
-		} catch (err) {
-			return null;
-		}
+		blacklist = JSON.parse(data);
 	}
 
 	return blacklist;

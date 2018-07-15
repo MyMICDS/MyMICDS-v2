@@ -1,13 +1,10 @@
-/**
- * @file Manages Canvas API endpoints
- */
+import * as api from '../libs/api';
+import * as canvas from '../libs/canvas';
+import * as feeds from '../libs/feeds';
+import * as jwt from '../libs/jwt';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const canvas = require(__dirname + '/../libs/canvas.js');
-const feeds = require(__dirname + '/../libs/feeds.js');
-const jwt = require(__dirname + '/../libs/jwt.js');
-
-module.exports = (app, db, socketIO) => {
+export default ((app, db, socketIO) => {
 	app.post('/canvas/test', async (req, res) => {
 		try {
 			const { isValid, url } = await canvas.verifyURL(req.body.url);
@@ -19,8 +16,8 @@ module.exports = (app, db, socketIO) => {
 
 	app.put('/canvas/url', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			const { isValid, validURL } = await canvas.setURL(db, req.apiUser, req.body.url);
-			socketIO.user(req.apiUser, 'canvas', 'set-url', validURL);
+			const { isValid, validURL } = await canvas.setURL(db, req.apiUser!, req.body.url);
+			socketIO.user(req.apiUser!, 'canvas', 'set-url', validURL);
 			api.success(res, { valid: isValid, url: validURL });
 		} catch (err) {
 			api.error(res, err);
@@ -29,7 +26,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.get('/canvas/events', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			const responseObj = await feeds.canvasCacheRetry(db, req.apiUser);
+			const responseObj = await feeds.canvasCacheRetry(db, req.apiUser!);
 			api.success(res, responseObj);
 		} catch (err) {
 			api.error(res, err);
@@ -38,10 +35,10 @@ module.exports = (app, db, socketIO) => {
 
 	app.get('/canvas/classes', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			const responseObj = await canvas.getClasses(db, req.apiUser);
+			const responseObj = await canvas.getClasses(db, req.apiUser!);
 			api.success(res, responseObj);
 		} catch (err) {
 			api.error(res, err);
 		}
 	});
-};
+}) as RoutesFunction;

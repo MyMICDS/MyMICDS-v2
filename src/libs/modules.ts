@@ -25,7 +25,7 @@ enum Color {
 }
 
 // Module options. Can be either `boolean`, `number`, or `string`
-const modulesConfig: { [t: MyMICDSModuleType]: any } = {
+const modulesConfig: Partial<Record<MyMICDSModuleType, any>> = {
 	[MyMICDSModuleType.BOOKMARKS]: {
 		label: {
 			type: String,
@@ -311,7 +311,10 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 	const moduledata = db.collection<MyMICDSModuleWithIDs>('modules');
 
 	// Delete all modules not included in new upsert request
-	await moduledata.deleteMany({ _id: { $nin: modules.map(m => new ObjectID(m._id)) }, user: userDoc!._id });
+	await moduledata.deleteMany({
+		_id: { $nin: (modules as MyMICDSModuleWithIDs[]).map(m => new ObjectID(m._id)) },
+		user: userDoc!._id
+	});
 
 	// Find all remaining modules so we know which id's are real or not
 	const dbModules = await moduledata.find({ user: userDoc!._id }).toArray();

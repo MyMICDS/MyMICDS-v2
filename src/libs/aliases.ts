@@ -1,4 +1,4 @@
-import { AliasType, MyMICDSClass, PortalClass } from '@mymicds/sdk';
+import { AliasType, PortalClass } from '@mymicds/sdk';
 import { Db, InsertOneWriteOpResult, ObjectID } from 'mongodb';
 import { MyMICDSClassWithIDs } from './classes';
 import * as classes from './classes';

@@ -168,8 +168,3 @@ export {
 	listChecked as list,
 	uncheckEvent as uncheck
 };
-
-module.exports.check   = checkEvent;
-module.exports.get     = getChecked;
-module.exports.list    = listChecked;
-module.exports.uncheck = uncheckEvent;

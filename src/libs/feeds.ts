@@ -1,8 +1,8 @@
-import { Db, ObjectID } from 'mongodb';
+import { Db} from 'mongodb';
 import * as _ from 'underscore';
 import { CanvasCalendarWithUser } from './canvas';
 import * as canvas from './canvas';
-import { PortalCalendarEvent, PortalCalendarWithUser } from './portal';
+import { PortalCalendarWithUser } from './portal';
 import * as portal from './portal';
 import { UserDoc } from './users';
 import * as users from './users';

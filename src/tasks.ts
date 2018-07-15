@@ -1,28 +1,19 @@
-'use strict';
+// tslint:disable:no-console
 
-/**
- * @file Manages regularly scheduled tasks (similar to Cron-Jobs)
- */
-
-let config;
-try {
-	config = require(__dirname + '/libs/config.js');
-} catch (e) {
-	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
-}
-
-const admins        = require(__dirname + '/libs/admins.js');
-const dailyBulletin = require(__dirname + '/libs/dailyBulletin.js');
-const feeds         = require(__dirname + '/libs/feeds.js');
-const later         = require('later');
-const MongoClient   = require('mongodb').MongoClient;
-const weather       = require(__dirname + '/libs/weather.js');
+import * as later from 'later';
+import { MongoClient } from 'mongodb';
+import * as admins from './libs/admins';
+import config from './libs/config';
+import * as dailyBulletin from './libs/dailyBulletin';
+import * as feeds from './libs/feeds';
+import * as weather from './libs/weather';
 
 // Only run these intervals in production so we don't waste our API calls
 if (config.production) {
 	console.log('Starting tasks server!');
 
-	MongoClient.connect(config.mongodb.uri).then(db => {
+	(MongoClient.connect as (uri: string) => Promise<MongoClient>)(config.mongodb.uri).then(client => {
+		const db = client.db();
 		const fiveMinuteInterval = later.parse.text('every 5 min');
 
 		/*

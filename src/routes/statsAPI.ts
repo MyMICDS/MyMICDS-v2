@@ -1,11 +1,8 @@
-/**
- * @file Manages stats API endpoints
- */
+import * as api from '../libs/api';
+import * as stats from '../libs/stats';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const stats = require(__dirname + '/../libs/stats.js');
-
-module.exports = (app, db) => {
+export default ((app, db) => {
 
 	app.get('/stats', async (req, res) => {
 		try {
@@ -16,4 +13,4 @@ module.exports = (app, db) => {
 		}
 	});
 
-};
+}) as RoutesFunction;

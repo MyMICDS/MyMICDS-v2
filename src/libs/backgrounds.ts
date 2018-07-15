@@ -4,7 +4,6 @@ import { Db } from 'mongodb';
 import multer from 'multer';
 import * as path from 'path';
 import { promisify } from 'util';
-import { ProcessedRequest } from './api';
 import config from './config';
 import { UserDoc } from './users';
 import * as utils from './utils';
@@ -50,7 +49,7 @@ function uploadBackground() {
 
 	const storage = multer.diskStorage({
 		async destination(req, file, cb) {
-			const ourReq = req as ProcessedRequest;
+			const ourReq = req; // as ProcessedRequest;
 			// Delete current background
 			try {
 				await deleteBackground(ourReq.apiUser!);
@@ -82,7 +81,7 @@ function uploadBackground() {
 	const upload = multer({
 		storage,
 		fileFilter(req, file, cb) {
-			if (!(req as ProcessedRequest).apiUser) {
+			if (!req.apiUser) {
 				cb(new Error('You must be logged in!'), false);
 				return;
 			}

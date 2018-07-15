@@ -1,15 +1,8 @@
-'use strict';
+import * as jwt from 'jsonwebtoken';
+import { Server } from 'socket.io';
+import config from './config';
 
-/**
- * @file Manages the socket.io server
- * @module socket.io
- */
-const config = require(__dirname + '/config.js');
-
-const _ = require('underscore');
-const jwt = require('jsonwebtoken');
-
-module.exports = io => {
+export default (io: Server) => {
 
 	io.on('connection', socket => {
 
@@ -20,7 +13,6 @@ module.exports = io => {
 		 */
 
 		socket.on('authenticate', token => {
-
 			jwt.verify(token, config.jwt.secret, {
 				algorithms: ['HS256'],
 				audience: config.hostedOn,
@@ -35,7 +27,7 @@ module.exports = io => {
 
 				// User is valid!
 				if (!err && decoded) {
-					socket.decodedToken = decoded;
+					(socket as any).decodedToken = decoded;
 					socket.emit('authorized');
 				}
 			});
@@ -43,23 +35,18 @@ module.exports = io => {
 	});
 
 	return {
-		global: () => {
-			io.emit.apply(io, arguments);
+		global(event: string, ...args: any[]) {
+			io.emit(event, ...args);
 		},
-		user: () => {
-			const argumentsArray = Array.from(arguments);
-			const emitUser = argumentsArray[0];
-			const emitEvent = argumentsArray.slice(1);
-
-			_.each(io.sockets.connected, value => {
+		user(emitUser: string, event: string, ...args: any[]) {
+			for (const value of Object.values(io.sockets.connected)) {
 				// Check if user is authorized
-				if (!value.decodedToken) return;
+				if (!(value as any).decodedToken) { return; }
 				// If logged in user has same username as target user
-				if (emitUser === value.decodedToken.user) {
-					value.emit.apply(value, emitEvent);
+				if (emitUser === (value as any).decodedToken.user) {
+					value.emit(event, ...args);
 				}
-			});
+			}
 		}
 	};
 };
-

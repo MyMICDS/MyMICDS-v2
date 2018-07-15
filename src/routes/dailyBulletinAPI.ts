@@ -1,14 +1,9 @@
-'use strict';
+import * as api from '../libs/api';
+import * as dailyBulletin from '../libs/dailyBulletin';
+import * as jwt from '../libs/jwt';
+import RoutesFunction from './routesFunction';
 
-/**
- * @file Manages Daily Bulletin API endpoints
- */
-
-const api = require(__dirname + '/../libs/api.js');
-const dailyBulletin = require(__dirname + '/../libs/dailyBulletin.js');
-const jwt = require(__dirname + '/../libs/jwt.js');
-
-module.exports = (app) => {
+export default (app => {
 
 	app.get('/daily-bulletin', async (req, res) => {
 		try {
@@ -40,4 +35,4 @@ module.exports = (app) => {
 		}
 	});
 
-};
+}) as RoutesFunction;

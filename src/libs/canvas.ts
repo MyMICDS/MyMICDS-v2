@@ -161,13 +161,13 @@ function parseCanvasTitle(title: string) {
 	const firstLastBrackets = /(^\[)|(]$)/g;
 
 	// Get what's in the square brackets, including square brackets
-	const classTeacher = _.last(Array.from(title.match(classTeacherRegex))) || '';
+	const classTeacher = _.last(Array.from(title.match(classTeacherRegex)!)) || '';
 	const classTeacherNoBrackets = classTeacher.replace(firstLastBrackets, '');
 	// Subtract the class/teacher from the Canvas title
 	const assignmentName = title.replace(classTeacherRegex, '').trim();
 
 	// Also check if there's a teacher, typically separated by a colon
-	const teacher = (_.last(classTeacherNoBrackets.match(teacherRegex)) || '').replace(/^:/g, '');
+	const teacher = (_.last(classTeacherNoBrackets.match(teacherRegex)!) || '').replace(/^:/g, '');
 	const teacherFirstName = teacher[0] || '';
 	const teacherLastName = (teacher[1] || '') + teacher.substring(2).toLowerCase();
 
@@ -202,7 +202,7 @@ function calendarToEvent(calLink: string) {
 	// 'assignment' can also be 'calendar_event'
 	const calObject = url.parse(calLink);
 
-	const courseId = querystring.parse(calObject.query!).include_contexts.replace('_', 's/');
+	const courseId = (querystring.parse(calObject.query!).include_contexts as string).replace('_', 's/');
 
 	// Remove hash sign and switch to event URL format
 	const eventString = calObject.hash!.slice(1);
@@ -278,7 +278,7 @@ export async function getClasses(db: Db, user: string) {
 
 		let retryEvents;
 		try {
-			retryEvents = await canvasdata.find({ user: userDoc._id }).toArray();
+			retryEvents = await canvasdata.find({ user: userDoc!._id }).toArray();
 		} catch (e) {
 			throw new Error('There was an error retrieving Canvas events!');
 		}
@@ -361,7 +361,7 @@ export async function getFromCache(db: Db, user: string) {
 		};
 
 		if (hasAlias) {
-			classAliases[name] = aliasClass;
+			classAliases[name] = aliasClass as MyMICDSClassWithIDs;
 		} else {
 			classAliases[name] = canvasClass;
 		}
@@ -378,7 +378,7 @@ export async function getFromCache(db: Db, user: string) {
 		const end = new Date(canvasEvent.end);
 
 		// class will be null if error in getting class name.
-		const insertEvent: Partial<CanvasEvent> = {
+		const insertEvent: any = {
 			_id: canvasEvent.uid,
 			canvas: true,
 			user: userDoc!.user,

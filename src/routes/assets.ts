@@ -1,7 +1,5 @@
-/**
- * @file Enables static file routes in the /public directory
- */
+import { Application, default as e } from 'express';
 
-module.exports = (app, express) => {
+export default (app: Application, express: typeof e) => {
 	app.use(express.static(__dirname + '/../public'));
 };

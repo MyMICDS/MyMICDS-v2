@@ -187,8 +187,3 @@ export interface TeacherWithID {
 	firstName: string;
 	lastName: string;
 }
-
-module.exports.add = addTeacher;
-module.exports.get = getTeacher;
-module.exports.list = listTeachers;
-module.exports.deleteClasslessTeachers = deleteClasslessTeachers;

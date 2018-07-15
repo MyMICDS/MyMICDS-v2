@@ -346,7 +346,8 @@ export async function getList() {
 }
 
 /**
- * Return MyMICDS filename (including extension) from parsing email attachment filename. Returns null if unable to parse.
+ * Return MyMICDS filename (including extension) from parsing email attachment filename.
+ * Returns null if unable to parse.
  * @param {string} filename - Name of file
  * @returns {string}
  */

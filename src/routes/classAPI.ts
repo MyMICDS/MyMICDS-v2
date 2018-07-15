@@ -1,16 +1,13 @@
-/**
- * @file Manages class API endpoints
- */
+import * as api from '../libs/api';
+import * as classes from '../libs/classes';
+import * as jwt from '../libs/jwt';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const classes = require(__dirname + '/../libs/classes.js');
-const jwt = require(__dirname + '/../libs/jwt.js');
-
-module.exports = (app, db, socketIO) => {
+export default ((app, db, socketIO) => {
 
 	app.get('/classes', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			const classResult = await classes.get(db, req.apiUser);
+			const classResult = await classes.get(db, req.apiUser!);
 			api.success(res, { classes: classResult });
 		} catch (err) {
 			api.error(res, err);
@@ -33,9 +30,9 @@ module.exports = (app, db, socketIO) => {
 		};
 
 		try {
-			const classResult = await classes.upsert(db, user, scheduleClass);
+			const classResult = await classes.upsert(db, user!, scheduleClass);
 			api.success(res, { id: classResult ? classResult._id : null });
-			socketIO.user(req.apiUser, 'classes', 'add', scheduleClass);
+			socketIO.user(req.apiUser!, 'classes', 'add', scheduleClass);
 		} catch (err) {
 			api.error(res, err);
 		}
@@ -43,12 +40,12 @@ module.exports = (app, db, socketIO) => {
 
 	app.delete('/classes', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			await classes.delete(db, req.apiUser, req.body.id);
-			socketIO.user(req.apiUser, 'classes', 'delete', req.body.id);
+			await classes.delete(db, req.apiUser!, req.body.id);
+			socketIO.user(req.apiUser!, 'classes', 'delete', req.body.id);
 			api.success(res);
 		} catch (err) {
 			api.error(res, err);
 		}
 	});
 
-};
+}) as RoutesFunction;

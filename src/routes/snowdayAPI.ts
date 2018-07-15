@@ -1,19 +1,16 @@
-/**
- * @file Manages Snowday Calculator API endpoints
- */
+import * as api from '../libs/api';
+import * as snowdayCalculator from '../libs/snowdayCalculator';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const snowdayCalculator = require(__dirname + '/../libs/snowdayCalculator.js');
-
-module.exports = (app, db) => {
+export default (app => {
 
 	app.get('/snowday', async (req, res) => {
 		try {
-			const data = await snowdayCalculator.calculate(db);
+			const data = await snowdayCalculator.calculate();
 			api.success(res, { data });
 		} catch (err) {
 			api.error(res, err);
 		}
 	});
 
-};
+}) as RoutesFunction;

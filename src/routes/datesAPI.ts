@@ -1,11 +1,8 @@
-/**
- * @file Manages user API endpoints
- */
+import * as api from '../libs/api';
+import * as dates from '../libs/dates';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const dates = require(__dirname + '/../libs/dates.js');
-
-module.exports = app => {
+export default (app => {
 
 	app.get('/dates/school-starts', (req, res) => {
 		api.success(res, { date: dates.schoolEnds() });
@@ -24,4 +21,4 @@ module.exports = app => {
 		}
 	});
 
-};
+}) as RoutesFunction;

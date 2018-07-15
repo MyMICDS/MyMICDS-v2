@@ -1,11 +1,8 @@
-/**
- * @file Manages lunch API endpoints
- */
+import * as api from '../libs/api';
+import * as lunch from '../libs/lunch';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const lunch = require(__dirname + '/../libs/lunch.js');
-
-module.exports = (app, db) => {
+export default ((app, db) => {
 
 	app.get('/lunch', async (req, res) => {
 
@@ -15,7 +12,7 @@ module.exports = (app, db) => {
 		const month = req.query.month || current.getMonth() + 1;
 		const day = req.query.day || current.getDate();
 
-		const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+		const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
 
 		try {
 			const lunchJSON = await lunch.get(db, date);
@@ -25,4 +22,4 @@ module.exports = (app, db) => {
 		}
 	});
 
-};
+}) as RoutesFunction;

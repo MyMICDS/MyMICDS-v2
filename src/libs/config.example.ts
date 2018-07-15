@@ -24,7 +24,8 @@ export default {
 	},
 
 	mongodb: {
-		uri: ''
+		uri: '',
+		dbName: ''
 	},
 
 	portal: {

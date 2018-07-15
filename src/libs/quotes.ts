@@ -23,7 +23,7 @@ import { Db } from 'mongodb';
  */
 
 async function getQuotes(db: Db) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
 	const quotesData = db.collection<Quote>('quotes');
 
@@ -52,9 +52,9 @@ async function getQuotes(db: Db) {
  */
 
 async function insertQuote(db: Db, author: string, quote: string) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
-	if (typeof author !== 'string') throw new Error('Invalid author!');
-	if (typeof quote !== 'string') throw new Error('Invalid quote!');
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof author !== 'string') { throw new Error('Invalid author!'); }
+	if (typeof quote !== 'string') { throw new Error('Invalid quote!'); }
 
 	const quotesData = db.collection('quotes');
 

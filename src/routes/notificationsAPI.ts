@@ -1,11 +1,8 @@
-/**
- * @file Manages notifications API endpoints
- */
+import * as api from '../libs/api';
+import * as notifications from '../libs/notifications';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const notifications = require(__dirname + '/../libs/notifications.js');
-
-module.exports = (app, db) => {
+export default ((app, db) => {
 
 	app.post('/notifications/unsubscribe', async (req, res) => {
 		let user = req.user.user;
@@ -24,4 +21,4 @@ module.exports = (app, db) => {
 		}
 	});
 
-};
+}) as RoutesFunction;

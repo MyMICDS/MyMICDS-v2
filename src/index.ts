@@ -1,36 +1,24 @@
-'use strict';
-
-/**
- * @file Main file of the whole project.
- */
-
-let config;
-try {
-	config = require(__dirname + '/libs/config.js');
-} catch (e) {
-	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
-}
-
+import config from './libs/config';
 const port = process.env.PORT || config.port;
 
 /*
  * General Libraries
  */
 
-const api = require(__dirname + '/libs/api.js');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const http = require('http');
-const jwt = require(__dirname + '/libs/jwt.js');
-const MongoClient = require('mongodb').MongoClient;
+import * as bodyParser from 'body-parser';
+import cors from 'cors';
+import * as http from 'http';
+import { MongoClient } from 'mongodb';
+import * as api from './libs/api';
+import * as jwt from './libs/jwt';
 
 /*
  * Frameworks
  */
 
-const express = require('express');
+import express from 'express';
 const app = express();
-const server = http.Server(app);
+const server: http.Server = new http.Server(app);
 
 /**
  * Express Middleware
@@ -50,8 +38,11 @@ app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
  */
 
 // Socket.io
-const io = require('socket.io')(server);
-const socketIO = require(__dirname + '/libs/socket.io.js')(io);
+import socketFactory from 'socket.io';
+const io = socketFactory(server);
+
+import socketHelper from './libs/socket.io';
+const socketIO = socketHelper(io);
 
 // Miscellaneous stuff
 // require(__dirname + '/libs/realtime.js')(io, socketIO);
@@ -60,10 +51,14 @@ const socketIO = require(__dirname + '/libs/socket.io.js')(io);
  * Routes
  */
 
-require(__dirname + '/routes/assets.js')(app, express);
+import RoutesFunction from './routes/routesFunction';
+
+import assetsHandler from './routes/assets';
+assetsHandler(app, express);
 
 // Connect to database
-MongoClient.connect(config.mongodb.uri).then(db => {
+(MongoClient.connect as (uri: string) => Promise<MongoClient>)(config.mongodb.uri).then(async client => {
+	const db = client.db();
 
 	// Enable JWT authentication middleware
 	app.use(jwt.authorize(db));
@@ -73,30 +68,36 @@ MongoClient.connect(config.mongodb.uri).then(db => {
 	// Enable admin overrides
 	app.use(api.adminOverride);
 
-	// API Routes
-	require(__dirname + '/routes/aliasAPI.js')(app, db, socketIO);
-	require(__dirname + '/routes/authAPI.js')(app, db);
-	require(__dirname + '/routes/backgroundAPI.js')(app, db, socketIO);
-	require(__dirname + '/routes/canvasAPI.js')(app, db, socketIO);
-	require(__dirname + '/routes/classAPI.js')(app, db, socketIO);
-	require(__dirname + '/routes/dailyBulletinAPI.js')(app);
-	require(__dirname + '/routes/datesAPI.js')(app);
-	require(__dirname + '/routes/feedsAPI.js')(app, db);
-	require(__dirname + '/routes/lunchAPI.js')(app, db);
-	require(__dirname + '/routes/modulesAPI.js')(app, db);
-	require(__dirname + '/routes/notificationsAPI.js')(app, db);
-	require(__dirname + '/routes/plannerAPI.js')(app, db, socketIO);
-	require(__dirname + '/routes/portalAPI.js')(app, db, socketIO);
-	require(__dirname + '/routes/quotesAPI.js')(app, db);
-	require(__dirname + '/routes/scheduleAPI.js')(app, db);
-	require(__dirname + '/routes/snowdayAPI.js')(app, db);
-	require(__dirname + '/routes/sportsAPI.js')(app);
-	require(__dirname + '/routes/statsAPI.js')(app, db);
-	require(__dirname + '/routes/suggestionAPI.js')(app, db);
-	require(__dirname + '/routes/teacherAPI.js')(app, db);
-	require(__dirname + '/routes/userAPI.js')(app, db, socketIO);
-	require(__dirname + '/routes/weatherAPI.js')(app, db, socketIO);
-	require(__dirname + '/routes/stickynotesAPI.js')(app, db);
+	// Require all routes
+	const routes = await Promise.all<RoutesFunction>([
+		'alias',
+		'auth',
+		'background',
+		'canvas',
+		'class',
+		'dailyBulletin',
+		'dates',
+		'feeds',
+		'lunch',
+		'modules',
+		'notifications',
+		'planner',
+		'portal',
+		'quotes',
+		'schedule',
+		'snowday',
+		'sports',
+		'stats',
+		'stickynotes',
+		'suggestion',
+		'teacher',
+		'user',
+		'weather'
+	].map(r => import(`./routes/${r}API`)));
+
+	for (const route of routes) {
+		route(app, db, socketIO);
+	}
 }).catch(err => {
 	throw err;
 });
@@ -122,5 +123,6 @@ app.get('/spin', (req, res) => {
  */
 
 server.listen(port, () => {
+	// tslint:disable-next-line:no-console
 	console.log('Server listening on *:' + port);
 });

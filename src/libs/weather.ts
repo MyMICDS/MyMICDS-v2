@@ -1,16 +1,9 @@
-'use strict';
+import { Weather } from '@mymicds/sdk';
+import DarkSky from 'forecast.io';
+import * as fs from 'fs-extra';
+import config from './config';
 
-/**
- * @file Gets weather from forecast.io
- * @module weather
- */
-const config = require(__dirname + '/config.js');
-const DarkSky = require('forecast.io');
-const fs = require('fs-extra');
-
-const { promisify } = require('util');
-
-const JSONPath = __dirname + '/../api/weather.json';
+const JSON_PATH = __dirname + '/../api/weather.json';
 
 // Coordinates for MICDS
 const latitude = 38.658241;
@@ -36,16 +29,15 @@ const options = {
  * @param {Object} weatherJSON - JSON of current weather. Null if error.
  */
 async function getWeather() {
-	let weatherJSON;
+	let weatherJSON: Weather;
 	try {
-		weatherJSON = await promisify(fs.readJSON)(JSONPath);
+		weatherJSON = await fs.readJSON(JSON_PATH);
 	} catch (e) {
 		weatherJSON = await updateWeather();
 	}
 
 	return weatherJSON;
 }
-
 
 /**
  * Get's weather from forecast.io and returns JSON
@@ -65,19 +57,19 @@ async function updateWeather() {
 	// Create forecast object to query
 	const darksky = new DarkSky(options);
 
-	const data = await new Promise((resolve, reject) => {
-		darksky.get(latitude, longitude, (err, res, data) => {
+	const data = await new Promise<Weather>((resolve, reject) => {
+		darksky.get(latitude, longitude, (err: Error, res: any, resData: Weather) => {
 			if (err) {
 				reject(new Error('There was a problem fetching the weather data!'));
 				return;
 			}
 
-			resolve(data);
+			resolve(resData);
 		});
 	});
 
 	try {
-		await promisify(fs.outputJSON)(JSONPath, data, { spaces: '\t' });
+		await fs.outputJSON(JSON_PATH, data, { spaces: '\t' });
 	} catch (e) {
 		throw new Error('There was a problem saving the weather data!');
 	}
@@ -85,5 +77,7 @@ async function updateWeather() {
 	return data;
 }
 
-module.exports.get    = getWeather;
-module.exports.update = updateWeather;
+export {
+	getWeather as get,
+	updateWeather as update
+};

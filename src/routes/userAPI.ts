@@ -1,20 +1,18 @@
-/**
- * @file Manages user API endpoints
- */
+import { ChangeUserInfoParameters } from '@mymicds/sdk';
+import * as api from '../libs/api';
+import * as jwt from '../libs/jwt';
+import * as users from '../libs/users';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const jwt = require(__dirname + '/../libs/jwt.js');
-const users = require(__dirname + '/../libs/users.js');
-
-module.exports = (app, db, socketIO) => {
+export default ((app, db, socketIO) => {
 
 	app.get('/user/grad-year-to-grade', (req, res) => {
-		const grade = users.gradYearToGrade(parseInt(req.query.year));
+		const grade = users.gradYearToGrade(parseInt(req.query.year, 10));
 		api.success(res, { grade });
 	});
 
 	app.get('/user/grade-to-grad-year', (req, res) => {
-		const gradYear = users.gradeToGradYear(parseInt(req.query.grade));
+		const gradYear = users.gradeToGradYear(parseInt(req.query.grade, 10));
 		api.success(res, { year: gradYear });
 	});
 
@@ -33,7 +31,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.get('/user/info', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			const userInfo = await users.getInfo(db, req.apiUser, true);
+			const userInfo = await users.getInfo(db, req.apiUser!, true);
 			api.success(res, { user: userInfo });
 		} catch (err) {
 			api.error(res, err);
@@ -41,7 +39,7 @@ module.exports = (app, db, socketIO) => {
 	});
 
 	app.patch('/user/info', jwt.requireLoggedIn, async (req, res) => {
-		const info = {};
+		const info: ChangeUserInfoParameters = {};
 
 		if (typeof req.body.firstName === 'string' && req.body.firstName !== '') {
 			info.firstName = req.body.firstName;
@@ -53,16 +51,16 @@ module.exports = (app, db, socketIO) => {
 		if (typeof req.body.teacher !== 'undefined' && req.body.teacher !== false) {
 			info.gradYear = null;
 		} else {
-			info.gradYear = parseInt(req.body.gradYear);
+			info.gradYear = parseInt(req.body.gradYear, 10);
 		}
 
 		try {
-			await users.changeInfo(db, req.apiUser, info);
-			socketIO.user(req.apiUser, 'user', 'change-info', info);
+			await users.changeInfo(db, req.apiUser!, info);
+			socketIO.user(req.apiUser!, 'user', 'change-info', info);
 			api.success(res);
 		} catch (err) {
 			api.error(res, err);
 		}
 	});
 
-};
+}) as RoutesFunction;

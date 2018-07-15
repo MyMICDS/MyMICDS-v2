@@ -1,12 +1,6 @@
-'use strict';
-
-/**
- * @file Queries the Rams Army app API
- * @module sports
- */
-const config = require(__dirname + '/config.js');
-
-const request = require('request-promise-native');
+import { GetScoresResponse } from '@mymicds/sdk';
+import * as request from 'request-promise-native';
+import config from './config';
 
 const schoolId = 231;
 
@@ -26,7 +20,8 @@ const schoolId = 231;
  */
 
 async function login() {
-	let err, body;
+	let err: Error;
+	let body: any;
 	try {
 		body = await request.post({
 			url: 'https://api.superfanu.com/5.0.0/gen/login.php',
@@ -40,7 +35,7 @@ async function login() {
 	}
 
 	body = JSON.parse(body);
-	if (err || body.response !== 'ok') {
+	if (err! || body.response !== 'ok') {
 		const error = body.error ? body.error : 'Unknown';
 		throw new Error('There was a problem logging in the Rams Army app! Error: ' + error);
 	}
@@ -71,14 +66,14 @@ async function getScores() {
 		body = await request.post({
 			url: 'https://api.superfanu.com/5.0.0/gen/get_scores.php?nid=' + schoolId,
 			form: {
-				'login_key': loginKey
+				login_key: loginKey
 			}
 		});
 	} catch (e) {
 		throw new Error('There was a problem logging in the Rams Army app!');
 	}
 
-	const scores = {
+	const scores: GetScoresResponse['scores'] = {
 		scores: body.scores,
 		events: body.events
 	};
@@ -86,4 +81,6 @@ async function getScores() {
 	return scores;
 }
 
-module.exports.scores = getScores;
+export {
+	getScores as scores
+};

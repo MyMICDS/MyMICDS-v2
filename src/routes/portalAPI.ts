@@ -1,12 +1,9 @@
-/**
- * @file Manages Portal API endpoints
- */
+import * as api from '../libs/api';
+import * as jwt from '../libs/jwt';
+import * as portal from '../libs/portal';
+import RoutesFunction from './routesFunction';
 
-const api = require(__dirname + '/../libs/api.js');
-const jwt = require(__dirname + '/../libs/jwt.js');
-const portal = require(__dirname + '/../libs/portal.js');
-
-module.exports = (app, db, socketIO) => {
+export default ((app, db, socketIO) => {
 
 	app.post('/portal/test', async (req, res) => {
 		try {
@@ -19,8 +16,8 @@ module.exports = (app, db, socketIO) => {
 
 	app.put('/portal/url', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			const { isValid, validURL } = await portal.setURL(db, req.apiUser, req.body.url);
-			socketIO.user(req.apiUser, 'portal', 'set-url', validURL);
+			const { isValid, validURL } = await portal.setURL(db, req.apiUser!, req.body.url);
+			socketIO.user(req.apiUser!, 'portal', 'set-url', validURL);
 			api.success(res, { valid: isValid, url: validURL });
 		} catch (err) {
 			api.error(res, err);
@@ -29,7 +26,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.get('/portal/classes', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			const responseObj = await portal.getClasses(db, req.apiUser);
+			const responseObj = await portal.getClasses(db, req.apiUser!);
 			api.success(res, responseObj);
 		} catch (err) {
 			api.error(res, err);
@@ -45,4 +42,4 @@ module.exports = (app, db, socketIO) => {
 		}
 	});
 
-};
+}) as RoutesFunction;

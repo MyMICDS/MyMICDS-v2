@@ -1,10 +1,7 @@
-'use strict';
-
-/**
- * @file Calculates usage statistics from the database.
- * @module stats
- */
-const moment = require('moment');
+import { GetStatsResponse } from '@mymicds/sdk';
+import moment from 'moment';
+import { Db } from 'mongodb';
+import { UserDoc } from './users';
 
 /**
  * Get usage statistics
@@ -22,10 +19,10 @@ const moment = require('moment');
  * @param {Object} statistics - Object containing statistics. Null if error.
  */
 
-async function getStats(db) {
-	if (typeof db !== 'object') throw new Error('Invalid database connection!');
+async function getStats(db: Db) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
-	const stats = {
+	const stats: GetStatsResponse['stats'] = {
 		registered: {
 			total: 0,
 			today: 0,
@@ -36,10 +33,10 @@ async function getStats(db) {
 			gradYears: {}
 		}
 	};
-	const userdata = db.collection('users');
+	const userdata = db.collection<UserDoc>('users');
 
 	// Get all users
-	let userDocs;
+	let userDocs: UserDoc[];
 	try {
 		userDocs = await userdata.find({ confirmed: true }).toArray();
 	} catch (e) {
@@ -50,9 +47,9 @@ async function getStats(db) {
 	stats.registered.total = userDocs.length;
 
 	// Get array of unique gradYears
-	const gradYears = [];
+	const gradYears: Array<'teacher' | number> = [];
 	for (const userDoc of userDocs) {
-		let gradYear = userDoc.gradYear;
+		let gradYear: 'teacher' | number | null = userDoc.gradYear;
 
 		// If gradYear is null, it's a teacher
 		if (gradYear === null) {
@@ -60,8 +57,8 @@ async function getStats(db) {
 		}
 
 		// If gradYear isn't in the array yet, push to gradYears
-		if (!gradYears.includes(gradYear)) {
-			gradYears.push(gradYear);
+		if (!gradYears.includes(gradYear!)) {
+			gradYears.push(gradYear!);
 		}
 	}
 
@@ -75,7 +72,7 @@ async function getStats(db) {
 	const today = moment();
 	for (const userDoc of userDocs) {
 		// If gradYear is null, it's a teacher
-		let gradYear = userDoc.gradYear;
+		let gradYear: 'teacher' | number | null = userDoc.gradYear;
 		if (gradYear === null) {
 			gradYear = 'teacher';
 		}
@@ -89,16 +86,19 @@ async function getStats(db) {
 			stats.registered.today++;
 		}
 
-		stats.registered.gradYears[gradYear][formatRegistered] = stats.registered.gradYears[gradYear][formatRegistered] + 1 || 1;
+		stats.registered.gradYears[gradYear!][formatRegistered] =
+			stats.registered.gradYears[gradYear!][formatRegistered] + 1 || 1;
 
 		// Check if user visited today
 		if (today.isSame(userDoc.lastVisited, 'day')) {
 			stats.visitedToday.total++;
-			stats.visitedToday.gradYears[gradYear]++;
+			stats.visitedToday.gradYears[gradYear!]++;
 		}
 	}
 
 	return stats;
 }
 
-module.exports.get = getStats;
+export {
+	getStats as get
+};

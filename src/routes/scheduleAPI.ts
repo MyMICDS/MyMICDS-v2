@@ -1,13 +1,10 @@
-/**
- * @file Manages schedule API endpoints
- */
+import * as api from '../libs/api';
+import * as schedule from '../libs/schedule';
+import RoutesFunction from './routesFunction';
 
-const fs = require('fs');
+import * as fs from 'fs-extra';
 
-const api = require(__dirname + '/../libs/api.js');
-const schedule = require(__dirname + '/../libs/schedule.js');
-
-module.exports = (app, db) => {
+export default ((app, db) => {
 	app.get('/schedule', async (req, res) => {
 		const current = new Date();
 
@@ -15,24 +12,22 @@ module.exports = (app, db) => {
 		const month = req.query.month || current.getMonth() + 1;
 		const day = req.query.day || current.getDate();
 
-		const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+		const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
 
 		try {
-			const responseObj = await schedule.get(db, req.apiUser, date);
+			const responseObj = await schedule.get(db, req.apiUser!, date);
 			api.success(res, responseObj);
 		} catch (err) {
 			api.error(res, err);
 		}
 	});
 
-	app.get('/block-schedule', (req, res) => {
-		fs.readFile(__dirname + '/../schedules/' + req.query.grade, 'utf8', (err, data) => {
-			if (err) {
-				api.error(res, err);
-				return;
-			}
-
+	app.get('/block-schedule', async (req, res) => {
+		try {
+			const data = await fs.readFile(__dirname + '/../schedules/' + req.query.grade, 'utf8');
 			api.success(res, data);
-		});
+		} catch (err) {
+			api.error(res, err);
+		}
 	});
-};
+}) as RoutesFunction;

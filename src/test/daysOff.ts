@@ -1,4 +1,6 @@
-const dates = require(__dirname + '/../libs/dates.js');
+// tslint:disable:no-console
+
+import * as dates from '../libs/dates';
 
 dates.getBreaks().then(breaks => {
 	console.log(breaks);
