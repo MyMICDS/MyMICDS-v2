@@ -1,7 +1,4 @@
 {
-	"ignore": [
-		".git",
-		"docs",
-		"src/api/*"
-	]
+	"watch": "*.ts",
+	"exec": "npm start"
 }

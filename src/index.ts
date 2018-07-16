@@ -93,7 +93,7 @@ assetsHandler(app, express);
 		'teacher',
 		'user',
 		'weather'
-	].map(r => import(`./routes/${r}API`)));
+	].map(r => import(`./routes/${r}API`).then(i => i.default)));
 
 	for (const route of routes) {
 		route(app, db, socketIO);
