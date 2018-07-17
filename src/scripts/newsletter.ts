@@ -42,7 +42,7 @@ getBlacklist().then(async blacklist => {
 	const transporter = nodemailer.createTransport(config.email.URI);
 
 	// Connect to database
-	const client = await (MongoClient.connect as (uri: string) => Promise<MongoClient>)(config.mongodb.uri);
+	const client: MongoClient = await MongoClient.connect(config.mongodb.uri);
 	const db = client.db();
 	const userdata = db.collection<UserDoc>('users');
 

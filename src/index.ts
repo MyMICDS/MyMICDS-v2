@@ -57,7 +57,7 @@ import assetsHandler from './routes/assets';
 assetsHandler(app, express);
 
 // Connect to database
-(MongoClient.connect as (uri: string) => Promise<MongoClient>)(config.mongodb.uri).then(async client => {
+MongoClient.connect(config.mongodb.uri).then(async (client: MongoClient) => {
 	const db = client.db();
 
 	// Enable JWT authentication middleware

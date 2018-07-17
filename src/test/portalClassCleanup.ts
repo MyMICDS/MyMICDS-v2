@@ -6,7 +6,7 @@ import * as portal from '../libs/portal';
 
 const user = process.argv[2];
 
-(MongoClient.connect as (uri: string) => Promise<MongoClient>)(config.mongodb.uri).then(async client => {
+MongoClient.connect(config.mongodb.uri).then(async (client: MongoClient) => {
 	const db = client.db();
 	const { classes } = await portal.getClasses(db, user);
 

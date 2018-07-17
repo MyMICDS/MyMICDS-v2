@@ -6,7 +6,7 @@ import { promisify } from 'util';
 import config from '../libs/config';
 
 // Connect to database
-(MongoClient.connect as (uri: string) => Promise<MongoClient>)(config.mongodb.uri).then(async client => {
+MongoClient.connect(config.mongodb.uri).then(async (client: MongoClient) => {
 	const db = client.db();
 	const userdata = db.collection('users');
 

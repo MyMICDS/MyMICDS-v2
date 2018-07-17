@@ -12,7 +12,7 @@ import * as weather from './libs/weather';
 if (config.production) {
 	console.log('Starting tasks server!');
 
-	(MongoClient.connect as (uri: string) => Promise<MongoClient>)(config.mongodb.uri).then(client => {
+	MongoClient.connect(config.mongodb.uri).then(async (client: MongoClient) => {
 		const db = client.db();
 		const fiveMinuteInterval = later.parse.text('every 5 min');
 

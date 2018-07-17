@@ -9,7 +9,7 @@ const times = 7;
 const user = 'alhuber';
 const date = moment().add(5, 'days');
 
-(MongoClient.connect as (uri: string) => Promise<MongoClient>)(config.mongodb.uri).then(async client => {
+MongoClient.connect(config.mongodb.uri).then(async (client: MongoClient) => {
 	const db = client.db();
 	for (let i = 0; i < times; i++) {
 		const { schedule: scheduleObj } = await schedule.get(db, user, date.toDate());
