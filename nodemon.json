@@ -1,4 +1,5 @@
 {
-	"watch": "*.ts",
-	"exec": "npm start"
+	"watch": "src/**/*.ts",
+	"ext": "ts",
+	"exec": "ts-node --files src/index.ts"
 }
