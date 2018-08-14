@@ -107,7 +107,7 @@ function verifyURL(portalURL, callback) {
 
 		// if(_.isEmpty(dayDates)) {
 		// 	callback(null, 'The calendar does not contain the information we need! Make sure you\'re copying your personal calendar!', null);
-		// 	return;a
+		// 	return;
 		// }
 
 		callback(null, true, validURL);
