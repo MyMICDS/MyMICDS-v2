@@ -344,7 +344,7 @@ function getDayRotation(date, callback) {
 			const endTime = end.getTime();
 
 			// Check if it's an all-day event
-			if(startTime == scheduleDate.getTime() && Number.isNaN(endTime)) {
+			if(startTime === scheduleDate.getTime() && Number.isNaN(endTime)) {
 				// See if valid day
 				if(validDayRotationPlain.test(calEvent.summary)) {
 					// Get actual day
