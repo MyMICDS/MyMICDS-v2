@@ -16,14 +16,14 @@ const url = require('url');
 const users = require(__dirname + '/users.js');
 
 // URL Calendars come from
-const urlPrefix = 'https://micds.myschoolapp.com/podium/feed/iCal.aspx?z=';
-// RegEx to test if calendar summary is a valid Day Rotation
-const validDayRotation = /^Day [1-6] \((US|MS)\)$/;
+const urlPrefix = 'https://api.veracross.com/micds/subscribe/';
+
+// RegEx to test if calendar summary contains a valid Day Rotation
 const validDayRotationPlain = /^Day [1-6]$/;
 
-const portalSummaryBlock = / - [0-9]{1,2} \([A-G][0-9]\)$/g;
+const portalSummaryBlock = /:[A-G]:\d{2}$/g;
 // Modified portal summary block to clean up everythiing for displaying
-const cleanUpBlockSuffix = / -( )?([0-9]{1,2} \(.+\))?$/g;
+const cleanUpBlockSuffix = / [A-Za-z]+ \d{3}:[A-G]:\d{2}$/g;
 
 // Range of Portal calendars in months
 const portalRange = {
@@ -60,13 +60,14 @@ function verifyURL(portalURL, callback) {
 	// Parse URL first
 	const parsedURL = url.parse(portalURL);
 	const queries = querystring.parse(parsedURL.query);
+	const pathID = parsedURL.pathname.split('/')[3];
 
-	if(typeof queries.z !== 'string') {
+	if(typeof pathID !== 'string' && typeof queries.uid !== 'string') {
 		callback(null, 'URL does not contain calendar ID!', null);
 		return;
 	}
 
-	const validURL = urlPrefix + queries.z;
+	const validURL = `${urlPrefix}${pathID}?uid=${queries.uid}`;
 
 	// Not lets see if we can actually get any data from here
 	request(validURL, (err, response, body) => {
@@ -79,30 +80,30 @@ function verifyURL(portalURL, callback) {
 			return;
 		}
 
-		// Look through every 'Day # (US/MS)' andd see how many events there are
-		const dayDates = {};
-		for(const calEvent of Object.values(ical.parseICS(body))) {
-			// If event doesn't have a summary, skip
-			if(typeof calEvent.summary !== 'string') continue;
-
-			// See if valid day
-			if(validDayRotation.test(calEvent.summary)) {
-				// Get actual day
-				const day = calEvent.summary.match(/[1-6]/)[0];
-				// Get date
-				const start = new Date(calEvent.start);
-
-				// Add to dayDates object
-				if(typeof dayDates[day] === 'undefined') {
-					dayDates[day] = [];
-				}
-				dayDates[day].push({
-					year : start.getFullYear(),
-					month: start.getMonth() + 1,
-					day  : start.getDate()
-				});
-			}
-		}
+		// // Look through every 'Day # (US/MS)' andd see how many events there are
+		// const dayDates = {};
+		// for(const calEvent of Object.values(ical.parseICS(body))) {
+		// 	// If event doesn't have a summary, skip
+		// 	if(typeof calEvent.summary !== 'string') continue;
+		//
+		// 	// See if valid day
+		// 	if(validDayRotation.test(calEvent.summary)) {
+		// 		// Get actual day
+		// 		const day = calEvent.summary.match(/[1-6]/)[0];
+		// 		// Get date
+		// 		const start = new Date(calEvent.start);
+		//
+		// 		// Add to dayDates object
+		// 		if(typeof dayDates[day] === 'undefined') {
+		// 			dayDates[day] = [];
+		// 		}
+		// 		dayDates[day].push({
+		// 			year : start.getFullYear(),
+		// 			month: start.getMonth() + 1,
+		// 			day  : start.getDate()
+		// 		});
+		// 	}
+		// }
 
 		// if(_.isEmpty(dayDates)) {
 		// 	callback(null, 'The calendar does not contain the information we need! Make sure you\'re copying your personal calendar!', null);
@@ -317,7 +318,6 @@ function getDayRotation(date, callback) {
 	if(typeof callback !== 'function') return;
 
 	const scheduleDate = new Date(date);
-	const scheduleNextDay = new Date(scheduleDate.getTime() + 60 * 60 * 24 * 1000);
 
 	request(urlPrefix + config.portal.dayRotation, (err, response, body) => {
 		if(err || response.statusCode !== 200) {
@@ -344,7 +344,7 @@ function getDayRotation(date, callback) {
 			const endTime = end.getTime();
 
 			// Check if it's an all-day event
-			if(startTime <= scheduleDate.getTime() && scheduleNextDay.getTime() <= endTime) {
+			if(startTime <= scheduleDate.getTime() && Number.isNaN(endTime)) {
 				// See if valid day
 				if(validDayRotationPlain.test(calEvent.summary)) {
 					// Get actual day
@@ -566,7 +566,6 @@ function cleanUp(str) {
 }
 
 // RegEx
-module.exports.validDayRotation   = validDayRotation;
 module.exports.portalSummaryBlock = portalSummaryBlock;
 
 // Constants
