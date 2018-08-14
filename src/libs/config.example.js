@@ -28,7 +28,7 @@ module.exports =
 	},
 
 	portal: {
-		dayRotation: '' // You can use anybody's Student Calendar ID from Veracross
+		dayRotation: '' // Student Calendar > My Calendar from Veracross
 	},
 
 	ramsArmy: {

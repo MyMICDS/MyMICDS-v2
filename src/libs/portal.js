@@ -19,7 +19,7 @@ const users = require(__dirname + '/users.js');
 const urlPrefix = 'https://api.veracross.com/micds/subscribe/';
 
 // RegEx to test if calendar summary contains a valid Day Rotation
-const validDayRotationPlain = /^Day [1-6]$/;
+const validDayRotationPlain = /^US - Day [1-6]/;
 
 const portalSummaryBlock = /:[A-G]:\d{2}$/g;
 // Modified portal summary block to clean up everythiing for displaying
@@ -344,11 +344,11 @@ function getDayRotation(date, callback) {
 			const endTime = end.getTime();
 
 			// Check if it's an all-day event
-			if(startTime <= scheduleDate.getTime() && Number.isNaN(endTime)) {
+			if(startTime == scheduleDate.getTime() && Number.isNaN(endTime)) {
 				// See if valid day
 				if(validDayRotationPlain.test(calEvent.summary)) {
 					// Get actual day
-					const day = parseInt(calEvent.summary.match(/[1-6]/)[0]);
+					const day = parseInt(calEvent.summary.match(/Day ([1-6])/)[1]);
 					callback(null, day);
 					return;
 				}
