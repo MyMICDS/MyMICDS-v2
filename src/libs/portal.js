@@ -21,9 +21,9 @@ const urlPrefix = 'https://api.veracross.com/micds/subscribe/';
 // RegEx to test if calendar summary contains a valid Day Rotation
 const validDayRotationPlain = /^Day [1-6]$/;
 
-const portalSummaryBlock = / - [0-9]{1,2} \([A-G][0-9]\)$/g;
+const portalSummaryBlock = /:[A-G]:\d{2}$/g;
 // Modified portal summary block to clean up everythiing for displaying
-const cleanUpBlockSuffix = / -( )?([0-9]{1,2} \(.+\))?$/g;
+const cleanUpBlockSuffix = / [A-Za-z]+ \d{3}:[A-G]:\d{2}$/g;
 
 // Range of Portal calendars in months
 const portalRange = {
@@ -60,13 +60,14 @@ function verifyURL(portalURL, callback) {
 	// Parse URL first
 	const parsedURL = url.parse(portalURL);
 	const queries = querystring.parse(parsedURL.query);
+	const pathID = parsedURL.pathname.split('/')[3];
 
-	if(typeof queries.z !== 'string') {
+	if(typeof pathID !== 'string' && typeof queries.uid !== 'string') {
 		callback(null, 'URL does not contain calendar ID!', null);
 		return;
 	}
 
-	const validURL = urlPrefix + queries.z;
+	const validURL = `${urlPrefix}${pathID}?uid=${queries.uid}`;
 
 	// Not lets see if we can actually get any data from here
 	request(validURL, (err, response, body) => {
