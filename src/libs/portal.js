@@ -60,8 +60,13 @@ function verifyURL(portalURL, callback) {
 	// Parse URL first
 	const parsedURL = url.parse(portalURL);
 
-	if (!parsedURL || !parsedURL.query || !parsedURL.pathname) {
+	if (!parsedURL || !parsedURL.pathname) {
 		callback(null, 'Cannot parse URL!', null);
+		return;
+	}
+
+	if (!parsedURL.query) {
+		callback(null, 'Missing query parameters! Make sure to paste the full url.', null);
 		return;
 	}
 
