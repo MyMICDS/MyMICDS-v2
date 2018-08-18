@@ -48,8 +48,13 @@ function verifyURL(canvasURL, callback) {
 	// Parse URL first
 	const parsedURL = url.parse(canvasURL);
 
+	if (!parsedURL || !parsedURL.pathname) {
+		callback(null, 'Cannot parse URL!', null);
+		return;
+	}
+
 	// Check if pathname is valid
-	if(!parsedURL.pathname || !parsedURL.pathname.startsWith('/feeds/calendars/')) {
+	if(!parsedURL.pathname.startsWith('/feeds/calendars/')) {
 		// Not a valid URL!
 		callback(null, 'Invalid URL path!', null);
 		return;

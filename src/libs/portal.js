@@ -59,6 +59,12 @@ function verifyURL(portalURL, callback) {
 
 	// Parse URL first
 	const parsedURL = url.parse(portalURL);
+
+	if (!parsedURL || !parsedURL.query || !parsedURL.pathname) {
+		callback(null, 'Cannot parse URL!', null);
+		return;
+	}
+
 	const queries = querystring.parse(parsedURL.query);
 	const pathID = parsedURL.pathname.split('/')[3];
 
