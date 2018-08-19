@@ -32,8 +32,8 @@ const portalRange = {
 };
 
 /**
- * Makes sure a given url is valid and it points to a Portal calendar feed
- * @function verifyURL
+ * Makes sure a given url is valid and it points to *a* Portal calendar feed
+ * @function verifyURLGeneric
  *
  * @param {string} portalURL - URI to iCal feed
  * @param {verifyURLCallback} callback - Callback
@@ -48,7 +48,7 @@ const portalRange = {
  * @param {string} url - Valid and formatted URL to our likings. Null if error or invalid url.
  */
 
-function verifyURL(portalURL, callback) {
+function verifyURLGeneric(portalURL, callback) {
 
 	if(typeof callback !== 'function') return;
 
@@ -81,7 +81,7 @@ function verifyURL(portalURL, callback) {
 	const validURL = `${urlPrefix}${pathID}?uid=${queries.uid}`;
 
 	// Not lets see if we can actually get any data from here
-	request(validURL, (err, response, body) => {
+	request(validURL, (err, response) => {
 		if(err) {
 			callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
 			return;
@@ -127,8 +127,50 @@ function verifyURL(portalURL, callback) {
 }
 
 /**
+ * Makes sure a given url is valid and it points to the 'All Classes' personal Portal calendar feed
+ * @function verifyURLClasses
+ *
+ * @param {string} portalURL - URI to iCal feed
+ * @param {verifyURLCallback} callback - Callback
+ */
+
+function verifyURLClasses(portalURL, callback) {
+	verifyURLGeneric(portalURL, (err, isValid, url) => {
+		if (err || typeof isValid === 'string') {
+			callback(err, isValid, url);
+			return;
+		}
+
+		// Additional checks to make sure it is the correct portal feed type
+
+		callback(null, true, url);
+	});
+}
+
+/**
+ * Makes sure a given url is valid and it points to the 'My Calendar' personal Portal calendar feed
+ * @function verifyURLCalendar
+ *
+ * @param {string} portalURL - URI to iCal feed
+ * @param {verifyURLCallback} callback - Callback
+ */
+
+function verifyURLCalendar(portalURL, callback) {
+	verifyURLGeneric(portalURL, (err, isValid, url) => {
+		if (err || typeof isValid === 'string') {
+			callback(err, isValid, url);
+			return;
+		}
+
+		// Additional checks to make sure it is the correct portal feed type
+
+		callback(null, true, url);
+	});
+}
+
+/**
  * Sets a user's calendar URL if valid
- * @function setUrl
+ * @function setURLClasses
  *
  * @param {Object} db - Database connection
  * @param {string} user - Username
@@ -136,16 +178,16 @@ function verifyURL(portalURL, callback) {
  * @param {setUrlCallback} callback - Callback
  */
 
- /**
-  * Returns the valid url that was inserted into database
-  * @callback setUrlCallback
-  *
-  * @param {Object} err - Null if success, error object if failure
-  * @param {Boolean|string} isValid - True if valid URL, string describing problem if not valid. Null if error.
-  * @param {string} validURL - Valid url that was inserted into database. Null if error or url invalid.
-  */
+/**
+ * Returns the valid url that was inserted into database
+ * @callback setUrlCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Boolean|string} isValid - True if valid URL, string describing problem if not valid. Null if error.
+ * @param {string} validURL - Valid url that was inserted into database. Null if error or url invalid.
+ */
 
-function setURL(db, user, url, callback) {
+function setURLClasses(db, user, url, callback) {
 	if(typeof callback !== 'function') {
 		callback = () => {};
 	}
@@ -165,7 +207,7 @@ function setURL(db, user, url, callback) {
 			return;
 		}
 
-		verifyURL(url, (err, isValid, validURL) => {
+		verifyURLClasses(url, (err, isValid, validURL) => {
 			if(err) {
 				callback(err, null, null);
 				return;
@@ -176,7 +218,76 @@ function setURL(db, user, url, callback) {
 
 			const userdata = db.collection('users');
 
-			userdata.update({ _id: userDoc['_id'] }, { $set: { portalURL: validURL }}, { upsert: true }, err => {
+			userdata.update({ _id: userDoc['_id'] }, { $set: { portalURLClasses: validURL }}, { upsert: true }, err => {
+				if(err) {
+					callback(new Error('There was a problem updating the URL to the database!'), null, null);
+					return;
+				}
+
+				feeds.addPortalQueue(db, user, err => {
+					if(err) {
+						callback(err, null, null);
+						return;
+					}
+
+					callback(null, true, validURL);
+				});
+			});
+		});
+	});
+}
+
+/**
+ * Sets a user's calendar URL if valid
+ * @function setURLCalendar
+ *
+ * @param {Object} db - Database connection
+ * @param {string} user - Username
+ * @param {string} url - Calendar url
+ * @param {setUrlCallback} callback - Callback
+ */
+
+/**
+ * Returns the valid url that was inserted into database
+ * @callback setUrlCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Boolean|string} isValid - True if valid URL, string describing problem if not valid. Null if error.
+ * @param {string} validURL - Valid url that was inserted into database. Null if error or url invalid.
+ */
+
+function setURLCalendar(db, user, url, callback) {
+	if(typeof callback !== 'function') {
+		callback = () => {};
+	}
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null, null);
+		return;
+	}
+
+	users.get(db, user, (err, isUser, userDoc) => {
+		if(err) {
+			callback(err, null, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null, null);
+			return;
+		}
+
+		verifyURLCalendar(url, (err, isValid, validURL) => {
+			if(err) {
+				callback(err, null, null);
+				return;
+			} else if(isValid !== true) {
+				callback(null, isValid, null);
+				return;
+			}
+
+			const userdata = db.collection('users');
+
+			userdata.update({ _id: userDoc['_id'] }, { $set: { portalURLCalendar: validURL }}, { upsert: true }, err => {
 				if(err) {
 					callback(new Error('There was a problem updating the URL to the database!'), null, null);
 					return;
@@ -197,6 +308,8 @@ function setURL(db, user, url, callback) {
 
 /**
  * Get Portal events from the cache
+ * @function getFromCacheClasses
+ *
  * @param {Object} db - Database object
  * @param {string} user - Username
  * @param {getFromCacheCallback} callback - Callback
@@ -211,7 +324,7 @@ function setURL(db, user, url, callback) {
  * @param {Array} events - Array of events if success, null if failure.
  */
 
-function getFromCache(db, user, callback) {
+function getFromCacheClasses(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
@@ -232,14 +345,62 @@ function getFromCache(db, user, callback) {
 			callback(new Error('User doesn\'t exist!'), null, null);
 			return;
 		}
-		if(typeof userDoc['portalURL'] !== 'string') {
+		if(typeof userDoc['portalURLClasses'] !== 'string') {
 			callback(null, false, null);
 			return;
 		}
 
-		const portaldata = db.collection('portalFeeds');
+		const portalDataClasses = db.collection('portalFeedsClasses');
 
-		portaldata.find({ user: userDoc._id }).toArray((err, events) => {
+		portalDataClasses.find({ user: userDoc._id }).toArray((err, events) => {
+			if(err) {
+				callback(new Error('There was an error retrieving Portal events!'), null, null);
+				return;
+			}
+
+			callback(null, true, events);
+		});
+	});
+}
+
+/**
+ * Get Portal events from the cache
+ * @function getFromCacheCalendar
+ *
+ * @param {Object} db - Database object
+ * @param {string} user - Username
+ * @param {getFromCacheCallback} callback - Callback
+ */
+
+function getFromCacheCalendar(db, user, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null, null);
+		return;
+	}
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid username!'), null, null);
+		return;
+	}
+
+	users.get(db, user, (err, isUser, userDoc) => {
+		if(err) {
+			callback(err, null, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null, null);
+			return;
+		}
+		if(typeof userDoc['portalURLCalendar'] !== 'string') {
+			callback(null, false, null);
+			return;
+		}
+
+		const portalDataCalendar = db.collection('portalFeedsCalendar');
+
+		portalDataCalendar.find({ user: userDoc._id }).toArray((err, events) => {
 			if(err) {
 				callback(new Error('There was an error retrieving Portal events!'), null, null);
 				return;
@@ -252,7 +413,7 @@ function getFromCache(db, user, callback) {
 
 /**
  * Retrieves the calendar feed of a specific user
- * @function getFromCal
+ * @function getFromCalClasses
  *
  * @param {db} db - Database connection
  * @param {string} user - Username
@@ -268,7 +429,7 @@ function getFromCache(db, user, callback) {
  * @param {Object} cal - Parsed iCal feed. Null if error.
  */
 
-function getFromCal(db, user, callback) {
+function getFromCalClasses(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
@@ -289,12 +450,62 @@ function getFromCal(db, user, callback) {
 			callback(new Error('User doesn\'t exist!'), null, null);
 			return;
 		}
-		if(typeof userDoc['portalURL'] !== 'string') {
+		if(typeof userDoc['portalURLClasses'] !== 'string') {
 			callback(null, false, null);
 			return;
 		}
 
-		request(userDoc['portalURL'], (err, response, body) => {
+		request(userDoc['portalURLClasses'], (err, response, body) => {
+			if(err) {
+				callback(new Error('There was a problem fetching the classes calendar feed!'), null);
+				return;
+			}
+			if(response.statusCode !== 200) {
+				callback(new Error('Invalid URL!'), null, null);
+				return;
+			}
+
+			callback(null, true, Object.values(ical.parseICS(body)).filter(e => typeof e.summary === 'string'));
+		});
+	});
+}
+
+/**
+ * Retrieves the calendar feed of a specific user
+ * @function getFromCalCalendar
+ *
+ * @param {db} db - Database connection
+ * @param {string} user - Username
+ * @param {getFromCalCallback} callback - Callback
+ */
+
+function getFromCalCalendar(db, user, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null, null);
+		return;
+	}
+	if(typeof user !== 'string') {
+		callback(new Error('Invalid username!'), null, null);
+		return;
+	}
+
+	users.get(db, user, (err, isUser, userDoc) => {
+		if(err) {
+			callback(err, null, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'), null, null);
+			return;
+		}
+		if(typeof userDoc['portalURLCalendar'] !== 'string') {
+			callback(null, false, null);
+			return;
+		}
+
+		request(userDoc['portalURLCalendar'], (err, response, body) => {
 			if(err) {
 				callback(new Error('There was a problem fetching the day rotation!'), null);
 				return;
@@ -317,13 +528,13 @@ function getFromCal(db, user, callback) {
  * @param {getDayRotationCallback} callback - Callback
  */
 
- /**
-  * Returns an integer between 1 and 6 for what day it is
-  * @callback getDayRotationCallback
-  *
-  * @param {Object} err - Null if success, error object if failure.
-  * @param {scheduleDay} day - Integer between 1 and 6. Null if error or no available day.
-  */
+/**
+ * Returns an integer between 1 and 6 for what day it is
+ * @callback getDayRotationCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {scheduleDay} day - Integer between 1 and 6. Null if error or no available day.
+ */
 
 function getDayRotation(date, callback) {
 	if(typeof callback !== 'function') return;
@@ -379,13 +590,13 @@ function getDayRotation(date, callback) {
  * @param {getDayRotationCallback} callback - Callback
  */
 
- /**
-  * Returns an integer between 1 and 6 for what day it is
-  * @callback getDayRotationsCallback
-  *
-  * @param {Object} err - Null if success, error object if failure.
-  * @param {scheduleDay} days - Object containing integers 1-6 organized by year, month, and date (Ex. January 3rd, 2017 would be `day.2017.1.3`)
-  */
+/**
+ * Returns an integer between 1 and 6 for what day it is
+ * @callback getDayRotationsCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {scheduleDay} days - Object containing integers 1-6 organized by year, month, and date (Ex. January 3rd, 2017 would be `day.2017.1.3`)
+ */
 
 function getDayRotations(callback) {
 	if(typeof callback !== 'function') return;
@@ -468,7 +679,7 @@ function getClasses(db, user, callback) {
 		return;
 	}
 
-	getFromCache(db, user, (err, hasURL, events) => {
+	getFromCacheClasses(db, user, (err, hasURL, events) => {
 		if(err) {
 			callback(err, null, null);
 			return;
@@ -490,14 +701,14 @@ function getClasses(db, user, callback) {
  * @param {parsePortalClassesCallback} callback - Callback
  */
 
- /**
-  * Returns array of classes from portal
-  * @callback parsePortalClassesCallback
-  *
-  * @param {Object} err - Null if success, error object if failure.
-  * @param {Boolean} hasURL - Whether or not the user has a Portal URL set. Null if error.
-  * @param {Array} classes - Array of classes from portal. Null if error.
-  */
+/**
+ * Returns array of classes from portal
+ * @callback parsePortalClassesCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Boolean} hasURL - Whether or not the user has a Portal URL set. Null if error.
+ * @param {Array} classes - Array of classes from portal. Null if error.
+ */
 
 function parsePortalClasses(events, callback) {
 	if(typeof callback !== 'function') return;
@@ -583,11 +794,15 @@ module.exports.portalSummaryBlock = portalSummaryBlock;
 module.exports.portalRange = portalRange;
 
 // Functions
-module.exports.verifyURL       = verifyURL;
-module.exports.setURL          = setURL;
-module.exports.getFromCache    = getFromCache;
-module.exports.getFromCal      = getFromCal;
-module.exports.getDayRotation  = getDayRotation;
-module.exports.getDayRotations = getDayRotations;
-module.exports.getClasses      = getClasses;
-module.exports.cleanUp         = cleanUp;
+module.exports.verifyURLClasses     = verifyURLClasses;
+module.exports.verifyURLCalendar    = verifyURLCalendar;
+module.exports.setURLClasses        = setURLClasses;
+module.exports.setURLCalendar       = setURLCalendar;
+module.exports.getFromCacheClasses  = getFromCacheClasses;
+module.exports.getFromCacheCalendar = getFromCacheCalendar;
+module.exports.getFromCalClasses    = getFromCalClasses;
+module.exports.getFromCalCalendar   = getFromCalCalendar;
+module.exports.getDayRotation       = getDayRotation;
+module.exports.getDayRotations      = getDayRotations;
+module.exports.getClasses           = getClasses;
+module.exports.cleanUp              = cleanUp;
