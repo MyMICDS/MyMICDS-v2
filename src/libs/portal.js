@@ -224,7 +224,7 @@ function setURLClasses(db, user, url, callback) {
 					return;
 				}
 
-				feeds.addPortalQueue(db, user, err => {
+				feeds.addPortalQueueClasses(db, user, err => {
 					if(err) {
 						callback(err, null, null);
 						return;
@@ -293,7 +293,7 @@ function setURLCalendar(db, user, url, callback) {
 					return;
 				}
 
-				feeds.addPortalQueue(db, user, err => {
+				feeds.addPortalQueueCalendar(db, user, err => {
 					if(err) {
 						callback(err, null, null);
 						return;

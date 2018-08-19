@@ -246,7 +246,7 @@ function processPortalQueue(db, callback) {
 
 	const userdata = db.collection('users');
 
-	userdata.find({ inPortalQueue: true }).toArray((err, queue) => {
+	userdata.find({ $or:[{ inPortalQueueClasses: true }, { inPortalQueueCalendar: true }] }).toArray((err, queue) => {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'));
 			return;
@@ -258,14 +258,44 @@ function processPortalQueue(db, callback) {
 				return;
 			}
 
-			addPortalQueue(db, queue[i].user, err => {
-				if(err) {
-					callback(err);
-					return;
-				}
+			// Check which feeds to update
+			if (queue[i].inPortalQueueClasses && queue[i].inPortalQueueCalendar) {
+				// Update both
+				addPortalQueueClasses(db, queue[i].user, err => {
+					if(err) {
+						callback(err);
+						return;
+					}
 
-				handleQueue(++i);
-			});
+					addPortalQueueCalendar(db, queue[i].user, err => {
+						if(err) {
+							callback(err);
+							return;
+						}
+
+						handleQueue(++i);
+					});
+				});
+			} else if (queue[i].inPortalQueueClasses) {
+				// Update only class feed
+				addPortalQueueClasses(db, queue[i].user, err => {
+					if(err) {
+						callback(err);
+						return;
+					}
+					handleQueue(++i);
+				});
+			} else {
+				// Update only claendar feed
+				addPortalQueueCalendar(db, queue[i].user, err => {
+					if(err) {
+						callback(err);
+						return;
+					}
+
+					handleQueue(++i);
+				});
+			}
 		}
 
 		handleQueue(0);
