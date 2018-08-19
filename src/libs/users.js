@@ -111,10 +111,23 @@ function getInfo(db, user, privateInfo, callback) {
 				userInfo.canvasURL = null;
 			}
 
+			// Legacy Blackbaud portal URL
 			if(typeof userDoc['portalURL'] === 'string') {
 				userInfo.portalURL = userDoc['portalURL'];
 			} else {
 				userInfo.portalURL = null;
+			}
+
+			if(typeof userDoc['portalURLClasses'] === 'string') {
+				userInfo.portalURLClasses = userDoc['portalURLClasses'];
+			} else {
+				userInfo.portalURLClasses = null;
+			}
+
+			if(typeof userDoc['portalURLCalendar'] === 'string') {
+				userInfo.portalURLCalendar = userDoc['portalURLCalendar'];
+			} else {
+				userInfo.portalURLCalendar = null;
 			}
 		}
 
