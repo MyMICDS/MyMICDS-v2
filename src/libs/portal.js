@@ -21,6 +21,7 @@ const urlPrefix = 'https://api.veracross.com/micds/subscribe/';
 // RegEx to test if calendar summary contains a valid Day Rotation
 const validDayRotationPlain = /^US - Day [1-6]/;
 
+const checkClassSummary = /.*:.?:[--9]*/;
 const portalSummaryBlock = /:[A-G]:\d{2}$/g;
 // Modified portal summary block to clean up everythiing for displaying
 const cleanUpBlockSuffix = / [A-Za-z]+ \d{3}:[A-G]:\d{2}$/g;
@@ -36,16 +37,17 @@ const portalRange = {
  * @function verifyURLGeneric
  *
  * @param {string} portalURL - URI to iCal feed
- * @param {verifyURLCallback} callback - Callback
+ * @param {verifyURLGenericCallback} callback - Callback
  */
 
 /**
  * Returns whether url is valid or not
- * @callback verifyURLCallback
+ * @callback verifyURLGenericCallback
  *
  * @param {Object} err - Null if success, error object if failure.
  * @param {Boolean|string} isValid - True if valid URL, string describing problem if not valid. Null if error.
  * @param {string} url - Valid and formatted URL to our likings. Null if error or invalid url.
+ * @param {Object} body - Response body if valid url, null if error or invalid url.
  */
 
 function verifyURLGeneric(portalURL, callback) {
@@ -53,7 +55,7 @@ function verifyURLGeneric(portalURL, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof portalURL !== 'string') {
-		callback(new Error('Invalid URL!'), null, null);
+		callback(new Error('Invalid URL!'), null, null, null);
 		return;
 	}
 
@@ -61,12 +63,12 @@ function verifyURLGeneric(portalURL, callback) {
 	const parsedURL = url.parse(portalURL);
 
 	if (!parsedURL || !parsedURL.pathname) {
-		callback(null, 'Cannot parse URL!', null);
+		callback(null, 'Cannot parse URL!', null, null);
 		return;
 	}
 
 	if (!parsedURL.query) {
-		callback(null, 'Missing query parameters! Make sure to paste the full url.', null);
+		callback(null, 'Missing query parameters! Make sure to paste the full url.', null, null);
 		return;
 	}
 
@@ -74,20 +76,20 @@ function verifyURLGeneric(portalURL, callback) {
 	const pathID = parsedURL.pathname.split('/')[3];
 
 	if(typeof pathID !== 'string' && typeof queries.uid !== 'string') {
-		callback(null, 'URL does not contain calendar ID!', null);
+		callback(null, 'URL does not contain calendar ID!', null, null);
 		return;
 	}
 
 	const validURL = `${urlPrefix}${pathID}?uid=${queries.uid}`;
 
 	// Not lets see if we can actually get any data from here
-	request(validURL, (err, response) => {
+	request(validURL, (err, response, body) => {
 		if(err) {
-			callback(new Error('There was a problem fetching portal data from the URL!'), null, null);
+			callback(new Error('There was a problem fetching portal data from the URL!'), null, null, null);
 			return;
 		}
 		if(response.statusCode !== 200) {
-			callback(null, 'Invalid URL!', null);
+			callback(null, 'Invalid URL!', null, null);
 			return;
 		}
 
@@ -121,7 +123,7 @@ function verifyURLGeneric(portalURL, callback) {
 		// 	return;
 		// }
 
-		callback(null, true, validURL);
+		callback(null, true, validURL, body);
 
 	});
 }
@@ -134,14 +136,34 @@ function verifyURLGeneric(portalURL, callback) {
  * @param {verifyURLCallback} callback - Callback
  */
 
+/**
+ * Returns whether a url is valid or not
+ * @callback verifyURLCallback
+ *
+ * @param {Object} err - Null if success, error object if failure.
+ * @param {Boolean|string} isValid - True if valid URL, string describing problem if not valid. Null if error.
+ * @param {string} url - Valid and formatted URL to our likings. Null if error or invalid url.
+ */
+
 function verifyURLClasses(portalURL, callback) {
-	verifyURLGeneric(portalURL, (err, isValid, url) => {
+	verifyURLGeneric(portalURL, (err, isValid, url, body) => {
 		if (err || typeof isValid === 'string') {
 			callback(err, isValid, url);
 			return;
 		}
 
 		// Additional checks to make sure it is the correct portal feed type
+		const events = Object.values(ical.parseICS(body));
+		let count = 0;
+		for (const calEvent of events) {
+			if (checkClassSummary.test(calEvent.summary)) {
+				count++;
+			}
+		}
+
+		if ((count / events.length) < 0.5) {
+			callback(new Error('The calendar does not contain the information we need! Make sure you\'re copying your \'All Classes\' calendar!'), null, null);
+		}
 
 		callback(null, true, url);
 	});
@@ -156,7 +178,7 @@ function verifyURLClasses(portalURL, callback) {
  */
 
 function verifyURLCalendar(portalURL, callback) {
-	verifyURLGeneric(portalURL, (err, isValid, url) => {
+	verifyURLGeneric(portalURL, (err, isValid, url, body) => {
 		if (err || typeof isValid === 'string') {
 			callback(err, isValid, url);
 			return;
