@@ -118,6 +118,7 @@ function getInfo(db, user, privateInfo, callback) {
 				userInfo.portalURL = null;
 			}
 
+			// New Veracross portal URLs
 			if(typeof userDoc['portalURLClasses'] === 'string') {
 				userInfo.portalURLClasses = userDoc['portalURLClasses'];
 			} else {
