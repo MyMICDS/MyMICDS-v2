@@ -162,7 +162,8 @@ function verifyURLClasses(portalURL, callback) {
 		}
 
 		if ((count / events.length) < 0.5) {
-			callback(new Error('The calendar does not contain the information we need! Make sure you\'re copying your \'All Classes\' calendar!'), null, null);
+			callback(null, 'The calendar does not contain the information we need! Make sure you\'re copying your \'All Classes\' calendar!', null);
+			return;
 		}
 
 		callback(null, true, url);
@@ -185,6 +186,19 @@ function verifyURLCalendar(portalURL, callback) {
 		}
 
 		// Additional checks to make sure it is the correct portal feed type
+		const events = Object.values(ical.parseICS(body));
+		let count = 0;
+		for (const calEvent of events) {
+			if (checkClassSummary.test(calEvent.summary)) {
+				count++;
+			}
+		}
+
+		// Do exact opposite as classes feed
+		if ((count / events.length) >= 0.5) {
+			callback(null, 'The calendar does not contain the information we need! Make sure you\'re copying your \'My Calendar\' calendar!', null);
+			return;
+		}
 
 		callback(null, true, url);
 	});
