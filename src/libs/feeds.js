@@ -84,7 +84,7 @@ function updateCanvasCache(db, user, callback) {
  * @param {Array} events - Array of Portal events if success, null if failure
  */
 
-function addPortalQueue(db, user, callback) {
+function addPortalQueueClasses(db, user, callback) {
 	if(typeof callback !== 'function') return;
 
 	if(typeof db !== 'object') {
@@ -102,16 +102,16 @@ function addPortalQueue(db, user, callback) {
 			return;
 		}
 
-		const portaldata = db.collection('portalFeeds');
+		const portaldata = db.collection('portalFeedsClasses');
 		const userdata   = db.collection('users');
 
-		portal.getFromCal(db, user, (err, hasURL, events) => {
+		portal.getFromCalClasses(db, user, (err, hasURL, events) => {
 			if(err) {
 				callback(err, null);
 				return;
 			}
 			if(_.isEmpty(events)) {
-				userdata.update({ user }, { $set: { inPortalQueue: true } }, err => {
+				userdata.update({ user }, { $set: { inPortalQueueClasses: true } }, err => {
 					if(err) {
 						callback(new Error('There was an error adding the user to the queue!'), null);
 						return;
@@ -136,7 +136,80 @@ function addPortalQueue(db, user, callback) {
 						return;
 					}
 
-					userdata.update({ user }, { $set: { inPortalQueue: false } }, err => {
+					userdata.update({ user }, { $set: { inPortalQueueClasses: false } }, err => {
+						if(err) {
+							callback(new Error('There was an error removing the user from the queue!'), null);
+							return;
+						}
+
+						callback(null, events);
+					});
+				});
+			});
+		});
+	});
+}
+
+/**
+ * Add a user to the Portal queue
+ * @param {Object} db - Database object
+ * @param {string} user - Username
+ * @param {addPortalQueueCallback} callback - Callback
+ */
+
+function addPortalQueueCalendar(db, user, callback) {
+	if(typeof callback !== 'function') return;
+
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+
+	users.get(db, user, (err, isUser, userDoc) => {
+		if(err) {
+			callback(err, null);
+			return;
+		}
+		if(!isUser) {
+			callback(new Error('User doesn\'t exist!'));
+			return;
+		}
+
+		const portaldata = db.collection('portalFeedsCalendar');
+		const userdata   = db.collection('users');
+
+		portal.getFromCalCalendar(db, user, (err, hasURL, events) => {
+			if(err) {
+				callback(err, null);
+				return;
+			}
+			if(_.isEmpty(events)) {
+				userdata.update({ user }, { $set: { inPortalQueueCalendar: true } }, err => {
+					if(err) {
+						callback(new Error('There was an error adding the user to the queue!'), null);
+						return;
+					}
+
+					callback(null, events);
+				});
+				return;
+			}
+
+			portaldata.deleteMany({ user: userDoc._id }, err => {
+				if(err) {
+					callback(new Error('There was an error removing the old events from the database!'), null);
+					return;
+				}
+
+				events.forEach(e => e.user = userDoc._id);
+
+				portaldata.insertMany(events, err => {
+					if(err) {
+						callback(new Error(`There was an error inserting events into the database! (${err})`), null);
+						return;
+					}
+
+					userdata.update({ user }, { $set: { inPortalQueueCalendar: false } }, err => {
 						if(err) {
 							callback(new Error('There was an error removing the user from the queue!'), null);
 							return;
@@ -173,7 +246,7 @@ function processPortalQueue(db, callback) {
 
 	const userdata = db.collection('users');
 
-	userdata.find({ inPortalQueue: true }).toArray((err, queue) => {
+	userdata.find({ $or:[{ inPortalQueueClasses: true }, { inPortalQueueCalendar: true }] }).toArray((err, queue) => {
 		if(err) {
 			callback(new Error('There was a problem querying the database!'));
 			return;
@@ -185,14 +258,44 @@ function processPortalQueue(db, callback) {
 				return;
 			}
 
-			addPortalQueue(db, queue[i].user, err => {
-				if(err) {
-					callback(err);
-					return;
-				}
+			// Check which feeds to update
+			if (queue[i].inPortalQueueClasses && queue[i].inPortalQueueCalendar) {
+				// Update both
+				addPortalQueueClasses(db, queue[i].user, err => {
+					if(err) {
+						callback(err);
+						return;
+					}
 
-				handleQueue(++i);
-			});
+					addPortalQueueCalendar(db, queue[i].user, err => {
+						if(err) {
+							callback(err);
+							return;
+						}
+
+						handleQueue(++i);
+					});
+				});
+			} else if (queue[i].inPortalQueueClasses) {
+				// Update only class feed
+				addPortalQueueClasses(db, queue[i].user, err => {
+					if(err) {
+						callback(err);
+						return;
+					}
+					handleQueue(++i);
+				});
+			} else {
+				// Update only claendar feed
+				addPortalQueueCalendar(db, queue[i].user, err => {
+					if(err) {
+						callback(err);
+						return;
+					}
+
+					handleQueue(++i);
+				});
+			}
 		}
 
 		handleQueue(0);
@@ -240,7 +343,8 @@ function canvasCacheRetry(db, user, callback) {
 	});
 }
 
-module.exports.updateCanvasCache  = updateCanvasCache;
-module.exports.addPortalQueue     = addPortalQueue;
-module.exports.processPortalQueue = processPortalQueue;
-module.exports.canvasCacheRetry  = canvasCacheRetry;
+module.exports.updateCanvasCache      = updateCanvasCache;
+module.exports.addPortalQueueClasses  = addPortalQueueClasses;
+module.exports.addPortalQueueCalendar = addPortalQueueCalendar;
+module.exports.processPortalQueue     = processPortalQueue;
+module.exports.canvasCacheRetry       = canvasCacheRetry;

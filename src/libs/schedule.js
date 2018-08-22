@@ -207,7 +207,7 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 			}];
 
 			// If it isn't a user OR it's a teacher with no Portal URL
-			if(!isUser || (userDoc['gradYear'] === null && typeof userDoc['portalURL'] !== 'string')) {
+			if(!isUser || (userDoc['gradYear'] === null && typeof userDoc['portalURLClasses'] !== 'string')) {
 				// Fallback to default schedule if user is invalid
 				const schedule = {
 					day: scheduleDay,
@@ -222,7 +222,7 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 
 				callback(null, false, schedule);
 
-			} else if(portalBroke || typeof userDoc['portalURL'] !== 'string') {
+			} else if(portalBroke || typeof userDoc['portalURLClasses'] !== 'string') {
 				// If user is logged in, but hasn't configured their Portal URL
 				// We would know their grade, and therefore their generic block schedule, as well as any classes they configured
 				classes.get(db, user, (err, classes) => {
@@ -266,12 +266,12 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 				asyncLib.parallel({
 					// Get Portal calendar feed
 					portal: asyncCallback => {
-						portal.getFromCache(db, user, (err, hasURL, cal) => {
+						portal.getFromCacheClasses(db, user, (err, hasURL, cal) => {
 							if(err) {
 								asyncCallback(err, null);
 							} else {
 								if(_.isEmpty(cal)) {
-									feeds.addPortalQueue(db, user, (err, events) => {
+									feeds.addPortalQueueClasses(db, user, (err, events) => {
 										if(_.isEmpty(events)) {
 											// If it still returns empty, then Portal isn't working at the moment and we can fall back on not having a URL.
 											getSchedule(db, user, date, callback, true);

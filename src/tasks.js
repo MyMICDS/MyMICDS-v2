@@ -18,15 +18,15 @@ const later         = require('later');
 const MongoClient   = require('mongodb').MongoClient;
 const weather       = require(__dirname + '/libs/weather.js');
 
-// Only run these intervals in production so we don't waste our API calls
-if(config.production) {
+console.log('Starting tasks server!');
 
-	console.log('Starting tasks server!');
+MongoClient.connect(config.mongodb.uri, (err, db) => {
+	if(err) throw err;
 
-	MongoClient.connect(config.mongodb.uri, (err, db) => {
-		if(err) throw err;
+	const fiveMinuteInterval = later.parse.text('every 5 min');
 
-		const fiveMinuteInterval = later.parse.text('every 5 min');
+	// Only run these intervals in production so we don't waste our API calls
+	if(config.production) {
 
 		/*
 		 * Get Daily Bulletin every 5 minutes
@@ -85,95 +85,104 @@ if(config.production) {
 			});
 
 		}, fiveMinuteInterval);
+	} else {
+		console.log('Not starting Daily Bulletin or weather update because we are not in production.');
+	}
 
-		/*
-		 * Process Portal queue every 15 minutes
-		 */
+	/*
+	 * Process Portal queue every 15 minutes
+	 */
 
-		later.setInterval(() => {
-			console.log(`[${new Date()}] Process Portal queue`);
+	later.setInterval(() => {
+		console.log(`[${new Date()}] Process Portal queue`);
 
-			feeds.processPortalQueue(db, err => {
-				if(err) {
-					console.log(`[${new Date()}] Error occurred processing Portal queue! (${err})`);
+		feeds.processPortalQueue(db, err => {
+			if(err) {
+				console.log(`[${new Date()}] Error occurred processing Portal queue! (${err})`);
 
-					// Alert admins if there's an error processing the Portal queue
-					admins.sendEmail(db, {
-						subject: 'Error Notification - Portal Queue',
-						html: 'There was an error when processing the Portal queue.<br>Error message: ' + err
-					}, err => {
-						if (err) {
-							console.log(`[${new Date()}] Error occured when sending admin error notifications! (${err})`);
-							return;
+				// Alert admins if there's an error processing the Portal queue
+				admins.sendEmail(db, {
+					subject: 'Error Notification - Portal Queue',
+					html: 'There was an error when processing the Portal queue.<br>Error message: ' + err
+				}, err => {
+					if (err) {
+						console.log(`[${new Date()}] Error occured when sending admin error notifications! (${err})`);
+						return;
+					}
+					console.log(`[${new Date()}] Alerted admins of error! (${err})`);
+				});
+			} else {
+				console.log(`[${new Date()}] Successfully processed Portal queue!`);
+			}
+		});
+	}, later.parse.text('every 15 min'));
+
+	/*
+	 * Update everyone's Canvas cache over the course of 6 hours
+	 */
+
+	later.setInterval(() => {
+		const userdata = db.collection('users');
+
+		userdata.find({ confirmed: true }).toArray((err, users) => {
+			function updateCache(i) {
+				if(i >= users.length) return;
+
+				setTimeout(() => {
+					const user = users[i].user;
+
+					feeds.updateCanvasCache(db, user, err => {
+						if(err) {
+							console.log(`[${new Date()}] Error occurred updating ${user}'s Canvas cache! (${err})`);
+						} else {
+							console.log(`[${new Date()}] Successfully updated ${user}'s Canvas cache!`);
 						}
-						console.log(`[${new Date()}] Alerted admins of error! (${err})`);
+
+						updateCache(++i);
 					});
-				} else {
-					console.log(`[${new Date()}] Successfully processed Portal queue!`);
-				}
-			});
-		}, later.parse.text('every 15 min'));
+				}, (6 * 60 * 60 * 1000) / users.length);
+			}
 
-		/*
-		 * Update everyone's Canvas cache over the course of 6 hours
-		 */
+			updateCache(0);
+		});
+	}, later.parse.text('every 6 hours'));
 
-		later.setInterval(() => {
-			const userdata = db.collection('users');
+	/*
+	 * Add everyone to the Portal queue over the course of 6 hours, but triggered every 24 hours
+	 */
 
-			userdata.find({ confirmed: true }).toArray((err, users) => {
-				function updateCache(i) {
-					if(i >= users.length) return;
+	later.setInterval(() => {
+		const userdata = db.collection('users');
 
-					setTimeout(() => {
-						const user = users[i].user;
+		userdata.find({ confirmed: true }).toArray((err, users) => {
+			function addToQueue(i) {
+				if(i >= users.length) return;
 
-						feeds.updateCanvasCache(db, user, err => {
+				setTimeout(() => {
+					const user = users[i].user;
+
+
+					feeds.addPortalQueueClasses(db, user, err => {
+						if(err) {
+							console.log(`[${new Date()}] Error occurred adding ${user} to the Portal Classes queue! (${err})`);
+						} else {
+							console.log(`[${new Date()}] Successfully added ${user} to the Portal Classes queue!`);
+						}
+
+						feeds.addPortalQueueCalendar(db, user, err => {
 							if(err) {
-								console.log(`[${new Date()}] Error occurred updating ${user}'s Canvas cache! (${err})`);
+								console.log(`[${new Date()}] Error occurred adding ${user} to the Portal Calendar queue! (${err})`);
 							} else {
-								console.log(`[${new Date()}] Successfully updated ${user}'s Canvas cache!`);
-							}
-
-							updateCache(++i);
-						});
-					}, (6 * 60 * 60 * 1000) / users.length);
-				}
-
-				updateCache(0);
-			});
-		}, later.parse.text('every 6 hours'));
-
-		/*
-		 * Add everyone to the Portal queue over the course of 6 hours, but triggered every 24 hours
-		 */
-
-		later.setInterval(() => {
-			const userdata = db.collection('users');
-
-			userdata.find({ confirmed: true }).toArray((err, users) => {
-				function addToQueue(i) {
-					if(i >= users.length) return;
-
-					setTimeout(() => {
-						const user = users[i].user;
-
-						feeds.addPortalQueue(db, user, err => {
-							if(err) {
-								console.log(`[${new Date()}] Error occurred adding ${user} to the Portal queue! (${err})`);
-							} else {
-								console.log(`[${new Date()}] Successfully added ${user} to the Portal queue!`);
+								console.log(`[${new Date()}] Successfully added ${user} to the Portal Calendar queue!`);
 							}
 
 							addToQueue(++i);
 						});
-					}, (6 * 60 * 60 * 1000) / users.length);
-				}
+					});
+				}, (6 * 60 * 60 * 1000) / users.length);
+			}
 
-				addToQueue(0);
-			});
-		}, later.parse.text('every 24 hours'));
-	});
-} else {
-	console.log('Not starting tasks server because we are not on production.');
-}
+			addToQueue(0);
+		});
+	}, later.parse.text('every 24 hours'));
+});

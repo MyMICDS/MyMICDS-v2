@@ -16,12 +16,18 @@ module.exports = (app, db) => {
 	});
 
 	app.post('/feeds/add-portal-queue', (req, res) => {
-		feeds.addPortalQueue(db, req.user.user, err => {
-			let error = null;
+		feeds.addPortalQueueClasses(db, req.user.user, err => {
 			if(err) {
-				error = err.message;
+				res.json({ error: err.message });
+				return;
 			}
-			res.json({ error });
+			feeds.addPortalQueueCalendar(db, req.user.user, err => {
+				let error = null;
+				if (err) {
+					error = err.message;
+				}
+				res.json({ error });
+			});
 		});
 	});
 
