@@ -152,19 +152,19 @@ function verifyURLClasses(portalURL, callback) {
 			return;
 		}
 
-		// Additional checks to make sure it is the correct portal feed type
-		const events = Object.values(ical.parseICS(body));
-		let count = 0;
-		for (const calEvent of events) {
-			if (checkClassSummary.test(calEvent.summary)) {
-				count++;
-			}
-		}
+		// // Additional checks to make sure it is the correct portal feed type
+		// const events = Object.values(ical.parseICS(body));
+		// let count = 0;
+		// for (const calEvent of events) {
+		// 	if (checkClassSummary.test(calEvent.summary)) {
+		//		count++;
+		//	}
+		// }
 
-		if ((count / events.length) < 0.5) {
-			callback(null, 'The calendar does not contain the information we need! Make sure you\'re copying your \'All Classes\' calendar!', null);
-			return;
-		}
+		// if ((count / events.length) < 0.5) {
+		//  callback(null, 'The calendar does not contain the information we need! Make sure you\'re copying your \'All Classes\' calendar!', null);
+		//	return;
+		// }
 
 		callback(null, true, url);
 	});
