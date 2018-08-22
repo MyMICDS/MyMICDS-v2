@@ -11,8 +11,8 @@ try {
 }
 
 const messageType = 'announcements';
-const subject = 'We need your help!';
-const messageDir = __dirname + '/../html/messages/survey.html';
+const subject = 'We Unbroke MyMICDS';
+const messageDir = __dirname + '/../html/messages/welcome-veracross.html';
 // Path to JSON file to keep track of who's been sent the email already (in case script stops halfway through)
 const blacklistPath = __dirname + '/blacklist.json';
 
@@ -22,8 +22,8 @@ const I_REALLY_WANT_TO_DO_THIS = false;
 // Must set `I_REALLY_WANT_TO_DO_THIS` to true. Will limit email recipients to only `debugList`
 // Please set to true once you're done using this script
 const DEBUG = true;
-// const debugList = ['mgira', 'nclifford', 'jcai'];
-const debugList = ['mgira'];
+const debugList = ['mgira', 'nclifford', 'jcai'];
+// const debugList = ['mgira'];
 
 const fs = require('fs-extra');
 const moment = require('moment');

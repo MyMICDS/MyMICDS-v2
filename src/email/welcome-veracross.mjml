@@ -1,0 +1,56 @@
+<mjml>
+	<mj-head>
+		<mj-include path="./partials/default-styles.mjml" />
+	</mj-head>
+	<mj-body>
+		<mj-section>
+			<mj-column>
+				<mj-text mj-class="title-container">
+					<h1 mj-class="title" class="title">Integrate MyMICDS with Veracross!</h1>
+				</mj-text>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message">
+			<mj-column>
+				<mj-text mj-class="greeting">Howdy {{firstName}},</mj-text>
+				<mj-text>
+					<h2>Welcome back!</h2>
+					<p>It's been a while! Over the summer, we added a few homepage modules, fixed some bugs, and more. If you have any problems or feature suggestions, shoot us an email at <a class="link" href="mailto:support@mymicds.net">support@mymicds.net</a>. Also make sure to follow us on Twitter <a class="link" href="https://twitter.com/MyMICDS">@MyMICDS</a> so we can get Twitter verified</p>
+					<h2>Veracross Migration!</h2>
+					<p>Just like everyone else, we've had to accomodate for the new MICDS portal. We <em>just</em> finalized Veracross migration, so chances are you haven't done this yet. <strong>To get the most out of MyMICDS, insert your new Veracross calendar feeds in the <a class="link" href="https://mymicds.net/settings">Settings Page.</a></strong></p>
+					<h2>Become a developer!</h2>
+					<p>MyMICDS is a student-run website, and said students will eventually graduate. We're always look for fresh talent to help and eventually take the reigns. Hit us up even if you're interested but have no prior experience!</p>
+				</mj-text>
+				<mj-text font-style="italic">Let's start the school year strong. Good luck and thanks for sharing MyMICDS with your friends!</mj-text>
+				<mj-text mj-class="bye">
+					Love,
+					<br>
+					The MyMICDS Development Team
+				</mj-text>
+			</mj-column>
+		</mj-section>
+		<mj-section mj-class="message raw-container">
+			<mj-column>
+				<mj-raw>
+					<a class="button" href="https://mymicds.net/settings">
+						Integrate with Veracross!
+					</a>
+				</mj-raw>
+			</mj-column>
+		</mj-section>
+		<mj-section>
+			<mj-column>
+				<mj-text mj-class="disclaimer">
+					<p mj-class="social">
+						<a class="link" href="mailto:support@mymicds.net">support@mymicds.net</a>
+						|
+						<a class="link" href="https://twitter.com/MyMICDS">Twitter</a>
+						|
+						<a class="link" href="https://skills-store.amazon.com/deeplink/dp/B076DWGCZY?deviceType=app&share&refSuffix=ss_copy">Amazon Alexa Skill</a>
+					</p>
+					<small>Want us to shut up? You can <a class="link" href="{{unsubscribeLink}}">unsubscribe</a> from these announcements.</small>
+				</mj-text>
+			</mj-column>
+		</mj-section>
+	</mj-body>
+</mjml>
