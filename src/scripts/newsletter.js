@@ -22,14 +22,15 @@ const I_REALLY_WANT_TO_DO_THIS = false;
 // Must set `I_REALLY_WANT_TO_DO_THIS` to true. Will limit email recipients to only `debugList`
 // Please set to true once you're done using this script
 const DEBUG = true;
-const debugList = ['mgira', 'nclifford', 'jcai'];
-// const debugList = ['mgira'];
+// const debugList = ['mgira', 'nclifford', 'jcai'];
+const debugList = ['mgira'];
 
 const fs = require('fs-extra');
 const moment = require('moment');
 const MongoClient = require('mongodb').MongoClient;
 const mail = require(__dirname + '/../libs/mail');
 const nodemailer = require('nodemailer');
+const { URL } = require('url');
 const { SCOPES } = require(__dirname + '/../libs/notifications');
 
 if (!SCOPES.includes(messageType.toUpperCase())) {
@@ -47,7 +48,17 @@ getBlacklist((err, blacklist) => {
 	if (err) throw err;
 
 	// Log into email
-	const transporter = nodemailer.createTransport(config.email.URI);
+	const parsed = new URL(config.email.URI);
+	const transporter = nodemailer.createTransport({
+		host: parsed.hostname,
+		port: parsed.port,
+		secure: true,
+		auth: {
+			user: 'support@mymicds.net',
+			pass: parsed.password
+		},
+		pool: true
+	});
 
 	// Connect to database
 	MongoClient.connect(config.mongodb.uri, (err, db) => {

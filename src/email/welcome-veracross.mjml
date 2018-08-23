@@ -10,6 +10,15 @@
 				</mj-text>
 			</mj-column>
 		</mj-section>
+	<mj-section>
+		<mj-column>
+			<mj-raw>
+				<a class="button" href="https://mymicds.net/settings">
+					Integrate with Veracross!
+				</a>
+			</mj-raw>
+		</mj-column>
+	</mj-section>
 		<mj-section mj-class="message">
 			<mj-column>
 				<mj-text mj-class="greeting">Howdy {{firstName}},</mj-text>
