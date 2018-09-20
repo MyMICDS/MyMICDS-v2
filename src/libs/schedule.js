@@ -334,11 +334,14 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 						// Make sure the event isn't all whacky
 						if(end.isBefore(start)) continue;
 
-						// Check if special schedule
-						const lowercaseSummary = calEvent.summary.toLowerCase();
-						if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
-							schedule.special = true;
-							continue;
+						// Check if event occurs on specified day
+						if (scheduleDate.isSame(start, 'day')) {
+							// Check if special schedule
+							const lowercaseSummary = calEvent.summary.toLowerCase();
+							if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
+								schedule.special = true;
+								continue;
+							}
 						}
 
 						// Check if it's an all-day event
