@@ -334,19 +334,17 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 						// Make sure the event isn't all whacky
 						if(end.isBefore(start)) continue;
 
+						// Check if special schedule
+						const lowercaseSummary = calEvent.summary.toLowerCase();
+						if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
+							schedule.special = true;
+							continue;
+						}
+
 						// Check if it's an all-day event
+						// @TODO Don't know if this works (if everything we'd consider "all-day" event actually matches this criteria)
 						if(start.isSameOrBefore(scheduleDate) && !end.isValid()) {
-							// Check if special schedule
-							const lowercaseSummary = calEvent.summary.toLowerCase();
-							console.log('check', lowercaseSummary);
-							if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
-								schedule.special = true;
-								continue;
-							}
-
-							// Push event to all-day events
 							schedule.allDay.push(portal.cleanUp(calEvent.summary));
-
 						}
 					}
 
