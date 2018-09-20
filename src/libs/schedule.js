@@ -264,14 +264,36 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 				// The user is logged in and has configured their Portal URL
 				// We can therefore overlay their Portal classes ontop of their default block schedule for 100% coverage.
 				asyncLib.parallel({
-					// Get Portal calendar feed
-					portal: asyncCallback => {
+					// Get Portal classes feed
+					portalClasses: asyncCallback => {
 						portal.getFromCacheClasses(db, user, (err, hasURL, cal) => {
 							if(err) {
 								asyncCallback(err, null);
 							} else {
 								if(_.isEmpty(cal)) {
 									feeds.addPortalQueueClasses(db, user, (err, events) => {
+										if(_.isEmpty(events)) {
+											// If it still returns empty, then Portal isn't working at the moment and we can fall back on not having a URL.
+											getSchedule(db, user, date, callback, true);
+											return;
+										} else {
+											asyncCallback(null, { hasURL, cal: events });
+										}
+									});
+								} else {
+									asyncCallback(null, { hasURL, cal });
+								}
+							}
+						});
+					},
+					// Get Portal calendar feed
+					portalCalendar: asyncCallback => {
+						portal.getFromCacheCalendar(db, user, (err, hasURL, cal) => {
+							if(err) {
+								asyncCallback(err, null);
+							} else {
+								if(_.isEmpty(cal)) {
+									feeds.addPortalQueueCalendar(db, user, (err, events) => {
 										if(_.isEmpty(events)) {
 											// If it still returns empty, then Portal isn't working at the moment and we can fall back on not having a URL.
 											getSchedule(db, user, date, callback, true);
@@ -305,7 +327,29 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 					};
 
 					// Go through all the events in the Portal calendar
-					for(const calEvent of Object.values(results.portal.cal)) {
+					for(const calEvent of Object.values(results.portalCalendar.cal)) {
+						const start = moment(calEvent['start']);
+						const end = moment(calEvent['end']);
+
+						// Make sure the event isn't all whacky
+						if(end.isBefore(start)) continue;
+
+						// Check if special schedule
+						const lowercaseSummary = calEvent.summary.toLowerCase();
+						if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
+							schedule.special = true;
+							continue;
+						}
+
+						// Check if it's an all-day event
+						// @TODO Don't know if this works (if everything we'd consider "all-day" event actually matches this criteria)
+						if(start.isSameOrBefore(scheduleDate) && !end.isValid()) {
+							schedule.allDay.push(portal.cleanUp(calEvent.summary));
+						}
+					}
+
+					// Go through all the events in the Portal classes
+					for(const calEvent of Object.values(results.portalClasses.cal)) {
 						const start = moment(calEvent['start']);
 						const end = moment(calEvent['end']);
 
@@ -314,12 +358,12 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 
 						// Check if it's an all-day event
 						if(start.isSameOrBefore(scheduleDate) && !end.isValid()) {
-							// Check if special schedule
-							const lowercaseSummary = calEvent.summary.toLowerCase();
-							if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
-								schedule.special = true;
-								continue;
-							}
+							// // Check if special schedule
+							// const lowercaseSummary = calEvent.summary.toLowerCase();
+							// if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
+							// 	schedule.special = true;
+							// 	continue;
+							// }
 
 							// Push event to all-day events
 							schedule.allDay.push(portal.cleanUp(calEvent.summary));
