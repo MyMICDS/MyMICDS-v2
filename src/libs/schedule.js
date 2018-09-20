@@ -326,6 +326,10 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 						allDay: []
 					};
 
+					// Default events that occur for everyone throughout the school
+					// (In the non-personal calendar feed. Usually this is special schedule stuff or assembly)
+					const schoolScheduleEvents = [];
+
 					// Go through all the events in the Portal calendar
 					for(const calEvent of Object.values(results.portalCalendar.cal)) {
 						const start = moment(calEvent['start']);
@@ -341,6 +345,28 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 							if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
 								schedule.special = true;
 								continue;
+							}
+
+							// Check if event occurs throughout school day
+							if(start.isSameOrAfter(defaultStart) && end.isSameOrBefore(defaultEnd)) {
+								const color = prisma(calEvent.summary).hex;
+								schoolScheduleEvents.push({
+									start,
+									end,
+									class: {
+										portal: true,
+										name: calEvent.summary,
+										teacher: {
+											prefix: '',
+											firstName: '',
+											lastName: ''
+										},
+										block: 'other',
+										type: 'other',
+										color,
+										textDark: prisma.shouldTextBeDark(color)
+									}
+								});
 							}
 						}
 
@@ -414,6 +440,7 @@ function getSchedule(db, user, date, callback, portalBroke = false) {
 					}
 
 					portalSchedule = ordineSchedule([], portalSchedule);
+					portalSchedule = ordineSchedule(portalSchedule, schoolScheduleEvents);
 
 					// If special schedule, just use default portal schedule
 					if(schedule.special) {
