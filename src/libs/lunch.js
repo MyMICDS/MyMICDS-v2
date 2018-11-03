@@ -11,7 +11,7 @@ const cheerio = require('cheerio');
 const moment = require('moment');
 const utils = require(__dirname + '/utils.js');
 
-const lunchURL = 'http://myschooldining.com/MICDS/calendarWeek';
+const lunchURL = 'https://myschooldining.com/MICDS/calendarWeek';
 const schools = ['Lower School', 'Middle School', 'Upper School'];
 
 /**

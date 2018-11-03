@@ -7,14 +7,30 @@ const jwt = require(__dirname + '/../libs/jwt.js');
 const portal = require(__dirname + '/../libs/portal.js');
 
 module.exports = (app, db, socketIO) => {
-	app.post('/portal/test', (req, res) => {
-		portal.verifyURL(req.body.url, (err, isValid, url) => {
+
+	app.post('/portal/url/test-classes', (req, res) => {
+		portal.verifyURLClasses(req.body.url, (err, isValid, url) => {
 			api.respond(res, err, { valid: isValid, url });
 		});
 	});
 
-	app.put('/portal/url', jwt.requireLoggedIn, (req, res) => {
-		portal.setURL(db, req.apiUser, req.body.url, (err, isValid, validURL) => {
+	app.post('/portal/url/test-calendar', (req, res) => {
+		portal.verifyURLCalendar(req.body.url, (err, isValid, url) => {
+			api.respond(res, err, { valid: isValid, url });
+		});
+	});
+
+	app.put('/portal/url/classes', (req, res) => {
+		portal.setURLClasses(db, req.user.user, req.body.url, (err, isValid, validURL) => {
+			if(!err) {
+				socketIO.user(req.apiUser, 'portal', 'set-url', validURL);
+			}
+			api.respond(res, err, { valid: isValid, url: validURL });
+		});
+	});
+
+	app.put('/portal/url/calendar', (req, res) => {
+		portal.setURLCalendar(db, req.user.user, req.body.url, (err, isValid, validURL) => {
 			if(!err) {
 				socketIO.user(req.apiUser, 'portal', 'set-url', validURL);
 			}

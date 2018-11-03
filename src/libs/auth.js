@@ -4,6 +4,9 @@
  * @file Defines authorization-related functions.
  * @module auth
  */
+
+const config = require(__dirname + '/config.js');
+
 const _ = require('underscore');
 const admins = require(__dirname + '/admins.js');
 const crypto = require('crypto');
@@ -201,14 +204,16 @@ function register(db, user, callback) {
 						mail.sendHTML(email, 'Confirm Your Account', __dirname + '/../html/messages/register.html', emailReplace, callback);
 
 						// Let's celebrate and the message throughout the land!
-						admins.sendEmail(db, {
-							subject: newUser.user + ' just created a 2.0 account!',
-							html: newUser.firstName + ' ' + newUser.lastName + ' (' + newUser.gradYear + ') just created an account with the username ' + newUser.user
-						}, err => {
-							if(err) {
-								console.log('[' + new Date() + '] Error occured when sending admin notification! (' + err + ')');
-							}
-						});
+						if (config.production) {
+							admins.sendEmail(db, {
+								subject: newUser.user + ' just created a 2.0 account!',
+								html: newUser.firstName + ' ' + newUser.lastName + ' (' + newUser.gradYear + ') just created an account with the username ' + newUser.user
+							}, err => {
+								if(err) {
+									console.log('[' + new Date() + '] Error occured when sending admin notification! (' + err + ')');
+								}
+							});
+						}
 					});
 				});
 			});

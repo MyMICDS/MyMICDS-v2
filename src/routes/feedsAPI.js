@@ -14,9 +14,16 @@ module.exports = (app, db) => {
 		});
 	});
 
-	app.post('/feeds/portal-queue', jwt.requireLoggedIn, (req, res) => {
-		feeds.addPortalQueue(db, req.apiUser, err => {
-			api.respond(res, err);
+	app.post('/feeds/portal-queue', (req, res) => {
+		feeds.addPortalQueueClasses(db, req.apiUser, err => {
+			if(err) {
+				api.respond(res, err);
+				return;
+			}
+
+			feeds.addPortalQueueCalendar(db, req.user.user, err => {
+				api.respond(res, err);
+			});
 		});
 	});
 

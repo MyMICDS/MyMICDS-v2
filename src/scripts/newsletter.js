@@ -11,8 +11,8 @@ try {
 }
 
 const messageType = 'announcements';
-const subject = 'We need your help!';
-const messageDir = __dirname + '/../html/messages/survey.html';
+const subject = 'We Unbroke MyMICDS';
+const messageDir = __dirname + '/../html/messages/welcome-veracross.html';
 // Path to JSON file to keep track of who's been sent the email already (in case script stops halfway through)
 const blacklistPath = __dirname + '/blacklist.json';
 
@@ -30,6 +30,7 @@ const moment = require('moment');
 const MongoClient = require('mongodb').MongoClient;
 const mail = require(__dirname + '/../libs/mail');
 const nodemailer = require('nodemailer');
+const { URL } = require('url');
 const { SCOPES } = require(__dirname + '/../libs/notifications');
 
 if (!SCOPES.includes(messageType.toUpperCase())) {
@@ -47,7 +48,17 @@ getBlacklist((err, blacklist) => {
 	if (err) throw err;
 
 	// Log into email
-	const transporter = nodemailer.createTransport(config.email.URI);
+	const parsed = new URL(config.email.URI);
+	const transporter = nodemailer.createTransport({
+		host: parsed.hostname,
+		port: parsed.port,
+		secure: true,
+		auth: {
+			user: 'support@mymicds.net',
+			pass: parsed.password
+		},
+		pool: true
+	});
 
 	// Connect to database
 	MongoClient.connect(config.mongodb.uri, (err, db) => {

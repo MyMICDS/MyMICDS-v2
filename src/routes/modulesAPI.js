@@ -13,11 +13,11 @@ module.exports = (app, db) => {
 		});
 	});
 
-	app.get('/modules/all', (req, res) => {
-		modules.getAll(db, (err, modules) => {
-			api.respond(res, err, { modules });
-		});
-	});
+	// app.get('/modules/all', (req, res) => {
+	// 	modules.getAll(db, (err, modules) => {
+	// 		api.respond(res, err, { modules });
+	// 	});
+	// });
 
 	app.put('/modules', (req, res) => {
 		modules.upsert(db, req.apiUser, req.body.modules, err => {
