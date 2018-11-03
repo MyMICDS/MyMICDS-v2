@@ -9,19 +9,12 @@ module.exports = (app, db) => {
 
 	app.get('/stickynotes', (req, res) => {
 		stickynotes.get(db, req.user.user, req.body.moduleId, (err, note) => {
-			res.json({
-				error: err ? err.message : null,
-				stickynote: note
-			});
-			api.respond(res, err, { stickynote: note });
+			api.respond(res, err, note);
 		});
 	});
 
 	app.put('/stickynotes', (req, res) => {
 		stickynotes.post(db, req.user.user, req.body.moduleId, req.body.text, (err) => {
-			res.json({
-				error: err ? err.message : null
-			});
 			api.respond(res, err);
 		});
 	});
