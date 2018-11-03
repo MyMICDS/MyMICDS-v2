@@ -1,17 +1,16 @@
 /**
- * @file Manages class API endpoints
+ * @file Manages teachers API endpoints
  */
+
+const api = require(__dirname + '/../libs/api.js');
 const teachers = require(__dirname + '/../libs/teachers.js');
+const jwt = require(__dirname + '/../libs/jwt.js');
 
 module.exports = (app, db) => {
 
-	app.post('/teachers/list', (req, res) => {
+	app.get('/teachers', jwt.requireLoggedIn, (req, res) => {
 		teachers.list(db, (err, teachers) => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			}
-			res.json({ error, teachers });
+			api.respond(res, err, { teachers });
 		});
 	});
 

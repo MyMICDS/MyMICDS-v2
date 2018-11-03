@@ -1,3 +1,8 @@
+/**
+ * @file Manages notifications API endpoints
+ */
+
+const api = require(__dirname + '/../libs/api.js');
 const notifications = require(__dirname + '/../libs/notifications.js');
 
 module.exports = (app, db) => {
@@ -12,11 +17,7 @@ module.exports = (app, db) => {
 		}
 
 		notifications.unsubscribe(db, user, hash, req.body.scopes, err => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			}
-			res.json({ error });
+			api.respond(res, err);
 		});
 	});
 

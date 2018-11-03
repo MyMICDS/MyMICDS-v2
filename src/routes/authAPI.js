@@ -1,6 +1,8 @@
 /**
  * @file Manages login API endpoints
  */
+
+const api = require(__dirname + '/../libs/api.js');
 const auth = require(__dirname + '/../libs/auth.js');
 const jwt = require(__dirname + '/../libs/jwt.js');
 const passwords = require(__dirname + '/../libs/passwords.js');
@@ -9,9 +11,8 @@ module.exports = (app, db) => {
 
 	app.post('/auth/login', (req, res) => {
 		if(req.user) {
-			res.json({
-				error  : null,
-				success: false,
+			api.respond(res, null, {
+				success: true,
 				message: 'You\'re already logged in, silly!',
 				jwt    : null
 			});
@@ -20,20 +21,8 @@ module.exports = (app, db) => {
 
 		const rememberMe = typeof req.body.remember !== 'undefined';
 
-		auth.login(db, req.body.user, req.body.password, rememberMe, req.body.comment, (err, response, message, jwt) => {
-			let error;
-			if(err) {
-				error = err.message;
-			} else {
-				error = null;
-			}
-
-			res.json({
-				error,
-				success: response,
-				message,
-				jwt
-			});
+		auth.login(db, req.body.user, req.body.password, rememberMe, req.body.comment, (err, success, message, jwt) => {
+			api.respond(res, err, { success, message, jwt });
 		});
 	});
 
@@ -45,11 +34,7 @@ module.exports = (app, db) => {
 		}
 
 		jwt.revoke(db, req.user, token, err => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			}
-			res.json({ error });
+			api.respond(res, err);
 		});
 	});
 
@@ -68,63 +53,43 @@ module.exports = (app, db) => {
 		}
 
 		auth.register(db, user, err => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			}
-			res.json({ error });
+			api.respond(res, err);
 		});
 	});
 
 	app.post('/auth/confirm', (req, res) => {
 		auth.confirm(db, req.body.user, req.body.hash, err => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			}
-			res.json({ error });
+			api.respond(res, err);
 		});
 	});
 
-	app.post('/auth/change-password', (req, res) => {
-		passwords.changePassword(db, req.user.user, req.body.oldPassword, req.body.newPassword, err => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			}
-			res.json({ error });
+	app.put('/auth/change-password', jwt.requireLoggedIn, (req, res) => {
+		passwords.changePassword(db, req.apiUser, req.body.oldPassword, req.body.newPassword, err => {
+			api.respond(res, err);
 		});
 	});
 
 	app.post('/auth/forgot-password', (req, res) => {
-		if(req.user.user) {
-			res.json({ error: 'You are already logged in, silly!' });
+		if(req.apiUser) {
+			api.respond(res, 'You are already logged in, silly!');
 			return;
 		}
 		passwords.resetPasswordEmail(db, req.body.user, err => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			}
-			res.json({ error });
+			api.respond(res, err);
 		});
 	});
 
-	app.post('/auth/reset-password', (req, res) => {
-		if(req.user.user) {
-			res.json({ error: 'You are already logged in, silly!' });
+	app.put('/auth/reset-password', (req, res) => {
+		if(req.apiUser) {
+			api.respond(res, 'You are already logged in, silly!');
 			return;
 		}
 		passwords.resetPassword(db, req.body.user, req.body.password, req.body.hash, err => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			}
-			res.json({ error });
+			api.respond(res, err);
 		});
 	});
 
-	app.post('/auth/verify', (req, res) => {
+	app.get('/auth/verify', (req, res) => {
 		if(!req.user.user) {
 			res.json({ error: 'JWT not provided!' });
 			return;

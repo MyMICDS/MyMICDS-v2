@@ -2,34 +2,33 @@
  * @file Manages modules API endpoints
  */
 
+const api = require(__dirname + '/../libs/api.js');
 const modules = require(__dirname + '/../libs/modules.js');
 
 module.exports = (app, db) => {
 
-	app.post('/modules/get', (req, res) => {
-		modules.get(db, req.user.user, (err, modules) => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			}
-			res.json({ error, modules });
+	app.get('/modules', (req, res) => {
+		modules.get(db, req.apiUser, (err, modules) => {
+			api.respond(res, err, { modules });
 		});
 	});
 
-	app.post('/modules/upsert', (req, res) => {
-		modules.upsert(db, req.user.user, req.body.modules, err => {
+	// app.get('/modules/all', (req, res) => {
+	// 	modules.getAll(db, (err, modules) => {
+	// 		api.respond(res, err, { modules });
+	// 	});
+	// });
+
+	app.put('/modules', (req, res) => {
+		modules.upsert(db, req.apiUser, req.body.modules, err => {
 			if(err) {
-				res.json({ error: err.message });
+				api.respond(res, err);
 				return;
 			}
 
 			// Return new modules + ids
-			modules.get(db, req.user.user, (err, modules) => {
-				let error = null;
-				if(err) {
-					error = err.message;
-				}
-				res.json({ error, modules });
+			modules.get(db, req.apiUser, (err, modules) => {
+				api.respond(res, err, { modules });
 			});
 		});
 	});

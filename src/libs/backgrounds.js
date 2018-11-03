@@ -33,6 +33,11 @@ const userBackgroundsDir = __dirname + '/../public/user-backgrounds';
 const defaultBackgroundUser = 'default';
 const defaultExtension = '.jpg';
 
+const defaultVariants = {
+	normal: userBackgroundUrl + '/' + defaultBackgroundUser + '/normal' + defaultExtension,
+	blur: userBackgroundUrl + '/' + defaultBackgroundUser + '/blur' + defaultExtension
+};
+
 // How many pixels to apply gaussian blur radius by default
 const defaultBlurRadius = 10;
 
@@ -50,14 +55,14 @@ function uploadBackground() {
 	const storage = multer.diskStorage({
 		destination: (req, file, cb) => {
 			// Delete current background
-			deleteBackground(req.user.user, err => {
+			deleteBackground(req.apiUser, err => {
 				if (err) {
 					cb(err, null);
 					return;
 				}
 
 				// Make sure directory is created for user backgrounds
-				const userDir = userBackgroundsDir + '/' + req.user.user + '-' + Date.now();
+				const userDir = userBackgroundsDir + '/' + req.apiUser + '-' + Date.now();
 				fs.ensureDir(userDir, err => {
 					if (err) {
 						cb(new Error('There was a problem ensuring the image directory!'), null);
@@ -81,7 +86,7 @@ function uploadBackground() {
 	const upload = multer({
 		storage,
 		fileFilter: (req, file, cb) => {
-			if (!req.user.user) {
+			if (!req.apiUser) {
 				cb(new Error('You must be logged in!'), null);
 				return;
 			}
@@ -160,28 +165,13 @@ function getCurrentFiles(user, callback) {
 			return;
 		}
 
-		// Read user's background file
-		fs.readdir(userBackgroundsDir + '/' + userDir, (err, userImages) => {
+		getDirExtension(userDir, (err, extension) => {
 			if(err) {
-				callback(new Error('There was a problem reading the user\'s background directory!'), null, null);
+				callback(err, null, null);
 				return;
 			}
 
-			// Loop through all valid files until there's either a .png or .jpg extention
-			let userExtension = null;
-			for(const _file of userImages) {
-				const file = path.parse(_file);
-				const extension = file.ext;
-
-				// If valid extension, just break out of loop and return that
-				if(_.contains(validExtensions, extension)) {
-					userExtension = extension;
-					break;
-				}
-			}
-
-			callback(null, userDir, userExtension);
-
+			callback(null, userDir, extension);
 		});
 	});
 }
@@ -257,26 +247,20 @@ function deleteBackground(user, callback) {
 
 function getBackground(user, callback) {
 	if(typeof callback !== 'function') return;
-
-	const defaultBackground = {
-		normal: userBackgroundUrl + '/' + defaultBackgroundUser + '/normal' + defaultExtension,
-		blur: userBackgroundUrl + '/' + defaultBackgroundUser + '/blur' + defaultExtension
-	};
-
 	if(typeof user !== 'string' || !utils.validFilename(user)) {
-		callback(null, defaultBackground, true);
+		callback(null, defaultVariants, true);
 		return;
 	}
 
 	// Get user's extension
 	getCurrentFiles(user, (err, dirname, extension) => {
 		if(err) {
-			callback(err, defaultBackground, true);
+			callback(err, defaultVariants, true);
 			return;
 		}
 		// Fallback to default background if no custom extension
 		if(dirname === null || extension === null) {
-			callback(null, defaultBackground, true);
+			callback(null, defaultVariants, true);
 			return;
 		}
 
@@ -286,6 +270,119 @@ function getBackground(user, callback) {
 		};
 
 		callback(null, backgroundURLs, false);
+	});
+}
+
+/**
+ * Pairs all users with their background variants
+ * @function getAllBackgrounds
+ *
+ * @param {Object} db - Database connection
+ * @param {getAllBackgroundsCallback} callback - Callback
+ */
+
+/**
+ * Returns object with users and backgrounds
+ * @callback getAllBackgroundsCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Object} backgrounds - Object of all users and backgrounds
+ */
+
+function getAllBackgrounds(db, callback) {
+	if(typeof callback !== 'function') return;
+	if(typeof db !== 'object') {
+		callback(new Error('Invalid database connection!'), null);
+		return;
+	}
+
+	fs.readdir(userBackgroundsDir, (err, userDirs) => {
+		if(err) {
+			callback(new Error('There was a problem reading the user backgrounds directory!'), null, null);
+			return;
+		}
+
+		const userdata = db.collection('users');
+		userdata.find({ confirmed: true }).toArray((err, users) => {
+			if(err) {
+				callback(new Error('There was a problem querying the database!'), null);
+				return;
+			}
+
+			const remainingUsers = users.map(u => u.user);
+			const result = {};
+
+			function handleDir(i) {
+				if(i < userDirs.length) {
+					const dirname = path.parse(userDirs[i]).name;
+					const dirnameSplit = dirname.split('-');
+
+					if(dirnameSplit[0] === 'deleted' || dirnameSplit[0] === 'default') {
+						handleDir(++i);
+						return;
+					}
+
+					// Remove timestamp
+					dirnameSplit.pop();
+
+					// User might have dashes in their name (i.e. bhollander-bodie)
+					const user = dirnameSplit.join('-');
+
+					getDirExtension(dirname, (err, extension) => {
+						if(err) {
+							callback(err, null);
+							return;
+						}
+
+						result[user] = {
+							hasDefault: false,
+							variants: {
+								normal: userBackgroundUrl + '/' + dirname + '/normal' + extension,
+								blur: userBackgroundUrl + '/' + dirname + '/blur' + extension
+							}
+						};
+						// Remove user from list of people that don't have backgrounds
+						remainingUsers.splice(remainingUsers.indexOf(user), 1);
+
+						handleDir(++i);
+					});
+				} else {
+					for(const user of remainingUsers) {
+						result[user] = {
+							hasDefault: true,
+							variants: defaultVariants
+						};
+					}
+					callback(null, result);
+				}
+			}
+			handleDir(0);
+		});
+	});
+}
+
+function getDirExtension(userDir, callback) {
+	fs.readdir(userBackgroundsDir + '/' + userDir, (err, userImages) => {
+		if(err) {
+			callback(new Error('There was a problem reading the user\'s background directory!'), null);
+			return;
+		}
+
+		// Loop through all valid files until there's either a .png or .jpg extention
+		let userExtension = null;
+		for(const _file of userImages) {
+			const file = path.parse(_file);
+			const extension = file.ext;
+
+			// If valid extension, just break out of loop and return that
+			if(_.contains(validExtensions, extension)) {
+				userExtension = extension;
+				break;
+			}
+		}
+
+		callback(null, userExtension);
+
 	});
 }
 
@@ -393,4 +490,5 @@ function blurUser(user, callback) {
 module.exports.get    	= getBackground;
 module.exports.upload	= uploadBackground;
 module.exports.delete 	= deleteBackground;
+module.exports.getAll	= getAllBackgrounds;
 module.exports.blurUser = blurUser;

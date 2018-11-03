@@ -1,21 +1,24 @@
 /**
  * @file Manages user API endpoints
  */
+
+const api = require(__dirname + '/../libs/api.js');
+const jwt = require(__dirname + '/../libs/jwt.js');
 const users = require(__dirname + '/../libs/users.js');
 
 module.exports = (app, db, socketIO) => {
 
-	app.post('/user/grad-year-to-grade', (req, res) => {
-		const grade = users.gradYearToGrade(parseInt(req.body.year));
-		res.json({ grade });
+	app.get('/user/grad-year-to-grade', (req, res) => {
+		const grade = users.gradYearToGrade(parseInt(req.query.year));
+		api.respond(res, null, { grade });
 	});
 
-	app.post('/user/grade-to-grad-year', (req, res) => {
-		const gradYear = users.gradeToGradYear(parseInt(req.body.grade));
-		res.json({ year: gradYear });
+	app.get('/user/grade-to-grad-year', (req, res) => {
+		const gradYear = users.gradeToGradYear(parseInt(req.query.grade));
+		api.respond(res, null, { year: gradYear });
 	});
 
-	app.post('/user/grade-range', (req, res) => {
+	app.get('/user/grade-range', (req, res) => {
 		const gradYears = [];
 		// Set min (inclusive) and max (inclusive)
 		const min = -1; // JK
@@ -25,23 +28,16 @@ module.exports = (app, db, socketIO) => {
 		}
 		// Put most recent years first
 		gradYears.reverse();
-		res.json({ gradYears });
+		api.respond(res, null, { gradYears });
 	});
 
-	app.post('/user/get-info', (req, res) => {
-		users.getInfo(db, req.user.user, true, (err, userInfo) => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			}
-			res.json({
-				error,
-				user: userInfo
-			});
+	app.get('/user/info', jwt.requireLoggedIn, (req, res) => {
+		users.getInfo(db, req.apiUser, true, (err, userInfo) => {
+			api.respond(res, err, { user: userInfo });
 		});
 	});
 
-	app.post('/user/change-info', (req, res) => {
+	app.patch('/user/info', jwt.requireLoggedIn, (req, res) => {
 		const info = {};
 
 		if(typeof req.body.firstName === 'string' && req.body.firstName !== '') {
@@ -57,14 +53,11 @@ module.exports = (app, db, socketIO) => {
 			info.gradYear = parseInt(req.body.gradYear);
 		}
 
-		users.changeInfo(db, req.user.user, info, err => {
-			let error = null;
-			if(err) {
-				error = err.message;
-			} else {
-				socketIO.user(req.user.user, 'user', 'change-info', info);
+		users.changeInfo(db, req.apiUser, info, err => {
+			if(!err) {
+				socketIO.user(req.apiUser, 'user', 'change-info', info);
 			}
-			res.json({ error });
+			api.respond(res, err);
 		});
 	});
 
