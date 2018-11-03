@@ -29,7 +29,7 @@ export default {
 	},
 
 	portal: {
-		dayRotation: '' // You can use anybody's Schedule Rotation calendar ID from the Portal
+		dayRotation: '' // Student Calendar > My Calendar from Veracross
 	},
 
 	ramsArmy: {

@@ -5,18 +5,37 @@ import RoutesFunction from './routesFunction';
 
 export default ((app, db, socketIO) => {
 
-	app.post('/portal/test', async (req, res) => {
+	app.post('/portal/url/test-classes', async (req, res) => {
 		try {
-			const { isValid, url } = await portal.verifyURL(req.body.url);
+			const { isValid, url } = await portal.verifyURLClasses(req.body.url);
 			api.success(res, { valid: isValid, url });
 		} catch (err) {
 			api.error(res, err);
 		}
 	});
 
-	app.put('/portal/url', jwt.requireLoggedIn, async (req, res) => {
+	app.post('/portal/url/test-calendar', async (req, res) => {
 		try {
-			const { isValid, validURL } = await portal.setURL(db, req.apiUser!, req.body.url);
+			const { isValid, url } = await portal.verifyURLCalendar(req.body.url);
+			api.success(res, { valid: isValid, url });
+		} catch (err) {
+			api.error(res, err);
+		}
+	});
+
+	app.put('/portal/url/classes', jwt.requireLoggedIn, async (req, res) => {
+		try {
+			const { isValid, validURL } = await portal.setURLClasses(db, req.apiUser!, req.body.url);
+			socketIO.user(req.apiUser!, 'portal', 'set-url', validURL);
+			api.success(res, { valid: isValid, url: validURL });
+		} catch (err) {
+			api.error(res, err);
+		}
+	});
+
+	app.put('/portal/url/calendar', jwt.requireLoggedIn, async (req, res) => {
+		try {
+			const { isValid, validURL } = await portal.setURLCalendar(db, req.apiUser!, req.body.url);
 			socketIO.user(req.apiUser!, 'portal', 'set-url', validURL);
 			api.success(res, { valid: isValid, url: validURL });
 		} catch (err) {

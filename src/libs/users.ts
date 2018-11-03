@@ -93,10 +93,24 @@ export async function getInfo(db: Db, user: string, privateInfo: boolean) {
 			userInfo.canvasURL = null;
 		}
 
+		// Legacy Blackbaud portal URL
 		if (typeof userDoc!.portalURL === 'string') {
 			userInfo.portalURL = userDoc!.portalURL;
 		} else {
 			userInfo.portalURL = null;
+		}
+
+		// New Veracross portal URLs
+		if (typeof userDoc!.portalURLClasses === 'string') {
+			userInfo.portalURLClasses = userDoc!.portalURLClasses;
+		} else {
+			userInfo.portalURLClasses = null;
+		}
+
+		if (typeof userDoc!.portalURLCalendar === 'string') {
+			userInfo.portalURLCalendar = userDoc!.portalURLCalendar;
+		} else {
+			userInfo.portalURLCalendar = null;
 		}
 	}
 
@@ -239,9 +253,12 @@ export interface UserDoc {
 	lastVisited?: Date;
 	lastPasswordChange?: Date;
 	passwordChangeHash?: string;
-	portalURL?: string;
+	portalURL?: string; // Legacy URL
+	portalURLClasses?: string;
+	portalURLCalendar?: string;
 	canvasURL?: string;
-	inPortalQueue?: boolean;
+	inPortalQueueClasses?: boolean;
+	inPortalQueueCalendar?: boolean;
 	unsubscribed?: string[];
 }
 

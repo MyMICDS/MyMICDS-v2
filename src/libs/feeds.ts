@@ -1,8 +1,8 @@
-import { Db} from 'mongodb';
+import { Db } from 'mongodb';
 import * as _ from 'underscore';
 import { CanvasCalendarWithUser } from './canvas';
 import * as canvas from './canvas';
-import { PortalCalendarWithUser } from './portal';
+import { PortalCacheEvent, PortalCalendarWithUser } from './portal';
 import * as portal from './portal';
 import { UserDoc } from './users';
 import * as users from './users';
@@ -63,20 +63,20 @@ export async function updateCanvasCache(db: Db, user: string) {
  * @param {Array} events - Array of Portal events if success, null if failure
  */
 
-export async function addPortalQueue(db: Db, user: string) {
+export async function addPortalQueueClasses(db: Db, user: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	const portaldata = db.collection('portalFeeds');
-	const userdata   = db.collection('users');
+	const portaldata = db.collection<PortalCacheEvent>('portalFeedsClasses');
+	const userdata   = db.collection<UserDoc>('users');
 
-	const { cal: events } = await portal.getFromCal(db, user);
+	const { cal: events } = await portal.getFromCalClasses(db, user);
 
 	if (_.isEmpty(events!)) {
 		try {
-			await userdata.updateOne({ user }, { $set: { inPortalQueue: true } });
+			await userdata.updateOne({ user }, { $set: { inPortalQueueClasses: true } });
 		} catch (e) {
 			throw new Error('There was an error adding the user to the queue!');
 		}
@@ -103,7 +103,62 @@ export async function addPortalQueue(db: Db, user: string) {
 	}
 
 	try {
-		await userdata.updateOne({ user }, { $set: { inPortalQueue: false } });
+		await userdata.updateOne({ user }, { $set: { inPortalQueueClasses: false } });
+	} catch (e) {
+		throw new Error('There was an error removing the user from the queue!');
+	}
+
+	return newEvents;
+}
+
+/**
+ * Add a user to the Portal queue
+ * @param {Object} db - Database object
+ * @param {string} user - Username
+ * @param {addPortalQueueCallback} callback - Callback
+ */
+
+export async function addPortalQueueCalendar(db: Db, user: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+
+	const portaldata = db.collection<PortalCacheEvent>('portalFeedsCalendar');
+	const userdata   = db.collection<UserDoc>('users');
+
+	const { cal: events } = await portal.getFromCalCalendar(db, user);
+
+	if (_.isEmpty(events!)) {
+		try {
+			await userdata.updateOne({ user }, { $set: { inPortalQueueCalendar: true } });
+		} catch (e) {
+			throw new Error('There was an error adding the user to the queue!');
+		}
+
+		return events!;
+	}
+
+	try {
+		await portaldata.deleteMany({ user: userDoc!._id });
+	} catch (e) {
+		throw new Error('There was an error removing the old events from the database!');
+	}
+
+	for (const ev of events!) {
+		(ev as any).user = userDoc!._id;
+	}
+
+	const newEvents = events as PortalCalendarWithUser[];
+
+	try {
+		await portaldata.insertMany(newEvents);
+	} catch (e) {
+		throw new Error(`There was an error inserting events into the database! (${e})`);
+	}
+
+	try {
+		await userdata.updateOne({ user }, { $set: { inPortalQueueCalendar: false } });
 	} catch (e) {
 		throw new Error('There was an error removing the user from the queue!');
 	}
@@ -131,13 +186,14 @@ export async function processPortalQueue(db: Db) {
 
 	let queue: UserDoc[];
 	try {
-		queue = await userdata.find({ inPortalQueue: true }).toArray();
+		queue = await userdata.find({ $or: [{ inPortalQueueClasses: true }, { inPortalQueueCalendar: true }] }).toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
 
 	for (const queueObj of queue) {
-		await addPortalQueue(db, queueObj.user);
+		if (queueObj.inPortalQueueClasses) { await addPortalQueueClasses(db, queueObj.user); }
+		if (queueObj.inPortalQueueCalendar) { await addPortalQueueCalendar(db, queueObj.user); }
 	}
 }
 

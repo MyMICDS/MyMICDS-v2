@@ -199,7 +199,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 	}];
 
 	// If it isn't a user OR it's a teacher with no Portal URL
-	if (!isUser || (userDoc!.gradYear === null && typeof userDoc!.portalURL !== 'string')) {
+	if (!isUser || (userDoc!.gradYear === null && typeof userDoc!.portalURLClasses !== 'string')) {
 		// Fallback to default schedule if user is invalid
 		// tslint:disable-next-line:no-shadowed-variable
 		const schedule: FullSchedule = {
@@ -216,7 +216,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 		return { hasURL: false, schedule };
 	}
 
-	if (portalBroke || typeof userDoc!.portalURL !== 'string') {
+	if (portalBroke || typeof userDoc!.portalURLClasses !== 'string') {
 		// If user is logged in, but hasn't configured their Portal URL
 		// We would know their grade, and therefore their generic block schedule, as well as any classes they configured
 		const theClasses = await classes.get(db, user);
@@ -251,14 +251,28 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 
 	// The user is logged in and has configured their Portal URL
 	// We can therefore overlay their Portal classes ontop of their default block schedule for 100% coverage.
-	const [aliasesResult, portalResult] = await Promise.all([
-		// Get Portal calendar feed
-		aliases.mapList(db, user),
-
+	const [aliasesResult, portalClassesResult, portalCalendarResult] = await Promise.all([
 		// Get Portal aliases and their class objects
-		portal.getFromCache(db, user).then(async ({ hasURL, events: cal }) => {
+		aliases.mapList(db, user),
+		// Get Portal classes feed
+		portal.getFromCacheClasses(db, user).then(async ({ hasURL, events: cal }) => {
 			if (_.isEmpty(cal)) {
-				const events = await feeds.addPortalQueue(db, user);
+				const events = await feeds.addPortalQueueClasses(db, user);
+
+				if (_.isEmpty(events)) {
+					// If it still returns empty, then Portal isn't working at the moment and we can fall back on not having a URL.
+					return getSchedule(db, user, date, true);
+				} else {
+					return { hasURL, cal: events };
+				}
+			} else {
+				return { hasURL, cal };
+			}
+		}),
+		// Get Portal calendar feed
+		portal.getFromCacheCalendar(db, user).then(async ({ hasURL, events: cal }) => {
+			if (_.isEmpty(cal)) {
+				const events = await feeds.addPortalQueueCalendar(db, user);
 
 				if (_.isEmpty(events)) {
 					// If it still returns empty, then Portal isn't working at the moment and we can fall back on not having a URL.
@@ -280,16 +294,22 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 		allDay: []
 	};
 
+	// Default events that occur for everyone throughout the school
+	// (In the non-personal calendar feed. Usually this is special schedule stuff or assembly)
+	const schoolScheduleEvents = [];
+
 	// Go through all the events in the Portal calendar
-	for (const calEvent of Object.values((portalResult as any).cal as PortalCacheEvent[])) {
+	for (const calEvent of Object.values((portalCalendarResult as any).cal as PortalCacheEvent[])) {
 		const start = moment(calEvent.start);
 		const end = moment(calEvent.end);
 
 		// Make sure the event isn't all whacky
-		if (end.isBefore(start)) { continue; }
+		if (end.isBefore(start)) {
+			continue;
+		}
 
-		// Check if it's an all-day event
-		if (start.isSameOrBefore(scheduleDate) && end.isSameOrAfter(scheduleNextDay)) {
+		// Check if event occurs on specified day
+		if (scheduleDate.isSame(start, 'day')) {
 			// Check if special schedule
 			const lowercaseSummary = calEvent.summary.toLowerCase();
 			if (lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
@@ -297,6 +317,51 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 				continue;
 			}
 
+			// Check if event occurs throughout school day
+			if (start.isSameOrAfter(defaultStart) && end.isSameOrBefore(defaultEnd)) {
+				const color = prisma(calEvent.summary).hex;
+				schoolScheduleEvents.push({
+					start,
+					end,
+					class: {
+						portal: true,
+						name: calEvent.summary,
+						teacher: {
+							prefix: '',
+							firstName: '',
+							lastName: ''
+						},
+						block: 'other',
+						type: 'other',
+						color,
+						textDark: prisma.shouldTextBeDark(color)
+					}
+				});
+			}
+		}
+		// Check if it's an all-day event
+		// @TODO Don't know if this works (if everything we'd consider "all-day" event actually matches this criteria)
+		if (start.isSameOrBefore(scheduleDate) && end.isSameOrAfter(scheduleNextDay)) {
+			schedule.allDay.push(portal.cleanUp(calEvent.summary));
+		}
+	}
+
+	// Go through all the events in the Portal classes
+	for (const calEvent of Object.values((portalClassesResult as any).cal as PortalCacheEvent[])) {
+		const start = moment(calEvent.start);
+		const end = moment(calEvent.end);
+
+		// Make sure the event isn't all whacky
+		if (end.isBefore(start)) { continue; }
+
+		// Check if it's an all-day event
+		if (start.isSameOrBefore(scheduleDate) && !end.isValid()) {
+			// // Check if special schedule
+			// const lowercaseSummary = calEvent.summary.toLowerCase();
+			// if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
+			// 	schedule.special = true;
+			// 	continue;
+			// }
 			// Push event to all-day events
 			schedule.allDay.push(portal.cleanUp(calEvent.summary));
 		} else if (start.isAfter(scheduleDate) && end.isBefore(scheduleNextDay)) {

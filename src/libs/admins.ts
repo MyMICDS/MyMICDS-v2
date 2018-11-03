@@ -1,6 +1,7 @@
 import * as mail from './mail';
 
 import { Db } from 'mongodb';
+import { UserDoc } from './users';
 
 /**
  * Gets usernames of admins from database
@@ -21,7 +22,7 @@ import { Db } from 'mongodb';
 async function getAdmins(db: Db) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
-	const userdata = db.collection('users');
+	const userdata = db.collection<UserDoc>('users');
 
 	try {
 		return await userdata.find({ scopes: ['admin'] }).toArray();
@@ -52,7 +53,7 @@ async function sendAdminEmail(db: Db, message: mail.Message) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
 	// Get admin objects
-	let admins;
+	let admins: UserDoc[];
 	try {
 		admins = await getAdmins(db);
 	} catch (e) {

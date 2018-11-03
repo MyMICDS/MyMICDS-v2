@@ -16,7 +16,8 @@ export default ((app, db) => {
 
 	app.post('/feeds/portal-queue', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			await feeds.addPortalQueue(db, req.apiUser!);
+			await feeds.addPortalQueueClasses(db, req.apiUser!);
+			await feeds.addPortalQueueCalendar(db, req.apiUser!);
 			api.success(res);
 		} catch (err) {
 			api.error(res, err);

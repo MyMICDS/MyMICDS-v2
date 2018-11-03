@@ -1,6 +1,7 @@
 // tslint:disable:no-console max-line-length
 // USE WITH CAUTION
 
+import { URL } from 'url';
 import config from '../libs/config';
 
 const messageType = 'announcements';
@@ -39,7 +40,17 @@ if (!DEBUG && !I_REALLY_WANT_TO_DO_THIS) {
 // See who we've already sent email to
 getBlacklist().then(async blacklist => {
 	// Log into email
-	const transporter = nodemailer.createTransport(config.email.URI);
+	const parsed = new URL(config.email.URI);
+	const transporter = nodemailer.createTransport({
+		host: parsed.hostname,
+		port: parsed.port,
+		secure: true,
+		auth: {
+			user: 'support@mymicds.net',
+			pass: parsed.password
+		},
+		pool: true
+	} as any);
 
 	// Connect to database
 	const client: MongoClient = await MongoClient.connect(config.mongodb.uri);
