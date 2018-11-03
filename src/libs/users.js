@@ -132,6 +132,8 @@ function getInfo(db, user, privateInfo, callback) {
 			}
 		}
 
+		userInfo.migrateToVeracross = userInfo.portalURL && (!userInfo.portalURLClasses || !userInfo.portalURLCalendar);
+
 		callback(null, userInfo);
 
 	});
