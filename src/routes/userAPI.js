@@ -33,7 +33,7 @@ module.exports = (app, db, socketIO) => {
 
 	app.get('/user/info', jwt.requireLoggedIn, (req, res) => {
 		users.getInfo(db, req.apiUser, true, (err, userInfo) => {
-			api.respond(res, err, { user: userInfo });
+			api.respond(res, err, userInfo);
 		});
 	});
 
