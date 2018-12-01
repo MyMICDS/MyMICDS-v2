@@ -9,6 +9,8 @@ module.exports =
 	hostedOn: 'http://localhost:1420', // URL to access this server. Used for signing JWT's
 	production: false, // Whether or not the server is running in production mode. (This enables/disables a few features!)
 
+	forceError: [], // List of routes to force error responses on. Used for testing.
+
 	email: {
 		URI      : '',
 		fromEmail: 'support@mymicds.net',
