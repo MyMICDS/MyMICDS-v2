@@ -47,7 +47,7 @@ app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
 
 // Force error response for testing routes
 app.use((req, res, next) => {
-	if(config.forceError.includes(req.originalUrl)) {
+	if(config.forceError && config.forceError.includes(req.originalUrl)) {
 		api.respond(res, new Error('Forced error response for route'));
 	}
 
