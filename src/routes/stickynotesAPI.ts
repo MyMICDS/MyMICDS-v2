@@ -6,7 +6,7 @@ export default ((app, db) => {
 
 	app.get('/stickynotes', async (req, res) => {
 		try {
-			const note = await stickynotes.get(db, req.user.user, req.body.moduleId);
+			const note = await stickynotes.get(db, req.user.user, req.query.moduleId);
 			api.success(res, { stickynote: note });
 		} catch (err) {
 			api.error(res, err);
