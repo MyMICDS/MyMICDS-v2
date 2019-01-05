@@ -54,7 +54,7 @@ module.exports = (app, db, socketIO) => {
 			socketIO.user(req.apiUser, 'background', 'delete');
 
 			backgrounds.get(req.apiUser, (err, variants, hasDefault) => {
-				res.respond(res, err, { hasDefault, variants });
+				api.respond(res, err, { hasDefault, variants });
 			});
 		});
 	});
