@@ -295,7 +295,7 @@ export interface MyMICDSClassWithIDs {
 	type: ClassType;
 	block: Block;
 	color: string;
-	textDark: boolean;
+	textDark?: boolean;
 }
 
 export {

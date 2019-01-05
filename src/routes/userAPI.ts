@@ -32,7 +32,7 @@ export default ((app, db, socketIO) => {
 	app.get('/user/info', jwt.requireLoggedIn, async (req, res) => {
 		try {
 			const userInfo = await users.getInfo(db, req.apiUser!, true);
-			api.success(res, { user: userInfo });
+			api.success(res, userInfo);
 		} catch (err) {
 			api.error(res, err);
 		}

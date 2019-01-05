@@ -114,6 +114,8 @@ export async function getInfo(db: Db, user: string, privateInfo: boolean) {
 		}
 	}
 
+	userInfo.migrateToVeracross = !!userInfo.portalURL && (!userInfo.portalURLClasses || !userInfo.portalURLCalendar);
+
 	return userInfo as GetUserInfoResponse;
 }
 

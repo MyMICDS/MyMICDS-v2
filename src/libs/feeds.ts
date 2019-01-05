@@ -69,7 +69,7 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	const portaldata = db.collection<PortalCacheEvent>('portalFeedsClasses');
+	const portaldata = db.collection<PortalCalendarWithUser>('portalFeedsClasses');
 	const userdata   = db.collection<UserDoc>('users');
 
 	const { cal: events } = await portal.getFromCalClasses(db, user);
@@ -124,7 +124,7 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	const portaldata = db.collection<PortalCacheEvent>('portalFeedsCalendar');
+	const portaldata = db.collection<PortalCalendarWithUser>('portalFeedsCalendar');
 	const userdata   = db.collection<UserDoc>('users');
 
 	const { cal: events } = await portal.getFromCalCalendar(db, user);

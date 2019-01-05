@@ -134,11 +134,19 @@ if (config.production) {
 			for (const user of users) {
 				setTimeout(async () => {
 					try {
-						await feeds.addPortalQueue(db, user);
+						await feeds.addPortalQueueClasses(db, user);
 
-						console.log(`[${new Date()}] Successfully added ${user} to the Portal queue!`);
+						console.log(`[${new Date()}] Successfully added ${user} to the Portal Classes queue!`);
 					} catch (err) {
-						console.log(`[${new Date()}] Error occurred adding ${user} to the Portal queue! (${err})`);
+						console.log(`[${new Date()}] Error occurred adding ${user} to the Portal queue! Classes (${err})`);
+					}
+
+					try {
+						await feeds.addPortalQueueCalendar(db, user);
+
+						console.log(`[${new Date()}] Successfully added ${user} to the Portal Calendar queue!`);
+					} catch (err) {
+						console.log(`[${new Date()}] Error occurred adding ${user} to the Portal Calendar queue! (${err})`);
 					}
 				}, (6 * 60 * 60 * 1000) / users.length);
 			}

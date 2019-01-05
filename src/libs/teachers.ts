@@ -34,7 +34,7 @@ async function addTeacher(db: Db, teacher: Omit<Teacher, '_id'>) {
 	if (typeof teacher.firstName !== 'string') { throw new Error('Invalid teacher first name!'); }
 	if (typeof teacher.lastName !== 'string') { throw new Error('Invalid teacher last name!'); }
 
-	const teacherdata = db.collection<TeacherWithID>('teachers');
+	const teacherdata = db.collection<TeacherWithIDOptional>('teachers');
 
 	try {
 		// Upsert teacher into collection
@@ -44,7 +44,7 @@ async function addTeacher(db: Db, teacher: Omit<Teacher, '_id'>) {
 	}
 
 	try {
-		const docs = await teacherdata.find(teacher).toArray();
+		const docs = await teacherdata.find<TeacherWithID>(teacher).toArray();
 		return docs[0];
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
@@ -181,9 +181,13 @@ export {
 	listTeachers as list
 };
 
-export interface TeacherWithID {
-	_id: ObjectID;
+export interface TeacherWithIDOptional {
+	_id?: ObjectID;
 	prefix: string;
 	firstName: string;
 	lastName: string;
+}
+
+export interface TeacherWithID extends TeacherWithIDOptional {
+	_id: ObjectID;
 }
