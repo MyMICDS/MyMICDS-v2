@@ -6,31 +6,11 @@ import * as users from './users';
 import { Omit } from './utils';
 
 /**
- * Add/edit event to planner
- * @function upsertEvent
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username to insert event under
- * @param {Object} plannerEvent - Event object
- * @param {string} [plannerEvent._id] - Optional id to edit event under
- * @param {string} plannerEvent.title - Main summary/label of the event
- * @param {string} [plannerEvent.desc] - Event description with details (Optional)
- * @param {string} [plannerEvent.classId] - Object ID of associated class (Optional)
- * @param {Object} plannerEvent.start - Javascript date object when event starts
- * @param {Object} plannerEvent.end - Javascript date object when event ends
- * @param {string} [plannerEvent.link] - Link to canvas assignment (Optional)
- *
- * @param {upsertEventCallback} callback - Callback
+ * Adds/edits a planner event.
+ * @param db Database connection.
+ * @param user Username.
+ * @param plannerEvent Planner event object.
  */
-
-/**
- * Callback after planner data is upserted
- * @callback upsertEventCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Object} plannerEvent - Object of event that was upserted. Null if error.
- */
-
 // tslint:disable-next-line:max-line-length
 async function upsertEvent(db: Db, user: string, plannerEvent: Omit<PlannerInputEvent, 'user' | 'link'> & { link?: string }) {
 	// Validate inputs
@@ -115,22 +95,11 @@ async function upsertEvent(db: Db, user: string, plannerEvent: Omit<PlannerInput
 }
 
 /**
- * Deletes events from planner.
- * @function deleteEvent
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username of event to delete
- * @param {string} eventId - Id of event to delete
- * @param {deleteEventCallback} callback - Callback
+ * Deletes a planner event.
+ * @param db Database connection.
+ * @param user Username.
+ * @param eventId Event ID to delete.
  */
-
-/**
- * Callback after planner data is deleted
- * @callback deleteEventCallback
- *
- * @param {Object} err - Null if success, error object if failure
- */
-
 async function deleteEvent(db: Db, user: string, eventId: string) {
 	if (typeof db   !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid user!'); }
@@ -158,22 +127,11 @@ async function deleteEvent(db: Db, user: string, eventId: string) {
 }
 
 /**
- * Gets all the events of a user
- * @function getEvents
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username of events to get
- * @param {getEventsCallback} callback - Callback
+ * Gets all of a user's planner events.
+ * @param db Database connection.
+ * @param user Username.
+ * @returns A list of planner documents, including teacher information.
  */
-
-/**
- * Callback after getting events
- * @callback getEventsCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Array} events - Array of documents of events, with teacher documents injected. Null if error.
- */
-
 async function getEvents(db: Db, user: string) {
 	if (typeof db   !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid user!'); }

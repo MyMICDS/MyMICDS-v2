@@ -6,23 +6,11 @@ import * as _ from 'underscore';
 import * as dates from './dates';
 
 /**
- * Get data about user
- * @function getUser
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {getUserCallback} callback - Callback
+ * Gets data about a user.
+ * @param db Database connection.
+ * @param user Username.
+ * @returns Whether the user is valid and the contents of the user document.
  */
-
-/**
- * Callback after user id is retrieved
- * @callback getUserCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Boolean} isUser - True if there is a valid user, false if not. Null if error.
- * @param {Object} userDoc - Everything in the user's document. Null if error or no valid user.
- */
-
 async function getUser(db: Db, user: string) {
 	if (typeof db !== 'object') {	throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
@@ -49,24 +37,12 @@ async function getUser(db: Db, user: string) {
 }
 
 /**
- * Retrieves basic information about a specific user
- * @function getInfo
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {Boolean} privateInfo - Whether to include sensitive information such as canvasURL and portalURL.
- * 								  Set to true if only the user is viewing it. Defaults to false.
- * @param {getInfoCallback} callback - Callback
+ * Retrieves basic information about a specific user.
+ * @param db Database connection.
+ * @param user Username.
+ * @param privateInfo Whether to include more sensitive information like calendar URLs. Defaults to false.
+ * @returns An object containing user information.
  */
-
-/**
- * Returns basic information about the user
- * @callback getInfoCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} userInfo - Object containing information about the user. Null if error.
- */
-
 export async function getInfo(db: Db, user: string, privateInfo: boolean) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof privateInfo !== 'boolean') { privateInfo = false; }
@@ -120,25 +96,11 @@ export async function getInfo(db: Db, user: string, privateInfo: boolean) {
 }
 
 /**
- * Change basic user information such as name or grade
- * @function changeInfo
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {Object} info - Information to change about user.
- * @param {string} [info.firstName] - First name of user
- * @param {string} [info.lastName] - Last name of user
- * @param {Number} [info.gradYear] - Graduation year of user. Set null if faculty.
- * @param {changeInfoCallback} callback - Callback
+ * Changes basic user information (name, grade, etc).
+ * @param db Database connection.
+ * @param user Username.
+ * @param info Information to change.
  */
-
-/**
- * Returns whether successful or not.
- * @callback changeInfoCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- */
-
 export async function changeInfo(db: Db, user: string, info: ChangeUserInfoParameters) {
 	if (typeof info !== 'object') { throw new Error('Invalid information!'); }
 
@@ -176,14 +138,11 @@ export async function changeInfo(db: Db, user: string, info: ChangeUserInfoParam
 }
 
 /**
- * Converts a graduation year to a grade.
- * If the grade is Junior-Kindergarten (JK) or Senior-Kindergarten (SK)
- * then the respective -1 and 0 integers are returned.
- * @function gradYearToGrade
- * @param {Number} gradYear - Graduation year
- * @returns {Number}
+ * Converts a graduation year into a grade.
+ * Junior and Senior Kindergarten (JK/SK) are converted to -1 and 0, respectively.
+ * @param gradYear Graduation year.
+ * @returns A grade number.
  */
-
 export function gradYearToGrade(gradYear: number | null) {
 	if (typeof gradYear !== 'number' || gradYear % 1 !== 0) { return null; }
 
@@ -201,14 +160,10 @@ export function gradYearToGrade(gradYear: number | null) {
 }
 
 /**
- * Converts a grade to a graduation year.
- * If you want to enter the grade Junior-Kindergarten (JK) or Senior-Kindergarten (SK)
- * then insert the respective integers -1 and 0.
- * @function gradeToGradYear
- * @param {Number} grade - Grade
- * @returns {Number}
+ * Converts a grade into a graduation year.
+ * @param grade Grade number.
+ * @returns A graduation year.
  */
-
 export function gradeToGradYear(grade: number | null) {
 	if (typeof grade !== 'number' || grade % 1 !== 0) { return null; }
 
@@ -225,14 +180,10 @@ export function gradeToGradYear(grade: number | null) {
 }
 
 /**
- * Determines which school a grade belongs to. If grade is above 12, returns 'upperschool'.
- * If grade is below -1, returns 'lowerschool'.
- * Also if grade isn't a number, it will also default to 'upperschool'.
- * @function gradeToSchool
- * @param {Number} grade - Grade
- * @returns {string}
+ * Determines which school a grade number belongs to. Defaults to Upper School.
+ * @param grade Grade number.
+ * @returns The corresponding school.
  */
-
 export function gradeToSchool(grade: number | null): School {
 	if (typeof grade !== 'number' || grade >= 9) { return 'upperschool'; }
 	if (grade < 5) { return 'lowerschool'; }

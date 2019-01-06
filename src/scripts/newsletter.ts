@@ -33,7 +33,7 @@ if (!Object.values(Scope).includes(messageType.toUpperCase())) {
 }
 
 if (!DEBUG && !I_REALLY_WANT_TO_DO_THIS) {
-	console.log('Are you sure you really want to do this? Set `I_REALLY_WANT_TO_DO_THIS` to true on line 14. Make sure to set back to false before committing.');
+	console.log('Are you sure you really want to do this? Set `I_REALLY_WANT_TO_DO_THIS` to true on line 15. Make sure to set back to false before committing.');
 	process.exit();
 }
 

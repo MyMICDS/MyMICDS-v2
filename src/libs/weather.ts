@@ -15,18 +15,8 @@ const options = {
 };
 
 /**
- * Get's weather from forecast.io and returns JSON
- * @function getWeather
- *
- * @param {getWeatherCallback} callback - Callback
- */
-
-/**
- * Callback after it gets the weather
- * @callback getWeatherCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} weatherJSON - JSON of current weather. Null if error.
+ * Retrieves the weather. Checks the local file cache first, else updates the weather.
+ * @returns A weather object.
  */
 async function getWeather() {
 	let weatherJSON: Weather;
@@ -40,18 +30,8 @@ async function getWeather() {
 }
 
 /**
- * Get's weather from forecast.io and returns JSON
- * @function updateWeather
- *
- * @param {updateWeatherCallback}
- */
-
-/**
- * Callback after it gets the weather
- * @callback updateWeatherCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} weatherJSON - JSON of current weather. Null if error.
+ * Updates the weather from Dark Sky.
+ * @returns A weather object.
  */
 async function updateWeather() {
 	// Create forecast object to query

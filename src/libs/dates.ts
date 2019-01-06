@@ -3,14 +3,12 @@ import moment from 'moment';
 import * as portal from './portal';
 
 /**
- * Returns a Moment.js object the date and time school is going to start
- * Based on two consecutive years, we have gather enough data and deeply analyzed that
+ * Gets the day that school will start for a given year.
+ * Based on two consecutive years, we have gathered enough data to conclude that
  * the last day of school is _probably_ the third Wednesday of August.
- * @function thirdWednesdayAugust
- * @param {Number} year - Which May to get third Wednesday from
- * @returns {Object}
+ * @param year The year containing the start of school.
+ * @returns A Moment.js object with the start of school.
  */
-
 export function thirdWednesdayAugust(year: number) {
 	const current = moment();
 	if (typeof year !== 'number' || year % 1 !== 0) {
@@ -21,13 +19,9 @@ export function thirdWednesdayAugust(year: number) {
 }
 
 /**
- * Returns a Moment.js object when the next start of school is.
- * Based on two consecutive years, we have gather enough data and deeply analyzed that
- * the last day of school is _probably_ the third Wednesday of August.
- * @function schoolEnds
- * @returns {Object}
+ * Gets the next day that school starts.
+ * @returns A Moment.js object containing the next school start date.
  */
-
 export function schoolStarts() {
 	const current = moment();
 	const firstDayThisYear = thirdWednesdayAugust(current.year());
@@ -40,14 +34,11 @@ export function schoolStarts() {
 }
 
 /**
- * Returns a Moment.js object the date and time school is going to end
- * Based on two consecutive years, we have gather enough data and deeply analyzed that
+ * Gets the day that school will end for a given year.
+ * Based on two consecutive years, we have gather enough data to conclude that
  * the last day of school is _probably_ the last Friday of May.
- * @function lastFridayMay
- * @param {Number} year - Which May to get last Friday from
- * @returns {Object}
+ * @param year The year containing the end of school.
  */
-
 export function lastFridayMay(year?: number) {
 	const current = moment();
 	if (typeof year !== 'number' || year % 1 !== 0) {
@@ -83,13 +74,9 @@ export function lastFridayMay(year?: number) {
 }
 
 /**
- * Returns a Moment.js object when the next last day of school is.
- * Based on two consecutive years, we have gather enough data and deeply analyzed that
- * the last day of school is _probably_ the last Friday of May.
- * @function schoolEnds
- * @returns {Object}
+ * Gets the next day that school ends.
+ * @returns A Moment.js object containing the next school end date.
  */
-
 export function schoolEnds() {
 	const current = moment();
 	const lastDayThisYear = lastFridayMay(current.year());
@@ -102,13 +89,11 @@ export function schoolEnds() {
 }
 
 /**
- * Returns an array containing the school years of a given date
- * @function getSchoolYear
- * @param {Object} date - Date object
- * @returns {Object}
+ * Gets the start and end year of school for a given date.
+ * @param date Date object.
+ * @returns Array of school years.
  */
-
-export function getSchoolYear(date: Date) {
+export function getSchoolYear(date: Date): [number, number] {
 	const dateObj = moment(date);
 	const lastDayThisYear = lastFridayMay(dateObj.year());
 
@@ -121,19 +106,9 @@ export function getSchoolYear(date: Date) {
 }
 
 /**
- * Returns the upcoming breaks and long weekends within the next 12 months
- * @function getDaysOff
- * @callback {getDaysOffCallback} callback - Callback
+ * Gets all upcoming breaks and long weekends within the next 12 months.
+ * @returns A list of Moment.js objects with all the days off.
  */
-
-/**
- * Returns an object of upcoming breaks and long weekends
- * @callback getDaysOffCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} breaks - Object of breaks. Null if failure.
- */
-
 async function getDaysOff() {
 	const days = await portal.getDayRotations();
 
@@ -160,19 +135,9 @@ async function getDaysOff() {
 }
 
 /**
- * Returns the user's breaks according to days off
- * @function getBreaks
- * @param {getBreaksCallback} callback - Callback
+ * Gets all breaks according to days off.
+ * @returns A list of all breaks.
  */
-
-/**
- * Returns an object with different properties containing moment dates
- * @callback getBreaksCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} breaks - Object containing breaks. Null if error.
- */
-
 export async function getBreaks() {
 	// Get array of days that have no day rotation
 	const days = await getDaysOff();

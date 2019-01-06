@@ -12,12 +12,10 @@ import { UserDoc } from './users';
 import * as users from './users';
 
 /**
- * Express middleware to verify the JWT token (if any) and assigns it to req.user
- * @function authorize
- * @param {Object} db - Databse connection
- * @returns {function}
+ * Verifies a JWT and assigns it to `req.user`.
+ * @param db Database connection.
+ * @returns An Express middleware function.
  */
-
 export function authorize(db: Db) {
 	return expressJWT({
 		credentialsRequired: false, // We have our own way of handling if user is authorized or not
@@ -29,30 +27,10 @@ export function authorize(db: Db) {
 }
 
 /**
- * Function for determining if a JWT is valid or not
- * @function isRevoked
- *
- * @param {Object} db - Databse connection
- * @returns {isRevokedCallback}
+ * Checks whether a JWT is revoked or not.
+ * @param db Database connection.
+ * @returns A callback for the `express-jwt` package.
  */
-
-/**
- * Function that returns whether token is revoked or not.
- * @callback isRevokedCallback
- *
- * @param {Object} req - Express request object
- * @param {Object} payload - Object with the JWT claims
- * @param {isRevokedCallbackCallback} done - Callback
- */
-
-/**
- * Returns whether token is revoked or not.
- * @callback isRevokedCallbackCallback
- * @param {Object} err - Null if success, error object if failure.
- *
- * @param {Boolean} revoked - True if the JWT is revoked, false otherwise.
- */
-
 function isRevoked(db: Db): IsRevokedCallback {
 	return async (req, payload, done) => {
 
@@ -133,14 +111,11 @@ function isRevoked(db: Db): IsRevokedCallback {
 }
 
 /**
- * If no req.user is set, will default to false. Attach this middleware after you attach the authorize middleware!
- * @function fallback
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {function} next - Callback with no parameters
+ * Defaults `req.user` to false if there is no user. Must be attached after the authorization middleware.
+ * @param req Express request object.
+ * @param res Express response object.
+ * @param next Calls the next handler in the middleware chain.
  */
-
 export function fallback(req: Request, res: Response, next: NextFunction) {
 	// If user doesn't exist or is invalid, default req.user to false
 	if (typeof req.user === 'undefined') {
@@ -150,23 +125,21 @@ export function fallback(req: Request, res: Response, next: NextFunction) {
 }
 
 /**
- * Route-specific middleware to require the user to be logged in
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {function} next - Callback with no parameters
+ * Requires the user to be logged in. Used on specific routes.
+ * @param req Express request object.
+ * @param res Express response object.
+ * @param next Calls the next handler in the middleware chain.
  */
-
 export function requireLoggedIn(req: Request, res: Response, next: NextFunction) {
 	requireScope('pleb', 'You must be logged in to access this!')(req, res, next);
 }
 
 /**
- * Route-specific middleware to require the user to have a specific scope
- * @param {string} scope - Which scope the user needs to have
- * @param {string} [message] - Optional.
- * 							   Custom error message to send back to client if they don't have the specified scope.
+ * Requires the user to have a specific scope. Used on specific routes.
+ * @param scope The scope to check for.
+ * @param message A custom error message to send to the client.
+ * @returns An Express middleware function.
  */
-
 export function requireScope(scope: string, message = 'You\'re not authorized in this part of the site, punk.') {
 	return (req: Request, res: Response, next: NextFunction) => {
 		if (!req.user || !req.user.scopes[scope]) {
@@ -178,10 +151,12 @@ export function requireScope(scope: string, message = 'You\'re not authorized in
 }
 
 /**
- * Express middleware to catch any errors if the JWT token is invalid.
- * @function catchUnauthorized
+ * Catches any authorization errors thrown by [[authorize]].
+ * @param err Error from previous middleware.
+ * @param req Express request object.
+ * @param res Express response object.
+ * @param next Calls the next handler in the middleware chain.
  */
-
 export function catchUnauthorized(err: Error, req: Request, res: Response, next: NextFunction) {
 	if (err.name === 'UnauthorizedError') {
 		api.error(res, err, Action.UNAUTHORIZED);
@@ -191,25 +166,13 @@ export function catchUnauthorized(err: Error, req: Request, res: Response, next:
 }
 
 /**
- * Generates a JSON Web Token that should be stored on the client
- * and sent in the header with every API call required authentication.
- * @function generate
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {Boolean} rememberMe - Should the user stay logged in?
- * @param {string} comment - ID comment to use in JWT
- * @param {generateCallback} callback - Callback
+ * Generates a JWT (JSON Web Token) to be stored on the client.
+ * @param db Database connection.
+ * @param user Username.
+ * @param rememberMe Whether JWT should expire in 30 days instead of 12 hours.
+ * @param comment Comment to associate with the JWT.
+ * @returns A valid JWT.
  */
-
-/**
- * Returns a valid JWT token to give to user
- * @callback generateCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {string} token - JWT token. Error if null.
- */
-
 export async function generate(db: Db, user: string, rememberMe: boolean, comment: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
@@ -261,22 +224,11 @@ export async function generate(db: Db, user: string, rememberMe: boolean, commen
 }
 
 /**
- * Determines whether or not a JWT is in the JWTBlacklist collection, usually because they logged out.
- * @function isBlacklisted
- *
- * @param {Object} db - Database connection
- * @param {string} jwt - JSON Web Token
- * @param {isBlacklistedCallback} callback - Callback
+ * Checks whether a JWT is not in the whitelist.
+ * @param db Database connection.
+ * @param checkJwt The JWT to check.
+ * @returns Whether the JWT is blacklisted.
  */
-
-/**
- * Returns whether or not JWT is blacklisted.
- * @callback isBlacklistedCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Boolean} blacklisted - True if blacklisted, false if not. Null if error.
- */
-
 export async function isBlacklisted(db: Db, checkJwt: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof checkJwt !== 'string') { throw new Error('Invalid JWT!'); }
@@ -295,22 +247,11 @@ export async function isBlacklisted(db: Db, checkJwt: string) {
 }
 
 /**
- * Revokes a JSON Web Token so it can't be used with the API anymore. Used typically for logging the user out.
- * @function revoke
- *
- * @param {Object} db - Database connection
- * @param {Object} payload - Object with all the claims of the JWT
- * @param {string} jwt - JSON Web Token to disable
- * @param {revokeCallback} callback - Callback
+ * Revokes a JWT so that it can't be used with the API anymore.
+ * @param db Database connection.
+ * @param payload All the JWT claims and payload.
+ * @param revokeJwt The JWT to revoke access for.
  */
-
-/**
- * Returns whether revocation was successful or not.
- * @callback revokeCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- */
-
 export async function revoke(db: Db, payload: any, revokeJwt: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof payload !== 'object') { throw new Error('Invalid payload!'); }

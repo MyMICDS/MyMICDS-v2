@@ -16,10 +16,8 @@ export default (io: Server) => {
 	});
 
 	/**
-	 * Determines if anyone is currently pressing the progress label, and emits whether should or should not spin
-	 * @function calcProgressSpin
+	 * Determines if anyone is currently pressing the progress label and emits whether it should or should not spin.
 	 */
-
 	function calcProgressSpin() {
 		let anyPressing = false;
 

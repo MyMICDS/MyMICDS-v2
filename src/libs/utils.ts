@@ -1,10 +1,8 @@
 /**
- * Returns a number with possible leading zero if under 10
- * @function leadingZeros
- * @param {Number} n - number
- * @returns {Number|String}
+ * Pads a number to two digits with a leading zero.
+ * @param n An input number.
+ * @returns The padded number (as a string if leading zero added).
  */
-
 export function leadingZeros(n: number) {
 	if (n < 10) {
 		return '0' + n;
@@ -14,20 +12,18 @@ export function leadingZeros(n: number) {
 }
 
 /**
- * Tests whether string is valid filename to prevent users from accessing/deleting files outside a specified directory
- * (Ex. '../../some/other/directory')
- * @function validUsername
- * @returns {Boolean}
+ * Tests whether a string is a valid filename.
+ * Prevents users from accessing/deleting files outside a specified directory (`../../some/other/directory`).
+ * @param filename The filename to check.
  */
-
-export function validFilename(username: string) {
+export function validFilename(filename: string) {
 	const nonoChars = [
 		'..',
 		'/',
 		'\\'
 	];
 
-	return nonoChars.includes(username);
+	return !nonoChars.includes(filename);
 }
 
 export interface StringDict {

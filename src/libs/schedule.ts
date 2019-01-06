@@ -143,32 +143,14 @@ const genericBlocks: Record<
 };
 
 /**
- * Retrieves a user's schedule with a given date
- * @function getSchedule
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username to get schedule
- * @param {Object} date - Date object of day to get schedule
- * @param {getScheduleCallback} callback - Callback
- * @param {Boolean} portalBroke - Used internally to recursively call the function.
- * 								  Flags whether or not we should use Portal feed to calculate schedule.
+ * Retrieves a user's schedule for the given date.
+ * @param db Database connection.
+ * @param user Username.
+ * @param date The date to get the schedule for.
+ * @param portalBroke Whether or not the Portal should be used for calculating schedules. Used internally for recursion.
+ * @returns An object containing the day rotation, whether the schedule is special,
+ * 			and the different classes for the day.
  */
-
-/**
- * Returns a user's schedule for that day
- * @callback getScheduleCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Boolean} hasURL - Whether user has set a valid portal URL. Null if failure.
- * @param {Object} schedule - Object containing everything going on that day. Null if failure.
- * @param {Object} schedule.day - Speicifies what day it is in the schedule rotation. Null if no day is found.
- * @param {Boolean} schedule.special - Whether or not this schedule is a special little snowflake.
- * @param {Object} schedule.classes - Array containing schedule and classes for that day.
- * 									  Empty array if nothing is going on that day.
- * @param {Object} schedule.allDay - Array containing all-day events or events spanning multiple days.
- * 									 Empty array if nothing is going on that day.
- */
-
 async function getSchedule(db: Db, user: string, date: Date, portalBroke = false) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
@@ -504,18 +486,16 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 }
 
 /**
- * Combine user's configured classes with a block schedule.
- * Returns an array containing block schedule with possibly configured classes.
- * @function combineClassesSchedule
- *
- * @param {Object} date - Date object for date to create schedule
- * @param {Object} schedule - Array of block schedule from JSON
- * @param {Object} blocks - Object with block as key, class object as value
- * @returns {Object}
+ * Combines configured classes with a block schedule.
+ * @param date Date object to get block schedule for.
+ * @param schedule Block schedule.
+ * @param blocks An object pairing blocks with class objects.
+ * @returns An array containing the block schedule with possibly configured classes.
  */
-
 // tslint:disable-next-line:max-line-length
 function combineClassesSchedule(date: Date | moment.Moment, schedule: BlockFormat[], blocks: Partial<Record<Block, ScheduleClass>>) {
+	// TODO: Is this still needed? Looks like something left behind after a refactor.
+	// noinspection JSUnusedAssignment
 	date = moment(date);
 	if (!_.isArray(schedule)) { schedule = []; }
 	if (typeof blocks !== 'object') { blocks = {}; }
@@ -562,15 +542,11 @@ function combineClassesSchedule(date: Date | moment.Moment, schedule: BlockForma
 }
 
 /**
- * Combination of order and combine. Returns an array of the new class combined with other classes in proper order
- * @function ordineSchedule
- *
- * @param {Object} baseSchedule - Array of existing classes
- * @param {Object} addClasses - Array of block objects to add to the class array.
- * 								Will override base classes if conflict!
- * @returns {Object}
+ * Combines the two classes and orders them properly.
+ * @param baseSchedule The existing classes.
+ * @param addClasses The new blocks to add. Will override base classes if there is a conflict.
+ * @returns A sorted array of classes.
  */
-// tslint:disable-next-line:max-line-length
 function ordineSchedule(baseSchedule: ClassesOrBlocks, addClasses: ClassesOrBlocks): ClassesOrBlocks {
 	if (!_.isArray(baseSchedule)) { baseSchedule = []; }
 	if (!_.isArray(addClasses)) { addClasses = []; }

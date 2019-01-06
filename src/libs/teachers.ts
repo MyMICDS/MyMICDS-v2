@@ -8,25 +8,10 @@ const validTeacherPrefixes = [
 ];
 
 /**
- * Adds a teacher into the database, as long as it isn't a duplicate
- * @function addTeacher
- *
- * @param {Object} db - Database connection
- * @param {Object} teacher - Object containing information about the teacher
- * @param {string} teacher.prefix - Either 'Mr.' or 'Ms.'
- * @param {string} teacher.firstName - Teacher's first name
- * @param {string} teacher.lastName - Teacher's last name
- * @param {addTeacherCallback} callback - Callback
+ * Inserts a new (unique) teacher into the database.
+ * @param db Database connection.
+ * @param teacher Teacher object to insert.
  */
-
-/**
- * Callback after a teacher is added to the database
- * @callback addTeacherCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Object} teacher - Returns the document of the teacher we just added. Null if error
- */
-
 async function addTeacher(db: Db, teacher: Omit<Teacher, '_id'>) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof teacher !== 'object') { throw new Error('Invalid teacher object!'); }
@@ -52,23 +37,11 @@ async function addTeacher(db: Db, teacher: Omit<Teacher, '_id'>) {
 }
 
 /**
- * Retrieves the document with the specified teacher id
- * @function getTeacher
- *
- * @param {Object} db - Database connection
- * @param {Object} teacherId - Object id of teacher
- * @param {getTeacherCallback} callback - Callback
+ * Retrieves the teacher with the given ID.
+ * @param db Database connection.
+ * @param teacherId Teacher ID to find.
+ * @returns Whether the object ID points to a valid teacher and the corresponding teacher document.
  */
-
-/**
- * Returns the document of teacher
- * @callback getTeacherCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Boolean} isTeacher - True if there is a valid teacher, false if not. Null if error.
- * @param {Object} teacher - Teacher document. Null if error or no valid teacher.
- */
-
 async function getTeacher(db: Db, teacherId: ObjectID) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof teacherId !== 'object') { throw new Error('Invalid teacher id object!'); }
@@ -94,21 +67,10 @@ async function getTeacher(db: Db, teacherId: ObjectID) {
 }
 
 /**
- * Returns an array of all teachers in database for Typeahead
- * @function listTeachers
- *
- * @param {Object} db - Database connection
- * @param {listTeachersCallback} callback - Callback
+ * Enumerates all teachers in database. Used for typeahead on the frontend.
+ * @param db Database connection.
+ * @returns A list of all the teacher objects in the database.
  */
-
-/**
- * Returns array of teachers
- * @callback listTeachersCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} teachers - Array of teacher objects. Null if error.
- */
-
 async function listTeachers(db: Db) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
@@ -122,20 +84,9 @@ async function listTeachers(db: Db) {
 }
 
 /**
- * Deletes all teachers that are not linked to any class
- * @function deleteClasslessTeachers
- *
- * @param {Object} db - Databse connection
- * @param {deleteClasslessTeachersCallback} callback - Callback
+ * Deletes all teachers that are not linked to any class.
+ * @param db Database connection.
  */
-
-/**
- * Returns an error if any. Also has extremely long name.
- * @callback deleteClasslessTeachersCallback
- *
- * @param {Object} err - Null if success, error object if failure
- */
-
 export async function deleteClasslessTeachers(db: Db) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 

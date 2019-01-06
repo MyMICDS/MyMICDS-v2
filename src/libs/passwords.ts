@@ -13,24 +13,12 @@ export const passwordBlacklist = [
 ];
 
 /**
- * Determines whether a password matches for a certain user
- * @function passwordMatches
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {string} password - Plaintext password
- * @param {passwordMatchesCallback} callback - Callback
+ * Checks whether a plaintext password matches with the user's hashed password.
+ * @param db Database connection.
+ * @param user Username.
+ * @param password Plaintext password.
+ * @returns Whether the password matched and whether the user's account is confirmed.
  */
-
-/**
- * Returns whether password matches or not
- * @callback passwordMatchesCallback
- *
- * @param {Object} err - Null if successful, error object if failure.
- * @param {Boolean} matches - True if password matches, false if not. Null if error.
- * @param {Boolean} confirmed - Whether or not the user has confirmed their account.
- */
-
 export async function passwordMatches(db: Db, user: string, password: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof password !== 'string') { throw new Error('Invalid password!'); }
@@ -52,23 +40,12 @@ export async function passwordMatches(db: Db, user: string, password: string) {
 }
 
 /**
- * Changes the password if old password matches
- * @function changePassword
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {string} oldPassword - Old plaintext password
- * @param {string} newPassword - New plaintext password to change
- * @param {changePasswordCallback} callback - Callback
+ * Changes a user's password if they still know their old password.
+ * @param db Database connection.
+ * @param user Username.
+ * @param oldPassword The user's current/old password.
+ * @param newPassword The new password to set.
  */
-
-/**
- * Returns an error (if any) about changing the user's password
- * @callback changePasswordCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- */
-
 export async function changePassword(db: Db, user: string, oldPassword: string, newPassword: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof newPassword !== 'string') { throw new Error('Invalid new password!'); }
@@ -97,22 +74,10 @@ export async function changePassword(db: Db, user: string, oldPassword: string, 
 }
 
 /**
- * Creates a password confirmation hash and sends an email to the user to change their password.
- * You do not need to input a password yet, as that comes later when the user clicks on the link.
- * @function resetPasswordEmail
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {resetPasswordEmailCallback} callback - Callback
+ * Creates a reset hash and sends a reset password email.
+ * @param db Database connection.
+ * @param user Username.
  */
-
-/**
- * Returns an error if any
- * @callback resetPasswordEmailCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- */
-
 export async function resetPasswordEmail(db: Db, user: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
@@ -156,23 +121,12 @@ export async function resetPasswordEmail(db: Db, user: string) {
 }
 
 /**
- * Changes the password if hash matches the user's passwordChangeHash
- * @function resetPassword
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {string} password - Plaintext password to change
- * @param {string} hash - passwordChangeHash from confirmation email
- * @param {resetPasswordCallback} callback - Callback
+ * Changes a user's password if the reset hash matches the hash stored in the database.
+ * @param db Database connection.
+ * @param user Username.
+ * @param password The new password.
+ * @param hash The reset hash.
  */
-
-/**
- * Returns an error (if any) about changing the user's password
- * @callback resetPasswordCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- */
-
 export async function resetPassword(db: Db, user: string, password: string, hash: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof password !== 'string' || passwordBlacklist.includes(password)) { throw new Error('Invalid password!'); }

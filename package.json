@@ -23,12 +23,12 @@
     "prod": "npm run build && pm2 start ts-node -i max --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds\" -- --files src/index.ts",
     "tasks": "npm run ts && pm2 start ts-node --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds-tasks\" -- --files src/tasks.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "docs": "typedoc --out ./docs --mode file ./src",
+    "docs": "typedoc --out ./docs --mode modules ./src/libs ./src/external.d.ts",
     "lint": "tslint --project tsconfig.json \"src/**/*.ts\""
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/michaelgira23/MyMICDS-v2.git"
+    "url": "git+https://github.com/MyMICDS/MyMICDS-v2.git"
   },
   "keywords": [
     "MyMICDS",
@@ -37,7 +37,7 @@
   "author": "MyMICDS Development Team",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/michaelgira23/MyMICDS-v2/issues",
+    "url": "https://github.com/MyMICDS/MyMICDS-v2/issues",
     "email": "support@mymicds.net"
   },
   "homepage": "https://mymicds.net",
@@ -91,7 +91,7 @@
     "@types/socket.io": "^1.4.36",
     "@types/underscore": "^1.8.8",
     "tslint": "^5.10.0",
-    "typedoc": "^0.11.1",
+    "typedoc": "^0.14.0",
     "typescript": "^3.2.2"
   }
 }

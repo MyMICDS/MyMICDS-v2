@@ -37,29 +37,23 @@ const defaultVariants = {
 const defaultBlurRadius = 10;
 
 /**
- * Returns a function to upload a user background. Can be used as Express middleware, or by itself.
- * @function uploadBackground
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {function}
+ * Creates a function for uploading a user background.
+ * @returns A function that can be used as Express middleware or independently.
  */
-
 function uploadBackground() {
 
 	const storage = multer.diskStorage({
 		async destination(req, file, cb) {
-			const ourReq = req; // as ProcessedRequest;
 			// Delete current background
 			try {
-				await deleteBackground(ourReq.apiUser!);
+				await deleteBackground(req.apiUser!);
 			} catch (err) {
 				cb(err, '');
 				return;
 			}
 
 			// Make sure directory is created for user backgrounds
-			const userDir = userBackgroundsDir + '/' + ourReq.apiUser + '-' + Date.now();
+			const userDir = userBackgroundsDir + '/' + req.apiUser + '-' + Date.now();
 			fs.ensureDir(userDir, err => {
 				if (err) {
 					cb(new Error('There was a problem ensuring the image directory!'), '');
@@ -99,23 +93,10 @@ function uploadBackground() {
 }
 
 /**
- * Gets the extension of the user's background
- * @function getCurrentFiles
- *
- * @param {string} user - Username
- * @param {getCurrentFilesCallback} callback - Callback
+ * Finds all the images associated with a user.
+ * @param user Username.
+ * @returns Path of image directory and the extension for the images.
  */
-
-/**
- * Returns a string containing extension
- * @callback getCurrentFilesCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {string} dirname - Name of directory containing background. Null if error or user doesn't have background.
- * @param {string} extension - String containing extension of user background.
- * 							   Contains the dot (.) at the beginning of the extension. Null if error or user doesn't have background.
- */
-
 async function getCurrentFiles(user: string) {
 	if (typeof user !== 'string' || !utils.validFilename(user)) { throw new Error('Invalid username!'); }
 
@@ -160,20 +141,9 @@ async function getCurrentFiles(user: string) {
 }
 
 /**
- * Deletes all images of user
- * @function deleteBackground
- *
- * @param {string} user - Username
- * @param {deleteBackgroundCallback} callback - Callback
+ * Deletes all of a user's background images.
+ * @param user Username.
  */
-
-/**
- * Returns an error if any
- * @callback deleteBackgroundCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- */
-
 async function deleteBackground(user: string) {
 	if (typeof user !== 'string' || !utils.validFilename(user)) { throw new Error('Invalid username!'); }
 
@@ -194,22 +164,10 @@ async function deleteBackground(user: string) {
 }
 
 /**
- * Returns a URL to display as a background for a certain user
- * @function getBackground
- *
- * @param {string} user - Username
- * @param {getBackgroundCallback} callback - Callback
+ * Retrieves a user's background image.
+ * @param user Username.
+ * @returns All the different variants of a background image and whether or not it's the default background.
  */
-
-/**
- * Returns valid URL
- * @callback getBackgroundCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {string} variants - Object of background URL variations
- * @param {Boolean} hasDefault - Whether or not user has default background.
- */
-
 async function getBackground(user: string): Promise<BackgroundObject> {
 	if (typeof user !== 'string' || !utils.validFilename(user)) { return { variants: defaultVariants, hasDefault: true }; }
 
@@ -228,21 +186,10 @@ async function getBackground(user: string): Promise<BackgroundObject> {
 }
 
 /**
- * Pairs all users with their background variants
- * @function getAllBackgrounds
- *
- * @param {Object} db - Database connection
- * @param {getAllBackgroundsCallback} callback - Callback
+ * Retrieves the backgrounds of every single user.
+ * @param db Database connection.
+ * @returns Each user paired with their background variants.
  */
-
-/**
- * Returns object with users and backgrounds
- * @callback getAllBackgroundsCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Object} backgrounds - Object of all users and backgrounds
- */
-
 async function getAllBackgrounds(db: Db) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
@@ -300,6 +247,11 @@ async function getAllBackgrounds(db: Db) {
 	return result;
 }
 
+/**
+ * Gets the file extension of a user's background image.
+ * @param userDir Name of directory containing background images.
+ * @returns File extension.
+ */
 async function getDirExtension(userDir: string) {
 	let userImages: string[];
 	try {
@@ -325,22 +277,11 @@ async function getDirExtension(userDir: string) {
 }
 
 /**
- * Adds a blur to an image
- * @function addBlur
- *
- * @param {string} fromPath - Path to image (png or jpg only)
- * @param {string} toPath - Path to put blurred image
- * @param {Number} blurRadius - Gaussian blur radius
- * @param {addBlurCallback} callback - Callback
+ * Adds blur to an image.
+ * @param fromPath Path to original image.
+ * @param toPath Output path for blurred image.
+ * @param blurRadius Gaussian blur radius to use.
  */
-
-/**
- * Returns error if any
- * @callback addBlurCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- */
-
 async function addBlur(fromPath: string, toPath: string, blurRadius: number) {
 	if (typeof fromPath !== 'string') { throw new Error('Invalid path to original image!'); }
 	if (typeof toPath !== 'string') { throw new Error('Invalid path to blurred image!'); }
@@ -363,20 +304,9 @@ async function addBlur(fromPath: string, toPath: string, blurRadius: number) {
 }
 
 /**
- * Creates a blurred version of a user's background
- * @function blurUser
- *
- * @param {string} user - Username
- * @param {blurUserCallback} callback - Callback
+ * Creates a blurred version of a user's background.
+ * @param user Username.
  */
-
-/**
- * Returns error if any
- * @callback blurUserCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- */
-
 export async function blurUser(user: string) {
 	if (typeof user !== 'string' || !utils.validFilename(user)) { throw new Error('Invalid username!'); }
 

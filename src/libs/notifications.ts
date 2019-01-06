@@ -9,23 +9,12 @@ export enum Scope {
 }
 
 /**
- * Unsubscribe a user from certain categories of emails
- * @function unsubscribe
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {string} hash - Unsubscribe hash from the database
- * @param {string|string[]} scopes - Single scope or array of multiple valid scopes
- * @param {unsubscribeCallback} callback - Callback
+ * Unsubscribes a user from a certain set of emails.
+ * @param db Database connection.
+ * @param user Username.
+ * @param hash Unsubscription hash.
+ * @param scopes Scope(s) to unsubscribe from.
  */
-
-/**
- * Callback after the account has is unsubscribed
- * @callback unsubscribeCallback
- *
- * @param {Object} err - Null if successful, error object if failure
- */
-
 export async function unsubscribe(db: Db, user: string, hash: string | boolean, scopes: Scope | Scope[]) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid username!'); }

@@ -17,22 +17,10 @@ import * as users from './users';
 const urlPrefix = 'https://micds.instructure.com/feeds/calendars/';
 
 /**
- * Makes sure a given url is valid and it points to a Canvas calendar feed
- * @function verifyURL
- *
- * @param {string} canvasURL - URI to iCal feed
- * @callback {verifyURLCallback} callback - Callback
+ * Checks the validity of a Canvas calendar URL.
+ * @param canvasURL The URL to check.
+ * @returns Whether the URL is valid and a newly formatted URL if it is.
  */
-
-/**
- * Returns whether url is valid or not
- * @callback verifyURLCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Boolean|string} isValid - True if valid URL, string describing problem if not valid. Null if error.
- * @param {string} url - Valid and formatted URL to our likings. Null if error or invalid url.
- */
-
 export async function verifyURL(canvasURL: string) {
 	if (typeof canvasURL !== 'string') { throw new Error('Invalid URL!'); }
 
@@ -67,24 +55,12 @@ export async function verifyURL(canvasURL: string) {
 }
 
 /**
- * Sets a user's calendar URL if valid
- * @function setUrl
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {string} url - Calendar url
- * @param {setUrlCallback} callback - Callback
+ * Sets a user's Canvas URL, if valid.
+ * @param db Database connection.
+ * @param user Username.
+ * @param calUrl Canvas calendar URL to check.
+ * @returns Whether the URL is valid.
  */
-
-/**
- * Returns the valid url that was inserted into database
- * @callback setUrlCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Boolean|string} isValid - True if valid URL, string describing problem if not valid. Null if error.
- * @param {string} validURL - Valid url that was inserted into database. Null if error or url invalid.
- */
-
 export async function setURL(db: Db, user: string, calUrl: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
@@ -108,23 +84,11 @@ export async function setURL(db: Db, user: string, calUrl: string) {
 }
 
 /**
- * Retrieves a user's events on Canvas from their URL
- * @function getUserCal
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username to get schedule
- * @param {getUserCalCallback} callback - Callback
+ * Retrieves a user's Canvas events from their URL.
+ * @param db Database connection.
+ * @param user Username.
+ * @returns Whether the user has a saved URL and the calendar events.
  */
-
-/**
- * Returns a user's schedule for that day
- * @callback getUserCalCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Boolean} hasURL - Whether user has set a valid portal URL. Null if failure.
- * @param {Object} events - Array of all the events in the month. Null if failure.
- */
-
 export async function getUserCal(db: Db, user: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
@@ -148,13 +112,10 @@ export async function getUserCal(db: Db, user: string) {
 }
 
 /**
- * Parses a Canvas assignment title into class name and teacher's name.
- * @function parseCanvasTitle
- *
- * @param {string} title - Canvas assignment title
- * @returns {Object}
+ * Parses a Canvas class title into the class name and teacher name.
+ * @param title Class title to parse.
+ * @returns Parsed class and teacher data.
  */
-
 function parseCanvasTitle(title: string) {
 	const classTeacherRegex = /\[.+]/g;
 	const teacherRegex = /:[A-Z]{5}$/g;
@@ -172,7 +133,7 @@ function parseCanvasTitle(title: string) {
 	const teacherLastName = (teacher[1] || '') + teacher.substring(2).toLowerCase();
 
 	// Subtract teacher from classTeacher to get the class
-	const className = classTeacher.replace(teacher, '').replace(/\[|]/g, '').replace(/:$/g, '');
+	const className = classTeacher.replace(teacher, '').replace(/[\[\]]/g, '').replace(/:$/g, '');
 
 	return {
 		assignment: assignmentName,
@@ -189,13 +150,9 @@ function parseCanvasTitle(title: string) {
 }
 
 /**
- * Parses a Canvas calendar link into an assignment/event link.
- * @function calendarToEvent
- *
- * @param {string} calLink - Calendar link
- * @returns {string}
+ * Turns a Canvas calendar link into an assignment link.
+ * @param calLink Calendar link.
  */
-
 function calendarToEvent(calLink: string) {
 	// Example calendar link:
 	// https://micds.instructure.com/calendar?include_contexts=course_XXXXXXX&month=XX&year=XXXX#assignment_XXXXXXX
@@ -217,23 +174,11 @@ function calendarToEvent(calLink: string) {
 }
 
 /**
- * Iterates through all of the user's events and get their classes from Canvas
- * @function getClasses
- *
- * @param {Object} db - Database object
- * @param {string} user - Username
- * @param {getClassesCallback} callback - Callback
+ * Gets all of a user's Canvas classes by iterating through their events.
+ * @param db Database object.
+ * @param user Username.
+ * @returns Whether the user has a saved URL and the associated classes.
  */
-
-/**
- * Returns array of classes from canvas
- * @callback getClassesCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Boolean} hasURL - Whether or not user has a Canvas URL set. Null if error.
- * @param {Array} classes - Array of classes from canvas. Null if error or no Canvas URL set.
- */
-
 export async function getClasses(db: Db, user: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
@@ -288,21 +233,11 @@ export async function getClasses(db: Db, user: string) {
 }
 
 /**
- * Get Canvas events from the cache
- * @param {Object} db - Database object
- * @param {string} user - Username
- * @param {getFromCacheCallback} callback - Callback
+ * Gets a user's Canvas events from the database cache.
+ * @param db Database connection.
+ * @param user Username.
+ * @returns Whether the user has a saved URL and the cache events.
  */
-
-/**
- * Returns array containing Canvas events
- * @callback getFromCacheCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Boolean} hasURL - Whether or not user has a Canvas URL set. Null if error.
- * @param {Array} events - Array of events if success, null if failure.
- */
-
 export async function getFromCache(db: Db, user: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid username!'); }

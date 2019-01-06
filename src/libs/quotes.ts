@@ -2,26 +2,10 @@ import { Quote } from '@mymicds/sdk';
 import { Db } from 'mongodb';
 
 /**
- * @file Functions for distributing our wisdom throughout the world. One API call at a time.
- * @module quotes
+ * Retrieves all quotes from the database.
+ * @param db Database connection
+ * @returns A list of all saved quotes.
  */
-
-/**
- * Get a quote from the database
- * @function getQuote
- *
- * @param {Object} db - Database connection
- * @param {getQuoteCallback} callback - Callback
- */
-
-/**
- * Returns an array of quotes
- * @callback getQuoteCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} quotes - Array of quotes from database. Null if error.
- */
-
 async function getQuotes(db: Db) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
@@ -35,22 +19,11 @@ async function getQuotes(db: Db) {
 }
 
 /**
- * Disperses your knowledge into the universe
- * @function insertQuote
- *
- * @param {Object} db - Database connection
- * @param {string} author - Senpai
- * @param {string} quote - Words of wisdom we should all live by
- * @param {insertQuoteCallback} callback - Callback
+ * Inserts a quote into the database.
+ * @param db Database connection.
+ * @param author Author of the quote.
+ * @param quote Quote content.
  */
-
-/**
- * Whether or not quote was successfully inserted into the database
- * @callback insertQuoteCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- */
-
 async function insertQuote(db: Db, author: string, quote: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof author !== 'string') { throw new Error('Invalid author!'); }

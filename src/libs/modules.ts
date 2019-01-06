@@ -120,11 +120,10 @@ const defaultModules: MyMICDSModule[] = [
 ];
 
 /**
- * Get default options of a module name
- * @param {string} type - Module type
- * @returns {Object}
+ * Gets the default options for a module.
+ * @param type Module type.
+ * @returns The default module configuration options.
  */
-
 function getDefaultOptions(type: MyMICDSModuleType): any {
 	const moduleConfig = modulesConfig[type as MyMICDSModuleType];
 	if (typeof moduleConfig === 'undefined') {
@@ -139,20 +138,11 @@ function getDefaultOptions(type: MyMICDSModuleType): any {
 }
 
 /**
- * Gets an array of all active modules for a user
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {getModulesCallback} callback - Callback
+ * Retrieves all of a user's configured modules.
+ * @param db Database connection.
+ * @param user Username.
+ * @returns A list of module objects.
  */
-
-/**
- * Callback after modules have been retrieved
- * @callback getModulesCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Array} modules - Array of user's currently active modules if success, null ir error
- */
-
 async function getModules(db: Db, user: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
@@ -198,20 +188,11 @@ async function getModules(db: Db, user: string) {
 }
 
 /**
- * Change a user's current modules
- * @param {Object} db - Database object
- * @param {String} user - Username
- * @param {Array} modules - List of modules with changes
- * @param {upsertModulesCallback} callback - Callback
+ * Updates and validates new modules for a user.
+ * @param db Database connection.
+ * @param user Username.
+ * @param modules The module objects to modify.
  */
-
-/**
- * Callback after modules are modified
- * @callback upsertModulesCallback
- *
- * @param {Object} err - Null if success, error object if null
- */
-
 async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 	// Input validation
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
@@ -258,11 +239,7 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 			// Convert iso strings to date objects
 			if (configType === Date) {
 				mod.options[optionKey] = new Date(moduleValue);
-				if (isNaN(mod.options[optionKey].getTime())) {
-					valid = false;
-				} else {
-					valid = true;
-				}
+				valid = !isNaN(mod.options[optionKey].getTime());
 			} else if (!configType.prototype && Object.values(configType).includes(moduleValue)) {
 				// Check if custom enum type
 				valid = true;

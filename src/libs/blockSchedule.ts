@@ -17,19 +17,13 @@ const middleschoolSchedule = {
 // tslint:enable:no-var-requires
 
 /**
- * Returns a user's generic schedule according to their grade and their class names for each corresponding block.
- * Returns null if something's invalid.
- * @function getSchedule
- *
- * @param {Object} date - Date to set date objects to.
- * 						  If null, will return regular strings with times in 24-hour time '15:15'
- * @param {Number} grade - User's grade (Note: We only support middleschool and highschool schedules)
- * @param {Number} day - What schedule rotation day it is (1-6)
- * @param {Boolean} lateStart - Whether or not schedule should be the late start variant
- *
- * @returns {Object}
+ * Gets the generic schedule for a user depending on their grade.
+ * @param date Date to set class start and end times relative to.
+ * @param grade User's grade (only middle and upper school grades supported).
+ * @param day Schedule rotation day to get the schedule for.
+ * @param lateStart Whether or not the schedule should be late start.
+ * @returns The appropriate generic schedule.
  */
-
 function getSchedule(date: Date | moment.Moment | null, grade: number, day: number, lateStart: boolean) {
 	// Validate inputs
 	if (date) {

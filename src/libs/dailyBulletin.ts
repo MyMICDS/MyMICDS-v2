@@ -23,18 +23,9 @@ const bulletinPDFDir = __dirname + '/../public/daily-bulletin';
 const query = 'label:us-daily-bulletin';
 
 /**
- * Gets the most recent Daily Bulletin from Gmail and writes it to the bulletin directory
- * @function queryLatest
- * @param {queryLatestCallback} callback - Callback
+ * Retrieves the most recent Daily Bulletin from Gmail and saves it to the bulletin directory.
  */
-
-/**
- * Returns an error if any
- * @callback queryLatestCallback
- * @param {Object} err - Null if success, error object if failure.
- */
-
-export async function queryLatest(): Promise<void> {
+export async function queryLatest() {
 	// Get Google Service Account
 	const jwtClient = await googleServiceAccount.create();
 
@@ -120,17 +111,8 @@ export async function queryLatest(): Promise<void> {
 }
 
 /**
- * Goes through all of the Daily Bulletins and writes them to file.
- * @function queryAll
- * @callback {queryAllCallback} callback - Callback
+ * Gets every single Daily Bulletin and writes them to disk.
  */
-
-/**
- * Returns an error if any
- * @callback queryAllCallback
- * @param {Object} err - Null if success, error object if failure.
- */
-
 export async function queryAll() {
 	// tslint:disable:no-console
 	console.log('Trying to query all the Daily Bulletins in existence. This may take a bit of time...');
@@ -170,6 +152,7 @@ export async function queryAll() {
 			// We got all the pages!
 			// We start with the last so newer bulletins will override older ones if multiple emails were sent.
 			// Create a batch so we can send up to 100 requests at once
+			// noinspection JSPotentiallyInvalidConstructorUsage
 			const batch = new googleBatch();
 			batch.setAuth(jwtClient);
 
@@ -301,19 +284,9 @@ export async function queryAll() {
 }
 
 /**
- * Returns an array of the Daily Bulletin names in the Daily Bulletin directory.
- * @function getList
- * @param {getListCallback} callback - Callback
+ * Gets the locations of all the Daily Bulletins on disk.
+ * @returns A list of bulletin filenames from newest to oldest.
  */
-
-/**
- * Returns an array of bulletin names (without extention) from newest to oldest
- * @callback getListCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} bulletins - Array of bulletins from newest to oldest. Null if error.
- */
-
 export async function getList() {
 	// Read directory
 	try {
@@ -346,12 +319,10 @@ export async function getList() {
 }
 
 /**
- * Return MyMICDS filename (including extension) from parsing email attachment filename.
- * Returns null if unable to parse.
- * @param {string} filename - Name of file
- * @returns {string}
+ * Turns an email attachment filename into a MyMICDS filename.
+ * @param filename Email attachment filename.
+ * @returns Filename to save bulletin as.
  */
-
 function parseFilename(filename: string): string | null {
 	const cleanedName = /([0-9]+.)+[0-9]+/.exec(filename);
 	if (!cleanedName || !cleanedName[0]) {

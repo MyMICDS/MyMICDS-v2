@@ -2,22 +2,11 @@ import { Db, ObjectID } from 'mongodb';
 import * as users from './users';
 
 /**
- * Marks an event as complete
- * @function checkEvent
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {string} eventId - Event id
- * @param {checkEventCallback} callback - Callback
+ * Marks a planner event as complete.
+ * @param db Database connection.
+ * @param user Username.
+ * @param eventId Event ID to check off.
  */
-
-/**
- * Returns if checking event is successful
- * @callback checkEventCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- */
-
 async function checkEvent(db: Db, user: string, eventId: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
@@ -47,23 +36,11 @@ async function checkEvent(db: Db, user: string, eventId: string) {
 }
 
 /**
- * Determines if an event id is checked
- * @function getChecked
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {string} eventId - Event id
- * @param {getCheckedCallback} callback - Callback
+ * Determines whether an event is checked off.
+ * @param db Database connection.
+ * @param user Username.
+ * @param eventId Event ID to check.
  */
-
-/**
- * Returns if event is checked
- * @callback getCheckedCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Boolean} checked - Whether or not event is checked or not
- */
-
 async function getChecked(db: Db, user: string, eventId: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
@@ -85,22 +62,11 @@ async function getChecked(db: Db, user: string, eventId: string) {
 }
 
 /**
- * Returns a list of checked events for user
- * @function listChecked
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {listCheckedCallback} callback - Callback
+ * Gets all of a user's checked events.
+ * @param db Database connection.
+ * @param user Username.
+ * @returns A list of checked events.
  */
-
-/**
- * Returns a list of checked events
- * @callback listCheckedCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} checkedEventsList - Array of event ids checked
- */
-
 async function listChecked(db: Db, user: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
@@ -122,22 +88,11 @@ async function listChecked(db: Db, user: string) {
 }
 
 /**
- * Unchecks an event
- * @function uncheckEvent
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {string} eventId - Event id
- * @param {uncheckEventCallback} callback - Callback
+ * Unchecks an event.
+ * @param db Database connection.
+ * @param user Username.
+ * @param eventId Event ID to uncheck.
  */
-
-/**
- * Returns if unchecking event is successful
- * @callback uncheckEventCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- */
-
 async function uncheckEvent(db: Db, user: string, eventId: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid username!'); }

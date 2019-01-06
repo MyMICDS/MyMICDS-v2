@@ -10,12 +10,11 @@ declare global {
 }
 
 /**
- * Express middleware to allow admins to perform any action on behalf of another user
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Calls the next function in the middleware chain
+ * Allows admins to perform an action on behalf of another user.
+ * @param req Express request object.
+ * @param res Express response object.
+ * @param next Calls the next handler in the middleware chain.
  */
-
 export function adminOverride(req: Request, res: Response, next: NextFunction) {
 	req.apiUser = null;
 	if (req.user) {
@@ -33,11 +32,10 @@ export function adminOverride(req: Request, res: Response, next: NextFunction) {
 }
 
 /**
- * Responds in the proper API format
- * @param {Object} res - Express response object
- * @param {Object} data - Any data the API should respond with
- * @param {?string} [action] - Action (if any) for the front-end client to perform.
- * 							   Must be one of the strings in the `ACTIONS` array or null. Defaults to null.
+ * Responds in the standard API response format.
+ * @param res Express response object.
+ * @param data Any data that the API should respond with.
+ * @param action An action for the front-end client to perform.
  */
 function respondSuccess(res: Response, data: any = {}, action: Action | null = null) {
 	// Make sure it's a valid action
@@ -53,11 +51,10 @@ function respondSuccess(res: Response, data: any = {}, action: Action | null = n
 }
 
 /**
- * Responds with an error in the proper API format
- * @param {Object} res - Express response object
- * @param {Object} err - Error object for the API to respond with
- * @param {?string} [action] - Action (if any) for the front-end client to perform.
- * 							   Must be one of the strings in the `ACTIONS` array or null. Defaults to null.
+ * Responds in the standard API error format.
+ * @param res Express response object.
+ * @param error Error that the API should respond with.
+ * @param action An action for the front-end client to perform.
  */
 function respondError(res: Response, error: Error | string | null, action: Action | null = null) {
 	// Check for different types of errors

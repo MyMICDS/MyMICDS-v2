@@ -1,41 +1,25 @@
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { promisify } from 'util';
 
 /**
- * Hashes a given password
- * @function hashPassword
- *
- * @param {string} password - Password to be hashed
- * @param {hashPasswordCallback} callback - Callback
+ * Hashes a password.
+ * @param password Password to hash.
+ * @returns The hashed pasword.
  */
-
-/**
- * Callback after the password is hashed
- * @callback hashPasswordCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {string} hash - Encrypted password. Null if error.
- */
-
 export async function hashPassword(password: string) {
 	try {
-		return await promisify(bcrypt.hash)(password, 10);
+		return await bcrypt.hash(password, 10);
 	} catch (e) {
 		throw new Error('There was a problem hashing the password!');
 	}
 }
 
 /**
- * Always use protection (against timing attacks), kids!
- * @function safeCompare
- *
- * @param {string} a - Raw string (This is what the user inputs)
- * @param {string} b - Comparison string (This is the string WE have)
- *
- * @returns {Boolean} res- True if strings match, false if strings do not match or are invalid strings
+ * Safely compares two strings to avoid timing attacks.
+ * @param a Raw string (user input).
+ * @param b Comparison string (database string).
+ * @returns Whether the strings match.
  */
-
 export function safeCompare(a: string, b: string) {
 
 	if (typeof a !== 'string' || typeof b !== 'string') {
@@ -58,27 +42,20 @@ export function safeCompare(a: string, b: string) {
 }
 
 /**
- * Encrypt a string in SHA-256
- * @function shaHash
- *
- * @param {string} string - String to be encrypted
- * @param {shaHashCallback} [callback] - Optional Callback
- *
- * @returns {string}
+ * Creates a SHA-256 hash of a string.
+ * @param str String to hash.
+ * @returns The SHA-256 hash for the string.
  */
-
 export function shaHash(str: string) {
 	return crypto.createHash('sha256').update(str).digest('hex');
 }
 
 /**
- * Safely compares a plaintext and a sha hash to see if they are the same
- * @function safeCompareSHA
- *
- * @param {string} str - Plaintext string
- * @param {string} hash - SHA-256 hash
+ * Safely compares a plaintext string and a SHA-256 hash.
+ * @param str Plaintext string.
+ * @param hash SHA-256 hash.
+ * @returns Whether the strings match.
  */
-
 export function safeCompareSHA(str: string, hash: string) {
 	const hashedStr = shaHash(str);
 	return safeCompare(hashedStr, hash);

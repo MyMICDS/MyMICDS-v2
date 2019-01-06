@@ -12,28 +12,14 @@ import * as users from './users';
 import { Omit } from './utils';
 
 /**
- * Validates a user's credentials and updates the 'lastLogin' field.
- * @function login
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {string} password - Plaintext password
- * @param {Boolean} rememberMe - Whether JWT token should expire in 30 days instead of 1 day
- * @param {string} comment - JWT comment
- * @param {loginCallback} callback - Callback
+ * Validates a user's credentials and updates the last time they logged in.
+ * @param db Database connection.
+ * @param user Username.
+ * @param password Plaintext password.
+ * @param rememberMe Whether JWT should expire in 30 days instead of 12 hours.
+ * @param comment Comment to associate with the JWT.
+ * @returns JWT or human-readable error message.
  */
-
-/**
- * Callback after a user is logged in
- * @callback loginCallback
- *
- * @param {Object} err - Null if successful, error object if failure.
- * @param {Boolean} success - True if credentials match in database, false if not. Null if error.
- * @param {string} message - Message containing details for humans. Null if error.
- * @param {string} jwt - JSON Web Token for user to make API calls with.
- * 						 Null if error, login invalid, or rememberMe is false.
- */
-
 export async function login(db: Db, user: string, password: string, rememberMe: boolean, comment: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
@@ -67,28 +53,10 @@ export async function login(db: Db, user: string, password: string, rememberMe: 
 }
 
 /**
- * Registers a user by adding their credentials into the database. Also sends email confirmation.
- * @function register
- *
- * @param {Object} db - Database connection
- *
- * @param {Object} user - User's credentials
- * @param {string} user.Username - Username (___@micds.org)
- * @param {string} user.password - User's plaintext password
- * @param {string} user.firstName - User's first name
- * @param {string} user.lastName - User's last name
- * @param {Number} user.gradYear - User's graduation year (Ex. Class of 2019). Set to null if faculty.
- *
- * @param {registerCallback} callback - Callback
+ * Registers a user into the database and sends a confirmation email.
+ * @param db Database connection.
+ * @param user User object.
  */
-
-/**
- * Callback after a user is registered
- * @callback registerCallback
- *
- * @param {Object} err - Null if success, error object if failure
- */
-
 // tslint:disable-next-line:max-line-length
 export async function register(db: Db, user: Omit<RegisterParameters, 'teacher' | 'gradYear'> & { gradYear: number | null }) {
 	// Validate inputs
@@ -184,22 +152,11 @@ export async function register(db: Db, user: Omit<RegisterParameters, 'teacher' 
 }
 
 /**
- * Confirms a user's account if hash matches. This is used to confirm the user's email and account via email.
- * @function confirm
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {string} hash - Hashed password from the database
- * @param {confirmCallback} callback - Callback
+ * Confirms a user's account if the hash matches what's stored in the database.
+ * @param db Database connection.
+ * @param user Username.
+ * @param hash Confirmation hash.
  */
-
-/**
- * Callback after the account has is confirmed
- * @callback confirmCallback
- *
- * @param {Object} err - Null if successful, error object if failure
- */
-
 export async function confirm(db: Db, user: string, hash: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid username!'); }

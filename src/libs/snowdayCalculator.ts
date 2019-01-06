@@ -10,21 +10,10 @@ const schoolId = '';
 const snowdays = 0;
 
 /**
- * Queries the Snowday Calculator's API for a prediction at the location of MICDS
- * @function calculate
- *
- * @param {calculateCallback} callback - Callback
+ * Queries the Snowday Calculator API to predict the likelihood of a snowday at MICDS.
+ * @returns API response for MICDS for the next two days.
  */
-
-/**
- * Returns data from Snowday Calculator
- * @callback calculateCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} data - Returns object containing data for the next two days from Snowday Calculator. Null if error.
- */
-
-export async function calculate() {
+export async function calculate(): Promise<GetSnowdayResponse['data']> {
 	let body: string;
 	try {
 		body = await request.get({
@@ -82,7 +71,7 @@ export async function calculate() {
 		// Get variable name and date
 		const varName = parts[0];
 		const name = varName.match(/[a-zA-Z]+(?=\[)/) as any;
-		const dateString = varName.match(/(?!\[)\d+(?=\])/);
+		const dateString = varName.match(/(?!\[)\d+(?=])/);
 
 		// If variable name isn't mapped, we don't care about it
 		if (!labels[name as keyof typeof labels]) { continue; }

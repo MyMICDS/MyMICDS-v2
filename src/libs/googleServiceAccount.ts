@@ -1,10 +1,5 @@
 'use strict';
 
-/**
- * @file Creates and authenticates a Google Service Account that you can use
- * @module googleServiceAccount
- */
-
 import config from './config';
 const key = config.googleServiceAccount;
 
@@ -18,19 +13,9 @@ const scopes = [
 const impersonate = 'support@mymicds.net';
 
 /**
- * Creates and authenticates a Google Service account that you can use for various Google API's
- * @function createServiceAccount
- * @param {createServiceAccountCallback} callback - Callback
+ * Creates an authenticated Google Service account.
+ * @returns An authenticated account client.
  */
-
-/**
- * Returns a jwt client that you can use for various Google API's
- * @callback createServiceAccountCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} jwtClient - Authorized Google Service Account client. Null if error.
- */
-
 async function createServiceAccount() {
 	const jwtClient = new google.auth.JWT(key.client_email, undefined, key.private_key, scopes, impersonate);
 

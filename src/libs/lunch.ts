@@ -10,22 +10,10 @@ const lunchURL = 'http://myschooldining.com/MICDS/calendarWeek';
 const schools = ['Lower School', 'Middle School', 'Upper School'];
 
 /**
- * Gets the lunch from /src/api/lunch.json. Will create one if it doesn't already exist.
- * @function getLunch
- *
- * @param {Object} db - Database object
- * @param {Object} date - Javascript Date Object containing date to retrieve lunch. If invalid, defaults to today.
- * @param {getLunchCallback} callback - Callback
+ * Gets the lunch from Flik's website.
+ * @param db Database connection.
+ * @param date Date to get the lunch for.
  */
-
-/**
- * Returns JSON containing lunch for week
- * @callback getLunchCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} lunchJSON - JSON of lunch menu for the week. Null if error.
- */
-
 async function getLunch(db: Db, date: Date) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
@@ -63,13 +51,10 @@ async function getLunch(db: Db, date: Date) {
 }
 
 /**
- * Takes the body of the school's lunch page and returns lunch JSON
- * @function parseLunch
- *
- * @param {string} body - Body of HTML
- * @returns {Object}
+ * Scrapes Flik's lunch page into JSON data.
+ * @param body HTML body of the page.
+ * @returns An object with the lunch data.
  */
-
 function parseLunch(body: string) {
 	// Clean up HTML to prevent cheerio from becoming confused
 	body.replace('<<', '&lt;&lt;');
@@ -131,12 +116,10 @@ function parseLunch(body: string) {
 }
 
 /**
- * Removes spaces and makes whole string lowercase for JSON
- * @function schoolFilter
- * @param {string} school - String with school name
- * @returns {string}
+ * Filters the name of each school.
+ * @param school The school name to filter.
+ * @returns A school name formatted for JSON use.
  */
-
 function schoolFilter(school: string) {
 	return school.replace(/\s+/g, '').toLowerCase() as School;
 }

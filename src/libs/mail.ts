@@ -7,25 +7,11 @@ import { promisify } from 'util';
 import { StringDict } from './utils';
 
 /**
- * Sends mail to the desired user
- * @function send
- *
- * @param {string|Object} users - Single email string, OR an array of multiple emails
- *
- * @param {Object} message - JSON containing details of message
- * @param {string} message.subject - Subject of email
- * @param {string} message.html - HTML message
- * @param {sendCallback} callback - Callback
- * @param [Object] transporter - Optional transporter so we don't have to log in again
+ * Sends an email to the given user(s).
+ * @param users User(s) to send the email to.
+ * @param message Message to send.
+ * @param transporter Nodemailer transport object.
  */
-
-/**
- * Callback after a message is sent
- * @callback sendCallback
- *
- * @param {Object} err - Null if success, error object if failure
- */
-
 export async function send(users: string | string[], message: Message, transporter?: nodemailer.Transporter) {
 	// Validate inputs
 	if (typeof users !== 'string' && typeof users !== 'object') { throw new Error('Invalid user(s)!'); }
@@ -52,26 +38,13 @@ export async function send(users: string | string[], message: Message, transport
 }
 
 /**
- * Sends an email with supplied HTML file path, can insert custom data into HTML file
- * @function sendHTML
- *
- * @param {string|Object} users - Single email string, OR an array of multiple emails
- * @param {string} subject - Subject of email
- * @param {string} file - Path to HTML file
- * @param {Object} data - JSON of custom data.
- * 						  (Ex. Replace '{{firstName}}' in HTML by putting 'firstName: Michael' in the JSON).
- * 						  Set to empty object if there's no data.
- * @param {sendHTMLCallback} callback - Callback
- * @param [Object] transporter - Optional transporter so we don't have to log in again
+ * Sends an HTML email to the given user(s). Interpolates `{{key}}` with corresponding value from `data` object.
+ * @param users User(s) to send the email to.
+ * @param subject Subject of the email.
+ * @param file Path to file containing the HTML email template.
+ * @param data Data to fill out the template file with.
+ * @param transporter Nodemailer transport object.
  */
-
-/**
- * Callback after sending the HTML email
- * @callback sendHTMLCallback
- *
- * @param {Object} err - Null if successful, error object if failure
- */
-
 // tslint:disable-next-line:max-line-length
 export async function sendHTML(users: string | string[], subject: string, file: string, data: StringDict, transporter?: nodemailer.Transporter) {
 	if (typeof file !== 'string') { throw new Error('Invalid mail file path!'); }

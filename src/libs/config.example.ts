@@ -1,6 +1,6 @@
 /*
  * This is where all of our sensitive information is stored.
- * DO NOT MODIFY THIS DOCUMENT. Instead, create a 'config.js' with the filled out information.
+ * DO NOT MODIFY THIS DOCUMENT. Instead, create a 'config.ts' with the filled out information.
  */
 
 // tslint:disable:max-line-length

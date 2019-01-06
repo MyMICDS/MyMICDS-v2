@@ -1,12 +1,9 @@
 import * as htmlparser from 'htmlparser2';
 
 /**
- * Converts an HTML file to plaintext.
- * @function htmlToText
- * @param {string} html - HTML you want to convert to plaintext
- * @returns {string}
+ * Strips an HTML string into plaintext.
+ * @param html Input HTML string to convert.
  */
-
 export function htmlToText(html: string) {
 	let plaintext = '';
 

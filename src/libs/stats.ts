@@ -4,21 +4,10 @@ import { Db } from 'mongodb';
 import { UserDoc } from './users';
 
 /**
- * Get usage statistics
- * @function getStats
- *
- * @param {Object} db - Database connection
- * @param {getStatsCallback} callback - Callback
+ * Collects usage statistics for MyMICDS.
+ * @param db Database connection.
+ * @returns An object containing different user statistics.
  */
-
-/**
- * Callback after statistics are collected
- * @callback getStatsCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} statistics - Object containing statistics. Null if error.
- */
-
 async function getStats(db: Db) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 

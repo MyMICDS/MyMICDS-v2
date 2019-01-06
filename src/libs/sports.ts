@@ -5,20 +5,9 @@ import config from './config';
 const schoolId = 231;
 
 /**
- * Logs in the Rams Army app with the configured credentials and returns a loginKey
- * @function login
- *
- * @param {loginCallback} callback - Callback
+ * Logs into the Rams Army app.
+ * @returns A login key to be used with all Rams Army API requests.
  */
-
-/**
- * Returns a loginKey
- * @callback loginCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {string} loginKey - Login key to be passed in with all API requests to Rams Army app. Null if error.
- */
-
 async function login() {
 	let err: Error;
 	let body: any;
@@ -44,20 +33,9 @@ async function login() {
 }
 
 /**
- * Returns all the sports games scores for MICDS
- * @function getScores
- *
- * @param {getScoresCallback} callback - Callback
+ * Retrieves all the sports scores for MICDS.
+ * @returns An object containing the scores and events for MICDS sports.
  */
-
-/**
- * Returns an object containing all the scores
- * @callback getScoresCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} scores - Scores for MICDS games. Null if error.
- */
-
 async function getScores() {
 	const loginKey = await login();
 
@@ -73,12 +51,10 @@ async function getScores() {
 		throw new Error('There was a problem logging in the Rams Army app!');
 	}
 
-	const scores: GetScoresResponse['scores'] = {
+	return {
 		scores: body.scores,
 		events: body.events
-	};
-
-	return scores;
+	} as GetScoresResponse['scores'];
 }
 
 export {

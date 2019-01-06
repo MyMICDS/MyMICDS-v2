@@ -1,31 +1,20 @@
 import { AliasType, PortalClass } from '@mymicds/sdk';
 import { Db, InsertOneWriteOpResult, ObjectID } from 'mongodb';
-import { MyMICDSClassWithIDs } from './classes';
 import * as classes from './classes';
+import { MyMICDSClassWithIDs } from './classes';
 import * as users from './users';
 
 const aliasTypes: AliasType[] = Object.values(AliasType);
 
 /**
- * Add an alias that points to a class object
- * @function addCanvasAlias
- *
- * @param {Object} db - Database object
- * @param {string} user - Username
- * @param {string} type - Valid alias type
- * @param {string} classString - Canvas class string
- * @param {string} classId - Native class ID
- * @param {addCanvasAliasCallback} callback - Callback
+ * Adds an alias that connects a remote class to a local class object.
+ * @param db Database connection.
+ * @param user Username.
+ * @param type Alias type to create.
+ * @param classString String describing the remote class.
+ * @param classId ID of the local class.
+ * @returns ID of the inserted alias.
  */
-
-/**
- * Callback after alias is created
- * @callback addCanvasAliasCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} aliasId - ID Object of alias inserted. Null if error.
- */
-
 async function addAlias(db: Db, user: string, type: AliasType, classString: string, classId: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (!aliasTypes.includes(type)) { throw new Error('Invalid alias type!'); }
@@ -72,28 +61,15 @@ async function addAlias(db: Db, user: string, type: AliasType, classString: stri
 		throw new Error('There was a problem inserting the alias into the database!');
 	}
 
-	const insertedId: ObjectID = results.ops[0]._id;
-	return insertedId;
+	return results.ops[0]._id as ObjectID;
 }
 
 /**
- * Returns an array of aliases registered under a specific user
- * @function listAliases
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {listAliasesCallback} callback - Callback
+ * Gets all aliases associated with a given user.
+ * @param db Database connection.
+ * @param user Username.
+ * @returns Object containing all aliases for each alias type.
  */
-
-/**
- * Returns an array of aliases
- * @callback listAliasesCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} aliases - An object containing a key for each alias type, and the value an array of the aliases.
- * 							 Null if error.
- */
-
 async function listAliases(db: Db, user: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
@@ -130,23 +106,11 @@ async function listAliases(db: Db, user: string) {
 }
 
 /**
- * Returns a object containing aliases and their corresponding class object
- * @function mapAliases
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {mapAliasesCallback} callback - Callback
+ * Retrieves class objects associated with all of a user's aliases.
+ * @param db Database connection.
+ * @param user Username.
+ * @returns Object containing all classes for each alias type.
  */
-
-/**
- * Returns an object containing Canvas and Portal aliases and their corresponding class objects
- * @callback mapAliasesCallback
- *
- * @param {Object} err - Null if success, error object if failure.
- * @param {Object} aliases - Two objects for Canvas and Portal aliases,
- * 							 which are also objects with key being alias and value being class object. If that makes any sense.
- */
-
 async function mapAliases(db: Db, user: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
@@ -179,22 +143,12 @@ async function mapAliases(db: Db, user: string) {
 }
 
 /**
- * Deletes an alias
- * @function deleteAlias
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username
- * @param {string} type - Valid alias type
- * @param {string} aliasId - ID of alias
- * @param {deleteAliasCallback} callback - Callback
+ * Deletes an alias.
+ * @param db Database connection.
+ * @param user Username.
+ * @param type Type of alias to delete.
+ * @param aliasId ID of alias to delete.
  */
-
-/**
- * Returns whether or not there was an error deleting the alias
- * @callback deleteAliasCallback
- * @param {Object} err - Null if success, error object if failure.
- */
-
 async function deleteAlias(db: Db, user: string, type: AliasType, aliasId: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (!aliasTypes.includes(type)) { throw new Error('Invalid alias type!'); }
@@ -222,25 +176,14 @@ async function deleteAlias(db: Db, user: string, type: AliasType, aliasId: strin
 }
 
 /**
- * Check if given class has a portal alias
- * @function getAliasClass
- *
- * @param {Object} db - Database object
- * @param {string} user - Username
- * @param {string} type - Alias type
- * @param {string} classInput - Class to check for an alias
- * @param {getAliasClassCallback} callback - Callback
+ * Checks if a class has an associated alias and retrieves the associated class object.
+ * @param db Database connection.
+ * @param user Username.
+ * @param type Type of alias to check for.
+ * @param classInput Remote class name to search for.
+ * @returns The class object corresponding to the given string, assuming there is a matching alias,
+ * 			else returns the inputted class.
  */
-
-/**
- * Returns the corresponding class object, or whatever was inputted if there was no alias.
- * @callback getAliasClassCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Boolean} hasAlias - Whether or not there is an alias for the specific string. Null if error.
- * @param {string} classObject - Class object if alias found, otherwise inputted class if none found. Null if error.
- */
-
 async function getAliasClass(db: Db, user: string, type: AliasType, classInput: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 	if (!aliasTypes.includes(type)) { throw new Error('Invalid alias type!'); }
@@ -280,20 +223,9 @@ async function getAliasClass(db: Db, user: string, type: AliasType, classInput: 
 }
 
 /**
- * Deletes all aliases that are not linked to any class
- * @function deleteClasslessAliases
- *
- * @param {Object} db - Databse connection
- * @param {deleteClasslessAliasesCallback} callback - Callback
+ * Deletes aliases that aren't linked to any class.
+ * @param db Database connection.
  */
-
-/**
- * Returns an error if any. Also has extremely long name.
- * @callback deleteClasslessAliasesCallback
- *
- * @param {Object} err - Null if success, error object if failure
- */
-
 export async function deleteClasslessAliases(db: Db) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 

@@ -17,36 +17,11 @@ const validTypes: ClassType[] = Object.values(ClassType);
 const validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
 
 /**
- * Inserts/updates a class to the database
- * @function upsertClass
- *
- * @param {Object} db - Databse connection
- * @param {string} user - Username to insert the class under
- *
- * @param {Object} scheduleClass - JSON of class to add
- * @param {string} [scheduleClass._id] - Id to modify class under (Optional)
- * @param {string} scheduleClass.name - Name of class
- * @param {string} [scheduleClass.color] - Hex value of class color. Please include hash ('#') symbol.
- * 										   (Optional, default random color)
- * @param {string} [scheduleClass.block] - Which block the class takes place (Optional. Default to 'other')
- * @param {string} [scheduleClass.type] - Type of class (Optional, default to 'other')
- *
- * @param {Object} scheduleClass.teacher - Information about teacher
- * @param {string} scheduleClass.teacher.prefix - Either 'Mr.' or 'Ms.'
- * @param {string} scheduleClass.teacher.firstName - First name of teacher
- * @param {string} scheduleClass.teacher.lastName - Last name of teacher
- *
- * @callback {upsertClassCallback} callback - Callback
+ * Inserts/updates a class in the database.
+ * @param db Database connection.
+ * @param user Username.
+ * @param scheduleClass Class object.
  */
-
-/**
- * What to do after it adds a class into the database
- * @callback upsertClassCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Object} scheduleClass - Object of class inserted
- */
-
 async function upsertClass(db: Db, user: string, scheduleClass: {
 	_id?: string,
 	name: string,
@@ -162,22 +137,11 @@ async function upsertClass(db: Db, user: string, scheduleClass: {
 }
 
 /**
- * Gets an array of all the classes under a certain user
- * @function getClasses
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username to get classes under
- * @param {getClassesCallback} callback - Callback
+ * Gets all of a user's classes.
+ * @param db Database connection.
+ * @param user Username.
+ * @returns A list of all class documents.
  */
-
-/**
- * Callback after all classes have been retrieved
- * @callback getClassesCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Object} classes - Array of class documents with teacher documents injected in. Null if error.
- */
-
 async function getClasses(db: Db, user: string) {
 	// I'll validate _your_ input baby ;)
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
@@ -235,22 +199,11 @@ async function getClasses(db: Db, user: string) {
 }
 
 /**
- * Deletes a class, and teacher if nobody else has the same teacher
- * @function deleteClass
- *
- * @param {Object} db - Database connection
- * @param {string} user - Username. Input user so we make sure nobody is deleting each other's classes!
- * @param {string} classId - Class id
- * @param {deleteClassCallback} callback - Callback
+ * Deletes a class. If nobody else has the same teacher as the class, delete the teacher as well.
+ * @param db Database connection.
+ * @param user Username.
+ * @param classId Class ID to delete.
  */
-
-/**
- * Callback after deletes class
- * @callback deleteClassCallback
- *
- * @param {Object} err - Null if success, error object if failure
- */
-
 async function deleteClass(db: Db, user: string, classId: string) {
 	// Validate inputs
 	if (typeof db !== 'object') {

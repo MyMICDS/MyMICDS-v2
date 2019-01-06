@@ -2,25 +2,16 @@ import { Db } from 'mongodb';
 import * as _ from 'underscore';
 import { CanvasCalendarWithUser } from './canvas';
 import * as canvas from './canvas';
-import { PortalCacheEvent, PortalCalendarWithUser } from './portal';
+import { PortalCalendarWithUser } from './portal';
 import * as portal from './portal';
 import { UserDoc } from './users';
 import * as users from './users';
 
 /**
- * Update cached Canvas feed for a user
- * @param {Object} db - Database object
- * @param {string} user - Username
- * @param {updateCanvasCacheCallback} callback - Callback
+ * Updates a user's Canvas cache data.
+ * @param db Database connection.
+ * @param user Username.
  */
-
-/**
- * Returns an error if any
- * @callback updateCanvasCacheCallback
- *
- * @param {Object} err - Null if success, error object if failure
- */
-
 export async function updateCanvasCache(db: Db, user: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
@@ -49,20 +40,11 @@ export async function updateCanvasCache(db: Db, user: string) {
 }
 
 /**
- * Add a user to the Portal queue
- * @param {Object} db - Database object
- * @param {string} user - Username
- * @param {addPortalQueueCallback} callback - Callback
+ * Adds a user to the Portal classes cache update queue.
+ * @param db Database connection.
+ * @param user Username.
+ * @returns The events that are *currently* in the Portal classes cache.
  */
-
-/**
- * Returns an error if any
- * @callback addPortalQueueCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Array} events - Array of Portal events if success, null if failure
- */
-
 export async function addPortalQueueClasses(db: Db, user: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
@@ -112,12 +94,11 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 }
 
 /**
- * Add a user to the Portal queue
- * @param {Object} db - Database object
- * @param {string} user - Username
- * @param {addPortalQueueCallback} callback - Callback
+ * Adds a user to the Portal calendar cache update queue.
+ * @param db Database connection.
+ * @param user Username.
+ * @returns The events that are *currently* in the Portal calendar cache.
  */
-
 export async function addPortalQueueCalendar(db: Db, user: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
@@ -167,18 +148,9 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 }
 
 /**
- * Process the queue for updating cached Portal feeds
- * @param {Object} db - Database object
- * @param {processPortalQueueCallback} callback - Callback
+ * Processes the queue for updating cached Portal data.
+ * @param db Database connection.
  */
-
-/**
- * Returns an error if any
- * @callback processPortalQueueCallback
- *
- * @param {Object} err - Null if success, error object if failure
- */
-
 export async function processPortalQueue(db: Db) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
 
@@ -213,6 +185,12 @@ export async function processPortalQueue(db: Db) {
  * @param {Array} events - Array of events if success, null if failure.
  */
 
+/**
+ * Checks the Canvas cache for a user. If there's no cache data, updates the cache.
+ * @param db Database connection.
+ * @param user Username.
+ * @returns Whether the user has a saved URL and the cache data.
+ */
 export async function canvasCacheRetry(db: Db, user: string) {
 	const { hasURL, events } = await canvas.getFromCache(db, user);
 
