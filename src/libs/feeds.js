@@ -54,7 +54,9 @@ function updateCanvasCache(db, user, callback) {
 					return;
 				}
 
-				events.forEach(e => e.user = userDoc._id);
+				if (events) {
+					events.forEach(e => e.user = userDoc._id);
+				}
 
 				canvasdata.insertMany(events, err => {
 					if(err) {
@@ -128,7 +130,9 @@ function addPortalQueueClasses(db, user, callback) {
 					return;
 				}
 
-				events.forEach(e => e.user = userDoc._id);
+				if (events) {
+					events.forEach(e => e.user = userDoc._id);
+				}
 
 				portaldata.insertMany(events, err => {
 					if(err) {
@@ -201,7 +205,9 @@ function addPortalQueueCalendar(db, user, callback) {
 					return;
 				}
 
-				events.forEach(e => e.user = userDoc._id);
+				if (events) {
+					events.forEach(e => e.user = userDoc._id);
+				}
 
 				portaldata.insertMany(events, err => {
 					if(err) {
