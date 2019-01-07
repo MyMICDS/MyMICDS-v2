@@ -56,16 +56,17 @@ function updateCanvasCache(db, user, callback) {
 
 				if (events) {
 					events.forEach(e => e.user = userDoc._id);
-				}
+					canvasdata.insertMany(events, err => {
+						if(err) {
+							callback('There was an error inserting events into the database!');
+							return;
+						}
 
-				canvasdata.insertMany(events, err => {
-					if(err) {
-						callback('There was an error inserting events into the database!');
-						return;
-					}
-
+						callback(null);
+					});
+				} else {
 					callback(null);
-				});
+				}
 			});
 		});
 	});
@@ -132,14 +133,22 @@ function addPortalQueueClasses(db, user, callback) {
 
 				if (events) {
 					events.forEach(e => e.user = userDoc._id);
-				}
+					portaldata.insertMany(events, err => {
+						if(err) {
+							callback(new Error(`There was an error inserting events into the database! (${err})`), null);
+							return;
+						}
 
-				portaldata.insertMany(events, err => {
-					if(err) {
-						callback(new Error(`There was an error inserting events into the database! (${err})`), null);
-						return;
-					}
+						userdata.update({ user }, { $set: { inPortalQueueClasses: false } }, err => {
+							if(err) {
+								callback(new Error('There was an error removing the user from the queue!'), null);
+								return;
+							}
 
+							callback(null, events);
+						});
+					});
+				} else {
 					userdata.update({ user }, { $set: { inPortalQueueClasses: false } }, err => {
 						if(err) {
 							callback(new Error('There was an error removing the user from the queue!'), null);
@@ -148,7 +157,7 @@ function addPortalQueueClasses(db, user, callback) {
 
 						callback(null, events);
 					});
-				});
+				}
 			});
 		});
 	});
@@ -207,14 +216,22 @@ function addPortalQueueCalendar(db, user, callback) {
 
 				if (events) {
 					events.forEach(e => e.user = userDoc._id);
-				}
+					portaldata.insertMany(events, err => {
+						if(err) {
+							callback(new Error(`There was an error inserting events into the database! (${err})`), null);
+							return;
+						}
 
-				portaldata.insertMany(events, err => {
-					if(err) {
-						callback(new Error(`There was an error inserting events into the database! (${err})`), null);
-						return;
-					}
+						userdata.update({ user }, { $set: { inPortalQueueCalendar: false } }, err => {
+							if(err) {
+								callback(new Error('There was an error removing the user from the queue!'), null);
+								return;
+							}
 
+							callback(null, events);
+						});
+					});
+				} else {
 					userdata.update({ user }, { $set: { inPortalQueueCalendar: false } }, err => {
 						if(err) {
 							callback(new Error('There was an error removing the user from the queue!'), null);
@@ -223,7 +240,7 @@ function addPortalQueueCalendar(db, user, callback) {
 
 						callback(null, events);
 					});
-				});
+				}
 			});
 		});
 	});
