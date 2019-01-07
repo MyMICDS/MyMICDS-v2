@@ -28,7 +28,9 @@ export async function updateCanvasCache(db: Db, user: string) {
 		throw new Error('There was an error removing the old events from the database!');
 	}
 
-	for (const ev of events!) {
+	if (events === null) { return; }
+
+	for (const ev of events) {
 		(ev as any).user = userDoc!._id;
 	}
 
@@ -43,7 +45,7 @@ export async function updateCanvasCache(db: Db, user: string) {
  * Adds a user to the Portal classes cache update queue.
  * @param db Database connection.
  * @param user Username.
- * @returns The events that are *currently* in the Portal classes cache.
+ * @returns The events that are *currently* in the Portal classes cache, or null if there's no URL.
  */
 export async function addPortalQueueClasses(db: Db, user: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
@@ -56,14 +58,16 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 
 	const { cal: events } = await portal.getFromCalClasses(db, user);
 
-	if (_.isEmpty(events!)) {
+	if (events === null) {
+		return events;
+	} else if (_.isEmpty(events)) {
 		try {
 			await userdata.updateOne({ user }, { $set: { inPortalQueueClasses: true } });
 		} catch (e) {
 			throw new Error('There was an error adding the user to the queue!');
 		}
 
-		return events!;
+		return events;
 	}
 
 	try {
@@ -72,7 +76,7 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 		throw new Error('There was an error removing the old events from the database!');
 	}
 
-	for (const ev of events!) {
+	for (const ev of events) {
 		(ev as any).user = userDoc!._id;
 	}
 
@@ -97,7 +101,7 @@ export async function addPortalQueueClasses(db: Db, user: string) {
  * Adds a user to the Portal calendar cache update queue.
  * @param db Database connection.
  * @param user Username.
- * @returns The events that are *currently* in the Portal calendar cache.
+ * @returns The events that are *currently* in the Portal calendar cache, or null if there's no URL.
  */
 export async function addPortalQueueCalendar(db: Db, user: string) {
 	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
@@ -110,7 +114,9 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 
 	const { cal: events } = await portal.getFromCalCalendar(db, user);
 
-	if (_.isEmpty(events!)) {
+	if (events === null) {
+		return events;
+	} else if (_.isEmpty(events)) {
 		try {
 			await userdata.updateOne({ user }, { $set: { inPortalQueueCalendar: true } });
 		} catch (e) {
@@ -126,7 +132,7 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 		throw new Error('There was an error removing the old events from the database!');
 	}
 
-	for (const ev of events!) {
+	for (const ev of events) {
 		(ev as any).user = userDoc!._id;
 	}
 
