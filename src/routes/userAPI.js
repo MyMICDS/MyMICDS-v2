@@ -54,10 +54,14 @@ module.exports = (app, db, socketIO) => {
 		}
 
 		users.changeInfo(db, req.apiUser, info, err => {
-			if(!err) {
-				socketIO.user(req.apiUser, 'user', 'change-info', info);
+			if(err) {
+				api.respond(res, err);
+				return;
 			}
-			api.respond(res, err);
+			users.getInfo(db, req.apiUser, true, (err, userInfo) => {
+				socketIO.user(req.apiUser, 'user', 'change-info', userInfo);
+				api.respond(res, err, userInfo);
+			});
 		});
 	});
 
