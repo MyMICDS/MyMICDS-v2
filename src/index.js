@@ -45,6 +45,16 @@ app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
 	extended: true
 }));
 
+// Force error response for testing routes
+app.use((req, res, next) => {
+	if(config.forceError && config.forceError.includes(req.originalUrl)) {
+		api.respond(res, new Error('Forced error response for route'));
+		return;
+	}
+
+	next();
+});
+
 /*
  * Realtime Stuff
  */

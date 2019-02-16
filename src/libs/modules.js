@@ -126,7 +126,8 @@ const defaultModules = [
 		row: 3,
 		column: 0,
 		width: columnsPerRow / 2,
-		height: 2
+		height: 2,
+		options: getDefaultOptions('schedule')
 	},
 	{
 		type: 'weather',

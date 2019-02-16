@@ -367,10 +367,30 @@ function revoke(db, payload, jwt, callback) {
 	});
 }
 
+function generateExpired(callback) {
+	jwt.sign({
+		user: 'test'
+	}, config.jwt.secret, {
+		subject  : 'MyMICDS API',
+		algorithm: 'HS256',
+		expiresIn: -1800000, // 30 minutes ago
+		audience : config.hostedOn,
+		issuer   : config.hostedOn
+	}, (err, token) => {
+		if(err) {
+			callback(new Error('There was a problem generating a JWT!'), null);
+			return;
+		}
+
+		callback(null, token);
+	});
+}
+
 module.exports.authorize         = authorize;
 module.exports.fallback          = fallback;
 module.exports.requireLoggedIn   = requireLoggedIn;
 module.exports.requireScope      = requireScope;
 module.exports.catchUnauthorized = catchUnauthorized;
 module.exports.generate          = generate;
+module.exports.generateExpired	 = generateExpired;
 module.exports.revoke            = revoke;

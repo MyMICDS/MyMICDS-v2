@@ -100,4 +100,10 @@ module.exports = (app, db) => {
 		});
 	});
 
+	app.get('/auth/expired-jwt', (req, res) => {
+		jwt.generateExpired((err, jwt) => {
+			api.respond(res, err, { jwt });
+		});
+	});
+
 };
