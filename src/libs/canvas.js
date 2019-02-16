@@ -214,7 +214,7 @@ function getUserCal(db, user, callback) {
  */
 
 function parseCanvasTitle(title) {
-	const classTeacherRegex = /\[.+]/g;
+	const classTeacherRegex = /\[[^\[]+]$/g;
 	const teacherRegex = /:[A-Z]{5}$/g;
 	const firstLastBrackets = /(^\[)|(]$)/g;
 
