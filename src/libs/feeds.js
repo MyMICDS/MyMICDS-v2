@@ -54,7 +54,7 @@ function updateCanvasCache(db, user, callback) {
 					return;
 				}
 
-				if (events) {
+				if (events && events.length > 0) {
 					events.forEach(e => e.user = userDoc._id);
 					canvasdata.insertMany(events, err => {
 						if(err) {
