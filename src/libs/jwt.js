@@ -164,10 +164,10 @@ function requireLoggedIn(req, res, next) {
 
 function requireScope(scope, message = 'You\'re not authorized in this part of the site, punk.') {
 	return (req, res, next) => {
-		if(!req.user || !req.user.scopes[scope]) {
-			api.respond(res, message, null, 'NOT_LOGGED_IN');
-		} else {
+		if (req.user && (req.user.scopes[scope] || req.user.scopes.admin)) {
 			next();
+		} else {
+			api.respond(res, message, null, 'NOT_LOGGED_IN');
 		}
 	};
 }

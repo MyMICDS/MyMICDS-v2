@@ -508,8 +508,72 @@ function getFromCache(db, user, callback) {
 	});
 }
 
-module.exports.verifyURL    = verifyURL;
-module.exports.setURL       = setURL;
-module.exports.getFromCache = getFromCache;
-module.exports.getUserCal   = getUserCal;
-module.exports.getClasses   = getClasses;
+/**
+ * Get all the unique Canvas assignments from all of our users' feeds
+ * @param {Object} db - Database object
+ * @param {getUniqueEventsCallback} callback - Callback
+ */
+
+/**
+ * Returns all the unique Canvas assignments
+ * @callback getUniqueEventssCallback
+ *
+ * @param {Object} err - Null if success, error object if failure
+ * @param {Boolean} events - An object with the key being the Canvas class ID and the value is an array of Canvas assignment names
+ */
+
+function getUniqueEvents(db, callback) {
+	if(typeof callback !== 'function') return;
+
+	const canvasdata = db.collection('canvasFeeds');
+
+	// canvasdata.distinct('summary', (err, events) => {
+	canvasdata.aggregate([
+		{
+			$group: {
+				_id: '$summary',
+				start: { $first: '$start' },
+				end: { $first: '$end' }
+			}
+		}
+	]).toArray((err, docs) => {
+		if (err) {
+			callback(err, null);
+			return;
+		}
+
+		console.log('docs', docs);
+
+		const assignments = {};
+
+		for (const doc of docs) {
+			const parsedEvent = parseCanvasTitle(doc._id);
+			const assignment = {
+				name: parsedEvent.assignment,
+				raw: doc._id,
+				start: new Date(doc.start),
+				end: new Date(doc.end)
+			};
+			const className = parsedEvent.class.name;
+
+			if (!assignments[className]) {
+				assignments[className] = [];
+			}
+
+			assignments[className].push(assignment);
+		}
+
+		for (const className of Object.keys(assignments)) {
+			assignments[className].sort((a, b) => b.end - a.end);
+		}
+
+		callback(null, assignments);
+	});
+}
+
+module.exports.verifyURL       = verifyURL;
+module.exports.setURL          = setURL;
+module.exports.getFromCache    = getFromCache;
+module.exports.getUserCal      = getUserCal;
+module.exports.getClasses      = getClasses;
+module.exports.getUniqueEvents = getUniqueEvents;
