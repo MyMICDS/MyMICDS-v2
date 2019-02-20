@@ -35,7 +35,7 @@ module.exports = (app, db, socketIO) => {
 		});
 	});
 
-	app.get('/canvas/all-events', jwt.requireScope('faculty'), (req, res) => {
+	app.get('/canvas/unique-events', jwt.requireScope('faculty'), (req, res) => {
 		canvas.getUniqueEvents(db, (err, events) => {
 			api.respond(res, err, { events });
 		});
