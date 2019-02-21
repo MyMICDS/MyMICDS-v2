@@ -41,4 +41,13 @@ export default ((app, db, socketIO) => {
 			api.error(res, err);
 		}
 	});
+
+	app.get('/canvas/unique-events', jwt.requireScope('faculty'), async (req, res) => {
+		try {
+			const events = await canvas.getUniqueEvents(db);
+			api.success(res, { events });
+		} catch (err) {
+			api.error(res, err);
+		}
+	});
 }) as RoutesFunction;

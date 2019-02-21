@@ -18,7 +18,7 @@ import * as jwt from './libs/jwt';
 
 import express from 'express';
 const app = express();
-const server: http.Server = new http.Server(app);
+const server = new http.Server(app);
 
 /**
  * Express Middleware

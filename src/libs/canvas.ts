@@ -117,7 +117,7 @@ export async function getUserCal(db: Db, user: string) {
  * @returns Parsed class and teacher data.
  */
 function parseCanvasTitle(title: string) {
-	const classTeacherRegex = /\[.+]/g;
+	const classTeacherRegex = /\[[^\[]+]$/g;
 	const teacherRegex = /:[A-Z]{5}$/g;
 	const firstLastBrackets = /(^\[)|(]$)/g;
 
@@ -339,6 +339,51 @@ export async function getFromCache(db: Db, user: string) {
 	return { hasURL: true, events: validEvents };
 }
 
+/**
+ * Retrieves all unique Canvas assignments from all of our users' Canvas feeds.
+ * @param db Database connection.
+ * @returns An object mapping Canvas class IDs to arrays of Canvas assignment names.
+ */
+export async function getUniqueEvents(db: Db) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+
+	const canvasdata = db.collection<CanvasCacheEvent>('canvasFeeds');
+	const docs = await canvasdata.aggregate([
+		{
+			$group: {
+				_id: '$summary',
+				start: { $first: '$start' },
+				end: { $first: '$end' }
+			}
+		}
+	]).toArray();
+
+	const assignments: { [className: string]: UniqueEvent[] } = {};
+
+	for (const doc of docs) {
+		const parsedEvent = parseCanvasTitle(doc._id as string);
+		const assignment = {
+			name: parsedEvent.assignment,
+			raw: doc._id as string,
+			start: new Date(doc.start),
+			end: new Date(doc.end)
+		};
+		const className = parsedEvent.class.name;
+
+		if (!assignments[className]) {
+			assignments[className] = [];
+		}
+
+		assignments[className].push(assignment);
+	}
+
+	for (const className of Object.keys(assignments)) {
+		assignments[className].sort((a, b) => b.end.valueOf() - a.end.valueOf());
+	}
+
+	return assignments;
+}
+
 export interface CanvasCalendarEvent {
 	type: 'VEVENT';
 	params: string[]; // empty
@@ -365,5 +410,12 @@ export interface CanvasCalendarWithUser extends CanvasCalendarEvent {
 }
 
 export interface CanvasCacheEvent extends CanvasCalendarWithUser {
-	_id: ObjectID;
+	_id: string | ObjectID;
+}
+
+export interface UniqueEvent {
+	name: string;
+	raw: string;
+	start: Date;
+	end: Date;
 }

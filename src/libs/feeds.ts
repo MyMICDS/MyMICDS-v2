@@ -28,7 +28,7 @@ export async function updateCanvasCache(db: Db, user: string) {
 		throw new Error('There was an error removing the old events from the database!');
 	}
 
-	if (events === null) { return; }
+	if (events === null || events.length === 0) { return; }
 
 	for (const ev of events) {
 		(ev as any).user = userDoc!._id;
@@ -59,6 +59,12 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 	const { cal: events } = await portal.getFromCalClasses(db, user);
 
 	if (events === null) {
+		try {
+			await userdata.updateOne({ user }, { $set: { inPortalQueueClasses: false } });
+		} catch (e) {
+			throw new Error('There was an error removing the user from the queue!');
+		}
+
 		return events;
 	} else if (_.isEmpty(events)) {
 		try {
@@ -115,6 +121,12 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 	const { cal: events } = await portal.getFromCalCalendar(db, user);
 
 	if (events === null) {
+		try {
+			await userdata.updateOne({ user }, { $set: { inPortalQueueCalendar: false } });
+		} catch (e) {
+			throw new Error('There was an error removing the user from the queue!');
+		}
+
 		return events;
 	} else if (_.isEmpty(events)) {
 		try {

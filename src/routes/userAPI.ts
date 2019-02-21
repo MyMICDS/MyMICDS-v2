@@ -56,8 +56,9 @@ export default ((app, db, socketIO) => {
 
 		try {
 			await users.changeInfo(db, req.apiUser!, info);
-			socketIO.user(req.apiUser!, 'user', 'change-info', info);
-			api.success(res);
+			const newInfo = await users.getInfo(db, req.apiUser!, true);
+			socketIO.user(req.apiUser!, 'user', 'change-info', newInfo);
+			api.success(res, newInfo);
 		} catch (err) {
 			api.error(res, err);
 		}

@@ -1,15 +1,15 @@
 import { Action } from '@mymicds/sdk';
 import { NextFunction, Request, Response } from 'express';
 import expressJWT, { IsRevokedCallback } from 'express-jwt';
-import { SignOptions } from 'jsonwebtoken';
 import * as jwt from 'jsonwebtoken';
+import { SignOptions } from 'jsonwebtoken';
 import { Db, ObjectID } from 'mongodb';
 import * as _ from 'underscore';
 import { promisify } from 'util';
 import * as api from './api';
 import config from './config';
-import { UserDoc } from './users';
 import * as users from './users';
+import { UserDoc } from './users';
 
 /**
  * Verifies a JWT and assigns it to `req.user`.
@@ -142,10 +142,10 @@ export function requireLoggedIn(req: Request, res: Response, next: NextFunction)
  */
 export function requireScope(scope: string, message = 'You\'re not authorized in this part of the site, punk.') {
 	return (req: Request, res: Response, next: NextFunction) => {
-		if (!req.user || !req.user.scopes[scope]) {
-			api.error(res, message, Action.NOT_LOGGED_IN);
-		} else {
+		if (req.user && (req.user.scopes[scope] || req.user.scopes.admin)) {
 			next();
+		} else {
+			api.error(res, message, Action.NOT_LOGGED_IN);
 		}
 	};
 }
