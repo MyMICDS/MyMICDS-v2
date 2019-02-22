@@ -531,7 +531,8 @@ function getUniqueEvents(db, callback) {
 	canvasdata.aggregate([
 		{
 			$group: {
-				_id: '$summary',
+				_id: '$uid',
+				summary: { $first: '$summary' },
 				start: { $first: '$start' },
 				end: { $first: '$end' }
 			}
@@ -542,19 +543,19 @@ function getUniqueEvents(db, callback) {
 			return;
 		}
 
-		console.log('docs', docs);
-
 		const assignments = {};
 
 		for (const doc of docs) {
-			const parsedEvent = parseCanvasTitle(doc._id);
+			const parsedEvent = parseCanvasTitle(doc.summary);
+			const className = parsedEvent.class.name;
 			const assignment = {
+				_id: doc._id,
 				name: parsedEvent.assignment,
-				raw: doc._id,
+				className,
+				raw: doc.summary,
 				start: new Date(doc.start),
 				end: new Date(doc.end)
 			};
-			const className = parsedEvent.class.name;
 
 			if (!assignments[className]) {
 				assignments[className] = [];
