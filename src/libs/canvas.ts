@@ -351,7 +351,8 @@ export async function getUniqueEvents(db: Db) {
 	const docs = await canvasdata.aggregate([
 		{
 			$group: {
-				_id: '$summary',
+				_id: '$uid',
+				summary: { $first: '$summary' },
 				start: { $first: '$start' },
 				end: { $first: '$end' }
 			}
@@ -361,14 +362,16 @@ export async function getUniqueEvents(db: Db) {
 	const assignments: { [className: string]: UniqueEvent[] } = {};
 
 	for (const doc of docs) {
-		const parsedEvent = parseCanvasTitle(doc._id as string);
+		const parsedEvent = parseCanvasTitle(doc.summary);
+		const className = parsedEvent.class.name;
 		const assignment = {
+			_id: doc._id as string,
 			name: parsedEvent.assignment,
-			raw: doc._id as string,
+			className,
+			raw: doc.summary,
 			start: new Date(doc.start),
 			end: new Date(doc.end)
 		};
-		const className = parsedEvent.class.name;
 
 		if (!assignments[className]) {
 			assignments[className] = [];
@@ -414,7 +417,9 @@ export interface CanvasCacheEvent extends CanvasCalendarWithUser {
 }
 
 export interface UniqueEvent {
+	_id: string;
 	name: string;
+	className: string;
 	raw: string;
 	start: Date;
 	end: Date;
