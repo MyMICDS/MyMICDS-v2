@@ -6,7 +6,7 @@ import { Response } from 'request';
 import request from 'request-promise-native';
 import * as utils from './utils';
 
-const lunchURL = 'http://myschooldining.com/MICDS/calendarWeek';
+const lunchURL = 'https://myschooldining.com/MICDS/calendarWeek';
 const schools = ['Lower School', 'Middle School', 'Upper School'];
 
 /**
