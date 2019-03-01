@@ -123,7 +123,7 @@ export async function register(db: Db, user: Omit<RegisterParameters, 'teacher' 
 	};
 
 	try {
-		await userdata.updateOne({ user: newUser.user }, newUser, { upsert: true });
+		await userdata.updateOne({ user: newUser.user }, { $set: newUser }, { upsert: true });
 	} catch (e) {
 		throw new Error('There was a problem inserting the account into the database!');
 	}

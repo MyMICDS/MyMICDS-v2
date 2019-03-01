@@ -126,7 +126,7 @@ async function upsertClass(db: Db, user: string, scheduleClass: {
 
 	try {
 		// Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
-		await classdata.updateOne({ _id: id }, insertClass, { upsert: true });
+		await classdata.updateOne({ _id: id }, { $set: insertClass }, { upsert: true });
 	} catch (e) {
 		throw new Error('There was a problem upserting the class into the database!');
 	}

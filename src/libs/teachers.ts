@@ -23,7 +23,7 @@ async function addTeacher(db: Db, teacher: Omit<Teacher, '_id'>) {
 
 	try {
 		// Upsert teacher into collection
-		await teacherdata.updateOne(teacher, teacher, { upsert: true });
+		await teacherdata.updateOne(teacher, { $set: teacher }, { upsert: true });
 	} catch (e) {
 		throw new Error('There was a problem inserting the teacher into the database!');
 	}

@@ -86,7 +86,7 @@ async function upsertEvent(db: Db, user: string, plannerEvent: Omit<PlannerInput
 
 	// Insert event into database
 	try {
-		await plannerdata.updateOne({ _id: id }, insertEvent, { upsert: true });
+		await plannerdata.updateOne({ _id: id }, { $set: insertEvent }, { upsert: true });
 	} catch (e) {
 		throw new Error('There was a problem inserting the event into the database!');
 	}

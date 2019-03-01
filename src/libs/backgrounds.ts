@@ -297,7 +297,7 @@ async function addBlur(fromPath: string, toPath: string, blurRadius: number) {
 	}
 
 	try {
-		await promisify(image.blur(blurRadius).write)(toPath);
+		await promisify(image.blur(blurRadius).write.bind(image))(toPath);
 	} catch (e) {
 		throw new Error('There was a problem saving the image!');
 	}

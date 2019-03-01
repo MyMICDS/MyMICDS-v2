@@ -3,7 +3,6 @@ import config from './config';
 import * as fs from 'fs-extra';
 import * as nodemailer from 'nodemailer';
 
-import { promisify } from 'util';
 import { StringDict } from './utils';
 
 /**
@@ -31,7 +30,7 @@ export async function send(users: string | string[], message: Message, transport
 	};
 
 	try {
-		await promisify(transporter.sendMail)(mailOptions);
+		await transporter.sendMail(mailOptions);
 	} catch (e) {
 		throw new Error(`There was a problem sending the mail! (${e.message})`);
 	}
