@@ -6,7 +6,7 @@ export default ((app, db) => {
 
 	app.get('/modules', async (req, res) => {
 		try {
-			const modulesResult = await modules.get(db, req.apiUser!);
+			const modulesResult = await modules.get(db, req.apiUser || '');
 			api.success(res, { modules: modulesResult });
 		} catch (err) {
 			api.error(res, err);
