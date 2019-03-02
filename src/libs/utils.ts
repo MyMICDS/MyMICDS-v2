@@ -30,4 +30,6 @@ export interface StringDict {
 	[key: string]: any;
 }
 
+export type Constructor<T = any> = new (...args: any[]) => T;
+
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;

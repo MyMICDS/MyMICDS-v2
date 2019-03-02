@@ -2,7 +2,7 @@ import { MyMICDSModule, MyMICDSModuleType } from '@mymicds/sdk';
 import { Db, ObjectID } from 'mongodb';
 import * as _ from 'underscore';
 import * as users from './users';
-import { StringDict } from './utils';
+import { Constructor, StringDict } from './utils';
 
 // Custom enum types
 enum CountdownMode {
@@ -24,8 +24,17 @@ enum Color {
 	YELLOW = 'YELLOW'
 }
 
+interface OptionsValues {
+	[key: string]: {
+		// If TypeScript had some sort of existential type this could be so much cooler
+		type: Constructor | typeof CountdownMode | typeof Color,
+		default: any,
+		optional?: boolean
+	};
+}
+
 // Module options. Can be either `boolean`, `number`, or `string`
-const modulesConfig: Partial<Record<MyMICDSModuleType, any>> = {
+const modulesConfig: Partial<Record<MyMICDSModuleType, OptionsValues>> = {
 	[MyMICDSModuleType.BOOKMARKS]: {
 		label: {
 			type: String,
@@ -240,10 +249,10 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 			if (configType === Date) {
 				mod.options[optionKey] = new Date(moduleValue);
 				valid = !isNaN(mod.options[optionKey].getTime());
-			} else if (!configType.prototype && Object.values(configType).includes(moduleValue)) {
+			} else if (!(configType as Constructor).prototype && Object.values(configType).includes(moduleValue)) {
 				// Check if custom enum type
 				valid = true;
-			} else if (moduleValue instanceof configType) {
+			} else if (moduleValue instanceof (configType as Constructor)) {
 				// Check if native type
 				valid = true;
 			}
