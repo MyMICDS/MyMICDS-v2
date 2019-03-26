@@ -153,7 +153,7 @@ function fallback(req, res, next) {
  */
 
 function requireLoggedIn(req, res, next) {
-	requireScope('pleb', 'You must be logged in to access this!')(req, res, next);
+	requireScope('pleb', 'You must be logged in to access this!', 'NOT_LOGGED_IN')(req, res, next);
 }
 
  /**
@@ -162,12 +162,12 @@ function requireLoggedIn(req, res, next) {
   * @param {string} [message] - Optional. Custom error message to send back to client if they don't have the specified scope.
   */
 
-function requireScope(scope, message = 'You\'re not authorized in this part of the site, punk.') {
+function requireScope(scope, message = 'You\'re not authorized in this part of the site, punk.', action = 'UNAUTHORIZED') {
 	return (req, res, next) => {
 		if (req.user && (req.user.scopes[scope] || req.user.scopes.admin)) {
 			next();
 		} else {
-			api.respond(res, message, null, 'NOT_LOGGED_IN');
+			api.respond(res, message, null, action);
 		}
 	};
 }
@@ -179,7 +179,21 @@ function requireScope(scope, message = 'You\'re not authorized in this part of t
 
 function catchUnauthorized(err, req, res, next) {
 	if(err.name === 'UnauthorizedError') {
-		api.respond(res, err, null, 'UNAUTHORIZED');
+		let action = 'UNAUTHORIZED';
+
+		switch (err.code) {
+		case 'credentials_bad_scheme':
+		case 'credentials_bad_format':
+		case 'credentials_required':
+			action = 'NOT_LOGGED_IN';
+			break;
+		case 'invalid_token':
+		case 'revoked_token':
+			action = 'LOGIN_EXPIRED';
+			break;
+		}
+
+		api.respond(res, err, null, action);
 		return;
 	}
 	next();
