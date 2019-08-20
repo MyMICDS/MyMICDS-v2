@@ -38,7 +38,7 @@ async function getLunch(db: Db, date: Date) {
 
 			// if (res.statusCode !== 200) { throw new Error('It appears the lunch site is down. Check again later!'); }
 
-			objectAssignDeep(fullLunchResponse, parseLunch(schoolFilter(school), res.body));
+			objectAssignDeep(fullLunchResponse, parseLunch(school, res.body));
 		}
 	} catch (e) {
 		throw new Error('There was a problem fetching the lunch data!' + e);
@@ -91,15 +91,6 @@ function parseLunch(school: School, body: any) {
 	}
 
 	return json;
-}
-
-/**
- * Filters the name of each school.
- * @param school The school name to filter.
- * @returns A school name formatted for JSON use.
- */
-function schoolFilter(school: string) {
-	return school.replace('-', '') as School;
 }
 
 export {
