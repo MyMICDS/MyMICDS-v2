@@ -7,12 +7,15 @@
 
 const admins = require(__dirname + '/admins.js');
 const request = require('request');
-const cheerio = require('cheerio');
 const moment = require('moment');
-const utils = require(__dirname + '/utils.js');
+const objectAssignDeep = require('object-assign-deep');
 
-const lunchURL = 'https://myschooldining.com/MICDS/calendarWeek';
-const schools = ['Lower School', 'Middle School', 'Upper School'];
+const lunchBaseURL = 'https://micds.flikisdining.com/menu/api/weeks/school/mary-institute-country-day-school-micds/menu-type';
+const schools = {
+	lowerschool: 'lunch',
+	middleschool: 'middle-school-menu',
+	upperschool: 'upper-school-menu'
+};
 
 /**
  * Gets the lunch from /src/api/lunch.json. Will create one if it doesn't already exist.
@@ -32,43 +35,58 @@ const schools = ['Lower School', 'Middle School', 'Upper School'];
  */
 
 function getLunch(db, date, callback) {
-	if(typeof callback !== 'function') return;
+	if (typeof callback !== 'function') return;
 
-	if(typeof db !== 'object') {
+	if (typeof db !== 'object') {
 		callback(new Error('Invalid database connection!'), null);
 		return;
 	}
 
 	const currentDay = moment(date).day('Wednesday');
+	const fullLunchResponse = {};
 
-	// Send POST request to lunch website
-	request.post(lunchURL, { form: { 'current_day': currentDay.format() }}, (err, res, body) => {
-		if(err) {
-			callback(new Error('There was a problem fetching the lunch data!'), null);
-			return;
-		}
-		if(res.statusCode !== 200) {
+	const getSchoolLunch = i => {
+		// Send GET request to lunch website
+		const schoolKeys = Object.keys(schools);
+		const school = schoolKeys[i];
+		const schoolUrl = schools[school];
+		const lunchUrl =
+			`${lunchBaseURL}/${schoolUrl}/${currentDay.year()}/${currentDay.month() + 1}/${currentDay.date()}`;
 
-			// Alert admins if lunch page has moved
-			// admins.sendEmail(db, {
-			// 	subject: 'Error Notification - Lunch Retrieval',
-			// 	html: 'There was a problem with the lunch URL.<br>Error message: ' + err
-			// }, err => {
-			// 	if(err) {
-			// 		console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
-			// 		return;
-			// 	}
-			// 	console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
-			// });
+		request.get(lunchUrl, { json: true }, (err, res, body) => {
+			if (err) {
+				callback(new Error('There was a problem fetching the lunch data!'), null);
+				return;
+			}
+			if (res.statusCode !== 200) {
 
-			// callback(new Error('There was a problem with the lunch URL!'), null);
-			callback(new Error('It appears the lunch site is down. Check again later!'), null);
-			return;
-		}
+				// Alert admins if lunch page has moved
+				// admins.sendEmail(db, {
+				// 	subject: 'Error Notification - Lunch Retrieval',
+				// 	html: 'There was a problem with the lunch URL.<br>Error message: ' + err
+				// }, err => {
+				// 	if(err) {
+				// 		console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
+				// 		return;
+				// 	}
+				// 	console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
+				// });
 
-		const lunchJSON = parseLunch(body);
-		callback(null, lunchJSON);
-	});
+				// callback(new Error('There was a problem with the lunch URL!'), null);
+				callback(new Error('It appears the lunch site is down. Check again later!'), null);
+				return;
+			}
+
+			objectAssignDeep(fullLunchResponse, parseLunch(school, body));
+
+			if (i < schoolKeys.length - 1) {
+				getSchoolLunch(++i);
+			} else {
+				callback(null, fullLunchResponse);
+			}
+		});
+	};
+	getSchoolLunch(0);
 }
 
 /**
@@ -79,79 +97,34 @@ function getLunch(db, date, callback) {
  * @returns {Object}
  */
 
-function parseLunch(body) {
-	// Clean up HTML to prevent cheerio from becoming confused
-	body.replace('<<', '&lt;&lt;');
-	body.replace('>>', '&gt;&gt;');
-
-	const $ = cheerio.load(body);
+function parseLunch(school, body) {
 	const json = {};
 
-	const table = $('table#table_calendar_week');
-	const weekColumns = table.find('td');
+	for (const day of body.days) {
+		const date = day.date;
 
-	weekColumns.each(function() {
-
-		const day = $(this);
-		const date = day.attr('this_date');
-		const dateObject = new Date(date);
-		const dateString = dateObject.getFullYear()
-			+ '-' + utils.leadingZeros(dateObject.getMonth() + 1)
-			+ '-' + utils.leadingZeros(dateObject.getDate());
-
-		for(const school of schools) {
-			const schoolLunch = day.find('div[location="' + school + '"]');
-
-			// Make sure it's not the weekend
-			if(schoolLunch.length > 0) {
-
-				const lunchTitle = schoolLunch.find('span.period-value').text().trim();
-				const categories = schoolLunch.find('div.category-week');
-
-				categories.each(function() {
-
-					const category = $(this);
-					const food = [];
-					const categoryTitle = category.find('span.category-value').text().trim();
-					const items = category.find('div.item-week');
-
-					items.each(function() {
-						food.push($(this).text().trim());
-					});
-
-					// Add to JSON
-					json[dateString] = json[dateString] || {};
-					json[dateString][schoolFilter(school)] = json[dateString][schoolFilter(school)] || {};
-
-					json[dateString][schoolFilter(school)]['title'] = lunchTitle;
-					json[dateString][schoolFilter(school)]['categories'] = json[dateString][schoolFilter(school)]['categories'] || {};
-					json[dateString][schoolFilter(school)]['categories'][categoryTitle] = json[dateString][schoolFilter(school)]['categories'][categoryTitle] || [];
-
-					for(const f of food) {
-						json[dateString][schoolFilter(school)]['categories'][categoryTitle].push(f);
-					}
-
-				});
-
+		json[date] = {
+			[school]: {
+				title: 'Yummy Lunch',
+				categories: {}
 			}
+		};
 
+		let latestCategory = null;
+		for (const item of day.menu_items) {
+			if (item.text) {
+				latestCategory = item.text;
+			} else if (latestCategory && item.food) {
+				if (!json[date][school].categories[latestCategory]) {
+					json[date][school].categories[latestCategory] = [];
+				}
+				json[date][school].categories[latestCategory].push(item.food.name);
+			}
 		}
-
-	});
+	}
 
 	return json;
 }
 
-/**
- * Removes spaces and makes whole string lowercase for JSON
- * @function schoolFilter
- * @param {string} school - String with school name
- * @returns {string}
- */
-
-function schoolFilter(school) {
-	return school.replace(/\s+/g, '').toLowerCase();
-}
-
-module.exports.get   = getLunch;
+module.exports.get = getLunch;
 module.exports.parse = parseLunch;
