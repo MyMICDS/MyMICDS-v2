@@ -8,7 +8,7 @@
 		line-height="1.5" />
 
 	<mj-body
-		width="50rem"
+		width="50%"
 		background-color="#fff" />
 
 	<!-- Classes -->

@@ -59,7 +59,7 @@
     "jsdoc": "^3.6.3",
     "jsonwebtoken": "^7.1.9",
     "later": "^1.2.0",
-    "mjml": "^4.0.5",
+    "mjml": "^4.4.1",
     "moment": "^2.11.2",
     "mongodb": "^2.2.9",
     "multer": "^1.2.0",
