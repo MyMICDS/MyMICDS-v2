@@ -6,10 +6,11 @@
  */
 const config = require(__dirname + '/config.js');
 
-const _     = require('underscore');
-const fs    = require('fs-extra');
-const path  = require('path');
-const utils = require(__dirname + '/utils.js');
+const _      = require('underscore');
+const fs     = require('fs-extra');
+const path   = require('path');
+const utils  = require(__dirname + '/utils.js');
+const moment = require('moment');
 
 const googleServiceAccount = require(__dirname + '/googleServiceAccount.js');
 const googleBatch          = require('google-batch');
@@ -105,7 +106,7 @@ function queryLatest(callback) {
 					// PDF Contents
 					const pdf = Buffer.from(attachment.data, 'base64');
 					// Get PDF name
-					const bulletinName = parseFilename(originalFilename.name);
+					const bulletinName = generateFilename(originalFilename.name, new Date(parseInt(recentMessage.internalDate, 10)));
 
 					// If bulletinName is null, we are unable to parse bulletin and should skip
 					// This probably means it's not a bulletin
@@ -235,6 +236,8 @@ function queryAll(callback) {
 								const attachments = [];
 								// Array containing filenames matching the indexes of the attachments array
 								const attachmentIdFilenames = [];
+								// Array containing dates matching the indexes of the attachments array
+								const sentDates = [];
 
 								// Search through the emails for any PDF
 								for(const response of getMessages) {
@@ -250,6 +253,7 @@ function queryAll(callback) {
 												attachmentId: attachmentId
 											});
 											attachmentIdFilenames.push(part.filename);
+											sentDates.push(new Date(parseInt(response.body.internalDate, 10)));
 											break;
 										}
 									}
@@ -308,7 +312,7 @@ function queryAll(callback) {
 														// We must now get the filename of the Daily Bulletin
 														const originalFilename = path.parse(attachmentIdFilenames[m]);
 														// Get PDF name
-														const bulletinName = parseFilename(originalFilename.name);
+														const bulletinName = generateFilename(originalFilename.name, sentDates[m]);
 
 														// If bulletinName is null, we are unable to parse bulletin and should skip
 														// This probably means it's not a bulletin
@@ -410,15 +414,29 @@ function getList(callback) {
  * @returns {string}
  */
 
-function parseFilename(filename) {
-	const cleanedName = /([0-9]+.)+[0-9]+/.exec(filename);
-	if (!cleanedName || !cleanedName[0]) {
-		return null;
+function generateFilename(filename, sentDate) {
+	let date;
+
+	// Calise format
+	const caliseFilename = /([0-9]+.)+[0-9]+/.exec(filename);
+	if (!caliseFilename || !caliseFilename[0]) {
+		// O'Brien format
+		const obrienFilename = /[A-Za-z]+, ([A-Za-z]+) ([0-9]+)/.exec(filename);
+		if (!obrienFilename) {
+			return null;
+		}
+
+		date = moment(`${obrienFilename[1]} ${obrienFilename[2]}`, 'MMMM D').toDate();
+	} else {
+		date = new Date(caliseFilename[0]);
 	}
-	const date = new Date(cleanedName[0]);
+
+	date.setFullYear(sentDate.getFullYear());
+
 	if(_.isNaN(date.getTime())) {
 		return null;
 	}
+
 	return `${utils.leadingZeros(date.getFullYear())}-${utils.leadingZeros(date.getMonth() + 1)}-${utils.leadingZeros(date.getDate())}.pdf`;
 }
 
