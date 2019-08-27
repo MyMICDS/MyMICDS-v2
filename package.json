@@ -44,6 +44,7 @@
   "dependencies": {
     "bcrypt": "^3.0.2",
     "body-parser": "^1.15.2",
+    "cheerio": "^0.22.0",
     "cors": "^2.8.0",
     "express": "^4.14.0",
     "express-jwt": "^5.1.0",
@@ -77,6 +78,7 @@
     "@mymicds/configs": "^1.1.0",
     "@mymicds/sdk": "^1.7.0",
     "@types/bcrypt": "^3.0.0",
+    "@types/cheerio": "^0.22.13",
     "@types/cors": "^2.8.4",
     "@types/express-jwt": "0.0.40",
     "@types/htmlparser2": "^3.7.31",

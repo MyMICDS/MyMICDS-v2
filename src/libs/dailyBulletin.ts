@@ -3,13 +3,14 @@ import * as path from 'path';
 import * as _ from 'underscore';
 import config from './config';
 import * as utils from './utils';
+import moment from 'moment';
 
 import { promisify } from 'util';
 
 // TODO: Refactor this file so that the google-batch module is not needed.
 // It's not compatible with more recent versions of googleapis that have TypeScript and Promise support built in.
 // This would allow us to get rid of all the `any` types here and replace them with defined types from googleapis.
-import * as googleBatch from 'google-batch';
+import googleBatch from 'google-batch';
 import * as googleServiceAccount from './googleServiceAccount';
 
 const google = googleBatch.require('googleapis');
@@ -89,7 +90,7 @@ export async function queryLatest() {
 	// PDF Contents
 	const pdf = Buffer.from(attachment.data, 'base64');
 	// Get PDF name
-	const bulletinName = parseFilename(originalFilename!.name);
+	const bulletinName = generateFilename(originalFilename!.name, new Date(parseInt(recentMessage.internalDate, 10)));
 
 	// If bulletinName is null, we are unable to parse bulletin and should skip
 	// This probably means it's not a bulletin
@@ -193,6 +194,8 @@ export async function queryAll() {
 			const attachments = [];
 			// Array containing filenames matching the indexes of the attachments array
 			const attachmentIdFilenames = [];
+			// Array containing dates matching the indexes of the attachments array
+			const sentDates = [];
 
 			// Search through the emails for any PDF
 			for (const response of getMessages) {
@@ -208,6 +211,7 @@ export async function queryAll() {
 							attachmentId
 						});
 						attachmentIdFilenames.push(part.filename);
+						sentDates.push(new Date(parseInt(response.body.internalDate, 10)));
 						break;
 					}
 				}
@@ -261,7 +265,7 @@ export async function queryAll() {
 				// We must now get the filename of the Daily Bulletin
 				const originalFilename = path.parse(attachmentIdFilenames[i]);
 				// Get PDF name
-				const bulletinName = parseFilename(originalFilename.name);
+				const bulletinName = generateFilename(originalFilename.name, sentDates[i]);
 
 				// If bulletinName is null, we are unable to parse bulletin and should skip
 				// This probably means it's not a bulletin
@@ -321,15 +325,29 @@ export async function getList() {
 /**
  * Turns an email attachment filename into a MyMICDS filename.
  * @param filename Email attachment filename.
+ * @param sentDate Date when the email was sent.
  * @returns Filename to save bulletin as.
  */
-function parseFilename(filename: string): string | null {
-	const cleanedName = /([0-9]+.)+[0-9]+/.exec(filename);
-	if (!cleanedName || !cleanedName[0]) {
-		return null;
+function generateFilename(filename: string, sentDate: Date): string | null {
+	let date;
+
+	// Calise format
+	const caliseFilename = /([0-9]+.)+[0-9]+/.exec(filename);
+	if (!caliseFilename || !caliseFilename[0]) {
+		// O'Brien format
+		const obrienFilename = /[A-Za-z]+, ([A-Za-z]+) ([0-9]+)/.exec(filename);
+		if (!obrienFilename) {
+			return null;
+		}
+
+		date = moment(`${obrienFilename[1]} ${obrienFilename[2]}`, 'MMMM D').toDate();
+	} else {
+		date = new Date(caliseFilename[0]);
 	}
-	const date = new Date(cleanedName[0]);
-	if (_.isNaN(date.getTime())) {
+
+	date.setFullYear(sentDate.getFullYear());
+
+	if(_.isNaN(date.getTime())) {
 		return null;
 	}
 
