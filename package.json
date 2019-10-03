@@ -64,6 +64,7 @@
     "multer": "^1.2.0",
     "nodemailer": "^2.2.0",
     "object-assign-deep": "^0.4.0",
+    "p-all": "^2.1.0",
     "pm2": "^2.0.19",
     "prisma": "^3.1.0",
     "random-js": "^1.0.8",

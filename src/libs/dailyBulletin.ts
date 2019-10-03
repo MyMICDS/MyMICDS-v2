@@ -1,6 +1,7 @@
 import * as fs from 'fs-extra';
 import { gmail_v1, google } from 'googleapis';
 import moment from 'moment';
+import pAll from 'p-all';
 import * as path from 'path';
 import * as _ from 'underscore';
 import config from './config';
@@ -16,8 +17,11 @@ const bulletinPDFDir = __dirname + '/../public/daily-bulletin';
 // Query to retrieve emails from Gmail
 const query = 'label:us-daily-bulletin';
 
-// How large each batch of API requests should be.
-const apiBatchSize = 50;
+// Options passed into pAll.
+const pAllOptions = {
+	// How many requests should be pending at a time.
+	concurrency: 50
+};
 
 /**
  * Retrieves the most recent Daily Bulletin from Gmail and saves it to the bulletin directory.
@@ -117,10 +121,11 @@ export async function queryAll() {
 	const jwtClient = await googleServiceAccount.create();
 
 	// Array to store all message ids
-	console.log('Get Daily Bulletin message ids...');
+	console.log('Getting Daily Bulletin message ids...');
 	const messageIds: string[] = [];
 
-	async function getPage(nextPageToken?: string) {
+	let nextPageToken: string | undefined;
+	do {
 		const listQuery: gmail_v1.Params$Resource$Users$Messages$List = {
 			auth: jwtClient,
 			userId: 'me',
@@ -141,144 +146,106 @@ export async function queryAll() {
 		// Add message ids to array
 		messageIds.push(...messageList.messages!.map(m => m.id!));
 
-		// If there is a next page, get it
-		if (typeof messageList.nextPageToken === 'string') {
-			console.log('Get next page with token ' + messageList.nextPageToken);
-			await getPage(messageList.nextPageToken);
-		} else {
-			// We got all the pages!
-			// We start with the last so newer bulletins will override older ones if multiple emails were sent.
+		nextPageToken = messageList.nextPageToken;
+	} while (typeof nextPageToken === 'string');
 
-			let getMessagesBatch: Array<Promise<gmail_v1.Schema$Message>> = [];
+	// We got all the pages!
+	// We start with the last so newer bulletins will override older ones if multiple emails were sent.
 
-			// Array to store all the email information
-			const getMessages: gmail_v1.Schema$Message[] = [];
+	const getMessagesActions = messageIds.reverse().map(messageId => {
+		const params: gmail_v1.Params$Resource$Users$Messages$Get = {
+			auth: jwtClient,
+			userId: 'me',
+			id: messageId
+		};
 
-			console.log('Get detailed information about messages...');
+		return () => gmail.users.messages.get(params).then(r => r.data);
+	});
 
-			const totalMessageBatches = Math.ceil(messageIds.length / apiBatchSize);
+	console.log(`Getting detailed information about ${messageIds.length} messages...`);
 
-			for (const [messageIndex, messageId] of messageIds.reverse().entries()) {
-				const params: gmail_v1.Params$Resource$Users$Messages$Get = {
-					auth: jwtClient,
-					userId: 'me',
-					id: messageId
-				};
+	console.time('get messages');
+	const getMessages = await pAll(getMessagesActions, pAllOptions);
+	console.timeEnd('get messages');
+	console.log(`Got ${getMessages.length} emails containing Daily Bulletins`);
 
-				getMessagesBatch.push(gmail.users.messages.get(params).then(r => r.data));
+	// Now that we're all done getting information about the email, make an array of all the attachments.
+	const attachments: Array<{ emailId: string, attachmentId: string }>  = [];
+	// Array containing filenames matching the indexes of the attachments array
+	const attachmentIdFilenames: string[] = [];
+	// Array containing dates matching the indexes of the attachments array
+	const sentDates: Date[] = [];
 
-				// If the batch is full, wait for it to finish.
-				if (getMessagesBatch.length === apiBatchSize) {
-					console.log(`Messages batch ${Math.ceil(messageIndex / apiBatchSize)}/${totalMessageBatches}`);
-					const responses = await Promise.all(getMessagesBatch);
-					getMessages.push(...responses);
-					getMessagesBatch = [];
-				}
+	// Search through the emails for any PDF
+	for (const response of getMessages) {
+		const parts = response.payload!.parts!;
+
+		// Loop through parts looking for a PDF attachment
+		for (const part of parts) {
+			// If part contains PDF attachment, append attachment id and filename to arrays.
+			if (part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
+				const attachmentId = part.body!.attachmentId!;
+				attachments.push({
+					emailId: response.id!,
+					attachmentId
+				});
+				attachmentIdFilenames.push(part.filename!);
+				sentDates.push(new Date(parseInt(response.internalDate!, 10)));
+				break;
 			}
-
-			// Finished making batch requests
-			// Execute the remaining of the API requests in the batch
-			console.log(`Messages batch ${totalMessageBatches}/${totalMessageBatches}`);
-			const lastMessageResponses = await Promise.all(getMessagesBatch);
-			getMessages.push(...lastMessageResponses);
-			console.log('Got ' + getMessages.length + ' emails containing Daily Bulletins');
-
-			// Now that we're all done getting information about the email, make an array of all the attachments.
-			const attachments: Array<{ emailId: string, attachmentId: string }>  = [];
-			// Array containing filenames matching the indexes of the attachments array
-			const attachmentIdFilenames: string[] = [];
-			// Array containing dates matching the indexes of the attachments array
-			const sentDates: Date[] = [];
-
-			// Search through the emails for any PDF
-			for (const response of getMessages) {
-				const parts = response.payload!.parts!;
-
-				// Loop through parts looking for a PDF attachment
-				for (const part of parts) {
-					// If part contains PDF attachment, append attachment id and filename to arrays.
-					if (part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
-						const attachmentId = part.body!.attachmentId!;
-						attachments.push({
-							emailId: response.id!,
-							attachmentId
-						});
-						attachmentIdFilenames.push(part.filename!);
-						sentDates.push(new Date(parseInt(response.internalDate!, 10)));
-						break;
-					}
-				}
-			}
-
-			// Finally, make batch requests to get the actual PDF attachments
-			console.log('Downloading Daily Bulletins...');
-
-			let getAttachmentsBatch: Array<Promise<gmail_v1.Schema$MessagePartBody>> = [];
-
-			const dailyBulletins: gmail_v1.Schema$MessagePartBody[] = [];
-
-			const totalAttachmentBatches = Math.ceil(attachments.length / apiBatchSize);
-
-			for (const [attachmentIndex, attachment] of attachments.entries()) {
-				const params: gmail_v1.Params$Resource$Users$Messages$Attachments$Get = {
-					auth: jwtClient,
-					userId: 'me',
-					messageId: attachment.emailId,
-					id: attachment.attachmentId
-				};
-
-				getAttachmentsBatch.push(gmail.users.messages.attachments.get(params).then(r => r.data));
-
-				if (getAttachmentsBatch.length === apiBatchSize) {
-					console.log(`Attachment batch ${Math.ceil(attachmentIndex / apiBatchSize)}/${totalAttachmentBatches}`);
-					const responses = await Promise.all(getAttachmentsBatch);
-					dailyBulletins.push(...responses);
-					getAttachmentsBatch = [];
-				}
-			}
-
-			// Finished getting attachments
-			// Execute the remaining of the API requests in the batch
-			console.log(`Attachment batch ${totalAttachmentBatches}/${totalAttachmentBatches}`);
-			const lastAttachmentResponses = await Promise.all(getAttachmentsBatch);
-			dailyBulletins.push(...lastAttachmentResponses);
-
-			// Finally, write all the Daily Bulletins to the proper directory
-			console.log('Writing Daily Bulletins to file...');
-
-			// Make sure directory for Daily Bulletin exists
-			try {
-				await fs.ensureDir(bulletinPDFDir);
-			} catch (e) {
-				throw new Error('There was a problem ensuring directory for Daily Bulletins!');
-			}
-
-			await Promise.all(dailyBulletins.map(async (dailyBulletin, i) => {
-				// PDF contents
-				const pdf = Buffer.from(dailyBulletin.data!, 'base64');
-				// We must now get the filename of the Daily Bulletin
-				const originalFilename = path.parse(attachmentIdFilenames[i]);
-				// Get PDF name
-				const bulletinName = generateFilename(originalFilename.name, sentDates[i]);
-
-				// If bulletinName is null, we are unable to parse bulletin and should skip
-				// This probably means it's not a bulletin
-				if (!bulletinName) { return; }
-
-				// Write PDF to file
-				try {
-					await fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf);
-				} catch (e) {
-					throw new Error('There was a problem writing the PDF!');
-				}
-			}));
-
-			console.log('Done!');
 		}
 	}
-	// tslint:enable:no-console
 
-	return getPage();
+	// Finally, make batch requests to get the actual PDF attachments
+	console.log('Downloading Daily Bulletins...');
+
+	const getAttachmentsActions = attachments.map(attachment => {
+		const params: gmail_v1.Params$Resource$Users$Messages$Attachments$Get = {
+			auth: jwtClient,
+			userId: 'me',
+			messageId: attachment.emailId,
+			id: attachment.attachmentId
+		};
+
+		return () => gmail.users.messages.attachments.get(params).then(r => r.data);
+	});
+
+	console.time('download bulletins');
+	const dailyBulletins = await pAll(getAttachmentsActions, pAllOptions);
+	console.timeEnd('download bulletins');
+
+	// Finally, write all the Daily Bulletins to the proper directory
+	console.log('Writing Daily Bulletins to file...');
+
+	// Make sure directory for Daily Bulletin exists
+	try {
+		await fs.ensureDir(bulletinPDFDir);
+	} catch (e) {
+		throw new Error('There was a problem ensuring directory for Daily Bulletins!');
+	}
+
+	await Promise.all(dailyBulletins.map(async (dailyBulletin, i) => {
+		// PDF contents
+		const pdf = Buffer.from(dailyBulletin.data!, 'base64');
+		// We must now get the filename of the Daily Bulletin
+		const originalFilename = path.parse(attachmentIdFilenames[i]);
+		// Get PDF name
+		const bulletinName = generateFilename(originalFilename.name, sentDates[i]);
+
+		// If bulletinName is null, we are unable to parse bulletin and should skip
+		// This probably means it's not a bulletin
+		if (!bulletinName) { return; }
+
+		// Write PDF to file
+		try {
+			await fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf);
+		} catch (e) {
+			throw new Error('There was a problem writing the PDF!');
+		}
+	}));
+
+	console.log('Done!');
+	// tslint:enable:no-console
 }
 
 /**
