@@ -3,7 +3,7 @@
 import config from './config';
 const key = config.googleServiceAccount;
 
-import * as google from 'googleapis';
+import { google } from 'googleapis';
 
 // Any Google scopes the Service Account uses
 const scopes = [

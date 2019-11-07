@@ -1,20 +1,14 @@
 import * as fs from 'fs-extra';
+import { gmail_v1, google } from 'googleapis';
+import moment from 'moment';
+import pAll from 'p-all';
 import * as path from 'path';
 import * as _ from 'underscore';
 import config from './config';
-import * as utils from './utils';
-import moment from 'moment';
-
-import { promisify } from 'util';
-
-// TODO: Refactor this file so that the google-batch module is not needed.
-// It's not compatible with more recent versions of googleapis that have TypeScript and Promise support built in.
-// This would allow us to get rid of all the `any` types here and replace them with defined types from googleapis.
-import googleBatch from 'google-batch';
 import * as googleServiceAccount from './googleServiceAccount';
+import * as utils from './utils';
 
-const google = googleBatch.require('googleapis');
-const gmail  = google.gmail('v1');
+const gmail = google.gmail('v1');
 
 // Where public accesses backgrounds
 export const baseURL = config.hostedOn + '/daily-bulletin';
@@ -22,6 +16,12 @@ export const baseURL = config.hostedOn + '/daily-bulletin';
 const bulletinPDFDir = __dirname + '/../public/daily-bulletin';
 // Query to retrieve emails from Gmail
 const query = 'label:us-daily-bulletin';
+
+// Options passed into pAll.
+const pAllOptions = {
+	// How many requests should be pending at a time.
+	concurrency: 50
+};
 
 /**
  * Retrieves the most recent Daily Bulletin from Gmail and saves it to the bulletin directory.
@@ -33,39 +33,39 @@ export async function queryLatest() {
 	// Get list of messages
 	let messageList;
 	try {
-		messageList = await promisify(gmail.users.messages.list)({
+		messageList = await gmail.users.messages.list({
 			auth: jwtClient,
 			userId: 'me',
 			q: query
-		});
+		}).then(r => r.data);
 	} catch (e) {
 		throw new Error('There was a problem listing the messages from Gmail!');
 	}
 
 	// Get the most recent email id
-	const recentMsgId = messageList.messages[0].id;
+	const recentMsgId = messageList.messages![0].id;
 
 	// Now get details on most recent email
 	let recentMessage;
 	try {
-		recentMessage = await promisify(gmail.users.messages.get)({
+		recentMessage = await gmail.users.messages.get({
 			auth: jwtClient,
 			userId: 'me',
 			id: recentMsgId
-		});
+		}).then(r => r.data);
 	} catch (e) {
 		throw new Error('There was a problem getting the most recent email!');
 	}
 
 	// Search through the email for any PDF
-	const parts = recentMessage.payload.parts;
+	const parts = recentMessage.payload!.parts!;
 	let attachmentId: string | null = null;
 	let originalFilename: path.ParsedPath | null = null;
 	for (const part of parts) {
 		// If part contains PDF attachment, we're done boys.
 		if (part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
-			attachmentId = part.body.attachmentId;
-			originalFilename = path.parse(part.filename);
+			attachmentId = part.body!.attachmentId!;
+			originalFilename = path.parse(part.filename!);
 			break;
 		}
 	}
@@ -77,20 +77,20 @@ export async function queryLatest() {
 	// Get PDF attachment with attachment id
 	let attachment;
 	try {
-		attachment = await promisify(gmail.users.messages.attachments.get)({
+		attachment = await gmail.users.messages.attachments.get({
 			auth: jwtClient,
 			userId: 'me',
 			messageId: recentMsgId,
 			id: attachmentId
-		});
+		}).then(r => r.data);
 	} catch (e) {
 		throw new Error('There was a problem getting the PDF attachment!');
 	}
 
 	// PDF Contents
-	const pdf = Buffer.from(attachment.data, 'base64');
+	const pdf = Buffer.from(attachment.data!, 'base64');
 	// Get PDF name
-	const bulletinName = generateFilename(originalFilename!.name, new Date(parseInt(recentMessage.internalDate, 10)));
+	const bulletinName = generateFilename(originalFilename!.name, new Date(parseInt(recentMessage.internalDate!, 10)));
 
 	// If bulletinName is null, we are unable to parse bulletin and should skip
 	// This probably means it's not a bulletin
@@ -121,170 +121,131 @@ export async function queryAll() {
 	const jwtClient = await googleServiceAccount.create();
 
 	// Array to store all message ids
-	console.log('Get Daily Bulletin message ids...');
-	let messageIds: any[] = [];
+	console.log('Getting Daily Bulletin message ids...');
+	const messageIds: string[] = [];
 
-	async function getPage(nextPageToken?: string) {
-		const listQuery = {
+	let nextPageToken: string | undefined;
+	do {
+		const listQuery: gmail_v1.Params$Resource$Users$Messages$List = {
 			auth: jwtClient,
 			userId: 'me',
 			maxResults: 200,
 			q: query
 		};
 		if (typeof nextPageToken === 'string') {
-			(listQuery as any).pageToken = nextPageToken;
+			listQuery.pageToken = nextPageToken;
 		}
 
 		let messageList;
 		try {
-			messageList = await promisify(gmail.users.messages.list)(listQuery);
+			messageList = await gmail.users.messages.list(listQuery).then(r => r.data);
 		} catch (e) {
 			throw new Error('There was a problem listing the messages from Gmail!');
 		}
 
 		// Add message ids to array
-		messageIds = messageIds.concat(messageList.messages);
+		messageIds.push(...messageList.messages!.map(m => m.id!));
 
-		// If there is a next page, get it
-		if (typeof messageList.nextPageToken === 'string') {
-			console.log('Get next page with token ' + messageList.nextPageToken);
-			await getPage(messageList.nextPageToken);
-		} else {
-			// We got all the pages!
-			// We start with the last so newer bulletins will override older ones if multiple emails were sent.
-			// Create a batch so we can send up to 100 requests at once
-			// noinspection JSPotentiallyInvalidConstructorUsage
-			const batch = new googleBatch();
-			batch.setAuth(jwtClient);
+		nextPageToken = messageList.nextPageToken;
+	} while (typeof nextPageToken === 'string');
 
-			// Array to store all the email information
-			let getMessages: any[] = [];
+	// We got all the pages!
+	// We start with the last so newer bulletins will override older ones if multiple emails were sent.
 
-			console.log('Get detailed information about messages...');
+	const getMessagesActions = messageIds.reverse().map(messageId => {
+		const params: gmail_v1.Params$Resource$Users$Messages$Get = {
+			auth: jwtClient,
+			userId: 'me',
+			id: messageId
+		};
 
-			let inFirstBatch = 0;
-			for (const messageId of messageIds.reverse()) {
-				const params = {
-					googleBatch: true,
-					userId: 'me',
-					id: messageId
-				};
+		return () => gmail.users.messages.get(params).then(r => r.data);
+	});
 
-				batch.add(gmail.users.messages.get(params));
-				inFirstBatch++;
+	console.log(`Getting detailed information about ${messageIds.length} messages...`);
 
-				// If there are 100 queries in Batch request, query it.
-				if (inFirstBatch === 100) {
-					const responses = await promisify(batch.exec)();
-					getMessages = getMessages.concat(responses);
+	console.time('get messages');
+	const getMessages = await pAll(getMessagesActions, pAllOptions);
+	console.timeEnd('get messages');
+	console.log(`Got ${getMessages.length} emails containing Daily Bulletins`);
 
-					batch.clear();
-					inFirstBatch = 0;
-				}
+	// Now that we're all done getting information about the email, make an array of all the attachments.
+	const attachments: Array<{ emailId: string, attachmentId: string }>  = [];
+	// Array containing filenames matching the indexes of the attachments array
+	const attachmentIdFilenames: string[] = [];
+	// Array containing dates matching the indexes of the attachments array
+	const sentDates: Date[] = [];
+
+	// Search through the emails for any PDF
+	for (const response of getMessages) {
+		const parts = response.payload!.parts!;
+
+		// Loop through parts looking for a PDF attachment
+		for (const part of parts) {
+			// If part contains PDF attachment, append attachment id and filename to arrays.
+			if (part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
+				const attachmentId = part.body!.attachmentId!;
+				attachments.push({
+					emailId: response.id!,
+					attachmentId
+				});
+				attachmentIdFilenames.push(part.filename!);
+				sentDates.push(new Date(parseInt(response.internalDate!, 10)));
+				break;
 			}
-
-			// Finished making batch requests
-			// Execute the remaining of the API requests in the batch
-			const firstResponses = await promisify(batch.exec)();
-			getMessages = getMessages.concat(firstResponses);
-			batch.clear();
-			console.log('Got ' + getMessages.length + ' emails containing Daily Bulletins');
-
-			// Now that we're all done getting information about the email, make an array of all the attachments.
-			const attachments = [];
-			// Array containing filenames matching the indexes of the attachments array
-			const attachmentIdFilenames = [];
-			// Array containing dates matching the indexes of the attachments array
-			const sentDates = [];
-
-			// Search through the emails for any PDF
-			for (const response of getMessages) {
-				const parts = response.body.payload.parts;
-
-				// Loop through parts looking for a PDF attachment
-				for (const part of parts) {
-					// If part contains PDF attachment, append attachment id and filename to arrays.
-					if (part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
-						const attachmentId = part.body.attachmentId;
-						attachments.push({
-							emailId: response.body.id,
-							attachmentId
-						});
-						attachmentIdFilenames.push(part.filename);
-						sentDates.push(new Date(parseInt(response.body.internalDate, 10)));
-						break;
-					}
-				}
-			}
-
-			// Finally, make batch requests to get the actual PDF attachments
-			console.log('Downloading Daily Bulletins...');
-			let dailyBulletins: any[] = [];
-
-			let inSecondBatch = 0;
-			for (const attachment of attachments) {
-				const params = {
-					googleBatch: true,
-					userId: 'me',
-					messageId: attachment.emailId,
-					id: attachment.attachmentId
-				};
-
-				batch.add(gmail.users.messages.attachments.get(params));
-				inSecondBatch++;
-
-				if (inSecondBatch === 100) {
-					const responses = await promisify(batch.exec)();
-					dailyBulletins = dailyBulletins.concat(responses);
-
-					batch.clear();
-					inSecondBatch = 0;
-				}
-			}
-
-			// Finished getting attachments
-			// Execute the remaining of the API requests in the batch
-			const secondResponses = await promisify(batch.exec)();
-			dailyBulletins = dailyBulletins.concat(secondResponses);
-			batch.clear();
-
-			// Finally, write all the Daily Bulletins to the proper directory
-			console.log('Writing Daily Bulletins to file...');
-
-			// Make sure directory for Daily Bulletin exists
-			try {
-				await fs.ensureDir(bulletinPDFDir);
-			} catch (e) {
-				throw new Error('There was a problem ensuring directory for Daily Bulletins!');
-			}
-
-			for (let i = 0; i < dailyBulletins.length; i++) {
-				const dailyBulletin = dailyBulletins[i];
-				// PDF contents
-				const pdf = Buffer.from(dailyBulletin.body.data, 'base64');
-				// We must now get the filename of the Daily Bulletin
-				const originalFilename = path.parse(attachmentIdFilenames[i]);
-				// Get PDF name
-				const bulletinName = generateFilename(originalFilename.name, sentDates[i]);
-
-				// If bulletinName is null, we are unable to parse bulletin and should skip
-				// This probably means it's not a bulletin
-				if (!bulletinName) { continue; }
-
-				// Write PDF to file
-				try {
-					await fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf);
-				} catch (e) {
-					throw new Error('There was a problem writing the PDF!');
-				}
-			}
-
-			console.log('Done!');
 		}
 	}
-	// tslint:enable:no-console
 
-	return getPage();
+	// Finally, make batch requests to get the actual PDF attachments
+	console.log('Downloading Daily Bulletins...');
+
+	const getAttachmentsActions = attachments.map(attachment => {
+		const params: gmail_v1.Params$Resource$Users$Messages$Attachments$Get = {
+			auth: jwtClient,
+			userId: 'me',
+			messageId: attachment.emailId,
+			id: attachment.attachmentId
+		};
+
+		return () => gmail.users.messages.attachments.get(params).then(r => r.data);
+	});
+
+	console.time('download bulletins');
+	const dailyBulletins = await pAll(getAttachmentsActions, pAllOptions);
+	console.timeEnd('download bulletins');
+
+	// Finally, write all the Daily Bulletins to the proper directory
+	console.log('Writing Daily Bulletins to file...');
+
+	// Make sure directory for Daily Bulletin exists
+	try {
+		await fs.ensureDir(bulletinPDFDir);
+	} catch (e) {
+		throw new Error('There was a problem ensuring directory for Daily Bulletins!');
+	}
+
+	await Promise.all(dailyBulletins.map(async (dailyBulletin, i) => {
+		// PDF contents
+		const pdf = Buffer.from(dailyBulletin.data!, 'base64');
+		// We must now get the filename of the Daily Bulletin
+		const originalFilename = path.parse(attachmentIdFilenames[i]);
+		// Get PDF name
+		const bulletinName = generateFilename(originalFilename.name, sentDates[i]);
+
+		// If bulletinName is null, we are unable to parse bulletin and should skip
+		// This probably means it's not a bulletin
+		if (!bulletinName) { return; }
+
+		// Write PDF to file
+		try {
+			await fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf);
+		} catch (e) {
+			throw new Error('There was a problem writing the PDF!');
+		}
+	}));
+
+	console.log('Done!');
+	// tslint:enable:no-console
 }
 
 /**
@@ -347,7 +308,7 @@ function generateFilename(filename: string, sentDate: Date): string | null {
 
 	date.setFullYear(sentDate.getFullYear());
 
-	if(_.isNaN(date.getTime())) {
+	if (_.isNaN(date.getTime())) {
 		return null;
 	}
 
