@@ -103,10 +103,10 @@ export async function verifyURLCalendar(portalURL: string) {
 	const { url, body } = await verifyURLGeneric(portalURL);
 
 	// Additional checks to make sure it is the correct portal feed type
-	const events = Object.values<PortalCalendarEvent>(ical.parseICS(body));
+	const events = Object.values(ical.parseICS(body));
 	let count = 0;
 	for (const calEvent of events) {
-		if (checkClassSummary.test(calEvent.summary)) {
+		if (checkClassSummary.test(calEvent.summary!)) {
 			count++;
 		}
 	}
@@ -259,7 +259,7 @@ export async function getFromCalClasses(db: Db, user: string) {
 
 	return {
 		hasURL: true,
-		cal: Object.values<PortalCalendarEvent>(ical.parseICS(response.body)).filter(e => typeof e.summary === 'string')
+		cal: Object.values(ical.parseICS(response.body)).filter(e => typeof e.summary === 'string')
 	};
 }
 
@@ -292,7 +292,7 @@ export async function getFromCalCalendar(db: Db, user: string) {
 
 	return {
 		hasURL: true,
-		cal: Object.values<PortalCalendarEvent>(ical.parseICS(response.body)).filter(e => typeof e.summary === 'string')
+		cal: Object.values(ical.parseICS(response.body)).filter(e => typeof e.summary === 'string')
 	};
 }
 
@@ -317,10 +317,10 @@ export async function getDayRotation(date: Date) {
 	// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
 	if (_.isEmpty(data)) { throw new Error('There was a problem fetching the day rotation!'); }
 
-	for (const calEvent of Object.values<PortalCalendarEvent>(data)) {
+	for (const calEvent of Object.values(data)) {
 		if (typeof calEvent.summary !== 'string') { continue; }
 
-		const start = new Date(calEvent.start);
+		const start = new Date(calEvent.start!);
 		const end = new Date(calEvent.end || '');
 
 		const startTime = start.getTime();
@@ -359,10 +359,10 @@ export async function getDayRotations() {
 	// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
 	if (_.isEmpty(data)) { throw new Error('There was a problem fetching the day rotation!'); }
 
-	for (const calEvent of Object.values<PortalCalendarEvent>(data)) {
+	for (const calEvent of Object.values(data)) {
 		if (typeof calEvent.summary !== 'string') { continue; }
 
-		const start = new Date(calEvent.start);
+		const start = new Date(calEvent.start!);
 
 		const year = start.getFullYear();
 		const month = start.getMonth() + 1;
@@ -427,7 +427,7 @@ function parsePortalClasses(events: PortalCacheEvent[]) {
 			continue;
 		}
 
-		const className = calEvent.summary.trim();
+		const className = calEvent.summary!.trim();
 
 		if (className.length > 0 && typeof classes[className] !== 'undefined') {
 			classes[className]++;
@@ -478,23 +478,4 @@ export function cleanUp(str: string) {
 	return str.replace(cleanUpBlockSuffix, '');
 }
 
-export interface PortalCalendarEvent {
-	type: 'VEVENT';
-	params: string[]; // empty
-	dtstamp: string;
-	uid: string;
-	start: Date;
-	end?: Date;
-	description?: string;
-	location?: string;
-	sequence: string;
-	summary: string;
-}
-
-export interface PortalCalendarWithUser extends PortalCalendarEvent {
-	user: ObjectID;
-}
-
-export interface PortalCacheEvent extends PortalCalendarWithUser {
-	_id: ObjectID;
-}
+export type PortalCacheEvent = ical.CalendarComponent & { _id: ObjectID };

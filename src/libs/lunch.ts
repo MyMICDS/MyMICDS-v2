@@ -1,10 +1,11 @@
-import { GetLunchResponse, School, SchoolLunch } from '@mymicds/sdk';
+import { GetLunchResponse, School } from '@mymicds/sdk';
 import moment from 'moment';
 import { Db } from 'mongodb';
 import objectAssignDeep from 'object-assign-deep';
 import { Response } from 'request';
 import request from 'request-promise-native';
 
+// tslint:disable-next-line:max-line-length
 const lunchBaseURL = 'https://micds.flikisdining.com/menu/api/weeks/school/mary-institute-country-day-school-micds/menu-type';
 const schools: Record<School, string> = {
 	lowerschool: 'lunch',

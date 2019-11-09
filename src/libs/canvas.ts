@@ -108,7 +108,7 @@ export async function getUserCal(db: Db, user: string) {
 	}
 	if (response.statusCode !== 200) { throw new Error('Invalid URL!'); }
 
-	return { hasURL: true, events: Object.values<CanvasCalendarEvent>(ical.parseICS(response.body)) };
+	return { hasURL: true, events: Object.values(ical.parseICS(response.body)) };
 }
 
 /**
@@ -305,12 +305,12 @@ export async function getFromCache(db: Db, user: string) {
 	}
 
 	for (const canvasEvent of events) {
-		const parsedEvent = parseCanvasTitle(canvasEvent.summary);
+		const parsedEvent = parseCanvasTitle(canvasEvent.summary!);
 
 		// Check if alias for class first
 		const canvasClass = await getCanvasClass(parsedEvent);
-		const start = new Date(canvasEvent.start);
-		const end = new Date(canvasEvent.end);
+		const start = new Date(canvasEvent.start!);
+		const end = new Date(canvasEvent.end!);
 
 		// class will be null if error in getting class name.
 		const insertEvent: any = {
@@ -321,12 +321,12 @@ export async function getFromCache(db: Db, user: string) {
 			title: parsedEvent.assignment,
 			start,
 			end,
-			link: calendarToEvent(canvasEvent.url) || '',
+			link: calendarToEvent(canvasEvent.url!) || '',
 			checked: _.contains(checkedEventsList, canvasEvent.uid)
 		};
 
 		if (typeof canvasEvent['ALT-DESC'] === 'object') {
-			insertEvent.desc = canvasEvent['ALT-DESC']!.val;
+			insertEvent.desc = (canvasEvent['ALT-DESC'] as ical.ParamList).val;
 			insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
 		} else {
 			insertEvent.desc = '';
@@ -362,15 +362,15 @@ export async function getUniqueEvents(db: Db) {
 	const assignments: { [className: string]: UniqueEvent[] } = {};
 
 	for (const doc of docs) {
-		const parsedEvent = parseCanvasTitle(doc.summary);
+		const parsedEvent = parseCanvasTitle(doc.summary!);
 		const className = parsedEvent.class.name;
 		const assignment = {
 			_id: doc._id as string,
 			name: parsedEvent.assignment,
 			className,
-			raw: doc.summary,
-			start: new Date(doc.start),
-			end: new Date(doc.end)
+			raw: doc.summary!,
+			start: new Date(doc.start!),
+			end: new Date(doc.end!)
 		};
 
 		if (!assignments[className]) {
@@ -387,34 +387,7 @@ export async function getUniqueEvents(db: Db) {
 	return assignments;
 }
 
-export interface CanvasCalendarEvent {
-	type: 'VEVENT';
-	params: string[]; // empty
-	description?: string;
-	end: Date;
-	dtstamp: string;
-	start: Date;
-	class: 'PUBLIC';
-	location?: string;
-	sequence: '0';
-	summary: string;
-	uid: string;
-	url: string;
-	'ALT-DESC'?: {
-		params: {
-			FMTTYPE: 'text/html'
-		},
-		val: string
-	};
-}
-
-export interface CanvasCalendarWithUser extends CanvasCalendarEvent {
-	user: ObjectID;
-}
-
-export interface CanvasCacheEvent extends CanvasCalendarWithUser {
-	_id: string | ObjectID;
-}
+export type CanvasCacheEvent = ical.CalendarComponent & { _id: string | ObjectID };
 
 export interface UniqueEvent {
 	_id: string;
