@@ -42,7 +42,7 @@
   },
   "homepage": "https://mymicds.net",
   "dependencies": {
-    "bcrypt": "^3.0.2",
+    "bcrypt": "^3.0.6",
     "body-parser": "^1.15.2",
     "cheerio": "^0.22.0",
     "cors": "^2.8.0",
@@ -71,7 +71,7 @@
     "request": "^2.79.0",
     "request-promise-native": "^1.0.5",
     "socket.io": "^1.4.5",
-    "ts-node": "^7.0.0",
+    "ts-node": "^8.4.1",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
@@ -81,6 +81,7 @@
     "@types/cheerio": "^0.22.13",
     "@types/cors": "^2.8.4",
     "@types/express-jwt": "0.0.40",
+    "@types/fs-extra": "^8.0.1",
     "@types/htmlparser2": "^3.7.31",
     "@types/ical": "^0.6.1",
     "@types/jsonwebtoken": "^7.2.7",
@@ -93,8 +94,8 @@
     "@types/request-promise-native": "^1.0.15",
     "@types/socket.io": "^1.4.36",
     "@types/underscore": "^1.8.8",
-    "tslint": "^5.10.0",
-    "typedoc": "^0.14.0",
-    "typescript": "^3.2.2"
+    "tslint": "^5.20.1",
+    "typedoc": "^0.15.0",
+    "typescript": "^3.7.2"
   }
 }
