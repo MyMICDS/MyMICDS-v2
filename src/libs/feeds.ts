@@ -1,8 +1,8 @@
 import { Db } from 'mongodb';
 import * as _ from 'underscore';
-import { CanvasCalendarWithUser } from './canvas';
+import { CanvasCacheEvent } from './canvas';
 import * as canvas from './canvas';
-import { PortalCalendarWithUser } from './portal';
+import { PortalCacheEvent } from './portal';
 import * as portal from './portal';
 import { UserDoc } from './users';
 import * as users from './users';
@@ -35,7 +35,7 @@ export async function updateCanvasCache(db: Db, user: string) {
 	}
 
 	try {
-		await canvasdata.insertMany(events as CanvasCalendarWithUser[]);
+		await canvasdata.insertMany(events as CanvasCacheEvent[]);
 	} catch (e) {
 		throw new Error('There was an error inserting events into the database!');
 	}
@@ -53,7 +53,7 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	const portaldata = db.collection<PortalCalendarWithUser>('portalFeedsClasses');
+	const portaldata = db.collection<PortalCacheEvent>('portalFeedsClasses');
 	const userdata   = db.collection<UserDoc>('users');
 
 	const { cal: events } = await portal.getFromCalClasses(db, user);
@@ -86,7 +86,7 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 		(ev as any).user = userDoc!._id;
 	}
 
-	const newEvents = events as PortalCalendarWithUser[];
+	const newEvents = events as PortalCacheEvent[];
 
 	try {
 		await portaldata.insertMany(newEvents);
@@ -115,7 +115,7 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	const portaldata = db.collection<PortalCalendarWithUser>('portalFeedsCalendar');
+	const portaldata = db.collection<PortalCacheEvent>('portalFeedsCalendar');
 	const userdata   = db.collection<UserDoc>('users');
 
 	const { cal: events } = await portal.getFromCalCalendar(db, user);
@@ -148,7 +148,7 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 		(ev as any).user = userDoc!._id;
 	}
 
-	const newEvents = events as PortalCalendarWithUser[];
+	const newEvents = events as PortalCacheEvent[];
 
 	try {
 		await portaldata.insertMany(newEvents);
