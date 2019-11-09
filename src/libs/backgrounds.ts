@@ -54,13 +54,13 @@ function uploadBackground() {
 
 			// Make sure directory is created for user backgrounds
 			const userDir = userBackgroundsDir + '/' + req.apiUser + '-' + Date.now();
-			fs.ensureDir(userDir, err => {
-				if (err) {
-					cb(new Error('There was a problem ensuring the image directory!'), '');
-					return;
-				}
+
+			try {
+				await fs.ensureDir(userDir);
 				cb(null, userDir);
-			});
+			} catch (err) {
+				cb(new Error('There was a problem ensuring the image directory!'), '');
+			}
 		},
 		filename(req, file, cb) {
 			// Get valid extension

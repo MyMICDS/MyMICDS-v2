@@ -293,7 +293,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 		// Check if event occurs on specified day
 		if (scheduleDate.isSame(start, 'day')) {
 			// Check if special schedule
-			const lowercaseSummary = calEvent.summary.toLowerCase();
+			const lowercaseSummary = calEvent.summary!.toLowerCase();
 			if (lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
 				schedule.special = true;
 				continue;
@@ -324,7 +324,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 		// Check if it's an all-day event
 		// @TODO Don't know if this works (if everything we'd consider "all-day" event actually matches this criteria)
 		if (start.isSameOrBefore(scheduleDate) && end.isSameOrAfter(scheduleNextDay)) {
-			schedule.allDay.push(portal.cleanUp(calEvent.summary));
+			schedule.allDay.push(portal.cleanUp(calEvent.summary!));
 		}
 	}
 
@@ -345,15 +345,15 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 			// 	continue;
 			// }
 			// Push event to all-day events
-			schedule.allDay.push(portal.cleanUp(calEvent.summary));
+			schedule.allDay.push(portal.cleanUp(calEvent.summary!));
 		} else if (start.isAfter(scheduleDate) && end.isBefore(scheduleNextDay)) {
 			// See if it's part of the schedule
 
 			// We should use the Portal class's alias; otherwise, we should fallback to a default class object. [sp1a]
-			if (typeof aliasesResult.portal[calEvent.summary] !== 'object') {
+			if (typeof aliasesResult.portal[calEvent.summary!] !== 'object') {
 
 				// Determine block
-				const blockPart = _.last(calEvent.summary.match(portal.portalSummaryBlock)!);
+				const blockPart = _.last(calEvent.summary!.match(portal.portalSummaryBlock)!);
 				let block = Block.OTHER;
 
 				if (blockPart) {
@@ -364,9 +364,9 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 				const color = prisma(calEvent.summary).hex;
 
 				// RegEx for determining block and stuff is a bit intense; therefore, we should cache it. [sp1a]
-				aliasesResult.portal[calEvent.summary] = {
+				aliasesResult.portal[calEvent.summary!] = {
 					portal: true,
-					name: portal.cleanUp(calEvent.summary),
+					name: portal.cleanUp(calEvent.summary!),
 					teacher: {
 						prefix: '',
 						firstName: '',
@@ -381,7 +381,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 
 			// Add block into Portal Schedule array
 			portalSchedule.push({
-				class: aliasesResult.portal[calEvent.summary] as ScheduleClass,
+				class: aliasesResult.portal[calEvent.summary!] as ScheduleClass,
 				start,
 				end
 			});

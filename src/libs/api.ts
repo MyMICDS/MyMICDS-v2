@@ -39,7 +39,7 @@ export function adminOverride(req: Request, res: Response, next: NextFunction) {
  */
 function respondSuccess(res: Response, data: any = {}, action: Action | null = null) {
 	// Make sure it's a valid action
-	if (!Object.values(Action).includes(action)) {
+	if (action && !Object.values(Action).includes(action)) {
 		action = null;
 	}
 
@@ -67,7 +67,7 @@ function respondError(res: Response, error: Error | string | null, action: Actio
 	}
 
 	// Make sure it's a valid action
-	if (!Object.values(Action).includes(action)) {
+	if (action && !Object.values(Action).includes(action)) {
 		action = null;
 	}
 
