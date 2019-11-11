@@ -6,7 +6,6 @@
  */
 const config = require(__dirname + '/config.js');
 
-const _ = require('underscore');
 const jwt = require('jsonwebtoken');
 
 module.exports = io => {
@@ -43,22 +42,18 @@ module.exports = io => {
 	});
 
 	return {
-		global: () => {
-			io.emit.apply(io, arguments);
+		global(event, ...args) {
+			io.emit(event, ...args);
 		},
-		user: () => {
-			const argumentsArray = Array.from(arguments);
-			const emitUser = argumentsArray[0];
-			const emitEvent = argumentsArray.slice(1);
-
-			_.each(io.sockets.connected, value => {
+		user(emitUser, event, ...args) {
+			for (const value of Object.values(io.sockets.connected)) {
 				// Check if user is authorized
-				if (!value.decodedToken) return;
+				if (!value.decodedToken) { return; }
 				// If logged in user has same username as target user
 				if (emitUser === value.decodedToken.user) {
-					value.emit.apply(value, emitEvent);
+					value.emit(event, ...args);
 				}
-			});
+			}
 		}
 	};
 };
