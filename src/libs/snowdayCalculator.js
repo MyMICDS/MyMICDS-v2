@@ -90,8 +90,8 @@ function calculate(db, callback) {
 
 			// Get variable name and date
 			const varName = parts[0];
-			const name = varName.match(/[a-zA-Z]+(?=\[)/);
-			const dateString = varName.match(/(?!\[)\d+(?=\])/);
+			const name = varName.match(/[a-zA-Z]+(?=\[)/)[0];
+			const dateString = varName.match(/(?!\[)\d+(?=\])/)[0];
 
 			// If variable name isn't mapped, we don't care about it
 			if(!labels[name]) continue;

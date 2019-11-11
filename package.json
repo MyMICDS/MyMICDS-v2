@@ -43,7 +43,7 @@
   "homepage": "https://mymicds.net",
   "dependencies": {
     "async": "^2.0.1",
-    "bcrypt": "^3.0.2",
+    "bcrypt": "^3.0.6",
     "body-parser": "^1.15.2",
     "cors": "^2.8.0",
     "express": "^4.14.0",
