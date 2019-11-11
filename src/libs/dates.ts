@@ -81,10 +81,17 @@ export function schoolEnds() {
 	const current = moment();
 	const lastDayThisYear = lastFridayMay(current.year());
 
+	let day: moment.Moment;
 	if (lastDayThisYear.isAfter(current)) {
-		return lastDayThisYear;
+		day = lastDayThisYear;
 	} else {
-		return lastFridayMay(current.year() + 1);
+		day = lastFridayMay(current.year() + 1);
+	}
+
+	if (day.date() === 31) {
+		return day.subtract(1, 'week');
+	} else {
+		return day;
 	}
 }
 
