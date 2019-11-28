@@ -31,7 +31,7 @@ export default {
 	},
 
 	portal: {
-		dayRotation: '' // Student Calendar > My Calendar from Veracross
+		dayRotation: '' // School Calendars > All School Events on Veracross
 	},
 
 	ramsArmy: {
