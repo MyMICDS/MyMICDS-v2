@@ -21,7 +21,7 @@
     "build": "mjml -r src/email/* -o src/html/messages",
     "start": "npm run build && ts-node --files src/index.ts",
     "prod": "npm run build && pm2 start ts-node -i max --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds\" -- --files src/index.ts",
-    "tasks": "npm run ts && pm2 start ts-node --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds-tasks\" -- --files src/tasks.ts",
+    "tasks": "pm2 start ts-node --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds-tasks\" -- --files src/tasks.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "docs": "typedoc --out ./docs --mode modules ./src/libs ./src/external.d.ts",
     "lint": "tslint --project tsconfig.json \"src/**/*.ts\""
