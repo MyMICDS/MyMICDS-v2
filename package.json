@@ -22,7 +22,7 @@
     "start": "npm run build && ts-node --files src/index.ts",
     "prod": "npm run build && pm2 start ts-node -i max --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds\" -- --files src/index.ts",
     "tasks": "pm2 start ts-node --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds-tasks\" -- --files src/tasks.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tsc --noEmit",
     "docs": "typedoc --out ./docs --mode modules ./src/libs ./src/external.d.ts",
     "lint": "tslint --project tsconfig.json \"src/**/*.ts\""
   },
@@ -88,6 +88,7 @@
     "@types/later": "^1.2.4",
     "@types/mongodb": "^3.1.1",
     "@types/multer": "^1.3.7",
+    "@types/node": "^12.12.14",
     "@types/nodemailer": "^4.6.1",
     "@types/object-assign-deep": "^0.4.0",
     "@types/random-js": "^1.0.30",

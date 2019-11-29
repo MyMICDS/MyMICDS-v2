@@ -4,7 +4,7 @@
 import { URL } from 'url';
 import config from '../libs/config';
 
-const messageType = 'announcements';
+const messageType = Scope.ANNOUNCEMENTS;
 const subject = 'We need your help!';
 const messageDir = __dirname + '/../html/messages/survey.html';
 // Path to JSON file to keep track of who's been sent the email already (in case script stops halfway through)
@@ -27,7 +27,7 @@ import * as mail from '../libs/mail';
 import { Scope } from '../libs/notifications';
 import { UserDoc } from '../libs/users';
 
-if (!Object.values(Scope).includes(messageType.toUpperCase())) {
+if (!Object.values(Scope).includes(messageType)) {
 	console.log(`"${messageType}" is an invalid message type! Refer to \`/src/libs/notifications.js\` for list of valid types.`);
 	process.exit();
 }
