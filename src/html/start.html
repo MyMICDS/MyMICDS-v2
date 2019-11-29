@@ -173,11 +173,11 @@
 			var $frame = $('.frame');
 
 			function nextSlide() {
-				if(currentFrame < $frame.length - 1) {
+				if (currentFrame < $frame.length - 1) {
 					currentFrame++;
 
 					// There can't be a frame before the first frame
-					if(currentFrame !== 0) {
+					if (currentFrame !== 0) {
 						$frame.eq(currentFrame - 1).removeClass('active').addClass('up');
 					}
 
@@ -186,11 +186,11 @@
 			}
 
 			function lastSlide() {
-				if(currentFrame > 0) {
+				if (currentFrame > 0) {
 					currentFrame--;
 
 					// There can't be a frame after the last frame
-					if(currentFrame !== $frame.length - 1) {
+					if (currentFrame !== $frame.length - 1) {
 						$frame.eq(currentFrame + 1).removeClass('active');
 					}
 
@@ -202,16 +202,16 @@
 			function slideController(event) {
 
 				// Prevent spamming the scroll wheel
-				if(typeof event.deltaY !== 'undefined') {
+				if (typeof event.deltaY !== 'undefined') {
 					var now = Date.now();
-					if(now - lastScroll > 500) {
+					if (now - lastScroll > 500) {
 						lastScroll = now;
 					} else {
 						return;
 					}
 				}
 
-				if(event.key === 'ArrowUp' || event.deltaY > 0) {
+				if (event.key === 'ArrowUp' || event.deltaY > 0) {
 					lastSlide();
 				} else {
 					nextSlide();

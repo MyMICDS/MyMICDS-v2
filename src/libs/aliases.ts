@@ -1,0 +1,281 @@
+import { AliasType, PortalClass } from '@mymicds/sdk';
+import { Db, InsertOneWriteOpResult, ObjectID } from 'mongodb';
+import * as classes from './classes';
+import { MyMICDSClassWithIDs } from './classes';
+import * as users from './users';
+
+const aliasTypes: AliasType[] = Object.values(AliasType);
+
+/**
+ * Adds an alias that connects a remote class to a local class object.
+ * @param db Database connection.
+ * @param user Username.
+ * @param type Alias type to create.
+ * @param classString String describing the remote class.
+ * @param classId ID of the local class.
+ * @returns ID of the inserted alias.
+ */
+async function addAlias(db: Db, user: string, type: AliasType, classString: string, classId: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (!aliasTypes.includes(type)) { throw new Error('Invalid alias type!'); }
+	if (typeof classString !== 'string') { throw new Error('Invalid class string!'); }
+	if (typeof classId !== 'string') { await new Error('Invalid class id!'); }
+
+	// Make sure valid user
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+
+	// Check if alias already exists
+	const { hasAlias } = await getAliasClass(db, user, type, classString);
+	if (hasAlias) { throw new Error('Alias already exists for a class!'); }
+
+	// Make sure class id is valid
+	const theClasses = await classes.get(db, user);
+
+	// Loop through classes and search for class with id specified
+	let validClassObject: MyMICDSClassWithIDs | null = null;
+	for (const classObject of theClasses) {
+		if (classObject._id.toHexString() === classId) {
+			validClassObject = classObject;
+			break;
+		}
+	}
+
+	if (!validClassObject) { throw new Error('Native class doesn\'t exist!'); }
+
+	// Class is valid! Insert into database
+	const insertAlias = {
+		user: userDoc!._id,
+		type,
+		classNative: validClassObject._id,
+		classRemote: classString
+	};
+
+	// Insert into database
+	const aliasdata = db.collection('aliases');
+
+	let results: InsertOneWriteOpResult;
+	try {
+		results = await aliasdata.insertOne(insertAlias);
+	} catch (e) {
+		throw new Error('There was a problem inserting the alias into the database!');
+	}
+
+	return results.ops[0]._id as ObjectID;
+}
+
+/**
+ * Gets all aliases associated with a given user.
+ * @param db Database connection.
+ * @param user Username.
+ * @returns Object containing all aliases for each alias type.
+ */
+async function listAliases(db: Db, user: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
+
+	// Make sure valid user
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+
+	// Query database for all aliases under specific user
+	const aliasdata = db.collection<AliasWithIDs>('aliases');
+
+	let aliases;
+	try {
+		aliases = await aliasdata.find({ user: userDoc!._id }).toArray();
+	} catch (e) {
+		throw new Error('There was a problem querying the database!');
+	}
+
+	// Add array for all alias types
+	const aliasList: Record<AliasType, AliasWithIDs[]> = {
+		canvas: [] as AliasWithIDs[],
+		portal: [] as AliasWithIDs[]
+	};
+
+	// Loop through aliases and organize them by type
+	for (const alias of aliases) {
+		// Make sure alias type exists
+		if (aliasList[alias.type as AliasType]) {
+			aliasList[alias.type as AliasType].push(alias);
+		}
+	}
+
+	return aliasList;
+}
+
+/**
+ * Retrieves class objects associated with all of a user's aliases.
+ * @param db Database connection.
+ * @param user Username.
+ * @returns Object containing all classes for each alias type.
+ */
+async function mapAliases(db: Db, user: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
+
+	const [aliases, theClasses] = await Promise.all([
+		listAliases(db, user),
+		classes.get(db, user)
+	]);
+
+	const classMap: { [id: string]: MyMICDSClassWithIDs } = {};
+	const aliasMap: Partial<Record<AliasType, { [id: string]: MyMICDSClassWithIDs }>> = {};
+
+	// Organize classes by id
+	for (const scheduleClass of theClasses) {
+		classMap[scheduleClass._id.toHexString()] = scheduleClass;
+	}
+
+	// Organize aliases by native class id
+	for (const type of Object.values(AliasType)) {
+		aliasMap[type as AliasType] = {};
+
+		if (typeof aliases[type as AliasType] !== 'object') { continue; }
+
+		for (const aliasObject of aliases[type as AliasType]) {
+			aliasMap[type as AliasType]![aliasObject.classRemote] = classMap[aliasObject.classNative.toHexString()];
+		}
+	}
+
+	return aliasMap as Record<AliasType, { [id: string]: MyMICDSClassWithIDs | PortalClass }>;
+}
+
+/**
+ * Deletes an alias.
+ * @param db Database connection.
+ * @param user Username.
+ * @param type Type of alias to delete.
+ * @param aliasId ID of alias to delete.
+ */
+async function deleteAlias(db: Db, user: string, type: AliasType, aliasId: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (!aliasTypes.includes(type)) { throw new Error('Invalid alias type!'); }
+
+	// Make sure valid alias
+	const aliases = await listAliases(db, user);
+
+	let validAliasId: ObjectID | null = null;
+	for (const alias of aliases[type]) {
+		if (aliasId === alias._id.toHexString()) {
+			validAliasId = alias._id;
+			break;
+		}
+	}
+
+	if (!validAliasId) { throw new Error('Invalid alias id!'); }
+
+	const aliasdata = db.collection('aliases');
+
+	try {
+		await aliasdata.deleteOne({ _id: validAliasId });
+	} catch (e) {
+		throw new Error('There was a problem deleting the alias from the database!');
+	}
+}
+
+/**
+ * Checks if a class has an associated alias and retrieves the associated class object.
+ * @param db Database connection.
+ * @param user Username.
+ * @param type Type of alias to check for.
+ * @param classInput Remote class name to search for.
+ * @returns The class object corresponding to the given string, assuming there is a matching alias,
+ * 			else returns the inputted class.
+ */
+async function getAliasClass(db: Db, user: string, type: AliasType, classInput: string) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	if (!aliasTypes.includes(type)) { throw new Error('Invalid alias type!'); }
+
+	// If class input is invalid, just return current value in case it is already a class object
+	if (typeof classInput !== 'string') { return { hasAlias: false, classObject: classInput }; }
+
+	// Make sure valid user
+	const { isUser, userDoc } = await users.get(db, user);
+	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+
+	const aliasdata = db.collection<AliasWithIDs>('aliases');
+
+	let aliases: AliasWithIDs[];
+	try {
+		aliases = await aliasdata.find({ user: userDoc!._id, type, classRemote: classInput }).toArray();
+	} catch (e) {
+		throw new Error('There was a problem querying the database!');
+	}
+
+	if (aliases.length === 0) { return { hasAlias: false, classObject: classInput }; }
+
+	const classId = aliases[0].classNative;
+
+	// Now get class object
+	const theClasses = await classes.get(db, user);
+
+	// Search user's classes for valid class id
+	for (const classObject of theClasses) {
+		if (classId.toHexString() === classObject._id.toHexString()) {
+			return { hasAlias: true, classObject };
+		}
+	}
+
+	// There was no valid class
+	return { hasAlias: false, classObject: classInput };
+}
+
+/**
+ * Deletes aliases that aren't linked to any class.
+ * @param db Database connection.
+ */
+export async function deleteClasslessAliases(db: Db) {
+	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+
+	const aliasdata = db.collection<AliasWithIDs>('aliases');
+
+	let classless: AliasWithIDs[];
+
+	try {
+		classless = await aliasdata.aggregate([
+			// Stage 1
+			{
+				$lookup: {
+					from: 'classes',
+					localField: 'classNative',
+					foreignField: '_id',
+					as: 'classes'
+				}
+			},
+			// Stage 2
+			{
+				$match: {
+					classes: {
+						$size: 0
+					}
+				}
+			}
+		]).toArray();
+	} catch (e) {
+		throw new Error('There was a problem querying the database!');
+	}
+
+	try {
+		await Promise.all(classless.map(alias => aliasdata.deleteOne({ _id: alias._id, user: alias.user })));
+	} catch (e) {
+		throw new Error('There was a problem deleting aliases in the database!');
+	}
+}
+
+export interface AliasWithIDs {
+	_id: ObjectID;
+	user: ObjectID;
+	type: AliasType;
+	classNative: ObjectID;
+	classRemote: string;
+}
+
+export {
+	addAlias as add,
+	listAliases as list,
+	mapAliases as mapList,
+	deleteAlias as delete,
+	getAliasClass as getClass
+};

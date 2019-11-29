@@ -2,55 +2,44 @@
 MyMICDS.net for all of your MyMICDS.needs
 
 ## Setup
+
 ### Dependencies
-To start development on MyMICDS-v2, you must first run `npm update` in the main project directory. This downloads all the dependencies for the project.
-### Config
-You must also setup a config file locally on every machine you develop on. This stores credentials for the project including database credentials, api keys, etc. Refer to `src/libs/config.js.example` and copy that into a new file under `src/libs/config.js` with the proper information filled out in the JSON. The config file is included in the .gitignore, so you don't have to worry about accidentally committing the project's credentials.
-### Start
-You can type `node src/index.js` to start the server, and press `Ctrl + C` twice in order to exit.
+To start development on MyMICDS-v2, first run `npm install -D` in the main project directory.
+This will install all the runtime dependencies as well as TypeScript, TypeDoc, TSLint, and all the other development dependencies.
 
-Run `npm run docs` to build documentation.
+### Configuration
+A local config file is required on every machine you develop on. This stores sensitive information such as database credentials and API keys.
+Copy `src/libs/config.example.ts` into a new file called `config.ts` with the proper information filled out as described in the example.
+This file is included in `.gitignore`, so you don't have to worry about accidentally committing the credentials.
+
+### Usage
+To start the server for development, run `npm start`. In a production environment, run `npm run prod`. 
+
+#### Tasks Server
+To start the tasks server, run `npm run tasks`.
+
 #### For Development
-In order for your back-end code to take affect in a node.js application, you must restart it. We recommend you install an npm package called Nodemon during development. It will automatically restart the application when it detects a change in one of the files. In order to install and run nodemon, type the following:
-```
-$ npm install -g nodemon
-$ nodemon
-```
-However, this is not completely necessary. Running `npm start` will launch a program called pm2, which does the same thing as Nodemon. However, pm2 makes the process run in the background. In order to view the console, use the command `npm run console`.
+If you would like the server to restart on file changes, install [`nodemon`](https://nodemon.io/) and simply run `nodemon` in the project root.
 
+### Documentation
+Run `npm run docs` to build documentation. TypeDoc will generate documentation based on comments and type structures and dump it into the `/docs/` folder.
+This creates static HTML files, so you'll have to open them manually in your browser.
 
-### MyMICDS API for Front-end and Mobile App
-Documentation for the different JSON API endpoints [can be found here.](API Endpoints.md)
-
-## Todo
-- Angular front-end
-- Mobile App
-- Holiday Backgrounds
-- Organize Daily Bulletin Archives by year
-- Fetch other important emails to display besides Daily Bulletin?
-- Email notification if something goes _really_ bad in the back-end, or an error keeps on occurring.
-- MyMICDS Notes - Create a Google Doc or something for each class that everyone can collaborate on
-
-## Module Ideas
-- Snow day calculator
-- Countdown with three modes
-  - Until weekend
-  - Until break
-  - Until school ends
-- TODO Bulletin point list
-- Quick access add events to planner
-- Embed Web 2.0 Calc
-- Quick links (maybe user can customize link + icon?)
 
 ## Other Repositories
-### [MyMICDS-v2-Angular](https://github.com/michaelgira23/MyMICDS-v2-Angular)
-Angular front-end for the MyMICDS website.
-### [MyMICDS-Mobile](https://github.com/michaelgira23/MyMICDS-Mobile)
-MyMICDS-Mobile is for our hybrid mobile app. That means it runs on both iOS and Android.
+
+### [MyMICDS-v2-Angular](https://github.com/MyMICDS/MyMICDS-v2-Angular)
+The Angular front-end for MyMICDS.
+
+### [MyMICDS-SDK](https://github.com/MyMICDS/MyMICDS-SDK)
+The official TypeScript client for connecting to MyMICDS. Automatically handles API requests using RxJS.
+
+### [MyMICDS-WatchFace](https://github.com/MyMICDS/MyMICDS-WatchFace)
+A Wear OS watch face featuring MyMICDS integration.
+
 
 ## Contact
-Wanna become a developer on the MyMICDS.net team? Shoot us an email at [support@mymicds.net](mailto:support@mymicds.net)! We'll pretty much accept anyone and everyone so don't be shy!
+Wanna become a developer on the MyMICDS.net team? Shoot us an email at [support@mymicds.net](mailto:support@mymicds.net)!
+We accept anyone and everyone, so don't be shy!
 
 For any other questions, comments, concerns, or suggestions, you can also contact support@mymicds.net.
-
-Join programming Club. (please) <!-- please -->
