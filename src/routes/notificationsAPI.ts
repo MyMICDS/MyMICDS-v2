@@ -5,7 +5,7 @@ import RoutesFunction from './routesFunction';
 export default ((app, db) => {
 
 	app.post('/notifications/unsubscribe', async (req, res) => {
-		let user = req.user.user;
+		let user = req.apiUser;
 		let hash = true;
 
 		if (!user) {
@@ -14,7 +14,7 @@ export default ((app, db) => {
 		}
 
 		try {
-			await notifications.unsubscribe(db, user, hash, req.body.scopes);
+			await notifications.unsubscribe(db, user!, hash, req.body.scopes);
 			api.success(res);
 		} catch (err) {
 			api.error(res, err);

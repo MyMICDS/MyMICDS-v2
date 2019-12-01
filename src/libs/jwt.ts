@@ -32,6 +32,7 @@ export function authorize(db: Db): RequestHandler {
 
 		// If there's no auth header or it's just empty, it's probably fine and we can just ignore it
 		if (typeof header !== 'string' || header.length === 0) {
+			next();
 			return;
 		}
 
@@ -63,10 +64,11 @@ export function authorize(db: Db): RequestHandler {
 				// Type predicates can't be used asynchronously so we need to manually assert
 				const { user, scopes } = payload as StringDict;
 				req.user = { user, scopes };
+				next();
 			}
 		}).catch(err => {
 			api.error(res, err, Action.UNAUTHORIZED);
-		}).finally(() => next());
+		});
 	};
 }
 
@@ -153,8 +155,11 @@ export function requireLoggedIn(req: Request, res: Response, next: NextFunction)
  * @param message A custom error message to send to the client.
  * @returns An Express middleware function.
  */
-export function requireScope(scope: string, message = 'You\'re not authorized in this part of the site, punk.') {
-	return (req: Request, res: Response, next: NextFunction) => {
+export function requireScope(
+	scope: string,
+	message = 'You\'re not authorized in this part of the site, punk.'
+): RequestHandler {
+	return (req, res, next) => {
 		if (req.user && (req.user.scopes[scope] || req.user.scopes.admin)) {
 			next();
 		} else {
@@ -196,7 +201,6 @@ export async function generate(db: Db, user: string, rememberMe: boolean, commen
 
 	let token;
 	try {
-		// I have to specify the type arguments cause TS is having trouble with inferring them here
 		token = jwt.sign({
 			user, scopes
 		}, config.jwt.secret, {
