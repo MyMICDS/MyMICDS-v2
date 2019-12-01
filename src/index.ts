@@ -72,8 +72,6 @@ MongoClient.connect(config.mongodb.uri).then(async (client: MongoClient) => {
 
 	// Enable JWT authentication middleware
 	app.use(jwt.authorize(db));
-	app.use(jwt.fallback);
-	app.use(jwt.catchUnauthorized);
 
 	// Enable admin overrides
 	app.use(api.adminOverride);

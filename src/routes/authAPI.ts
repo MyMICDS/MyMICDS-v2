@@ -107,7 +107,7 @@ export default ((app, db) => {
 	});
 
 	app.get('/auth/verify', (req, res) => {
-		if (!req.user.user) {
+		if (!(req.user && req.user.user)) {
 			api.error(res, 'JWT not provided!');
 			return;
 		}
