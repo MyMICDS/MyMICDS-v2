@@ -13,24 +13,25 @@ export default (io: Server) => {
 		 */
 
 		socket.on('authenticate', token => {
-			jwt.verify(token, config.jwt.secret, {
-				algorithms: ['HS256'],
-				audience: config.hostedOn,
-				issuer: config.hostedOn,
-				clockTolerance: 30
+			let decoded;
 
-			}, (err, decoded) => {
-				if (err) {
-					socket.emit('unauthorized');
-					return;
-				}
+			try {
+				decoded = jwt.verify(token, config.jwt.secret, {
+					algorithms: ['HS256'],
+					audience: config.hostedOn,
+					issuer: config.hostedOn,
+					clockTolerance: 30
+				});
+			} catch (err) {
+				socket.emit('unauthorized');
+				return;
+			}
 
-				// User is valid!
-				if (!err && decoded) {
-					(socket as any).decodedToken = decoded;
-					socket.emit('authorized');
-				}
-			});
+			// User is valid!
+			if (decoded) {
+				(socket as any).decodedToken = decoded;
+				socket.emit('authorized');
+			}
 		});
 	});
 

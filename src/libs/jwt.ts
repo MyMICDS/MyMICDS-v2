@@ -1,127 +1,142 @@
 import { Action } from '@mymicds/sdk';
-import { NextFunction, Request, Response } from 'express';
-import expressJWT, { IsRevokedCallback } from 'express-jwt';
+import { NextFunction, Request, RequestHandler, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { SignOptions } from 'jsonwebtoken';
 import { Db, ObjectID } from 'mongodb';
 import * as _ from 'underscore';
-import { promisify } from 'util';
 import * as api from './api';
 import config from './config';
 import * as users from './users';
-import { UserDoc } from './users';
+import { StringDict } from './utils';
+
+declare global {
+	namespace Express {
+		interface Request {
+			user: false | {
+				user: string;
+				scopes: { [scope: string]: true };
+			};
+		}
+	}
+}
 
 /**
  * Verifies a JWT and assigns it to `req.user`.
  * @param db Database connection.
  * @returns An Express middleware function.
  */
-export function authorize(db: Db) {
-	return expressJWT({
-		credentialsRequired: false, // We have our own way of handling if user is authorized or not
-		secret   : config.jwt.secret,
-		isRevoked: isRevoked(db),
-		audience : config.hostedOn,
-		issuer   : config.hostedOn
-	});
+export function authorize(db: Db): RequestHandler {
+	return (req, res, next) => {
+		req.user = false;
+
+		const header = req.headers.authorization;
+
+		// If there's no auth header or it's just empty, it's probably fine and we can just ignore it
+		if (typeof header !== 'string' || header.length === 0) {
+			next();
+			return;
+		}
+
+		// Otherwise, make sure it's in the correct format
+		if (!header.startsWith('Bearer ')) {
+			api.error(res, 'Authorization header must be in bearer token format.', Action.UNAUTHORIZED);
+			return;
+		}
+
+		// Verification
+
+		let payload: string | StringDict;
+
+		try {
+			payload = jwt.verify(header.substring(7), config.jwt.secret);
+		} catch (err) {
+			if (err instanceof jwt.TokenExpiredError) {
+				api.error(res, err, Action.LOGIN_EXPIRED);
+			}
+			api.error(res, err, Action.UNAUTHORIZED);
+			return;
+		}
+
+		// Express doesn't like async/await so we need promise chains
+		isRevoked(db, req, payload).then(revoked => {
+			if (revoked) {
+				api.error(res, 'Invalid token.', Action.UNAUTHORIZED);
+			} else {
+				// Type predicates can't be used asynchronously so we need to manually assert
+				const { user, scopes } = payload as StringDict;
+				req.user = { user, scopes };
+				next();
+			}
+		}).catch(err => {
+			api.error(res, err, Action.UNAUTHORIZED);
+		});
+	};
 }
 
 /**
  * Checks whether a JWT is revoked or not.
  * @param db Database connection.
- * @returns A callback for the `express-jwt` package.
- */
-function isRevoked(db: Db): IsRevokedCallback {
-	return async (req, payload, done) => {
-
-		const ignoredRoutes = [
-			'/auth/logout'
-		];
-
-		// Get rid of possible ending slash
-		const testUrl = req.url.endsWith('/') ? req.url.slice(0, -1) : req.url;
-		if (ignoredRoutes.includes(testUrl)) {
-			done(null, false);
-			return;
-		}
-
-		if (typeof payload !== 'object') {
-			done(null, true);
-			return;
-		}
-
-		// Expiration date
-		const expiration = payload.exp * 1000;
-		// Make sure token hasn't expired yet
-		const timeLeft = expiration - Date.now();
-		// Make sure expiration is accurate within 30 seconds to account for time differences between computers.
-		const clockTolerance = 30;
-
-		if (timeLeft < (clockTolerance * -1000)) {
-			done(null, true);
-			return;
-		}
-
-		let isUser: boolean;
-		let userDoc: UserDoc | null;
-		try {
-			// I guess this requires parentheses?
-			({ isUser, userDoc } = await users.get(db, payload.user));
-		} catch (e) {
-			done(e, true);
-			return;
-		}
-
-		if (!isUser) {
-			done(null, true);
-			return;
-		}
-
-		// Make sure token wasn't issued before last password change
-		/*
-		 * @TODO Automatically log user out in front-end on password change
-		 * or prevent session that changed password from expiring.
-		 */
-		/* if (typeof userDoc['lastPasswordChange'] === 'object'
-				&& (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
-			done(null, true);
-			return;
-		}*/
-
-		// Make sure token isn't blacklisted (usually if logged out)
-		const authJwt = req.get('Authorization')!.slice(7);
-
-		let blacklisted;
-		try {
-			blacklisted = await isBlacklisted(db, authJwt);
-		} catch (e) {
-			done(e, true);
-			return;
-		}
-
-		// Update 'lastVisited' field in user document
-		const userdata = db.collection('users');
-		await userdata.updateOne(userDoc!, { $currentDate: { lastVisited: true }});
-
-		const jwtData = db.collection('jwtWhitelist');
-		await jwtData.updateOne({ user: userDoc!._id, jwt: authJwt }, { $currentDate: { lastUsed: true }});
-
-		done(null, blacklisted);
-	};
-}
-
-/**
- * Defaults `req.user` to false if there is no user. Must be attached after the authorization middleware.
  * @param req Express request object.
- * @param res Express response object.
- * @param next Calls the next handler in the middleware chain.
+ * @param payload The JWT payload.
+ * @returns Whether the JWT is revoked.
  */
-export function fallback(req: Request, res: Response, next: NextFunction) {
-	// If user doesn't exist or is invalid, default req.user to false
-	if (typeof req.user === 'undefined') {
-		req.user = false;
+async function isRevoked(db: Db, req: Request, payload: string | StringDict) {
+	const ignoredRoutes = [
+		'/auth/logout'
+	];
+
+	// Get rid of possible ending slash
+	const testUrl = req.url.endsWith('/') ? req.url.slice(0, -1) : req.url;
+	if (ignoredRoutes.includes(testUrl)) {
+		return false;
 	}
-	next();
+
+	if (typeof payload !== 'object') {
+		return true;
+	}
+
+	// Expiration logic is handled by jwt.verify itself
+
+	// // Expiration date
+	// const expiration = payload.exp * 1000;
+	// // Make sure token hasn't expired yet
+	// const timeLeft = expiration - Date.now();
+	// // Make sure expiration is accurate within 30 seconds to account for time differences between computers.
+	// const clockTolerance = 30;
+	//
+	// if (timeLeft < (clockTolerance * -1000)) {
+	// 	return Action.LOGIN_EXPIRED;
+	// }
+
+	const { isUser, userDoc } = await users.get(db, payload.user);
+
+	if (!isUser) {
+		return true;
+	}
+
+	// Make sure token wasn't issued before last password change
+	/*
+	 * @TODO Automatically log user out in front-end on password change
+	 * or prevent session that changed password from expiring.
+	 */
+	/* if (typeof userDoc['lastPasswordChange'] === 'object'
+			&& (payload.iat * 1000) < userDoc['lastPasswordChange'].getTime()) {
+		done(null, true);
+		return;
+	}*/
+
+	// Make sure token isn't blacklisted (usually if logged out)
+	const authJwt = req.headers.authorization!.slice(7);
+
+	const blacklisted = await isBlacklisted(db, authJwt);
+
+	// Update 'lastVisited' field in user document
+	const userdata = db.collection('users');
+	await userdata.updateOne(userDoc!, { $currentDate: { lastVisited: true }});
+
+	const jwtData = db.collection('jwtWhitelist');
+	await jwtData.updateOne({ user: userDoc!._id, jwt: authJwt }, { $currentDate: { lastUsed: true }});
+
+	return blacklisted;
 }
 
 /**
@@ -140,29 +155,17 @@ export function requireLoggedIn(req: Request, res: Response, next: NextFunction)
  * @param message A custom error message to send to the client.
  * @returns An Express middleware function.
  */
-export function requireScope(scope: string, message = 'You\'re not authorized in this part of the site, punk.') {
-	return (req: Request, res: Response, next: NextFunction) => {
+export function requireScope(
+	scope: string,
+	message = 'You\'re not authorized in this part of the site, punk.'
+): RequestHandler {
+	return (req, res, next) => {
 		if (req.user && (req.user.scopes[scope] || req.user.scopes.admin)) {
 			next();
 		} else {
 			api.error(res, message, Action.NOT_LOGGED_IN);
 		}
 	};
-}
-
-/**
- * Catches any authorization errors thrown by [[authorize]].
- * @param err Error from previous middleware.
- * @param req Express request object.
- * @param res Express response object.
- * @param next Calls the next handler in the middleware chain.
- */
-export function catchUnauthorized(err: Error, req: Request, res: Response, next: NextFunction) {
-	if (err.name === 'UnauthorizedError') {
-		api.error(res, err, Action.UNAUTHORIZED);
-		return;
-	}
-	next();
 }
 
 /**
@@ -198,8 +201,7 @@ export async function generate(db: Db, user: string, rememberMe: boolean, commen
 
 	let token;
 	try {
-		// I have to specify the type arguments cause TS is having trouble with inferring them here
-		token = await promisify<object, string, SignOptions, string>(jwt.sign)({
+		token = jwt.sign({
 			user, scopes
 		}, config.jwt.secret, {
 			subject: 'MyMICDS API',
