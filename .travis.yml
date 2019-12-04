@@ -7,7 +7,6 @@ addons:
 
 before_install:
   - openssl aes-256-cbc -K $encrypted_8985594ecb17_key -iv $encrypted_8985594ecb17_iv -in .travis/id_rsa.enc -out .travis/id_rsa -d
-  - npm ci
   - cp src/libs/config.example.ts src/libs/config.ts
 script: npm test
 after_success: "[[ $TRAVIS_BRANCH == \"master\" && $TRAVIS_PULL_REQUEST == \"false\" ]] && .travis/deploy.sh"
