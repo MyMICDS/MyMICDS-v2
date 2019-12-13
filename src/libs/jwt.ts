@@ -51,6 +51,7 @@ export function authorize(db: Db): RequestHandler {
 		} catch (err) {
 			if (err instanceof jwt.TokenExpiredError) {
 				api.error(res, err, Action.LOGIN_EXPIRED);
+				return;
 			}
 			api.error(res, err, Action.UNAUTHORIZED);
 			return;

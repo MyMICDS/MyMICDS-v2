@@ -27,6 +27,7 @@ export default ((app, db) => {
 			await modules.upsert(db, req.apiUser!, req.body.modules);
 		} catch (err) {
 			api.error(res, err);
+			return;
 		}
 
 		try {

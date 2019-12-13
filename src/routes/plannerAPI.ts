@@ -38,13 +38,14 @@ export default ((app, db, socketIO) => {
 		try {
 			const plannerEvent = await planner.upsert(db, req.apiUser!, insertEvent);
 			socketIO.user(req.apiUser!, 'planner', 'add', plannerEvent);
+		} catch (err) {
+			api.error(res, err);
+			return;
+		}
 
-			try {
-				const events = await planner.get(db, req.apiUser!);
-				api.success(res, { events });
-			} catch (err) {
-				api.error(res, err);
-			}
+		try {
+			const events = await planner.get(db, req.apiUser!);
+			api.success(res, { events });
 		} catch (err) {
 			api.error(res, err);
 		}

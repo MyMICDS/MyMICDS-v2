@@ -33,9 +33,9 @@ export default ((app, db, socketIO) => {
 			// Add blurred version of image
 			try {
 				await backgrounds.blurUser(req.apiUser!);
-				api.success(res);
 			} catch (err) {
 				api.error(res, err);
+				return;
 			}
 
 			socketIO.user(req.apiUser!, 'background', 'upload');
@@ -52,9 +52,9 @@ export default ((app, db, socketIO) => {
 	app.delete('/background', async (req, res) => {
 		try {
 			await backgrounds.delete(req.apiUser!);
-			api.success(res);
 		} catch (err) {
 			api.error(res, err);
+			return;
 		}
 
 		try {
