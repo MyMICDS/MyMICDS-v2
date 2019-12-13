@@ -27,7 +27,8 @@ enum Color {
 interface OptionsValues {
 	[key: string]: {
 		// If TypeScript had some sort of existential type this could be so much cooler
-		type: Constructor | typeof CountdownMode | typeof Color,
+		// TODO: Maybe turn this into an internal enum, since we already have to use strings for primitive comparisons
+		type: Constructor | typeof CountdownMode | typeof Color | 'string' | 'boolean',
 		default: any,
 		optional?: boolean
 	};
@@ -37,15 +38,15 @@ interface OptionsValues {
 const modulesConfig: Partial<Record<MyMICDSModuleType, OptionsValues>> = {
 	[MyMICDSModuleType.BOOKMARKS]: {
 		label: {
-			type: String,
+			type: 'string',
 			default: 'Really Cool Site'
 		},
 		icon: {
-			type: String,
+			type: 'string',
 			default: 'fa-bookmark'
 		},
 		url: {
-			type: String,
+			type: 'string',
 			default: 'https://mymicds.net'
 		}
 	},
@@ -55,11 +56,11 @@ const modulesConfig: Partial<Record<MyMICDSModuleType, OptionsValues>> = {
 			default: CountdownMode.END
 		},
 		schoolDays: {
-			type: Boolean,
+			type: 'boolean',
 			default: true
 		},
 		shake: {
-			type: Boolean,
+			type: 'boolean',
 			default: true
 		},
 		countdownTo: {
@@ -68,14 +69,14 @@ const modulesConfig: Partial<Record<MyMICDSModuleType, OptionsValues>> = {
 			default: null
 		},
 		eventLabel: {
-			type: String,
+			type: 'string',
 			optional: true,
 			default: 'Countdown'
 		}
 	},
 	[MyMICDSModuleType.PROGRESS]: {
 		showDate: {
-			type: Boolean,
+			type: 'boolean',
 			default: true
 		}
 	},
@@ -87,7 +88,7 @@ const modulesConfig: Partial<Record<MyMICDSModuleType, OptionsValues>> = {
 	},
 	[MyMICDSModuleType.WEATHER]: {
 		metric: {
-			type: Boolean,
+			type: 'boolean',
 			default: false
 		}
 	}
@@ -252,8 +253,11 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 			} else if (!(configType as Constructor).prototype && Object.values(configType).includes(moduleValue)) {
 				// Check if custom enum type
 				valid = true;
+			} else if (typeof moduleValue === configType) {
+				// Check if native primitive type
+				valid = true;
 			} else if (moduleValue instanceof (configType as Constructor)) {
-				// Check if native type
+				// Check if native object type
 				valid = true;
 			}
 
