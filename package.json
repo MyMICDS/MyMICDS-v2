@@ -19,9 +19,9 @@
   "main": "src/index.ts",
   "scripts": {
     "build": "mjml -r src/email/* -o src/html/messages",
-    "start": "npm run build && ts-node --files src/index.ts",
-    "prod": "npm run build && pm2 start ts-node -i max --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds\" -- --files src/index.ts",
-    "tasks": "pm2 start ts-node --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds-tasks\" -- --files src/tasks.ts",
+    "start": "npm run build && ts-node -C ttypescript --files src/index.ts",
+    "prod": "npm run build && pm2 start ts-node -i max --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds\" -- -C ttypescript --files src/index.ts",
+    "tasks": "pm2 start ts-node --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds-tasks\" -- -C ttypescript --files src/tasks.ts",
     "test": "tsc --noEmit",
     "docs": "typedoc --out ./docs --mode modules ./src/libs ./src/external.d.ts",
     "lint": "tslint --project tsconfig.json \"src/**/*.ts\""
@@ -90,7 +90,9 @@
     "request-promise-native": "^1.0.5",
     "socket.io": "^2.3.0",
     "ts-node": "^8.4.1",
+    "ttypescript": "^1.5.8",
     "typescript": "^3.7.2",
+    "typescript-is": "^0.13.1",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
