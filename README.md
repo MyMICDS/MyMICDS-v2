@@ -4,8 +4,8 @@ MyMICDS.net for all of your MyMICDS.needs
 ## Setup
 
 ### Dependencies
-To start development on MyMICDS-v2, first run `npm install -D` in the main project directory.
-This will install all the runtime dependencies as well as TypeScript, TypeDoc, TSLint, and all the other development dependencies.
+To start development on MyMICDS-v2, first run `npm install` in the main project directory.
+This will install all the runtime dependencies (including TypeScript) as well as TypeDoc, TSLint, and all the other development dependencies.
 
 ### Configuration
 A local config file is required on every machine you develop on. This stores sensitive information such as database credentials and API keys.
