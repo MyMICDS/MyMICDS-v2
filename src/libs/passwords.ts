@@ -93,7 +93,6 @@ export async function resetPasswordEmail(db: Db, user: string) {
 	}
 
 	const hash = buf.toString('hex');
-	const hashedHash = cryptoUtils.shaHash(hash);
 
 	// Now let's insert the passwordChangeHash into the database
 	const userdata = db.collection('users');
@@ -102,7 +101,7 @@ export async function resetPasswordEmail(db: Db, user: string) {
 		await userdata.updateOne({
 			_id: userDoc!._id,
 			user: userDoc!.user
-		}, { $set: { passwordChangeHash: hashedHash } }, { upsert: true });
+		}, { $set: { passwordChangeHash: hash } }, { upsert: true });
 	} catch (e) {
 		throw new Error('There was a problem inserting the confirmation hash into the database!');
 	}
