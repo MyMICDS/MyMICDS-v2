@@ -139,7 +139,7 @@ export async function resetPassword(db: Db, user: string, password: string, hash
 		throw new Error('Password change email was never sent!');
 	}
 
-	if (!cryptoUtils.safeCompareSHA(hash, userDoc!.passwordChangeHash!)) {
+	if (!cryptoUtils.safeCompare(hash, userDoc!.passwordChangeHash!)) {
 		// Hash is not valid
 		throw new Error('Invalid hash!');
 	}
