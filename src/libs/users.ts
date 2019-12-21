@@ -205,7 +205,7 @@ export interface UserDoc {
 	lastLogin?: Date;
 	lastVisited?: Date;
 	lastPasswordChange?: Date;
-	passwordChangeHash?: string;
+	passwordChangeHash?: string | null;
 	portalURL?: string; // Legacy URL
 	portalURLClasses?: string;
 	portalURLCalendar?: string;
