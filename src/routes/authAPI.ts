@@ -1,3 +1,11 @@
+import {
+	ChangePasswordParameters,
+	ConfirmParameters,
+	ForgotPasswordParameters,
+	LoginParameters,
+	RegisterParameters,
+	ResetPasswordParameters
+} from '@mymicds/sdk';
 import { assertType } from 'typescript-is';
 import * as api from '../libs/api';
 import * as auth from '../libs/auth';
@@ -20,9 +28,7 @@ export default ((app, db) => {
 		const rememberMe = typeof req.body.remember !== 'undefined';
 
 		try {
-			assertType<string>(req.body.user);
-			assertType<string>(req.body.password);
-			assertType<string | undefined>(req.body.comment);
+			assertType<LoginParameters>(req.body);
 
 			const responseObj = await auth.login(db, req.body.user, req.body.password, rememberMe, req.body.comment);
 			api.success(res, responseObj);
@@ -57,7 +63,7 @@ export default ((app, db) => {
 		}
 
 		try {
-			assertType<auth.NewUserData>(user);
+			assertType<RegisterParameters>(req.body);
 			await auth.register(db, user);
 			api.success(res);
 		} catch (err) {
@@ -67,8 +73,7 @@ export default ((app, db) => {
 
 	app.post('/auth/confirm', async (req, res) => {
 		try {
-			assertType<string>(req.body.user);
-			assertType<string>(req.body.hash);
+			assertType<ConfirmParameters>(req.body);
 			await auth.confirm(db, req.body.user, req.body.hash);
 			api.success(res);
 		} catch (err) {
@@ -78,8 +83,7 @@ export default ((app, db) => {
 
 	app.put('/auth/change-password', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertType<string>(req.body.oldPassword);
-			assertType<string>(req.body.newPassword);
+			assertType<ChangePasswordParameters>(req.body);
 			await passwords.changePassword(db, req.apiUser!, req.body.oldPassword, req.body.newPassword);
 			api.success(res);
 		} catch (err) {
@@ -93,7 +97,7 @@ export default ((app, db) => {
 			return;
 		}
 		try {
-			assertType<string>(req.body.user);
+			assertType<ForgotPasswordParameters>(req.body);
 			await passwords.resetPasswordEmail(db, req.body.user);
 			api.success(res);
 		} catch (err) {
@@ -107,9 +111,7 @@ export default ((app, db) => {
 			return;
 		}
 		try {
-			assertType<string>(req.body.user);
-			assertType<string>(req.body.password);
-			assertType<string>(req.body.hash);
+			assertType<ResetPasswordParameters>(req.body);
 			await passwords.resetPassword(db, req.body.user, req.body.password, req.body.hash);
 			api.success(res);
 		} catch (err) {

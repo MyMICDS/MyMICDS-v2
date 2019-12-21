@@ -127,7 +127,7 @@ export async function resetPassword(db: Db, user: string, password: string, hash
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	if (typeof userDoc!.passwordChangeHash !== 'string' || userDoc!.passwordChangeHash === null) {
+	if (typeof userDoc!.passwordChangeHash !== 'string') {
 		throw new Error('Password change email was never sent!');
 	}
 
