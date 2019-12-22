@@ -33,8 +33,6 @@ export const portalRange = {
  * @returns Whether the URL is valid, a formatted URL, and the response body.
  */
 async function verifyURLGeneric(portalURL: string) {
-	if (typeof portalURL !== 'string') { throw new Error('Invalid URL!'); }
-
 	// Parse URL first
 	const parsedURL = new URL(portalURL);
 
@@ -127,13 +125,11 @@ export async function verifyURLCalendar(portalURL: string) {
  * @param calUrl Whether the URL is valid and a formatted URL.
  */
 export async function setURLClasses(db: Db, user: string, calUrl: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
 	const { isValid, url: validURL } = await verifyURLClasses(calUrl);
-	if (isValid !== true) { return { isValid, validURL: null }; }
+	if (!isValid) { return { isValid, validURL: null }; }
 
 	const userdata = db.collection('users');
 
@@ -155,13 +151,11 @@ export async function setURLClasses(db: Db, user: string, calUrl: string) {
  * @param calUrl Whether the URL is valid and a formatted URL.
  */
 export async function setURLCalendar(db: Db, user: string, calUrl: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
 	const { isValid, url: validURL } = await verifyURLCalendar(calUrl);
-	if (isValid !== true) { return { isValid, validURL: null }; }
+	if (!isValid) { return { isValid, validURL: null }; }
 
 	const userdata = db.collection('users');
 

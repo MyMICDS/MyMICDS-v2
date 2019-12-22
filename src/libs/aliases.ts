@@ -16,11 +16,6 @@ const aliasTypes: AliasType[] = Object.values(AliasType);
  * @returns ID of the inserted alias.
  */
 async function addAlias(db: Db, user: string, type: AliasType, classString: string, classId: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (!aliasTypes.includes(type)) { throw new Error('Invalid alias type!'); }
-	if (typeof classString !== 'string') { throw new Error('Invalid class string!'); }
-	if (typeof classId !== 'string') { await new Error('Invalid class id!'); }
-
 	// Make sure valid user
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
@@ -150,9 +145,6 @@ async function mapAliases(db: Db, user: string) {
  * @param aliasId ID of alias to delete.
  */
 async function deleteAlias(db: Db, user: string, type: AliasType, aliasId: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (!aliasTypes.includes(type)) { throw new Error('Invalid alias type!'); }
-
 	// Make sure valid alias
 	const aliases = await listAliases(db, user);
 

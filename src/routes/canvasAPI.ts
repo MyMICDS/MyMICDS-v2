@@ -1,3 +1,5 @@
+import { SetCanvasURLParameters, TestCanvasURLParameters } from '@mymicds/sdk';
+import { assertType } from 'typescript-is';
 import * as api from '../libs/api';
 import * as canvas from '../libs/canvas';
 import * as feeds from '../libs/feeds';
@@ -7,6 +9,7 @@ import RoutesFunction from './routesFunction';
 export default ((app, db, socketIO) => {
 	app.post('/canvas/test', async (req, res) => {
 		try {
+			assertType<TestCanvasURLParameters>(req.body);
 			const { isValid, url } = await canvas.verifyURL(req.body.url);
 			api.success(res, { valid: isValid, url });
 		} catch (err) {
@@ -16,6 +19,7 @@ export default ((app, db, socketIO) => {
 
 	app.put('/canvas/url', jwt.requireLoggedIn, async (req, res) => {
 		try {
+			assertType<SetCanvasURLParameters>(req.body);
 			const { isValid, validURL } = await canvas.setURL(db, req.apiUser!, req.body.url);
 			socketIO.user(req.apiUser!, 'canvas', 'set-url', validURL);
 			api.success(res, { valid: isValid, url: validURL });

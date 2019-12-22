@@ -22,8 +22,6 @@ const urlPrefix = 'https://micds.instructure.com/feeds/calendars/';
  * @returns Whether the URL is valid and a newly formatted URL if it is.
  */
 export async function verifyURL(canvasURL: string) {
-	if (typeof canvasURL !== 'string') { throw new Error('Invalid URL!'); }
-
 	// Parse URL first
 	const parsedURL = url.parse(canvasURL);
 
@@ -62,8 +60,6 @@ export async function verifyURL(canvasURL: string) {
  * @returns Whether the URL is valid.
  */
 export async function setURL(db: Db, user: string, calUrl: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
