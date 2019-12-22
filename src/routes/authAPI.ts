@@ -50,6 +50,13 @@ export default ((app, db) => {
 	});
 
 	app.post('/auth/register', async (req, res) => {
+		try {
+			assertType<RegisterParameters>(req.body);
+		} catch (err) {
+			api.error(res, err);
+			return;
+		}
+
 		const user: auth.NewUserData = {
 			user: req.body.user,
 			password: req.body.password,
@@ -63,7 +70,6 @@ export default ((app, db) => {
 		}
 
 		try {
-			assertType<RegisterParameters>(req.body);
 			await auth.register(db, user);
 			api.success(res);
 		} catch (err) {

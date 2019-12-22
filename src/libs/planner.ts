@@ -11,19 +11,10 @@ import { Omit } from './utils';
  * @param user Username.
  * @param plannerEvent Planner event object.
  */
-// tslint:disable-next-line:max-line-length
-async function upsertEvent(db: Db, user: string, plannerEvent: Omit<PlannerInputEvent, 'user' | 'link'> & { link?: string }) {
-	// Validate inputs
-	if (typeof db   !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid user!'); }
-
-	if (typeof plannerEvent         !== 'object') { throw new Error('Invalid event object!'); }
+async function upsertEvent(db: Db, user: string, plannerEvent: NewEventData) {
+	// Defaults
 	if (typeof plannerEvent._id     !== 'string') { plannerEvent._id = ''; }
-	if (typeof plannerEvent.title   !== 'string') { throw new Error('Invalid event title!'); }
-	if (typeof plannerEvent.desc    !== 'string') { plannerEvent.desc = ''; }
 	if (typeof plannerEvent.classId !== 'string') { plannerEvent.classId = null; }
-	if (typeof plannerEvent.start   !== 'object') { throw new Error('Invalid event start!'); }
-	if (typeof plannerEvent.end     !== 'object') { throw new Error('Invalid event end!'); }
 	if (typeof plannerEvent.link    !== 'string') { plannerEvent.link = ''; }
 
 	// Made sure start time and end time are consecutive or the same
@@ -101,9 +92,6 @@ async function upsertEvent(db: Db, user: string, plannerEvent: Omit<PlannerInput
  * @param eventId Event ID to delete.
  */
 async function deleteEvent(db: Db, user: string, eventId: string) {
-	if (typeof db   !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid user!'); }
-
 	// Try to create object id
 	let id: ObjectID;
 	try {
@@ -133,9 +121,6 @@ async function deleteEvent(db: Db, user: string, eventId: string) {
  * @returns A list of planner documents, including teacher information.
  */
 async function getEvents(db: Db, user: string) {
-	if (typeof db   !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid user!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -223,7 +208,7 @@ export interface BasePlannerEvent {
 }
 
 export interface PlannerInputEvent extends BasePlannerEvent {
-	_id: string;
+	_id?: string;
 	classId?: string | null;
 }
 
@@ -231,6 +216,8 @@ export interface PlannerDBEvent extends BasePlannerEvent {
 	_id: ObjectID;
 	class: ObjectID;
 }
+
+export type NewEventData = Omit<PlannerInputEvent, 'user' | 'link'> & { link?: string };
 
 export {
 	upsertEvent as upsert,

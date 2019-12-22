@@ -154,9 +154,6 @@ function getDefaultOptions(type: MyMICDSModuleType): any {
  * @returns A list of module objects.
  */
 async function getModules(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	// Check for user validity, get ID
 	const { isUser, userDoc } = await users.get(db, user);
 
@@ -204,15 +201,6 @@ async function getModules(db: Db, user: string) {
  * @param modules The module objects to modify.
  */
 async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
-	// Input validation
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
-	if (!_.isArray(modules)) { throw new Error('Modules is not an array!'); }
-	if (!modules.every(m => Object.values(MyMICDSModuleType).includes(m.type))) {
-		throw new Error('Invalid module type!');
-	}
-
 	for (const mod of modules) {
 		const optionsConfig = modulesConfig[mod.type];
 
@@ -256,7 +244,7 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 			} else if (typeof moduleValue === configType) {
 				// Check if native primitive type
 				valid = true;
-			} else if (moduleValue instanceof (configType as Constructor)) {
+			} else if ((configType as Constructor).prototype && moduleValue instanceof (configType as Constructor)) {
 				// Check if native object type
 				valid = true;
 			}
