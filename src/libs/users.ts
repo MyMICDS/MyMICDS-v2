@@ -12,9 +12,6 @@ import * as dates from './dates';
  * @returns Whether the user is valid and the contents of the user document.
  */
 async function getUser(db: Db, user: string) {
-	if (typeof db !== 'object') {	throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	const userdata = db.collection<UserDoc>('users');
 
 	let docs: UserDoc[];
@@ -43,10 +40,7 @@ async function getUser(db: Db, user: string) {
  * @param privateInfo Whether to include more sensitive information like calendar URLs. Defaults to false.
  * @returns An object containing user information.
  */
-export async function getInfo(db: Db, user: string, privateInfo: boolean) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof privateInfo !== 'boolean') { privateInfo = false; }
-
+export async function getInfo(db: Db, user: string, privateInfo = false) {
 	const { isUser, userDoc } = await getUser(db, user);
 
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }

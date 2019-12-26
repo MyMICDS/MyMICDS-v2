@@ -10,11 +10,6 @@ import * as portal from './portal';
  * @returns A Moment.js object with the start of school.
  */
 export function thirdWednesdayAugust(year: number) {
-	const current = moment();
-	if (typeof year !== 'number' || year % 1 !== 0) {
-		year = current.year();
-	}
-
 	return moment().year(year).month('August').startOf('month').day('Wednesday').add(2, 'weeks').startOf('day').hours(8);
 }
 

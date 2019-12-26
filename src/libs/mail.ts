@@ -12,12 +12,6 @@ import { StringDict } from './utils';
  * @param transporter Nodemailer transport object.
  */
 export async function send(users: string | string[], message: Message, transporter?: nodemailer.Transporter) {
-	// Validate inputs
-	if (typeof users !== 'string' && typeof users !== 'object') { throw new Error('Invalid user(s)!'); }
-	if (typeof message !== 'object') { throw new Error('Invalid message object!'); }
-	if (typeof message.subject !== 'string') { throw new Error('Invalid mail subject!'); }
-	if (typeof message.html !== 'string') { throw new Error('Invalid mail html!'); }
-
 	if (typeof transporter !== 'object') {
 		transporter = nodemailer.createTransport(config.email.URI);
 	}
@@ -46,9 +40,6 @@ export async function send(users: string | string[], message: Message, transport
  */
 // tslint:disable-next-line:max-line-length
 export async function sendHTML(users: string | string[], subject: string, file: string, data: StringDict, transporter?: nodemailer.Transporter) {
-	if (typeof file !== 'string') { throw new Error('Invalid mail file path!'); }
-	if (typeof data !== 'object') { data = {}; }
-
 	let body;
 	try {
 		body = await fs.readFile(file, 'utf8');

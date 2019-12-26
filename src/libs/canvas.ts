@@ -176,9 +176,6 @@ function calendarToEvent(calLink: string) {
  * @returns Whether the user has a saved URL and the associated classes.
  */
 export async function getClasses(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -235,9 +232,6 @@ export async function getClasses(db: Db, user: string) {
  * @returns Whether the user has a saved URL and the cache events.
  */
 export async function getFromCache(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 

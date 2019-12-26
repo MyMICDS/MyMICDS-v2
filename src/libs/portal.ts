@@ -45,6 +45,7 @@ async function verifyURLGeneric(portalURL: string) {
 
 	const pathID = parsedURL.pathname.split('/')[3];
 
+	// noinspection SuspiciousTypeOfGuard
 	if (typeof pathID !== 'string' && typeof params.get('uid') !== 'string') {
 		throw new Error('URL does not contain calendar ID!');
 	}
@@ -177,9 +178,6 @@ export async function setURLCalendar(db: Db, user: string, calUrl: string) {
  * @returns Whether the user has a saved URL and the cache events.
  */
 export async function getFromCacheClasses(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -204,9 +202,6 @@ export async function getFromCacheClasses(db: Db, user: string) {
  * @returns Whether the user has a saved URL and the cache events.
  */
 export async function getFromCacheCalendar(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -231,9 +226,6 @@ export async function getFromCacheCalendar(db: Db, user: string) {
  * @returns Whether the user has a saved URL and the calendar events.
  */
 export async function getFromCalClasses(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -264,9 +256,6 @@ export async function getFromCalClasses(db: Db, user: string) {
  * @returns Whether the user has a saved URL and the calendar events.
  */
 export async function getFromCalCalendar(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -389,9 +378,6 @@ export async function getDayRotations() {
  * @returns A list of Portal class names.
  */
 export async function getClasses(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	const { hasURL, events } = await getFromCacheClasses(db, user);
 	if (!hasURL) { return { hasURL: false, classes: null }; }
 
@@ -468,7 +454,6 @@ function parsePortalClasses(events: PortalCacheEvent[]) {
  * @returns A more-readable event title.
  */
 export function cleanUp(str: string) {
-	if (typeof str !== 'string') { return str; }
 	return str.replace(cleanUpBlockSuffix, '');
 }
 

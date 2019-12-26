@@ -20,9 +20,6 @@ export const passwordBlacklist = [
  * @returns Whether the password matched and whether the user's account is confirmed.
  */
 export async function passwordMatches(db: Db, user: string, password: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof password !== 'string') { throw new Error('Invalid password!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	// If invalid user, we just want to say username / password doesn't match
 	if (!isUser) { return { matches: false, confirmed: false }; }

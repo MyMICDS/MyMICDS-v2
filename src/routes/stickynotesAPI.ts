@@ -1,4 +1,4 @@
-import { AddStickyNoteParameters } from '@mymicds/sdk';
+import { AddStickyNoteParameters, GetStickyNoteParameters } from '@mymicds/sdk';
 import { assertType } from 'typescript-is';
 import * as api from '../libs/api';
 import * as jwt from '../libs/jwt';
@@ -9,6 +9,7 @@ export default ((app, db) => {
 
 	app.get('/stickynotes', jwt.requireLoggedIn, async (req, res) => {
 		try {
+			assertType<GetStickyNoteParameters>(req.query);
 			const note = await stickynotes.get(db, req.apiUser!, req.query.moduleId);
 			api.success(res, note);
 		} catch (err) {

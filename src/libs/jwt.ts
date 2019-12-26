@@ -228,9 +228,6 @@ export async function generate(db: Db, user: string, rememberMe: boolean, commen
  * @returns Whether the JWT is blacklisted.
  */
 export async function isBlacklisted(db: Db, checkJwt: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof checkJwt !== 'string') { throw new Error('Invalid JWT!'); }
-
 	const jwtData = db.collection<JWTDoc>('jwtWhitelist');
 
 	let docs: JWTDoc[];

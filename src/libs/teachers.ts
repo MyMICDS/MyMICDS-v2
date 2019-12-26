@@ -13,11 +13,7 @@ const validTeacherPrefixes = [
  * @param teacher Teacher object to insert.
  */
 async function addTeacher(db: Db, teacher: Omit<Teacher, '_id'>) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof teacher !== 'object') { throw new Error('Invalid teacher object!'); }
 	if (!validTeacherPrefixes.includes(teacher.prefix)) { throw new Error('Invalid teacher prefix!'); }
-	if (typeof teacher.firstName !== 'string') { throw new Error('Invalid teacher first name!'); }
-	if (typeof teacher.lastName !== 'string') { throw new Error('Invalid teacher last name!'); }
 
 	const teacherdata = db.collection<TeacherWithIDOptional>('teachers');
 
