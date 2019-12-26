@@ -2,8 +2,6 @@ import * as api from '../libs/api';
 import * as schedule from '../libs/schedule';
 import RoutesFunction from './routesFunction';
 
-import * as fs from 'fs-extra';
-
 export default ((app, db) => {
 	app.get('/schedule', async (req, res) => {
 		const current = new Date();
@@ -22,12 +20,12 @@ export default ((app, db) => {
 		}
 	});
 
-	app.get('/block-schedule', async (req, res) => {
-		try {
-			const data = await fs.readFile(__dirname + '/../schedules/' + req.query.grade, 'utf8');
-			api.success(res, data);
-		} catch (err) {
-			api.error(res, err);
-		}
-	});
+	// app.get('/block-schedule', async (req, res) => {
+	// 	try {
+	// 		const data = await fs.readFile(__dirname + '/../schedules/' + req.query.grade, 'utf8');
+	// 		api.success(res, data);
+	// 	} catch (err) {
+	// 		api.error(res, err);
+	// 	}
+	// });
 }) as RoutesFunction;
