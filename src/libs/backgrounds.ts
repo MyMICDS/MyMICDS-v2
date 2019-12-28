@@ -6,7 +6,6 @@ import * as path from 'path';
 import { promisify } from 'util';
 import config from './config';
 import { UserDoc } from './users';
-import * as utils from './utils';
 
 // Valid MIME Types for image backgrounds
 const validMimeTypes: { [mime: string]: string } = {

@@ -62,6 +62,7 @@ async function getLunch(db: Db, date: Date) {
 
 /**
  * Parses Flik's JSON data into our API
+ * @param school The school to get data for.
  * @param body HTML body of the page.
  * @returns An object with the lunch data.
  */

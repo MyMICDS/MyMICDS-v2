@@ -163,7 +163,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 
 	// Determine when school should start and end for a default schedule
 	let lateStart = false;
-	let defaultStart: moment.Moment | null = null;
+	let defaultStart: moment.Moment;
 	if (scheduleDate.day() !== 3) {
 		// Not Wednesday, school starts at 8
 		defaultStart = scheduleDate.clone().hour(8);

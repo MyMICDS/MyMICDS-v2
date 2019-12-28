@@ -33,7 +33,7 @@ export async function passwordMatches(db: Db, user: string, password: string) {
 		throw new Error('There was a problem comparing the passwords!');
 	}
 
-	return { matches: res, confirmed: !!userDoc!.confirmed };
+	return { matches: res, confirmed: userDoc!.confirmed };
 }
 
 /**

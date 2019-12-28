@@ -188,22 +188,6 @@ export async function processPortalQueue(db: Db) {
 }
 
 /**
- * Tries to get Canvas calendar from cache. If it's empty, it tries updating the cache and returning that response.
- * @param {Object} db - Database object
- * @param {string} user - Username
- * @param {canvasCacheRetryCallback} callback - Callback
- */
-
-/**
- * Returns array containing Canvas events
- * @callback canvasCacheRetryCallback
- *
- * @param {Object} err - Null if success, error object if failure
- * @param {Boolean} hasURL - Whether or not user has a Canvas URL set. Null if error.
- * @param {Array} events - Array of events if success, null if failure.
- */
-
-/**
  * Checks the Canvas cache for a user. If there's no cache data, updates the cache.
  * @param db Database connection.
  * @param user Username.

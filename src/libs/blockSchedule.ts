@@ -19,12 +19,12 @@ const middleschoolSchedule = {
 /**
  * Gets the generic schedule for a user depending on their grade.
  * @param date Date to set class start and end times relative to.
- * @param grade User's grade (only middle and upper school grades supported).
- * @param day Schedule rotation day to get the schedule for.
+ * @param grade User's grade (only middle and upper school grades supported), null if teacher.
+ * @param day Schedule rotation day to get the schedule for, null if no rotation.
  * @param lateStart Whether or not the schedule should be late start.
  * @returns The appropriate generic schedule.
  */
-function getSchedule(date: Date | moment.Moment | null, grade: number, day: number, lateStart: boolean) {
+function getSchedule(date: Date | moment.Moment | null, grade: number | null, day: number | null, lateStart: boolean) {
 	// Validate inputs
 	if (date) {
 		date = moment(date);
@@ -37,7 +37,6 @@ function getSchedule(date: Date | moment.Moment | null, grade: number, day: numb
 	if (typeof day !== 'number' || _.isNaN(day) || 1 > day || day > 6) {
 		return null;
 	}
-	lateStart = !!lateStart;
 
 	const schoolName = users.gradeToSchool(grade);
 
