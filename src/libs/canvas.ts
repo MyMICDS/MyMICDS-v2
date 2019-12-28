@@ -86,8 +86,6 @@ export async function setURL(db: Db, user: string, calUrl: string) {
  * @returns Whether the user has a saved URL and the calendar events.
  */
 export async function getUserCal(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -335,8 +333,6 @@ export async function getFromCache(db: Db, user: string) {
  * @returns An object mapping Canvas class IDs to arrays of Canvas assignment names.
  */
 export async function getUniqueEvents(db: Db) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const canvasdata = db.collection<CanvasCacheEvent>('canvasFeeds');
 	const docs = await canvasdata.aggregate([
 		{

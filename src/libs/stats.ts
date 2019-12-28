@@ -9,8 +9,6 @@ import { UserDoc } from './users';
  * @returns An object containing different user statistics.
  */
 async function getStats(db: Db) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const stats: GetStatsResponse['stats'] = {
 		registered: {
 			total: 0,

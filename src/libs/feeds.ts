@@ -13,8 +13,6 @@ import * as users from './users';
  * @param user Username.
  */
 export async function updateCanvasCache(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const canvasdata = db.collection('canvasFeeds');
 
 	const { isUser, userDoc } = await users.get(db, user);
@@ -48,8 +46,6 @@ export async function updateCanvasCache(db: Db, user: string) {
  * @returns The events that are *currently* in the Portal classes cache, or null if there's no URL.
  */
 export async function addPortalQueueClasses(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -110,8 +106,6 @@ export async function addPortalQueueClasses(db: Db, user: string) {
  * @returns The events that are *currently* in the Portal calendar cache, or null if there's no URL.
  */
 export async function addPortalQueueCalendar(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -170,8 +164,6 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
  * @param db Database connection.
  */
 export async function processPortalQueue(db: Db) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const userdata = db.collection<UserDoc>('users');
 
 	let queue: UserDoc[];

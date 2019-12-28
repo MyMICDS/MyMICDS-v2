@@ -135,7 +135,7 @@ const defaultModules: MyMICDSModule[] = [
  * @returns The default module configuration options.
  */
 function getDefaultOptions(type: MyMICDSModuleType): any {
-	const moduleConfig = modulesConfig[type as MyMICDSModuleType];
+	const moduleConfig = modulesConfig[type];
 	if (typeof moduleConfig === 'undefined') {
 		return {};
 	}

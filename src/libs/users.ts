@@ -96,8 +96,6 @@ export async function getInfo(db: Db, user: string, privateInfo = false) {
  * @param info Information to change.
  */
 export async function changeInfo(db: Db, user: string, info: ChangeUserInfoParameters) {
-	if (typeof info !== 'object') { throw new Error('Invalid information!'); }
-
 	// I mean if they want nothing changed, I guess there's no error
 	if (_.isEmpty(info)) { return; }
 

@@ -7,8 +7,6 @@ import { Db } from 'mongodb';
  * @returns A list of all saved quotes.
  */
 async function getQuotes(db: Db) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const quotesData = db.collection<Quote>('quotes');
 
 	try {

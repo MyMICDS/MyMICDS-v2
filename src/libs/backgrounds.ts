@@ -187,8 +187,6 @@ async function getBackground(user: string | null): Promise<BackgroundObject> {
  * @returns Each user paired with their background variants.
  */
 async function getAllBackgrounds(db: Db) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	let userDirs: string[];
 	try {
 		userDirs = await fs.readdir(userBackgroundsDir);

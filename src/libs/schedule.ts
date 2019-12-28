@@ -152,8 +152,6 @@ const genericBlocks: Record<
  * 			and the different classes for the day.
  */
 async function getSchedule(db: Db, user: string, date: Date, portalBroke = false) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const scheduleDate = moment(date).startOf('day');
 	const scheduleNextDay = scheduleDate.clone().add(1, 'day');
 

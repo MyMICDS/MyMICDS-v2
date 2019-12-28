@@ -39,9 +39,6 @@ async function addTeacher(db: Db, teacher: Omit<Teacher, '_id'>) {
  * @returns Whether the object ID points to a valid teacher and the corresponding teacher document.
  */
 async function getTeacher(db: Db, teacherId: ObjectID) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof teacherId !== 'object') { throw new Error('Invalid teacher id object!'); }
-
 	const teacherdata = db.collection<Teacher>('teachers');
 
 	try {
@@ -68,8 +65,6 @@ async function getTeacher(db: Db, teacherId: ObjectID) {
  * @returns A list of all the teacher objects in the database.
  */
 async function listTeachers(db: Db) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const teacherdata = db.collection<Teacher>('teachers');
 
 	try {
@@ -84,8 +79,6 @@ async function listTeachers(db: Db) {
  * @param db Database connection.
  */
 export async function deleteClasslessTeachers(db: Db) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const teacherdata = db.collection<Teacher>('teachers');
 
 	let docs: Teacher[];

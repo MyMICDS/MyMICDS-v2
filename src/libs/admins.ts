@@ -9,8 +9,6 @@ import { UserDoc } from './users';
  * @returns Array of usernames of all admins.
  */
 async function getAdmins(db: Db) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const userdata = db.collection<UserDoc>('users');
 
 	try {
@@ -26,8 +24,6 @@ async function getAdmins(db: Db) {
  * @param message Email message to send.
  */
 async function sendAdminEmail(db: Db, message: mail.Message) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	// Get admin objects
 	let admins: UserDoc[];
 	try {

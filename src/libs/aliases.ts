@@ -4,8 +4,6 @@ import * as classes from './classes';
 import { MyMICDSClassWithIDs } from './classes';
 import * as users from './users';
 
-const aliasTypes: AliasType[] = Object.values(AliasType);
-
 /**
  * Adds an alias that connects a remote class to a local class object.
  * @param db Database connection.
@@ -171,9 +169,6 @@ async function deleteAlias(db: Db, user: string, type: AliasType, aliasId: strin
  * 			else returns the inputted class.
  */
 async function getAliasClass(db: Db, user: string, type: AliasType, classInput: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (!aliasTypes.includes(type)) { throw new Error('Invalid alias type!'); }
-
 	// Make sure valid user
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
@@ -210,8 +205,6 @@ async function getAliasClass(db: Db, user: string, type: AliasType, classInput: 
  * @param db Database connection.
  */
 export async function deleteClasslessAliases(db: Db) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const aliasdata = db.collection<AliasWithIDs>('aliases');
 
 	let classless: AliasWithIDs[];
