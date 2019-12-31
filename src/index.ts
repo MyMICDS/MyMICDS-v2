@@ -76,6 +76,14 @@ MongoClient.connect(config.mongodb.uri).then(async (client: MongoClient) => {
 	// Enable admin overrides
 	app.use(api.adminOverride);
 
+	// Synchronous error handler
+	app.use(((err, req, res, next) => {
+		if (res.headersSent) {
+			return next(err);
+		}
+		api.error(res, err);
+	}) as express.ErrorRequestHandler);
+
 	// Require all routes
 	const routes = await Promise.all<RoutesFunction>([
 		'alias',

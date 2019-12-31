@@ -6,7 +6,6 @@ import * as path from 'path';
 import { promisify } from 'util';
 import config from './config';
 import { UserDoc } from './users';
-import * as utils from './utils';
 
 // Valid MIME Types for image backgrounds
 const validMimeTypes: { [mime: string]: string } = {
@@ -80,6 +79,7 @@ function uploadBackground() {
 				return;
 			}
 			const extension = validMimeTypes[file.mimetype];
+			// noinspection SuspiciousTypeOfGuard
 			if (typeof extension !== 'string') {
 				cb(new Error('Invalid file type!'), false);
 				return;
@@ -98,8 +98,6 @@ function uploadBackground() {
  * @returns Path of image directory and the extension for the images.
  */
 async function getCurrentFiles(user: string) {
-	if (typeof user !== 'string' || !utils.validFilename(user)) { throw new Error('Invalid username!'); }
-
 	let userDirs: string[];
 	try {
 		userDirs = await fs.readdir(userBackgroundsDir);
@@ -145,8 +143,6 @@ async function getCurrentFiles(user: string) {
  * @param user Username.
  */
 async function deleteBackground(user: string) {
-	if (typeof user !== 'string' || !utils.validFilename(user)) { throw new Error('Invalid username!'); }
-
 	// Find out user's current directory
 	const { dirname, extension } = await getCurrentFiles(user);
 
@@ -168,8 +164,8 @@ async function deleteBackground(user: string) {
  * @param user Username.
  * @returns All the different variants of a background image and whether or not it's the default background.
  */
-async function getBackground(user: string): Promise<BackgroundObject> {
-	if (typeof user !== 'string' || !utils.validFilename(user)) { return { variants: defaultVariants, hasDefault: true }; }
+async function getBackground(user: string | null): Promise<BackgroundObject> {
+	if (typeof user !== 'string') { return { variants: defaultVariants, hasDefault: true }; }
 
 	// Get user's extension
 	const { dirname, extension } = await getCurrentFiles(user);
@@ -191,8 +187,6 @@ async function getBackground(user: string): Promise<BackgroundObject> {
  * @returns Each user paired with their background variants.
  */
 async function getAllBackgrounds(db: Db) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	let userDirs: string[];
 	try {
 		userDirs = await fs.readdir(userBackgroundsDir);
@@ -283,12 +277,6 @@ async function getDirExtension(userDir: string) {
  * @param blurRadius Gaussian blur radius to use.
  */
 async function addBlur(fromPath: string, toPath: string, blurRadius: number) {
-	if (typeof fromPath !== 'string') { throw new Error('Invalid path to original image!'); }
-	if (typeof toPath !== 'string') { throw new Error('Invalid path to blurred image!'); }
-	if (typeof blurRadius !== 'number') {
-		blurRadius = defaultBlurRadius;
-	}
-
 	let image: any; // There is a `Jimp` type but there's like two different ones that conflict I guess?
 	try {
 		image = await Jimp.read(fromPath);
@@ -308,8 +296,6 @@ async function addBlur(fromPath: string, toPath: string, blurRadius: number) {
  * @param user Username.
  */
 export async function blurUser(user: string) {
-	if (typeof user !== 'string' || !utils.validFilename(user)) { throw new Error('Invalid username!'); }
-
 	const { dirname, extension } = await getCurrentFiles(user);
 
 	if (dirname === null || extension === null) { return; }

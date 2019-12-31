@@ -1,12 +1,13 @@
 import * as api from '../libs/api';
 import * as backgrounds from '../libs/backgrounds';
+import * as jwt from '../libs/jwt';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db, socketIO) => {
 
 	app.get('/background', async (req, res) => {
 		try {
-			const responseObj = await backgrounds.get(req.apiUser!);
+			const responseObj = await backgrounds.get(req.apiUser);
 			api.success(res, responseObj);
 		} catch (err) {
 			api.error(res, err);
@@ -22,7 +23,7 @@ export default ((app, db, socketIO) => {
 		}
 	});
 
-	app.put('/background', (req, res) => {
+	app.put('/background', jwt.requireLoggedIn, (req, res) => {
 		// Write image to user-backgrounds
 		backgrounds.upload()(req, res, async err => {
 			if (err) {
@@ -49,7 +50,7 @@ export default ((app, db, socketIO) => {
 		});
 	});
 
-	app.delete('/background', async (req, res) => {
+	app.delete('/background', jwt.requireLoggedIn, async (req, res) => {
 		try {
 			await backgrounds.delete(req.apiUser!);
 		} catch (err) {

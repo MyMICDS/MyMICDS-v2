@@ -39,6 +39,9 @@ export default ((app, db, socketIO) => {
 	});
 
 	app.patch('/user/info', jwt.requireLoggedIn, async (req, res) => {
+		// All the validation is being done manually to add defaults
+		// No reason to add an assertType
+
 		const info: ChangeUserInfoParameters = {};
 
 		if (typeof req.body.firstName === 'string' && req.body.firstName !== '') {

@@ -4,8 +4,6 @@ import * as classes from './classes';
 import { MyMICDSClassWithIDs } from './classes';
 import * as users from './users';
 
-const aliasTypes: AliasType[] = Object.values(AliasType);
-
 /**
  * Adds an alias that connects a remote class to a local class object.
  * @param db Database connection.
@@ -16,11 +14,6 @@ const aliasTypes: AliasType[] = Object.values(AliasType);
  * @returns ID of the inserted alias.
  */
 async function addAlias(db: Db, user: string, type: AliasType, classString: string, classId: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (!aliasTypes.includes(type)) { throw new Error('Invalid alias type!'); }
-	if (typeof classString !== 'string') { throw new Error('Invalid class string!'); }
-	if (typeof classId !== 'string') { await new Error('Invalid class id!'); }
-
 	// Make sure valid user
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
@@ -71,9 +64,6 @@ async function addAlias(db: Db, user: string, type: AliasType, classString: stri
  * @returns Object containing all aliases for each alias type.
  */
 async function listAliases(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	// Make sure valid user
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
@@ -112,9 +102,6 @@ async function listAliases(db: Db, user: string) {
  * @returns Object containing all classes for each alias type.
  */
 async function mapAliases(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	const [aliases, theClasses] = await Promise.all([
 		listAliases(db, user),
 		classes.get(db, user)
@@ -150,9 +137,6 @@ async function mapAliases(db: Db, user: string) {
  * @param aliasId ID of alias to delete.
  */
 async function deleteAlias(db: Db, user: string, type: AliasType, aliasId: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (!aliasTypes.includes(type)) { throw new Error('Invalid alias type!'); }
-
 	// Make sure valid alias
 	const aliases = await listAliases(db, user);
 
@@ -185,12 +169,6 @@ async function deleteAlias(db: Db, user: string, type: AliasType, aliasId: strin
  * 			else returns the inputted class.
  */
 async function getAliasClass(db: Db, user: string, type: AliasType, classInput: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (!aliasTypes.includes(type)) { throw new Error('Invalid alias type!'); }
-
-	// If class input is invalid, just return current value in case it is already a class object
-	if (typeof classInput !== 'string') { return { hasAlias: false, classObject: classInput }; }
-
 	// Make sure valid user
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
@@ -227,8 +205,6 @@ async function getAliasClass(db: Db, user: string, type: AliasType, classInput: 
  * @param db Database connection.
  */
 export async function deleteClasslessAliases(db: Db) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const aliasdata = db.collection<AliasWithIDs>('aliases');
 
 	let classless: AliasWithIDs[];

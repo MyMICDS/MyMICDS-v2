@@ -12,9 +12,6 @@ import * as dates from './dates';
  * @returns Whether the user is valid and the contents of the user document.
  */
 async function getUser(db: Db, user: string) {
-	if (typeof db !== 'object') {	throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	const userdata = db.collection<UserDoc>('users');
 
 	let docs: UserDoc[];
@@ -44,9 +41,6 @@ async function getUser(db: Db, user: string) {
  * @returns An object containing user information.
  */
 export async function getInfo(db: Db, user: string, privateInfo: boolean) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof privateInfo !== 'boolean') { privateInfo = false; }
-
 	const { isUser, userDoc } = await getUser(db, user);
 
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
@@ -102,8 +96,6 @@ export async function getInfo(db: Db, user: string, privateInfo: boolean) {
  * @param info Information to change.
  */
 export async function changeInfo(db: Db, user: string, info: ChangeUserInfoParameters) {
-	if (typeof info !== 'object') { throw new Error('Invalid information!'); }
-
 	// I mean if they want nothing changed, I guess there's no error
 	if (_.isEmpty(info)) { return; }
 
@@ -205,7 +197,7 @@ export interface UserDoc {
 	lastLogin?: Date;
 	lastVisited?: Date;
 	lastPasswordChange?: Date;
-	passwordChangeHash?: string;
+	passwordChangeHash?: string | null;
 	portalURL?: string; // Legacy URL
 	portalURLClasses?: string;
 	portalURLCalendar?: string;

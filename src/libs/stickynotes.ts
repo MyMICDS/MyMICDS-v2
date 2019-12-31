@@ -9,9 +9,6 @@ import * as users from './users';
  * @returns A sticky note object.
  */
 async function getNotes(db: Db, user: string, moduleId: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof moduleId !== 'string') { throw new Error('Invalid moduleId!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('Invalid username!'); }
 
@@ -35,10 +32,6 @@ async function getNotes(db: Db, user: string, moduleId: string) {
  * @param text The content of the sticky note.
  */
 async function postNote(db: Db, user: string, moduleId: string, text: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof moduleId !== 'string') { throw new Error('Invalid moduleId!'); }
-	if (typeof text !== 'string') { throw new Error('Invalid note text!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('Invalid username!'); }
 

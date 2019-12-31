@@ -19,8 +19,6 @@ const schools: Record<School, string> = {
  * @param date Date to get the lunch for.
  */
 async function getLunch(db: Db, date: Date) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const currentDay = moment(date).day('Wednesday');
 	const fullLunchResponse: GetLunchResponse['lunch'] = {};
 
@@ -62,6 +60,7 @@ async function getLunch(db: Db, date: Date) {
 
 /**
  * Parses Flik's JSON data into our API
+ * @param school The school to get data for.
  * @param body HTML body of the page.
  * @returns An object with the lunch data.
  */

@@ -22,8 +22,6 @@ const urlPrefix = 'https://micds.instructure.com/feeds/calendars/';
  * @returns Whether the URL is valid and a newly formatted URL if it is.
  */
 export async function verifyURL(canvasURL: string) {
-	if (typeof canvasURL !== 'string') { throw new Error('Invalid URL!'); }
-
 	// Parse URL first
 	const parsedURL = url.parse(canvasURL);
 
@@ -62,8 +60,6 @@ export async function verifyURL(canvasURL: string) {
  * @returns Whether the URL is valid.
  */
 export async function setURL(db: Db, user: string, calUrl: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -90,8 +86,6 @@ export async function setURL(db: Db, user: string, calUrl: string) {
  * @returns Whether the user has a saved URL and the calendar events.
  */
 export async function getUserCal(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -180,9 +174,6 @@ function calendarToEvent(calLink: string) {
  * @returns Whether the user has a saved URL and the associated classes.
  */
 export async function getClasses(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -239,9 +230,6 @@ export async function getClasses(db: Db, user: string) {
  * @returns Whether the user has a saved URL and the cache events.
  */
 export async function getFromCache(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -345,8 +333,6 @@ export async function getFromCache(db: Db, user: string) {
  * @returns An object mapping Canvas class IDs to arrays of Canvas assignment names.
  */
 export async function getUniqueEvents(db: Db) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const canvasdata = db.collection<CanvasCacheEvent>('canvasFeeds');
 	const docs = await canvasdata.aggregate([
 		{

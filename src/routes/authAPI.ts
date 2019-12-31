@@ -1,3 +1,12 @@
+import {
+	ChangePasswordParameters,
+	ConfirmParameters,
+	ForgotPasswordParameters,
+	LoginParameters,
+	RegisterParameters,
+	ResetPasswordParameters
+} from '@mymicds/sdk';
+import { assertType } from 'typescript-is';
 import * as api from '../libs/api';
 import * as auth from '../libs/auth';
 import * as jwt from '../libs/jwt';
@@ -19,6 +28,8 @@ export default ((app, db) => {
 		const rememberMe = typeof req.body.remember !== 'undefined';
 
 		try {
+			assertType<LoginParameters>(req.body);
+
 			const responseObj = await auth.login(db, req.body.user, req.body.password, rememberMe, req.body.comment);
 			api.success(res, responseObj);
 		} catch (err) {
@@ -26,15 +37,12 @@ export default ((app, db) => {
 		}
 	});
 
-	app.post('/auth/logout', async (req, res) => {
-		let token = req.get('Authorization');
-		// If there's a token, we need to get rid of the 'Bearer ' at the beginning
-		if (token) {
-			token = token.slice(7);
-		}
+	app.post('/auth/logout', jwt.requireLoggedIn, async (req, res) => {
+		// Since you must be logged in to log out, there's always going to be a token
+		const token = req.headers.authorization!.slice(7);
 
 		try {
-			await jwt.revoke(db, req.user, token!);
+			await jwt.revoke(db, req.user as jwt.UserPayload, token);
 			api.success(res);
 		} catch (err) {
 			api.error(res, err);
@@ -42,7 +50,14 @@ export default ((app, db) => {
 	});
 
 	app.post('/auth/register', async (req, res) => {
-		const user: any = {
+		try {
+			assertType<RegisterParameters>(req.body);
+		} catch (err) {
+			api.error(res, err);
+			return;
+		}
+
+		const user: auth.NewUserData = {
 			user: req.body.user,
 			password: req.body.password,
 			firstName: req.body.firstName,
@@ -64,6 +79,7 @@ export default ((app, db) => {
 
 	app.post('/auth/confirm', async (req, res) => {
 		try {
+			assertType<ConfirmParameters>(req.body);
 			await auth.confirm(db, req.body.user, req.body.hash);
 			api.success(res);
 		} catch (err) {
@@ -73,6 +89,7 @@ export default ((app, db) => {
 
 	app.put('/auth/change-password', jwt.requireLoggedIn, async (req, res) => {
 		try {
+			assertType<ChangePasswordParameters>(req.body);
 			await passwords.changePassword(db, req.apiUser!, req.body.oldPassword, req.body.newPassword);
 			api.success(res);
 		} catch (err) {
@@ -86,6 +103,7 @@ export default ((app, db) => {
 			return;
 		}
 		try {
+			assertType<ForgotPasswordParameters>(req.body);
 			await passwords.resetPasswordEmail(db, req.body.user);
 			api.success(res);
 		} catch (err) {
@@ -99,6 +117,7 @@ export default ((app, db) => {
 			return;
 		}
 		try {
+			assertType<ResetPasswordParameters>(req.body);
 			await passwords.resetPassword(db, req.body.user, req.body.password, req.body.hash);
 			api.success(res);
 		} catch (err) {

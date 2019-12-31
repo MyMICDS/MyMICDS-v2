@@ -21,11 +21,6 @@ export async function hashPassword(password: string) {
  * @returns Whether the strings match.
  */
 export function safeCompare(a: string, b: string) {
-
-	if (typeof a !== 'string' || typeof b !== 'string') {
-		return false;
-	}
-
 	let mismatch = (a.length === b.length ? 0 : 1);
 	if (mismatch) {
 		b = a;

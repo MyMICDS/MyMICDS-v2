@@ -152,8 +152,6 @@ const genericBlocks: Record<
  * 			and the different classes for the day.
  */
 async function getSchedule(db: Db, user: string, date: Date, portalBroke = false) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const scheduleDate = moment(date).startOf('day');
 	const scheduleNextDay = scheduleDate.clone().add(1, 'day');
 
@@ -163,7 +161,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 
 	// Determine when school should start and end for a default schedule
 	let lateStart = false;
-	let defaultStart: moment.Moment | null = null;
+	let defaultStart: moment.Moment;
 	if (scheduleDate.day() !== 3) {
 		// Not Wednesday, school starts at 8
 		defaultStart = scheduleDate.clone().hour(8);

@@ -7,8 +7,6 @@ import { Db } from 'mongodb';
  * @returns A list of all saved quotes.
  */
 async function getQuotes(db: Db) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const quotesData = db.collection<Quote>('quotes');
 
 	try {
@@ -25,10 +23,6 @@ async function getQuotes(db: Db) {
  * @param quote Quote content.
  */
 async function insertQuote(db: Db, author: string, quote: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof author !== 'string') { throw new Error('Invalid author!'); }
-	if (typeof quote !== 'string') { throw new Error('Invalid quote!'); }
-
 	const quotesData = db.collection('quotes');
 
 	try {

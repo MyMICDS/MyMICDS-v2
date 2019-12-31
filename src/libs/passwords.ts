@@ -20,9 +20,6 @@ export const passwordBlacklist = [
  * @returns Whether the password matched and whether the user's account is confirmed.
  */
 export async function passwordMatches(db: Db, user: string, password: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof password !== 'string') { throw new Error('Invalid password!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	// If invalid user, we just want to say username / password doesn't match
 	if (!isUser) { return { matches: false, confirmed: false }; }
@@ -36,7 +33,7 @@ export async function passwordMatches(db: Db, user: string, password: string) {
 		throw new Error('There was a problem comparing the passwords!');
 	}
 
-	return { matches: res, confirmed: !!userDoc!.confirmed };
+	return { matches: res, confirmed: userDoc!.confirmed };
 }
 
 /**
@@ -47,10 +44,7 @@ export async function passwordMatches(db: Db, user: string, password: string) {
  * @param newPassword The new password to set.
  */
 export async function changePassword(db: Db, user: string, oldPassword: string, newPassword: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof newPassword !== 'string') { throw new Error('Invalid new password!'); }
-
-	if (typeof oldPassword !== 'string' || passwordBlacklist.includes(newPassword)) {
+	if (passwordBlacklist.includes(newPassword)) {
 		throw new Error('Invalid old password!');
 	}
 
@@ -79,8 +73,6 @@ export async function changePassword(db: Db, user: string, oldPassword: string, 
  * @param user Username.
  */
 export async function resetPasswordEmail(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -127,14 +119,12 @@ export async function resetPasswordEmail(db: Db, user: string) {
  * @param hash The reset hash.
  */
 export async function resetPassword(db: Db, user: string, password: string, hash: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof password !== 'string' || passwordBlacklist.includes(password)) { throw new Error('Invalid password!'); }
-	if (typeof hash !== 'string') { throw new Error('Invalid hash!'); }
+	if (passwordBlacklist.includes(password)) { throw new Error('Invalid password!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	if (typeof userDoc!.passwordChangeHash !== 'string' || userDoc!.passwordChangeHash === null) {
+	if (typeof userDoc!.passwordChangeHash !== 'string') {
 		throw new Error('Password change email was never sent!');
 	}
 

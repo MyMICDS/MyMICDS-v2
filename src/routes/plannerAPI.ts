@@ -1,3 +1,10 @@
+import {
+	AddPlannerEventParameters,
+	CheckPlannerEventParameters,
+	DeletePlannerEventParameters,
+	UncheckPlannerEventParameters
+} from '@mymicds/sdk';
+import { assertType } from 'typescript-is';
 import * as api from '../libs/api';
 import * as checkedEvents from '../libs/checkedEvents';
 import * as planner from '../libs/planner';
@@ -15,6 +22,13 @@ export default ((app, db, socketIO) => {
 	});
 
 	app.post('/planner', async (req, res) => {
+		try {
+			type AddEventBody = Omit<AddPlannerEventParameters, 'start' | 'end'> & Partial<Record<'start' | 'end', string>>;
+			assertType<AddEventBody>(req.body);
+		} catch (err) {
+			api.error(res, err);
+			return;
+		}
 
 		let start = new Date();
 		if (req.body.start) {
@@ -26,7 +40,7 @@ export default ((app, db, socketIO) => {
 			end = new Date(req.body.end);
 		}
 
-		const insertEvent = {
+		const insertEvent: planner.NewEventData = {
 			_id    : req.body.id,
 			title  : req.body.title,
 			desc   : req.body.desc,
@@ -53,6 +67,7 @@ export default ((app, db, socketIO) => {
 
 	app.delete('/planner', async (req, res) => {
 		try {
+			assertType<DeletePlannerEventParameters>(req.body);
 			await planner.delete(db, req.apiUser!, req.body.id);
 			socketIO.user(req.apiUser!, 'planner', 'delete', req.body.id);
 			api.success(res);
@@ -63,6 +78,7 @@ export default ((app, db, socketIO) => {
 
 	app.patch('/planner/check', async (req, res) => {
 		try {
+			assertType<CheckPlannerEventParameters>(req.body);
 			await checkedEvents.check(db, req.apiUser!, req.body.id);
 			socketIO.user(req.apiUser!, 'planner', 'check', req.body.id);
 			api.success(res);
@@ -73,6 +89,7 @@ export default ((app, db, socketIO) => {
 
 	app.patch('/planner/uncheck', async (req, res) => {
 		try {
+			assertType<UncheckPlannerEventParameters>(req.body);
 			await checkedEvents.uncheck(db, req.apiUser!, req.body.id);
 			socketIO.user(req.apiUser!, 'planner', 'uncheck', req.body.id);
 			api.success(res);

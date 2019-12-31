@@ -8,10 +8,6 @@ import * as users from './users';
  * @param eventId Event ID to check off.
  */
 async function checkEvent(db: Db, user: string, eventId: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-	if (typeof eventId !== 'string') { throw new Error('Invalid event id!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -42,10 +38,6 @@ async function checkEvent(db: Db, user: string, eventId: string) {
  * @param eventId Event ID to check.
  */
 async function getChecked(db: Db, user: string, eventId: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-	if (typeof eventId !== 'string') { throw new Error('Invalid event id!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -68,9 +60,6 @@ async function getChecked(db: Db, user: string, eventId: string) {
  * @returns A list of checked events.
  */
 async function listChecked(db: Db, user: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -94,10 +83,6 @@ async function listChecked(db: Db, user: string) {
  * @param eventId Event ID to uncheck.
  */
 async function uncheckEvent(db: Db, user: string, eventId: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-	if (typeof eventId !== 'string') { throw new Error('Invalid event id!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 

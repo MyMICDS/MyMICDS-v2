@@ -19,12 +19,12 @@ const DEBUG = true;
 // const debugList = ['mgira', 'nclifford', 'jcai'];
 const debugList = ['mgira'];
 
+import { Scope } from '@mymicds/sdk';
 import * as fs from 'fs-extra';
 import moment from 'moment';
 import { MongoClient } from 'mongodb';
 import * as nodemailer from 'nodemailer';
 import * as mail from '../libs/mail';
-import { Scope } from '../libs/notifications';
 import { UserDoc } from '../libs/users';
 
 if (!Object.values(Scope).includes(messageType)) {

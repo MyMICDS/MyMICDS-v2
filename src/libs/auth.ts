@@ -20,12 +20,7 @@ import { Omit } from './utils';
  * @param comment Comment to associate with the JWT.
  * @returns JWT or human-readable error message.
  */
-export async function login(db: Db, user: string, password: string, rememberMe: boolean, comment: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-	if (typeof password !== 'string') { throw new Error('Invalid password!'); }
-	if (typeof rememberMe !== 'boolean') { rememberMe = true; }
-
+export async function login(db: Db, user: string, password: string, rememberMe: boolean, comment?: string) {
 	user = user.toLowerCase();
 
 	const { matches, confirmed } = await passwords.passwordMatches(db, user, password);
@@ -57,22 +52,13 @@ export async function login(db: Db, user: string, password: string, rememberMe: 
  * @param db Database connection.
  * @param user User object.
  */
-// tslint:disable-next-line:max-line-length
-export async function register(db: Db, user: Omit<RegisterParameters, 'teacher' | 'gradYear'> & { gradYear: number | null }) {
-	// Validate inputs
-	if (typeof db   !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'object') { throw new Error('Invalid user object!'); }
-	if (typeof user.user !== 'string') { throw new Error('Invalid username!'); }
-
+export async function register(db: Db, user: NewUserData) {
 	// Make sure username is lowercase
 	user.user = user.user.toLowerCase();
 
-	if (typeof user.password  !== 'string' || passwords.passwordBlacklist.includes(user.password)) {
+	if (passwords.passwordBlacklist.includes(user.password)) {
 		throw new Error('Invalid password!');
 	}
-
-	if (typeof user.firstName !== 'string') { throw new Error('Invalid first name!'); }
-	if (typeof user.lastName  !== 'string') { throw new Error('Invalid last name!'); }
 
 	// If gradYear not valid, default to faculty
 	if (typeof user.gradYear !== 'number' || user.gradYear % 1 !== 0 || _.isNaN(user.gradYear)) {
@@ -158,10 +144,6 @@ export async function register(db: Db, user: Omit<RegisterParameters, 'teacher' 
  * @param hash Confirmation hash.
  */
 export async function confirm(db: Db, user: string, hash: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-	if (typeof hash !== 'string') { throw new Error('Invalid hash!'); }
-
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -181,3 +163,5 @@ export async function confirm(db: Db, user: string, hash: string) {
 		throw new Error('Hash not valid!');
 	}
 }
+
+export type NewUserData = Omit<RegisterParameters, 'teacher' | 'gradYear'> & { gradYear: number | null };

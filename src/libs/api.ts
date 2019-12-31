@@ -59,7 +59,7 @@ function respondSuccess(res: Response, data: any = {}, action: Action | null = n
 function respondError(res: Response, error: Error | string | null, action: Action | null = null) {
 	// Check for different types of errors
 	let err = null;
-	if (error !== null && typeof error === 'object' && typeof error.message === 'string') {
+	if (error !== null && typeof error === 'object') {
 		err = error.message;
 	}
 	if (typeof error === 'string') {

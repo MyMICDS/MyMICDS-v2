@@ -10,9 +10,6 @@ import { Omit } from './utils';
 
 const engine = Random.engines.mt19937().autoSeed();
 
-const validBlocks: Block[] = Object.values(Block);
-const validTypes: ClassType[] = Object.values(ClassType);
-
 // RegEx to test if string is a valid hex color ('#XXX' or '#XXXXXX')
 const validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
 
@@ -30,17 +27,13 @@ async function upsertClass(db: Db, user: string, scheduleClass: {
 	type?: ClassType,
 	teacher: Teacher
 }) {
-	// Input validation best validation
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
+	// Set default
 	if (typeof scheduleClass._id !== 'string') { scheduleClass._id = ''; }
 
-	if (typeof user               !== 'string') { throw new Error('Invalid username!'); }
-	if (typeof scheduleClass      !== 'object') { throw new Error('Invalid class object!'); }
-	if (typeof scheduleClass.name !== 'string') { throw new Error('Invalid class name!'); }
+	// If no block or type, default to 'other'
+	if (!scheduleClass.block) { scheduleClass.block = Block.OTHER; }
+	if (!scheduleClass.type)  { scheduleClass.type  = ClassType.OTHER; }
 
-	// If no valid block or type, default to 'other'
-	if (!(scheduleClass.block && validBlocks.includes(scheduleClass.block))) { scheduleClass.block = Block.OTHER; }
-	if (!(scheduleClass.type && validTypes.includes(scheduleClass.type))) {    scheduleClass.type  = ClassType.OTHER; }
 	// If not valid color, generate random
 	if (!(scheduleClass.color && validColor.test(scheduleClass.color))) {
 		// You think we're playing around here? No. This is MyMICDS.
@@ -86,7 +79,7 @@ async function upsertClass(db: Db, user: string, scheduleClass: {
 	for (const classDoc of classes) {
 		// If duplicate class, push id to array
 		if (scheduleClass.name  === classDoc.name
-			&& teacherDoc._id.toHexString() === (classDoc.teacher as ObjectID).toHexString()
+			&& teacherDoc._id.toHexString() === classDoc.teacher.toHexString()
 			&& scheduleClass.block === classDoc.block
 			&& scheduleClass.color === classDoc.color
 			&& scheduleClass.type  === classDoc.type) {
@@ -143,10 +136,6 @@ async function upsertClass(db: Db, user: string, scheduleClass: {
  * @returns A list of all class documents.
  */
 async function getClasses(db: Db, user: string) {
-	// I'll validate _your_ input baby ;)
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof user !== 'string') { throw new Error('Invalid username!'); }
-
 	// Make sure valid user and get user id
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
@@ -205,14 +194,6 @@ async function getClasses(db: Db, user: string) {
  * @param classId Class ID to delete.
  */
 async function deleteClass(db: Db, user: string, classId: string) {
-	// Validate inputs
-	if (typeof db !== 'object') {
-		throw new Error('Invalid database connection!');
-	}
-	if (typeof user !== 'string') {
-		throw new Error('Invalid username!');
-	}
-
 	// Try to create object id
 	let id;
 	try {

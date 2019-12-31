@@ -1,3 +1,5 @@
+import { AddQuoteParameters } from '@mymicds/sdk';
+import { assertType } from 'typescript-is';
 import * as api from '../libs/api';
 import * as quotes from '../libs/quotes';
 import RoutesFunction from './routesFunction';
@@ -19,6 +21,7 @@ export default ((app, db) => {
 
 	app.post('/quote', async (req, res) => {
 		try {
+			assertType<AddQuoteParameters>(req.body);
 			await quotes.insert(db, req.body.author, req.body.quote);
 			api.success(res);
 		} catch (err) {

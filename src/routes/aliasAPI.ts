@@ -1,3 +1,5 @@
+import { AddAliasParameters, DeleteAliasParameters } from '@mymicds/sdk';
+import { assertType } from 'typescript-is';
 import * as aliases from '../libs/aliases';
 import * as api from '../libs/api';
 import * as jwt from '../libs/jwt';
@@ -7,6 +9,7 @@ export default ((app, db, socketIO) => {
 
 	app.post('/alias', jwt.requireLoggedIn, async (req, res) => {
 		try {
+			assertType<AddAliasParameters>(req.body);
 			const aliasId = await aliases.add(db, req.apiUser!, req.body.type, req.body.classString, req.body.classId);
 			socketIO.user(req.apiUser!, 'alias', 'add', {
 				_id: aliasId,
@@ -31,6 +34,7 @@ export default ((app, db, socketIO) => {
 
 	app.delete('/alias', jwt.requireLoggedIn, async (req, res) => {
 		try {
+			assertType<DeleteAliasParameters>(req.body);
 			await aliases.delete(db, req.apiUser!, req.body.type, req.body.id);
 			socketIO.user(req.apiUser!, 'alias', 'delete', req.body.id);
 			api.success(res);

@@ -11,10 +11,7 @@ import { StringDict } from './utils';
 declare global {
 	namespace Express {
 		interface Request {
-			user: false | {
-				user: string;
-				scopes: { [scope: string]: true };
-			};
+			user: false | UserPayload;
 		}
 	}
 }
@@ -177,9 +174,7 @@ export function requireScope(
  * @param comment Comment to associate with the JWT.
  * @returns A valid JWT.
  */
-export async function generate(db: Db, user: string, rememberMe: boolean, comment: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-
+export async function generate(db: Db, user: string, rememberMe: boolean, comment?: string) {
 	const expiration = rememberMe ? '30 days' : '12 hours';
 
 	const { isUser, userDoc } = await users.get(db, user);
@@ -233,9 +228,6 @@ export async function generate(db: Db, user: string, rememberMe: boolean, commen
  * @returns Whether the JWT is blacklisted.
  */
 export async function isBlacklisted(db: Db, checkJwt: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof checkJwt !== 'string') { throw new Error('Invalid JWT!'); }
-
 	const jwtData = db.collection<JWTDoc>('jwtWhitelist');
 
 	let docs: JWTDoc[];
@@ -255,11 +247,7 @@ export async function isBlacklisted(db: Db, checkJwt: string) {
  * @param payload All the JWT claims and payload.
  * @param revokeJwt The JWT to revoke access for.
  */
-export async function revoke(db: Db, payload: any, revokeJwt: string) {
-	if (typeof db !== 'object') { throw new Error('Invalid database connection!'); }
-	if (typeof payload !== 'object') { throw new Error('Invalid payload!'); }
-	if (typeof revokeJwt !== 'string') { throw new Error('Invalid JWT!'); }
-
+export async function revoke(db: Db, payload: UserPayload, revokeJwt: string) {
 	const { isUser, userDoc } = await users.get(db, payload.user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
@@ -278,4 +266,9 @@ export interface JWTDoc {
 	jwt: string;
 	comment: string;
 	lastUsed: Date;
+}
+
+export interface UserPayload {
+	user: string;
+	scopes: { [scope: string]: true };
 }
