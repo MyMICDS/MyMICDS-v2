@@ -1,0 +1,7 @@
+{
+	"extends": "../tsconfig",
+  "include": ["."],
+	"compilerOptions": {
+		"types": ["mocha"] // Imports Mocha types into the global namespace for describe(), it(), etc.
+	}
+}
