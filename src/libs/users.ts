@@ -40,7 +40,7 @@ async function getUser(db: Db, user: string) {
  * @param privateInfo Whether to include more sensitive information like calendar URLs. Defaults to false.
  * @returns An object containing user information.
  */
-export async function getInfo(db: Db, user: string, privateInfo = false) {
+export async function getInfo(db: Db, user: string, privateInfo: boolean) {
 	const { isUser, userDoc } = await getUser(db, user);
 
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
