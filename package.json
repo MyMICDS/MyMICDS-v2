@@ -22,7 +22,7 @@
     "start": "npm run build && ts-node -C ttypescript --files src/index.ts",
     "prod": "npm run build && pm2 start ts-node -i max --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds\" -- -C ttypescript --files src/index.ts",
     "tasks": "pm2 start ts-node --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds-tasks\" -- -C ttypescript --files src/tasks.ts",
-    "test:mocha": "TS_NODE_PROJECT=test/tsconfig.json TS_NODE_FILES=true TS_NODE_COMPILER=ttypescript CI=true mocha -t 30000 -r ts-node/register test/**/*.ts",
+    "test:mocha": "TS_NODE_PROJECT=test/tsconfig.json TS_NODE_FILES=true TS_NODE_COMPILER=ttypescript CI=true mocha",
     "test:compile": "tsc --noEmit",
     "test": "npm run test:compile && npm run test:mocha",
     "docs": "typedoc --out ./docs --mode modules ./src/libs ./src/external.d.ts",
@@ -63,7 +63,6 @@
     "@types/request-promise-native": "^1.0.15",
     "@types/socket.io": "^1.4.36",
     "@types/underscore": "^1.8.8",
-    "@types/wtfnode": "^0.7.0",
     "bcrypt": "^3.0.6",
     "body-parser": "^1.15.2",
     "cheerio": "^0.22.0",
@@ -96,8 +95,7 @@
     "ttypescript": "^1.5.8",
     "typescript": "^3.7.2",
     "typescript-is": "^0.13.1",
-    "underscore": "^1.8.3",
-    "wtfnode": "^0.8.1"
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "@mymicds/configs": "^1.1.0",

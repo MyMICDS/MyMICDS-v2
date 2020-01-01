@@ -1,4 +1,5 @@
 import {
+	Action,
 	ChangePasswordParameters,
 	ConfirmParameters,
 	ForgotPasswordParameters,
@@ -127,7 +128,7 @@ export default ((app, db) => {
 
 	app.get('/auth/verify', (req, res) => {
 		if (!(req.user && req.user.user)) {
-			api.error(res, 'JWT not provided!');
+			api.error(res, 'JWT not provided!', Action.NOT_LOGGED_IN);
 			return;
 		}
 		api.success(res, {
