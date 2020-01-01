@@ -1,5 +1,5 @@
-import { Application, default as e } from 'express';
+import express from 'express';
 
-export default (app: Application, express: typeof e) => {
+export default (app: express.Application) => {
 	app.use(express.static(__dirname + '/../public'));
 };

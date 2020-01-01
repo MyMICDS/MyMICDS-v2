@@ -1,5 +1,6 @@
 import { Action } from '@mymicds/sdk';
 import { NextFunction, Request, Response } from 'express';
+import { TypeGuardError } from 'typescript-is';
 
 declare global {
 	namespace Express {
@@ -77,6 +78,11 @@ function respondError(res: Response, error: Error | string | null, action: Actio
 	// If unauthorized, add proper HTTP header
 	if ([Action.LOGIN_EXPIRED, Action.UNAUTHORIZED, Action.NOT_LOGGED_IN].includes(action!)) {
 		res.status(401);
+	}
+
+	// If validation error, use proper status code
+	if (error instanceof TypeGuardError) {
+		res.status(400);
 	}
 
 	res.json({
