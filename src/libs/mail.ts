@@ -1,7 +1,6 @@
-import config from './config';
-
 import * as fs from 'fs-extra';
 import * as nodemailer from 'nodemailer';
+import config from './config';
 
 import { StringDict } from './utils';
 
@@ -24,7 +23,9 @@ export async function send(users: string | string[], message: Message, transport
 	};
 
 	try {
-		await transporter.sendMail(mailOptions);
+		if (!process.env.CI) {
+			await transporter.sendMail(mailOptions);
+		}
 	} catch (e) {
 		throw new Error(`There was a problem sending the mail! (${e.message})`);
 	}
