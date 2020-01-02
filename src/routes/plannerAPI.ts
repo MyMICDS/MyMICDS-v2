@@ -7,12 +7,13 @@ import {
 import { assertType } from 'typescript-is';
 import * as api from '../libs/api';
 import * as checkedEvents from '../libs/checkedEvents';
+import * as jwt from '../libs/jwt';
 import * as planner from '../libs/planner';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db, socketIO) => {
 
-	app.get('/planner', async (req, res) => {
+	app.get('/planner', jwt.requireLoggedIn, async (req, res) => {
 		try {
 			const events = await planner.get(db, req.apiUser!);
 			api.success(res, { events });
@@ -21,7 +22,7 @@ export default ((app, db, socketIO) => {
 		}
 	});
 
-	app.post('/planner', async (req, res) => {
+	app.post('/planner', jwt.requireLoggedIn, async (req, res) => {
 		try {
 			type AddEventBody = Omit<AddPlannerEventParameters, 'start' | 'end'> & Partial<Record<'start' | 'end', string>>;
 			assertType<AddEventBody>(req.body);
@@ -65,7 +66,7 @@ export default ((app, db, socketIO) => {
 		}
 	});
 
-	app.delete('/planner', async (req, res) => {
+	app.delete('/planner', jwt.requireLoggedIn, async (req, res) => {
 		try {
 			assertType<DeletePlannerEventParameters>(req.body);
 			await planner.delete(db, req.apiUser!, req.body.id);
@@ -76,7 +77,7 @@ export default ((app, db, socketIO) => {
 		}
 	});
 
-	app.patch('/planner/check', async (req, res) => {
+	app.patch('/planner/check', jwt.requireLoggedIn, async (req, res) => {
 		try {
 			assertType<CheckPlannerEventParameters>(req.body);
 			await checkedEvents.check(db, req.apiUser!, req.body.id);
@@ -87,7 +88,7 @@ export default ((app, db, socketIO) => {
 		}
 	});
 
-	app.patch('/planner/uncheck', async (req, res) => {
+	app.patch('/planner/uncheck', jwt.requireLoggedIn, async (req, res) => {
 		try {
 			assertType<UncheckPlannerEventParameters>(req.body);
 			await checkedEvents.uncheck(db, req.apiUser!, req.body.id);
