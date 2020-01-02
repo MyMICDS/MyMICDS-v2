@@ -10,7 +10,7 @@ import * as users from '../src/libs/users';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
 import { buildRequest, requireLoggedIn, validateParameters } from './shared';
 
-describe('Auth', function() {
+describe('Auth', () => {
 	before(async function() {
 		this.mongo = new MongoMemoryServer();
 		const [app, db] = await initAPI(await this.mongo.getUri());
@@ -173,7 +173,7 @@ describe('Auth', function() {
 		});
 	});
 
-	after(async () => {
-		await this.ctx.mongo.stop();
+	after(async function() {
+		await this.mongo.stop();
 	});
 });

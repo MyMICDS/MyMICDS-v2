@@ -103,7 +103,7 @@ const columnsPerRow = 4;
 const rowStarts = 0;
 
 // Modules to give user if none found
-const defaultModules: MyMICDSModule[] = [
+export const defaultModules: MyMICDSModule[] = [
 	{
 		type: MyMICDSModuleType.PROGRESS,
 		row: 0,
