@@ -1,6 +1,7 @@
 import { UpdateModulesParameters } from '@mymicds/sdk';
 import { assertType } from 'typescript-is';
 import * as api from '../libs/api';
+import * as jwt from '../libs/jwt';
 import * as modules from '../libs/modules';
 import RoutesFunction from './routesFunction';
 
@@ -24,7 +25,7 @@ export default ((app, db) => {
 	// 	}
 	// });
 
-	app.put('/modules', async (req, res) => {
+	app.put('/modules', jwt.requireLoggedIn, async (req, res) => {
 		try {
 			assertType<UpdateModulesParameters>(req.body);
 			await modules.upsert(db, req.apiUser!, req.body.modules);
