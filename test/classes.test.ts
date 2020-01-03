@@ -109,6 +109,9 @@ describe('Classes', () => {
 			const userClasses = await classes.get(this.db, testUser.user);
 			expect(userClasses).to.be.empty;
 		});
+
+		requireLoggedIn();
+		validateParameters(payload);
 	});
 
 	after(async function() {
