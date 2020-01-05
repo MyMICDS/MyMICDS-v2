@@ -1,5 +1,6 @@
 import { Teacher } from '@mymicds/sdk';
 import { Db, ObjectID } from 'mongodb';
+import { InputError } from './errors';
 import { Omit } from './utils';
 
 const validTeacherPrefixes = [
@@ -13,7 +14,7 @@ const validTeacherPrefixes = [
  * @param teacher Teacher object to insert.
  */
 async function addTeacher(db: Db, teacher: Omit<Teacher, '_id'>) {
-	if (!validTeacherPrefixes.includes(teacher.prefix)) { throw new Error('Invalid teacher prefix!'); }
+	if (!validTeacherPrefixes.includes(teacher.prefix)) { throw new InputError('Invalid teacher prefix!'); }
 
 	const teacherdata = db.collection<TeacherWithIDOptional>('teachers');
 

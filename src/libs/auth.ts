@@ -5,6 +5,7 @@ import * as _ from 'underscore';
 import { promisify } from 'util';
 import * as admins from './admins';
 import * as cryptoUtils from './cryptoUtils';
+import { InputError } from './errors';
 import * as jwt from './jwt';
 import * as mail from './mail';
 import * as passwords from './passwords';
@@ -57,7 +58,7 @@ export async function register(db: Db, user: NewUserData) {
 	user.user = user.user.toLowerCase();
 
 	if (passwords.passwordBlacklist.includes(user.password)) {
-		throw new Error('Invalid password!');
+		throw new InputError('Invalid password!');
 	}
 
 	// If gradYear not valid, default to faculty
@@ -69,7 +70,7 @@ export async function register(db: Db, user: NewUserData) {
 	const { isUser, userDoc: data } = await users.get(db, user.user);
 
 	if (isUser && data!.confirmed) {
-		throw new Error('An account is already registered under the email ' + user.user + '@micds.org!');
+		throw new InputError('An account is already registered under the email ' + user.user + '@micds.org!');
 	}
 
 	const userdata = db.collection('users');
@@ -145,7 +146,7 @@ export async function register(db: Db, user: NewUserData) {
  */
 export async function confirm(db: Db, user: string, hash: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	const dbHash = userDoc!.confirmationHash;
 
@@ -160,7 +161,7 @@ export async function confirm(db: Db, user: string, hash: string) {
 		}
 	} else {
 		// Hash does not match
-		throw new Error('Hash not valid!');
+		throw new InputError('Hash not valid!');
 	}
 }
 

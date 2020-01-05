@@ -7,6 +7,7 @@ import request, { FullResponse } from 'request-promise-native';
 import * as _ from 'underscore';
 import { URL } from 'url';
 import config from './config';
+import { InputError } from './errors';
 import * as feeds from './feeds';
 import * as users from './users';
 
@@ -36,7 +37,7 @@ async function verifyURLGeneric(portalURL: string) {
 	// Parse URL first
 	const parsedURL = new URL(portalURL);
 
-	if (!parsedURL || !parsedURL.pathname) { throw new Error('Cannot parse URL!'); }
+	if (!parsedURL || !parsedURL.pathname) { throw new InputError('Cannot parse URL!'); }
 
 	const params = parsedURL.searchParams;
 	if (Array.from(params).length === 0) {
@@ -47,7 +48,7 @@ async function verifyURLGeneric(portalURL: string) {
 
 	// noinspection SuspiciousTypeOfGuard
 	if (typeof pathID !== 'string' && typeof params.get('uid') !== 'string') {
-		throw new Error('URL does not contain calendar ID!');
+		throw new InputError('URL does not contain calendar ID!');
 	}
 
 	const validURL = `${urlPrefix}${pathID}?uid=${params.get('uid')}`;
@@ -62,7 +63,7 @@ async function verifyURLGeneric(portalURL: string) {
 	} catch (e) {
 		throw new Error('There was a problem fetching portal data from the URL!');
 	}
-	if (response.statusCode !== 200) { throw new Error('Invalid URL!'); }
+	if (response.statusCode !== 200) { throw new InputError('Invalid URL!'); }
 
 	return { isValid: true, url: validURL, body: response.body };
 }
@@ -127,7 +128,7 @@ export async function verifyURLCalendar(portalURL: string) {
  */
 export async function setURLClasses(db: Db, user: string, calUrl: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	const { isValid, url: validURL } = await verifyURLClasses(calUrl);
 	if (!isValid) { return { isValid, validURL: null }; }
@@ -153,7 +154,7 @@ export async function setURLClasses(db: Db, user: string, calUrl: string) {
  */
 export async function setURLCalendar(db: Db, user: string, calUrl: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	const { isValid, url: validURL } = await verifyURLCalendar(calUrl);
 	if (!isValid) { return { isValid, validURL: null }; }
@@ -179,7 +180,7 @@ export async function setURLCalendar(db: Db, user: string, calUrl: string) {
  */
 export async function getFromCacheClasses(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	if (typeof userDoc!.portalURLClasses !== 'string') { return { hasURL: false, events: null }; }
 
@@ -203,7 +204,7 @@ export async function getFromCacheClasses(db: Db, user: string) {
  */
 export async function getFromCacheCalendar(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	if (typeof userDoc!.portalURLCalendar !== 'string') { return { hasURL: false, events: null }; }
 
@@ -227,7 +228,7 @@ export async function getFromCacheCalendar(db: Db, user: string) {
  */
 export async function getFromCalClasses(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	if (typeof userDoc!.portalURLClasses !== 'string') { return { hasURL: false, cal: null }; }
 
@@ -241,7 +242,7 @@ export async function getFromCalClasses(db: Db, user: string) {
 		throw new Error('There was a problem fetching the day rotation!');
 	}
 
-	if (response.statusCode !== 200) { throw new Error('Invalid URL!'); }
+	if (response.statusCode !== 200) { throw new InputError('Invalid URL!'); }
 
 	return {
 		hasURL: true,
@@ -257,7 +258,7 @@ export async function getFromCalClasses(db: Db, user: string) {
  */
 export async function getFromCalCalendar(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	if (typeof userDoc!.portalURLCalendar !== 'string') { return { hasURL: false, cal: null }; }
 
@@ -271,7 +272,7 @@ export async function getFromCalCalendar(db: Db, user: string) {
 		throw new Error('There was a problem fetching the day rotation!');
 	}
 
-	if (response.statusCode !== 200) { throw new Error('Invalid URL!'); }
+	if (response.statusCode !== 200) { throw new InputError('Invalid URL!'); }
 
 	return {
 		hasURL: true,
@@ -390,7 +391,7 @@ export async function getClasses(db: Db, user: string) {
  * @returns A list of Portal class names.
  */
 function parsePortalClasses(events: PortalCacheEvent[]) {
-	if (typeof events !== 'object') { throw new Error('Invalid events array!'); }
+	if (typeof events !== 'object') { throw new InputError('Invalid events array!'); }
 
 	const classes: { [name: string]: number } = {};
 

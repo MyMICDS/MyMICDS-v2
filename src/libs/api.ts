@@ -1,6 +1,7 @@
 import { Action } from '@mymicds/sdk';
 import { NextFunction, Request, Response } from 'express';
 import { TypeGuardError } from 'typescript-is';
+import { InputError } from './errors';
 
 declare global {
 	namespace Express {
@@ -80,8 +81,8 @@ function respondError(res: Response, error: Error | string | null, action: Actio
 		res.status(401);
 	}
 
-	// If validation error, use proper status code
-	if (error instanceof TypeGuardError) {
+	// If validation or other input error, use proper status code
+	if (error instanceof TypeGuardError || error instanceof InputError) {
 		res.status(400);
 	}
 

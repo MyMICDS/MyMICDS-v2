@@ -1,6 +1,7 @@
 import { PlannerEvent } from '@mymicds/sdk';
 import { Db, ObjectID } from 'mongodb';
 import * as classes from './classes';
+import { InputError } from './errors';
 import * as htmlParser from './htmlParser';
 import * as users from './users';
 import { Omit } from './utils';
@@ -19,11 +20,11 @@ async function upsertEvent(db: Db, user: string, plannerEvent: NewEventData) {
 
 	// Made sure start time and end time are consecutive or the same
 	if (plannerEvent.start.getTime() > plannerEvent.end.getTime()) {
-		throw new Error('Start and end time are not consecutive!');
+		throw new InputError('Start and end time are not consecutive!');
 	}
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('Invalid username!'); }
+	if (!isUser) { throw new InputError('Invalid username!'); }
 
 	const theClasses = await classes.get(db, user);
 
@@ -97,12 +98,12 @@ async function deleteEvent(db: Db, user: string, eventId: string) {
 	try {
 		id = new ObjectID(eventId);
 	} catch (e) {
-		throw new Error('Invalid event id!');
+		throw new InputError('Invalid event id!');
 	}
 
 	// Make sure valid user and get user id
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('Invalid username!'); }
+	if (!isUser) { throw new InputError('Invalid username!'); }
 
 	const plannerdata = db.collection('planner');
 
@@ -122,7 +123,7 @@ async function deleteEvent(db: Db, user: string, eventId: string) {
  */
 async function getEvents(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	const plannerdata = db.collection<PlannerDBEvent>('planner');
 

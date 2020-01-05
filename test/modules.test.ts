@@ -73,6 +73,66 @@ describe('Modules', () => {
 			expect(userModules[0]).to.containSubset(testModule);
 		});
 
+		it('rejects invalid module positions', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			for (const key of ['row', 'column']) {
+				const badPayload = {
+					modules: [{
+						...testModule,
+						[key]: -1
+					}]
+				};
+
+				await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(badPayload).expect(400);
+			}
+		});
+
+		it('rejects invalid module sizes', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			for (const key of ['height', 'width']) {
+				const badPayload = {
+					modules: [{
+						...testModule,
+						[key]: 0
+					}]
+				};
+
+				await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(badPayload).expect(400);
+			}
+		});
+
+		it('rejects overlapping modules', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			const badPayload = {
+				modules: [testModule, {
+					...testModule,
+					row: 1
+				}]
+			};
+
+			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(badPayload).expect(400);
+		});
+
+		it('rejects modules that overflow the grid', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			const tooWidePayload = {
+				modules: [{
+					...testModule,
+					column: 3
+				}]
+			};
+
+			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(tooWidePayload).expect(400);
+		});
+
 		requireLoggedIn();
 		validateParameters(payload);
 	});

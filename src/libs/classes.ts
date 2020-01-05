@@ -1,9 +1,10 @@
-import { Block, ClassType} from '@mymicds/sdk';
+import { Block, ClassType } from '@mymicds/sdk';
 import { Teacher } from '@mymicds/sdk/dist/libs/teachers';
 import { Db, ObjectID } from 'mongodb';
 import * as prisma from 'prisma';
 import * as Random from 'random-js';
 import * as aliases from './aliases';
+import { InputError } from './errors';
 import * as teachers from './teachers';
 import * as users from './users';
 import { Omit } from './utils';
@@ -47,7 +48,7 @@ async function upsertClass(db: Db, user: string, scheduleClass: {
 	// Make sure username is valid first
 	const { isUser, userDoc } = await users.get(db, user);
 
-	if (!isUser) { throw new Error('Invalid username!'); }
+	if (!isUser) { throw new InputError('Invalid username!'); }
 
 	// Add teacher to database
 	const teacherDoc = await teachers.add(db, scheduleClass.teacher);
@@ -96,7 +97,7 @@ async function upsertClass(db: Db, user: string, scheduleClass: {
 			return scheduleClass;
 		}
 
-		throw new Error('Tried to insert a duplicate class!');
+		throw new InputError('Tried to insert a duplicate class!');
 	}
 
 	let id;
@@ -138,7 +139,7 @@ async function upsertClass(db: Db, user: string, scheduleClass: {
 async function getClasses(db: Db, user: string) {
 	// Make sure valid user and get user id
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	const classdata = db.collection<MyMICDSClassWithIDs>('classes');
 
@@ -199,13 +200,13 @@ async function deleteClass(db: Db, user: string, classId: string) {
 	try {
 		id = new ObjectID(classId);
 	} catch (e) {
-		throw new Error('Invalid event id!');
+		throw new InputError('Invalid event id!');
 	}
 
 	// Make sure valid user
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) {
-		throw new Error('User doesn\'t exist!');
+		throw new InputError('User doesn\'t exist!');
 	}
 
 	const classdata = db.collection('classes');

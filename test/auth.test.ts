@@ -36,6 +36,23 @@ describe('Auth', () => {
 			expect(userDoc).to.have.property('confirmationHash').that.is.a('string');
 		});
 
+		it('rejects blacklisted passwords', async function() {
+			for (const password of passwords.passwordBlacklist) {
+				const badPayload = {
+					...payload,
+					password
+				};
+
+				await buildRequest(this).send(badPayload).expect(400);
+			}
+		});
+
+		it('rejects already existing users', async function() {
+			await saveTestUser(this.db);
+
+			await buildRequest(this).send(payload).expect(400);
+		});
+
 		validateParameters(payload);
 	});
 
@@ -56,6 +73,17 @@ describe('Auth', () => {
 			expect(newDoc).to.have.property('confirmed').that.equals(true);
 		});
 
+		it('rejects a bad hash', async function() {
+			await saveTestUser(this.db);
+
+			const badPayload = {
+				...payload,
+				hash: 'evil hash'
+			};
+
+			await buildRequest(this).send(badPayload).expect(400);
+		});
+
 		validateParameters(payload);
 	});
 
@@ -69,12 +97,27 @@ describe('Auth', () => {
 
 			const res = await buildRequest(this).send(payload).expect(200);
 
+			expect(res.body.data).to.have.property('success').that.is.true;
 			expect(res.body.data).to.have.property('jwt').that.is.a('string');
 
 			const jwtPayload = jwtLib.verify(res.body.data.jwt, config.jwt.secret);
 
 			expect(jwtPayload).to.have.property('user').that.equals(testUser.user);
 			expect(jwtPayload).to.have.property('scopes').that.deep.equals({ pleb: true });
+		});
+
+		it('rejects an incorrect password', async function() {
+			await saveTestUser(this.db);
+
+			const badPayload = {
+				...payload,
+				password: 'incorrect password'
+			};
+
+			const res = await buildRequest(this).send(badPayload).expect(200);
+
+			expect(res.body.data).to.have.property('success').that.is.false;
+			expect(res.body.data).to.have.property('jwt').that.is.null;
 		});
 
 		validateParameters(payload, false);
@@ -113,6 +156,18 @@ describe('Auth', () => {
 
 			const { matches } = await passwords.passwordMatches(this.db, testUser.user, payload.newPassword);
 			expect(matches).to.be.true;
+		});
+
+		it('rejects an incorrect password', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			const badPayload = {
+				...payload,
+				oldPassword: 'incorrect'
+			};
+
+			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(badPayload).expect(400);
 		});
 
 		requireLoggedIn();
@@ -155,6 +210,17 @@ describe('Auth', () => {
 			expect(matches).to.be.true;
 		});
 
+		it('rejects a bad hash', async function() {
+			await saveTestUser(this.db, { passwordChangeHash: 'random bytes' });
+
+			const badPayload = {
+				...payload,
+				hash: 'evil hash'
+			};
+
+			await buildRequest(this).send(badPayload).expect(400);
+		});
+
 		validateParameters(payload, false);
 	});
 
@@ -171,6 +237,8 @@ describe('Auth', () => {
 
 			expect(res.body.data).to.have.property('payload').that.deep.equals({ user: testUser.user, scopes: { pleb: true } });
 		});
+
+		requireLoggedIn();
 	});
 
 	after(async function() {

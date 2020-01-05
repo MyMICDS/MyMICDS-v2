@@ -5,6 +5,7 @@ import { Db, ObjectID } from 'mongodb';
 import * as _ from 'underscore';
 import * as api from './api';
 import config from './config';
+import { InputError } from './errors';
 import * as users from './users';
 import { StringDict } from './utils';
 
@@ -178,7 +179,7 @@ export async function generate(db: Db, user: string, rememberMe: boolean, commen
 	const expiration = rememberMe ? '30 days' : '12 hours';
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	// Default scope
 	const scopes: { [scope: string]: true } = {
@@ -249,7 +250,7 @@ export async function isBlacklisted(db: Db, checkJwt: string) {
  */
 export async function revoke(db: Db, payload: UserPayload, revokeJwt: string) {
 	const { isUser, userDoc } = await users.get(db, payload.user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	const jwtData = db.collection('jwtWhitelist');
 

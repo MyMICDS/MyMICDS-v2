@@ -19,7 +19,7 @@ const testEvent = {
 };
 
 const dateStringEvent = {
-	..._.omit(testEvent, ['start', 'end']),
+	...testEvent,
 	start: testEvent.start.toISOString(),
 	end: testEvent.end.toISOString()
 };
@@ -119,6 +119,18 @@ describe('Planner', () => {
 			expect(userEvents[0]).to.containSubset(_.pick(updatePayload, ['title', 'desc']));
 		});
 
+		it('rejects non-consecutive times', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			const badPayload = {
+				...dateStringEvent,
+				end: moment().subtract(1, 'day').toISOString()
+			};
+
+			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(badPayload).expect(400);
+		});
+
 		requireLoggedIn();
 		validateParameters(payload);
 	});
@@ -136,12 +148,22 @@ describe('Planner', () => {
 			const jwt = await generateJWT(this.db);
 
 			const { _id } = await planner.upsert(this.db, testUser.user, testEvent);
-			payload.id = _id.toHexString();
+			const deletePayload = {
+				...payload,
+				id: _id.toHexString()
+			};
 
-			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(200);
+			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(deletePayload).expect(200);
 
 			const userEvents = await planner.get(this.db, testUser.user);
 			expect(userEvents).to.be.empty;
+		});
+
+		it('rejects an invalid id', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(400);
 		});
 
 		requireLoggedIn();

@@ -85,6 +85,18 @@ describe('Classes', () => {
 			expect(userClasses[0]).to.containSubset(_.pick(updatePayload, ['color', 'type']));
 		});
 
+		it('rejects invalid teacher data', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			const badPayload = {
+				...payload,
+				teacherPrefix: 'not a real prefix'
+			};
+
+			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(badPayload).expect(400);
+		});
+
 		requireLoggedIn();
 		validateParameters(payload);
 	});
@@ -102,12 +114,24 @@ describe('Classes', () => {
 			const jwt = await generateJWT(this.db);
 
 			const { _id } = await saveTestClass(this.db);
-			payload.id = (_id as ObjectID).toHexString();
+			const deletePayload = {
+				...payload,
+				id: (_id as ObjectID).toHexString()
+			};
 
-			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(200);
+			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(deletePayload).expect(200);
 
 			const userClasses = await classes.get(this.db, testUser.user);
 			expect(userClasses).to.be.empty;
+		});
+
+		it('rejects an invalid id', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			await saveTestClass(this.db);
+
+			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(400);
 		});
 
 		requireLoggedIn();
