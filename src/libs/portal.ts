@@ -35,9 +35,12 @@ export const portalRange = {
  */
 async function verifyURLGeneric(portalURL: string) {
 	// Parse URL first
-	const parsedURL = new URL(portalURL);
-
-	if (!parsedURL || !parsedURL.pathname) { throw new InputError('Cannot parse URL!'); }
+	let parsedURL: URL;
+	try {
+		parsedURL = new URL(portalURL);
+	} catch (e) {
+		throw new InputError('Cannot parse URL!');
+	}
 
 	const params = parsedURL.searchParams;
 	if (Array.from(params).length === 0) {

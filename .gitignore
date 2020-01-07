@@ -15,3 +15,5 @@ src/public/user-backgrounds/*
 src/public/json
 src/scripts/*blacklist.json
 src/scripts/class-emails.json
+
+test/config.ts
