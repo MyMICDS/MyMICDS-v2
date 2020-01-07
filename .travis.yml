@@ -4,12 +4,10 @@ addons:
   ssh_known_hosts:
     secure: YNp74QtOj8zyKRtAfbVYhSABzzb3sgl2PYzYJgG0Vla+TuruJlrWMp51fEeovGhTh40RpMCNhr6aK4qj7l9tbXLJbgF7jwJyx/T0WEnucJw4sG6edyzbYsg8n+BfdiBJASrYBFo2tbiUSJYZxetSEoWHH4fzB3+CdZgu2ZBt1Fg/a0dNM9KoHuyRLeghq6KYcf8OZwYUh02LUqqPFPkhWLHmC9tNVBTOr+Fpv9siUr1Kf6qRUyPWhpwETbpyHajw7kxrgdISbTP6KgdkfnLWz+4RuMIfduMJRWicGEQiLTek81RSgq0ljGl9MWGf2d3j6D32udHoeKNFwfHpxr1nfSjuiSUUGyvMFDahWItpuiwNT6gKBtZkUD+AVufxXXU+Cc7rbncRiSnZpfBUNvHcQgvJxbx/h2Q0Ro3DfBjLMKH+V7RCTkIB4K1mMHW+dM8/Tf+yxVUmXoOvifHjKzXXvcuo4qbCS1VupUxnWN6GeoNjkhN615gwntiS9b3oRWIVWU8sC6DS/n8k3rzDdGcB/t5byvLyiX2T8ZbHzQ8SkKIeh0/QRGIYj9II9lfH8SDbJgKswEnIRE3FA4Y6vvNJ9RAO6I+USTX/v5sKQ/uCOa/dnlXa7g2YdoSTGLYFkg6cJEFBkXt8kfF1mYrGtejFm6w9uHL2stq1ACXkQtgWU8Q=
 before_install:
-- openssl aes-256-cbc -K $encrypted_8985594ecb17_key -iv $encrypted_8985594ecb17_iv
-  -in .travis/config.test.ts.enc -out test/config.ts -d
-- openssl aes-256-cbc -K $encrypted_8985594ecb17_key -iv $encrypted_8985594ecb17_iv
-  -in .travis/config.libs.ts.enc -out src/libs/config.ts -d
-- openssl aes-256-cbc -K $encrypted_8985594ecb17_key -iv $encrypted_8985594ecb17_iv
-  -in .travis/id_rsa.enc -out .travis/id_rsa -d
+- openssl aes-256-cbc -K $encrypted_e085db3cc84d_key -iv $encrypted_e085db3cc84d_iv -in .travis/secrets.tar.enc -out .travis/secrets.tar -d
+- tar xvf .travis/secrets.tar -C .travis
+- mv .travis/config.libs.ts src/libs/config.ts
+- mv .travis/config.test.ts test/config.ts
 script: npm test
 after_success: '[[ $TRAVIS_BRANCH == "master" && $TRAVIS_PULL_REQUEST == "false" ]]
   && .travis/deploy.sh'
