@@ -28,10 +28,7 @@ describe('Auth', () => {
 		const payload = _.pick(testUser, ['user', 'password', 'firstName', 'lastName', 'gradYear']);
 
 		it('creates a user', async function() {
-			await buildRequest(this).send(payload).expect((res: any) => {
-				console.error(res.body);
-				if (res.status !== 200) { throw new Error('failed'); }
-			});
+			await buildRequest(this).send(payload).expect(200);
 
 			const { isUser, userDoc } = await users.get(this.db, 'test');
 			expect(isUser).to.be.true;
@@ -185,10 +182,7 @@ describe('Auth', () => {
 		it('sets a forgot password hash', async function() {
 			await saveTestUser(this.db);
 
-			await buildRequest(this).send(payload).expect((res: any) => {
-				console.error(res.body);
-				if (res.status !== 200) { throw new Error('failed'); }
-			});
+			await buildRequest(this).send(payload).expect(200);
 
 			const { userDoc } = await users.get(this.db, testUser.user);
 			expect(userDoc).to.have.property('passwordChangeHash').that.is.a('string');
