@@ -1,0 +1,50 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:icalendar-ruby
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Test User Calendar (Canvas)
+X-WR-CALDESC:Calendar events for the user\, Test User
+BEGIN:VEVENT
+DTSTAMP:20200105T135400Z
+UID:event-assignment-5900610
+DTSTART:20200109T140000Z
+DTEND:20200109T140000Z
+CLASS:PUBLIC
+SEQUENCE:0
+SUMMARY:Test Event 1, Class 1 [TS001:AA]
+URL:https://micds.instructure.com/calendar?include_contexts=course_0000001&
+ month=01&year=2020#assignment_0000001
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20200102T184900Z
+UID:event-assignment-5900509
+DTSTART:20200109T161500Z
+DTEND:20200109T161500Z
+CLASS:PUBLIC
+DESCRIPTION:
+SEQUENCE:0
+SUMMARY:Test Event 1, Class 2 [TS002:BB]
+URL:https://micds.instructure.com/calendar?include_contexts=course_0000002&
+ month=01&year=2020#assignment_0000001
+X-ALT-DESC;FMTTYPE=text/html:
+END:VEVENT
+BEGIN:VEVENT
+DTSTAMP:20200102T192200Z
+UID:event-assignment-5900506
+DTSTART:20200109T161500Z
+DTEND:20200109T161500Z
+CLASS:PUBLIC
+DESCRIPTION:[download file] (https://micds.instructure.c
+ om/courses/0000002/files/00000001/download?wrap=1)
+SEQUENCE:0
+SUMMARY:Test Event 2, Class 2 [TS002:BB]
+URL:https://micds.instructure.com/calendar?include_contexts=course_0000002&
+ month=01&year=2020#assignment_0000002
+X-ALT-DESC;FMTTYPE=text/html:<p><a class="instructure_file_link instructure
+ _scribd_file" title="download file" href="https://micds
+ .instructure.com/courses/0000002/files/00000001/download?wrap=1" data-api-
+ endpoint="https://micds.instructure.com/api/v1/courses/0000002/files/00000
+ 001" data-api-returntype="File">download file</a></p>
+END:VEVENT
+END:VCALENDAR
