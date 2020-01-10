@@ -132,8 +132,6 @@ describe('Canvas', () => {
 		requireLoggedIn();
 	});
 
-	// TODO: rest of routes
-
 	after(async function() {
 		await this.mongo.stop();
 		await calServer.stop();

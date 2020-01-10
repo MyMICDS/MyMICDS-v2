@@ -66,6 +66,16 @@ describe('Portal', () => {
 			await buildRequest(this).send(badPayload).expect(400);
 		});
 
+		it('rejects a classes URL', async function() {
+			const badPayload = {
+				url: config.portal.classesURL
+			};
+
+			const res = await buildRequest(this).send(badPayload).expect(200);
+			expect(res.body.data).to.have.property('valid').that.is.a('string');
+			expect(res.body.data).to.have.property('url').that.is.null;
+		});
+
 		validateParameters(payload);
 	});
 
