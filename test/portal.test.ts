@@ -2,8 +2,10 @@ import { expect } from 'chai';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
 import { initAPI } from '../src/init';
+import * as users from '../src/libs/users';
 import config from './config';
-import { buildRequest, validateParameters } from './shared';
+import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import { buildRequest, requireLoggedIn, validateParameters } from './shared';
 
 describe('Portal', () => {
 	before(async function() {
@@ -76,6 +78,95 @@ describe('Portal', () => {
 			expect(res.body.data).to.have.property('url').that.is.null;
 		});
 
+		validateParameters(payload);
+	});
+
+	describe('PUT /portal/url/classes', function() {
+		this.ctx.method = 'put';
+		this.ctx.route = '/portal/url/classes';
+
+		const payload = {
+			url: config.portal.classesURL
+		};
+
+		it('saves a classes calendar URL', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(200);
+			expect(res.body.data).to.have.property('valid').that.is.true;
+			expect(res.body.data).to.have.property('url').that.is.a('string')
+				.and.satisfies((u: string) => u.startsWith('https')); // should turn webcal links to https
+
+			const { userDoc } = await users.get(this.db, testUser.user);
+			expect(userDoc).to.have.property('portalURLClasses').that.equals(
+				config.portal.classesURL.replace('webcal', 'https')
+			);
+		});
+
+		it('rejects an invalid URL', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			const badPayload = {
+				url: 'not a good url'
+			};
+
+			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(badPayload).expect(400);
+		});
+
+		requireLoggedIn();
+		validateParameters(payload);
+	});
+
+	describe('PUT /portal/url/calendar', function() {
+		this.ctx.method = 'put';
+		this.ctx.route = '/portal/url/calendar';
+
+		const payload = {
+			url: config.portal.calendarURL
+		};
+
+		it('saves a my calendar URL', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(200);
+			expect(res.body.data).to.have.property('valid').that.is.true;
+			expect(res.body.data).to.have.property('url').that.is.a('string')
+				.and.satisfies((u: string) => u.startsWith('https')); // should turn webcal links to https
+
+			const { userDoc } = await users.get(this.db, testUser.user);
+			expect(userDoc).to.have.property('portalURLCalendar').that.equals(
+				config.portal.calendarURL.replace('webcal', 'https')
+			);
+		});
+
+		it('rejects an invalid URL', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			const badPayload = {
+				url: 'not a good url'
+			};
+
+			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(badPayload).expect(400);
+		});
+
+		it('rejects a classes URL', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			const badPayload = {
+				url: config.portal.classesURL
+			};
+
+			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(badPayload).expect(200);
+			expect(res.body.data).to.have.property('valid').that.is.a('string');
+			expect(res.body.data).to.have.property('url').that.is.null;
+		});
+
+		requireLoggedIn();
 		validateParameters(payload);
 	});
 

@@ -160,7 +160,8 @@ export async function setURLCalendar(db: Db, user: string, calUrl: string) {
 	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	const { isValid, url: validURL } = await verifyURLCalendar(calUrl);
-	if (!isValid) { return { isValid, validURL: null }; }
+
+	if (isValid !== true) { return { isValid, validURL: null }; }
 
 	const userdata = db.collection('users');
 
