@@ -6,6 +6,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
 import _ from 'underscore';
 import { initAPI } from '../src/init';
+import * as checkedEvents from '../src/libs/checkedEvents';
 import * as planner from '../src/libs/planner';
 import { saveTestClass } from './helpers/class';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
@@ -164,6 +165,59 @@ describe('Planner', () => {
 			const jwt = await generateJWT(this.db);
 
 			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(400);
+		});
+
+		requireLoggedIn();
+		validateParameters(payload);
+	});
+
+	describe('PATCH /planner/check', function() {
+		this.ctx.method = 'patch';
+		this.ctx.route = '/planner/check';
+
+		const payload = {
+			id: ''
+		};
+
+		it('checks off an event', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			const { _id } = await planner.upsert(this.db, testUser.user, testEvent);
+			const idString = _id.toHexString();
+			payload.id = idString;
+
+			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(200);
+
+			const isChecked = await checkedEvents.get(this.db, testUser.user, idString);
+			expect(isChecked).to.be.true;
+		});
+
+		requireLoggedIn();
+		validateParameters(payload);
+	});
+
+	describe('PATCH /planner/uncheck', function() {
+		this.ctx.method = 'patch';
+		this.ctx.route = '/planner/uncheck';
+
+		const payload = {
+			id: ''
+		};
+
+		it('unchecks an event', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			const { _id } = await planner.upsert(this.db, testUser.user, testEvent);
+			const idString = _id.toHexString();
+			payload.id = idString;
+			await checkedEvents.check(this.db, testUser.user, idString);
+
+			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(200);
+
+			const isChecked = await checkedEvents.get(this.db, testUser.user, idString);
+			expect(isChecked).to.be.false;
 		});
 
 		requireLoggedIn();
