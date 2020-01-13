@@ -4,12 +4,12 @@ import { Db } from 'mongodb';
 import prisma from 'prisma';
 import * as _ from 'underscore';
 import * as aliases from './aliases';
-import { BlockFormat, LunchBlockFormat } from './blockSchedule';
 import * as blockSchedule from './blockSchedule';
+import { BlockFormat, LunchBlockFormat } from './blockSchedule';
 import * as classes from './classes';
 import * as feeds from './feeds';
-import { PortalCacheEvent } from './portal';
 import * as portal from './portal';
+import { PortalCacheEvent } from './portal';
 import * as users from './users';
 import { StringDict } from './utils';
 
@@ -151,7 +151,8 @@ const genericBlocks: Record<
  * @returns An object containing the day rotation, whether the schedule is special,
  * 			and the different classes for the day.
  */
-async function getSchedule(db: Db, user: string, date: Date, portalBroke = false) {
+// tslint:disable-next-line:max-line-length
+async function getSchedule(db: Db, user: string, date: Date, portalBroke = false): Promise<{ hasURL: boolean; schedule: FullSchedule }> {
 	const scheduleDate = moment(date).startOf('day');
 	const scheduleNextDay = scheduleDate.clone().add(1, 'day');
 
@@ -240,8 +241,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 				const events = await feeds.addPortalQueueClasses(db, user);
 
 				if (_.isEmpty(events)) {
-					// If it still returns empty, then Portal isn't working at the moment and we can fall back on not having a URL.
-					return getSchedule(db, user, date, true);
+					return null;
 				} else {
 					return { hasURL, cal: events };
 				}
@@ -255,8 +255,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 				const events = await feeds.addPortalQueueCalendar(db, user);
 
 				if (_.isEmpty(events)) {
-					// If it still returns empty, then Portal isn't working at the moment and we can fall back on not having a URL.
-					return getSchedule(db, user, date, true);
+					return null;
 				} else {
 					return { hasURL, cal: events };
 				}
@@ -264,7 +263,12 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 				return { hasURL, cal };
 			}
 		})
-	]);
+	] as const);
+
+	if (!(portalClassesResult && portalCalendarResult)) {
+		// If it still returns empty, then Portal isn't working at the moment and we can fall back on not having a URL.
+		return getSchedule(db, user, date, true);
+	}
 
 	let portalSchedule: ScheduleClasses = [];
 	const schedule: FullSchedule = {
@@ -279,7 +283,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 	const schoolScheduleEvents = [];
 
 	// Go through all the events in the Portal calendar
-	for (const calEvent of Object.values((portalCalendarResult as any).cal as PortalCacheEvent[])) {
+	for (const calEvent of Object.values(portalCalendarResult.cal as PortalCacheEvent[])) {
 		const start = moment(calEvent.start);
 		const end = moment(calEvent.end);
 
@@ -327,7 +331,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 	}
 
 	// Go through all the events in the Portal classes
-	for (const calEvent of Object.values((portalClassesResult as any).cal as PortalCacheEvent[])) {
+	for (const calEvent of Object.values(portalClassesResult.cal as PortalCacheEvent[])) {
 		const start = moment(calEvent.start);
 		const end = moment(calEvent.end);
 
