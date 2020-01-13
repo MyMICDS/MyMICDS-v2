@@ -4,18 +4,18 @@ import { Db } from 'mongodb';
 import prisma from 'prisma';
 import * as _ from 'underscore';
 import * as aliases from './aliases';
-import { BlockFormat, LunchBlockFormat } from './blockSchedule';
 import * as blockSchedule from './blockSchedule';
+import { BlockFormat, LunchBlockFormat } from './blockSchedule';
 import * as classes from './classes';
 import * as feeds from './feeds';
-import { PortalCacheEvent } from './portal';
 import * as portal from './portal';
+import { PortalCacheEvent } from './portal';
 import * as users from './users';
 import { StringDict } from './utils';
 
 // Mappings for default blocks
 
-const defaultSchoolBlock: ScheduleClass = {
+export const defaultSchoolBlock: ScheduleClass = {
 	name: 'School',
 	teacher: {
 		prefix: 'Ms.',
