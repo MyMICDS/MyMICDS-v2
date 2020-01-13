@@ -1,8 +1,11 @@
+import { GetPortalDayRotationResponse } from '@mymicds/sdk';
 import { expect } from 'chai';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
+import _ from 'underscore';
 import { initAPI } from '../src/init';
 import * as users from '../src/libs/users';
+import * as calServer from './calendars/server';
 import config from './config';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
 import { buildRequest, requireLoggedIn, validateParameters } from './shared';
@@ -13,6 +16,7 @@ describe('Portal', () => {
 		const [app, db] = await initAPI(await this.mongo.getUri());
 		this.db = db;
 		this.request = supertest(app);
+		await calServer.start();
 	});
 
 	afterEach(async function() {
@@ -170,9 +174,48 @@ describe('Portal', () => {
 		validateParameters(payload);
 	});
 
-	// TODO: rest of routes
+	describe('GET /portal/classes', function() {
+		this.ctx.method = 'get';
+		this.ctx.route = '/portal/classes';
+
+		it('gets user Portal classes', async function() {
+			await saveTestUser(this.db, { portalURLClasses: `http://localhost:${calServer.port}/portalClasses.ics` });
+			const jwt = await generateJWT(this.db);
+
+			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).expect(200);
+			expect(res.body.data).to.have.property('hasURL').that.is.true;
+			expect(res.body.data).to.have.property('classes').to.have.members(_.range(1, 6).map(n => `Test Class ${n}`));
+		});
+
+		requireLoggedIn();
+	});
+
+	describe('GET /portal/day-rotation', function() {
+		this.ctx.method = 'get';
+		this.ctx.route = '/portal/day-rotation';
+
+		it('gets all the day rotations', async function() {
+			const res = await buildRequest(this).expect(200);
+
+			expect(res.body.data).to.have.property('days').that.is.an('object');
+
+			for (const [year, months] of Object.entries(res.body.data.days as GetPortalDayRotationResponse['days'])) {
+				expect(parseInt(year, 10)).to.not.be.NaN;
+
+				for (const [month, days] of Object.entries(months)) {
+					expect(parseInt(month, 10)).to.not.be.NaN;
+
+					for (const [day, rotation] of Object.entries(days)) {
+						expect(parseInt(day, 10)).to.not.be.NaN;
+						expect(rotation).to.be.within(1, 6);
+					}
+				}
+			}
+		});
+	});
 
 	after(async function() {
 		await this.mongo.stop();
+		await calServer.stop();
 	});
 });

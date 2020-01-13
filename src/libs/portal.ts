@@ -384,9 +384,20 @@ export async function getDayRotations() {
  */
 export async function getClasses(db: Db, user: string) {
 	const { hasURL, events } = await getFromCacheClasses(db, user);
-	if (!hasURL) { return { hasURL: false, classes: null }; }
+	if (!hasURL) {
+		return { hasURL: false, classes: null };
+	}
 
-	return { hasURL: true, classes: parsePortalClasses(events!) };
+	// If cache is empty, update it
+	if (events!.length > 0) {
+		return { hasURL: true, classes: parsePortalClasses(events!) };
+	} else {
+		await feeds.addPortalQueueClasses(db, user);
+
+		const { events: retryEvents } = await getFromCacheClasses(db, user);
+
+		return { hasURL: true, classes: parsePortalClasses(retryEvents!) };
+	}
 }
 
 /**
