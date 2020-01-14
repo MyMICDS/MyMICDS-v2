@@ -251,7 +251,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 		}),
 		// Get Portal calendar feed
 		portal.getFromCacheCalendar(db, user).then(async ({ hasURL, events: cal }) => {
-			if (_.isEmpty(cal)) {
+			if (hasURL && _.isEmpty(cal)) {
 				const events = await feeds.addPortalQueueCalendar(db, user);
 
 				if (_.isEmpty(events)) {
@@ -282,51 +282,53 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 	// (In the non-personal calendar feed. Usually this is special schedule stuff or assembly)
 	const schoolScheduleEvents = [];
 
-	// Go through all the events in the Portal calendar
-	for (const calEvent of Object.values(portalCalendarResult.cal as PortalCacheEvent[])) {
-		const start = moment(calEvent.start);
-		const end = moment(calEvent.end);
+	if (portalCalendarResult.hasURL) {
+		// Go through all the events in the Portal calendar
+		for (const calEvent of Object.values(portalCalendarResult.cal as PortalCacheEvent[])) {
+			const start = moment(calEvent.start);
+			const end = moment(calEvent.end);
 
-		// Make sure the event isn't all whacky
-		if (end.isBefore(start)) {
-			continue;
-		}
-
-		// Check if event occurs on specified day
-		if (scheduleDate.isSame(start, 'day')) {
-			// Check if special schedule
-			const lowercaseSummary = calEvent.summary!.toLowerCase();
-			if (lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
-				schedule.special = true;
+			// Make sure the event isn't all whacky
+			if (end.isBefore(start)) {
 				continue;
 			}
 
-			// Check if event occurs throughout school day
-			if (start.isSameOrAfter(defaultStart) && end.isSameOrBefore(defaultEnd)) {
-				const color = prisma(calEvent.summary).hex;
-				schoolScheduleEvents.push({
-					start,
-					end,
-					class: {
-						portal: true,
-						name: calEvent.summary,
-						teacher: {
-							prefix: '',
-							firstName: '',
-							lastName: ''
-						},
-						block: 'other',
-						type: 'other',
-						color,
-						textDark: prisma.shouldTextBeDark(color)
-					}
-				});
+			// Check if event occurs on specified day
+			if (scheduleDate.isSame(start, 'day')) {
+				// Check if special schedule
+				const lowercaseSummary = calEvent.summary!.toLowerCase();
+				if (lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
+					schedule.special = true;
+					continue;
+				}
+
+				// Check if event occurs throughout school day
+				if (start.isSameOrAfter(defaultStart) && end.isSameOrBefore(defaultEnd)) {
+					const color = prisma(calEvent.summary).hex;
+					schoolScheduleEvents.push({
+						start,
+						end,
+						class: {
+							portal: true,
+							name: calEvent.summary,
+							teacher: {
+								prefix: '',
+								firstName: '',
+								lastName: ''
+							},
+							block: 'other',
+							type: 'other',
+							color,
+							textDark: prisma.shouldTextBeDark(color)
+						}
+					});
+				}
 			}
-		}
-		// Check if it's an all-day event
-		// @TODO Don't know if this works (if everything we'd consider "all-day" event actually matches this criteria)
-		if (start.isSameOrBefore(scheduleDate) && end.isSameOrAfter(scheduleNextDay)) {
-			schedule.allDay.push(portal.cleanUp(calEvent.summary!));
+			// Check if it's an all-day event
+			// @TODO Don't know if this works (if everything we'd consider "all-day" event actually matches this criteria)
+			if (start.isSameOrBefore(scheduleDate) && end.isSameOrAfter(scheduleNextDay)) {
+				schedule.allDay.push(portal.cleanUp(calEvent.summary!));
+			}
 		}
 	}
 

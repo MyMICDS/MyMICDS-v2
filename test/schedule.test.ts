@@ -87,7 +87,7 @@ describe('Modules', () => {
 
 			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).query(calendarPayload).expect(200);
 			expect(res.body.data).to.containSubset({
-				hasURL: false,
+				hasURL: true,
 				schedule: {
 					day: 6,
 					special: false,
