@@ -17,3 +17,4 @@ src/scripts/*blacklist.json
 src/scripts/class-emails.json
 
 test/config.ts
+.nyc_output
