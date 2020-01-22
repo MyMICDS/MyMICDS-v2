@@ -11,7 +11,7 @@ import { buildRequest } from './shared';
 
 use(chaiSubset);
 
-describe('Modules', () => {
+describe('Schedule', () => {
 	before(async function() {
 		this.mongo = new MongoMemoryServer();
 		const [app, db] = await initAPI(await this.mongo.getUri());
