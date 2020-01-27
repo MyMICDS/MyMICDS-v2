@@ -78,8 +78,7 @@ describe('Alias', () => {
 			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).expect(200);
 
 			expect(res.body.data).to.have.property('aliases').that.containSubset({
-				canvas: [{ _id: (aliasId as ObjectID).toHexString() }],
-				portal: []
+				canvas: [{ _id: (aliasId as ObjectID).toHexString() }]
 			});
 		});
 

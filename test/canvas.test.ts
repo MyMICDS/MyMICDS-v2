@@ -1,11 +1,15 @@
+import { AliasType } from '@mymicds/sdk';
 import { expect, use } from 'chai';
 import chaiSubset from 'chai-subset';
+import { ObjectID } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
 import { initAPI } from '../src/init';
+import * as aliases from '../src/libs/aliases';
 import * as users from '../src/libs/users';
 import * as calServer from './calendars/server';
 import config from './config';
+import { saveTestClass } from './helpers/class';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
 import { buildRequest, requireLoggedIn, validateParameters } from './shared';
 
@@ -107,6 +111,22 @@ describe('Canvas', () => {
 				{ title: 'Test Event 1, Class 1', class: { name: 'TS001:AA' } },
 				{ title: 'Test Event 1, Class 2', class: { name: 'TS002:BB' } },
 				{ title: 'Test Event 2, Class 2', class: { name: 'TS002:BB' } }
+			]);
+		});
+
+		it('gets user Canvas events with aliases', async function() {
+			await saveTestUser(this.db, { canvasURL: `http://localhost:${calServer.port}/canvas.ics` });
+			const jwt = await generateJWT(this.db);
+
+			const { _id } = await saveTestClass(this.db, { name: 'alias class' });
+			await aliases.add(this.db, testUser.user, AliasType.CANVAS, 'TS002:BB', (_id as ObjectID).toHexString());
+
+			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).expect(200);
+			expect(res.body.data).to.have.property('hasURL').that.is.true;
+			expect(res.body.data).to.have.property('events').that.containSubset([
+				{ title: 'Test Event 1, Class 1', class: { name: 'TS001:AA' } },
+				{ title: 'Test Event 1, Class 2', class: { name: 'alias class' } },
+				{ title: 'Test Event 2, Class 2', class: { name: 'alias class' } }
 			]);
 		});
 

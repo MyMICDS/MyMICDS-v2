@@ -1,12 +1,16 @@
+import { AliasType, Block } from '@mymicds/sdk';
 import { expect, use } from 'chai';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
+import { ObjectID } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
 import { initAPI } from '../src/init';
+import * as aliases from '../src/libs/aliases';
 import { defaultSchoolBlock } from '../src/libs/schedule';
 import * as calServer from './calendars/server';
-import { generateJWT, saveTestUser } from './helpers/user';
+import { saveTestClass } from './helpers/class';
+import { generateJWT, saveTestUser, testUser } from './helpers/user';
 import { buildRequest } from './shared';
 
 use(chaiSubset);
@@ -81,6 +85,31 @@ describe('Schedule', () => {
 			});
 		});
 
+		it('gets schedule with no Portal URL and configured classes', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			await saveTestClass(this.db, { name: 'b block class', block: Block.B });
+			await saveTestClass(this.db, { name: 'f block class', block: Block.F });
+
+			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).query(payload).expect(200);
+			expect(res.body.data).to.containSubset({
+				hasURL: false,
+				schedule: {
+					day: 6,
+					special: false,
+					classes: [
+						{ class: { name: 'b block class' } },
+						{ class: { name: 'f block class' } },
+						{ class: { name: 'Collaborative Work' } },
+						{ class: { name: 'Activities' } },
+						{ class: { name: 'Block D' } }
+					],
+					allDay: []
+				}
+			});
+		});
+
 		it('gets schedule from Portal URL', async function() {
 			await saveTestUser(this.db, { portalURLClasses: `http://localhost:${calServer.port}/portalClasses.ics` });
 			const jwt = await generateJWT(this.db);
@@ -93,6 +122,29 @@ describe('Schedule', () => {
 					special: false,
 					classes: [
 						{ class: { name: 'Test Class 1' } },
+						{ class: { name: 'Test Class 5' } },
+						{ class: { name: 'Test Class 3' } }
+					],
+					allDay: []
+				}
+			});
+		});
+
+		it('gets schedule from Portal URL with aliases', async function() {
+			await saveTestUser(this.db, { portalURLClasses: `http://localhost:${calServer.port}/portalClasses.ics` });
+			const jwt = await generateJWT(this.db);
+
+			const { _id } = await saveTestClass(this.db, { name: 'alias class' });
+			await aliases.add(this.db, testUser.user, AliasType.PORTAL, 'Test Class 1', (_id as ObjectID).toHexString());
+
+			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).query(calendarPayload).expect(200);
+			expect(res.body.data).to.containSubset({
+				hasURL: true,
+				schedule: {
+					day: 6,
+					special: false,
+					classes: [
+						{ class: { name: 'alias class' } },
 						{ class: { name: 'Test Class 5' } },
 						{ class: { name: 'Test Class 3' } }
 					],
