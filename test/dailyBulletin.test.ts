@@ -5,7 +5,7 @@ import supertest from 'supertest';
 import { initAPI } from '../src/init';
 import * as dailyBulletin from '../src/libs/dailyBulletin';
 import { generateJWT, saveTestUser } from './helpers/user';
-import { buildRequest } from './shared';
+import { buildRequest, requireLoggedIn } from './shared';
 
 describe('Daily Bulletin', () => {
 	before(async function() {
@@ -44,6 +44,15 @@ describe('Daily Bulletin', () => {
 			const bulletins = await fs.readdir(dailyBulletin.bulletinPDFDir);
 			expect(bulletins).to.have.lengthOf(1);
 		});
+
+		it('requires admin scope', async function() {
+			await saveTestUser(this.db);
+			const jwt = await generateJWT(this.db);
+
+			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).expect(401);
+		});
+
+		requireLoggedIn();
 	});
 
 	afterEach(async function() {
