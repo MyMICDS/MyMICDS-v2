@@ -5,6 +5,7 @@ import multer from 'multer';
 import * as path from 'path';
 import { promisify } from 'util';
 import config from './config';
+import { InputError } from './errors';
 import { UserDoc } from './users';
 
 // Valid MIME Types for image backgrounds
@@ -22,10 +23,15 @@ const validExtensions = [
 // Where public accesses backgrounds
 const userBackgroundUrl = config.hostedOn + '/user-backgrounds';
 // Where to store user backgrounds
-const userBackgroundsDir = __dirname + '/../public/user-backgrounds';
+export const userBackgroundsDir = __dirname + '/../public/user-backgrounds';
 // Default user background
 const defaultBackgroundUser = 'default';
 const defaultExtension = '.jpg';
+
+export const defaultPaths = {
+	normal: userBackgroundsDir + '/' + defaultBackgroundUser + '/normal' + defaultExtension,
+	blur: userBackgroundsDir + '/' + defaultBackgroundUser + '/blur' + defaultExtension
+};
 
 const defaultVariants = {
 	normal: userBackgroundUrl + '/' + defaultBackgroundUser + '/normal' + defaultExtension,
@@ -81,7 +87,7 @@ function uploadBackground() {
 			const extension = validMimeTypes[file.mimetype];
 			// noinspection SuspiciousTypeOfGuard
 			if (typeof extension !== 'string') {
-				cb(new Error('Invalid file type!'), false);
+				cb(new InputError('Invalid file type!'), false);
 				return;
 			}
 
