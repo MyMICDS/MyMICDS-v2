@@ -5,7 +5,7 @@ import RoutesFunction from './routesFunction';
 export default (app => {
 
 	app.get('/dates/school-starts', (req, res) => {
-		api.success(res, { date: dates.schoolEnds() });
+		api.success(res, { date: dates.schoolStarts() });
 	});
 
 	app.get('/dates/school-ends', (req, res) => {
