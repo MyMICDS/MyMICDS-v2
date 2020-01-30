@@ -18,9 +18,9 @@ import { StringDict } from './utils';
 export const defaultSchoolBlock: ScheduleClass = {
 	name: 'School',
 	teacher: {
-		prefix: 'Ms.',
-		firstName: 'Lisa',
-		lastName: 'Lyle'
+		prefix: 'Mr.',
+		firstName: 'Jay',
+		lastName: 'Rainey'
 	},
 	block: Block.OTHER,
 	type: ClassType.OTHER,
