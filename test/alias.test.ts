@@ -8,8 +8,8 @@ import { initAPI } from '../src/init';
 import * as aliases from '../src/libs/aliases';
 import * as calServer from './calendars/server';
 import { saveTestClass } from './helpers/class';
+import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
-import { buildRequest, requireLoggedIn, validateParameters } from './shared';
 
 use(chaiSubset);
 

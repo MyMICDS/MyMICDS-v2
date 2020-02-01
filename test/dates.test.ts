@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
 import { initAPI } from '../src/init';
-import { buildRequest } from './shared';
+import { buildRequest } from './helpers/shared';
 
 describe('Dates', () => {
 	before(async function() {

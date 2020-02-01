@@ -6,8 +6,8 @@ import supertest from 'supertest';
 import _ from 'underscore';
 import { initAPI } from '../src/init';
 import * as modules from '../src/libs/modules';
+import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
-import { buildRequest, requireLoggedIn, validateParameters } from './shared';
 
 const testModule = {
 	type: MyMICDSModuleType.PROGRESS,

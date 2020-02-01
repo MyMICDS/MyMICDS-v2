@@ -5,8 +5,8 @@ import supertest from 'supertest';
 import { URL } from 'url';
 import { initAPI } from '../src/init';
 import * as backgrounds from '../src/libs/backgrounds';
+import { buildRequest, requireLoggedIn } from './helpers/shared';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
-import { buildRequest, requireLoggedIn } from './shared';
 
 const testImageDir = __dirname + '/images';
 const testImages = {

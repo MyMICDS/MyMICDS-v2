@@ -4,7 +4,7 @@ import { Db } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
 import _ from 'underscore';
-import { generateJWT, saveTestUser } from './helpers/user';
+import { generateJWT, saveTestUser } from './user';
 
 declare global {
 	interface Context {

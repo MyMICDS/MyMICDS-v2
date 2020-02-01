@@ -7,8 +7,8 @@ import { initAPI } from '../src/init';
 import config from '../src/libs/config';
 import * as passwords from '../src/libs/passwords';
 import * as users from '../src/libs/users';
+import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
-import { buildRequest, requireLoggedIn, validateParameters } from './shared';
 
 describe('Auth', () => {
 	before(async function() {

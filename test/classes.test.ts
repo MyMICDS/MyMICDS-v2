@@ -8,8 +8,8 @@ import _ from 'underscore';
 import { initAPI } from '../src/init';
 import * as classes from '../src/libs/classes';
 import { saveTestClass, testClass } from './helpers/class';
+import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
-import { buildRequest, requireLoggedIn, validateParameters } from './shared';
 
 use(chaiSubset);
 

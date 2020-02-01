@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
 import { initAPI } from '../src/init';
+import { buildRequest } from './helpers/shared';
 import testLunch from './lunch.json';
-import { buildRequest } from './shared';
 
 describe('Lunch', () => {
 	before(async function() {

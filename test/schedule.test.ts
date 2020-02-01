@@ -10,8 +10,8 @@ import * as aliases from '../src/libs/aliases';
 import { defaultSchoolBlock } from '../src/libs/schedule';
 import * as calServer from './calendars/server';
 import { saveTestClass } from './helpers/class';
+import { buildRequest } from './helpers/shared';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
-import { buildRequest } from './shared';
 
 use(chaiSubset);
 

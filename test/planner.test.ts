@@ -9,8 +9,8 @@ import { initAPI } from '../src/init';
 import * as checkedEvents from '../src/libs/checkedEvents';
 import * as planner from '../src/libs/planner';
 import { saveTestClass } from './helpers/class';
+import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
-import { buildRequest, requireLoggedIn, validateParameters } from './shared';
 
 const testEvent = {
 	title: 'test event',

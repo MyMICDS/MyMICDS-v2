@@ -4,8 +4,8 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
 import { initAPI } from '../src/init';
 import * as dailyBulletin from '../src/libs/dailyBulletin';
+import { buildRequest, requireLoggedIn } from './helpers/shared';
 import { generateJWT, saveTestUser } from './helpers/user';
-import { buildRequest, requireLoggedIn } from './shared';
 
 describe('Daily Bulletin', () => {
 	before(async function() {

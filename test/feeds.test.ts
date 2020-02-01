@@ -7,8 +7,8 @@ import { initAPI } from '../src/init';
 import * as canvas from '../src/libs/canvas';
 import * as portal from '../src/libs/portal';
 import * as calServer from './calendars/server';
+import { buildRequest, requireLoggedIn } from './helpers/shared';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
-import { buildRequest, requireLoggedIn } from './shared';
 
 use(chaiSubset);
 

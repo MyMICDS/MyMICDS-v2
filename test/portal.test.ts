@@ -7,8 +7,8 @@ import { initAPI } from '../src/init';
 import * as users from '../src/libs/users';
 import * as calServer from './calendars/server';
 import config from './config';
+import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
-import { buildRequest, requireLoggedIn, validateParameters } from './shared';
 
 describe('Portal', () => {
 	before(async function() {
