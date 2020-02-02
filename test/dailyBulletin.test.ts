@@ -1,7 +1,9 @@
+import { GetBulletinsResponse } from '@mymicds/sdk';
 import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
+import { assertType } from 'typescript-is';
 import { initAPI } from '../src/init';
 import * as dailyBulletin from '../src/libs/dailyBulletin';
 import { buildRequest, requireLoggedIn } from './helpers/shared';
@@ -26,8 +28,8 @@ describe('Daily Bulletin', () => {
 			await dailyBulletin.queryLatest();
 			const res = await buildRequest(this).expect(200);
 
-			expect(res.body.data).to.have.property('baseURL').that.is.a('string');
-			expect(res.body.data).to.have.property('bulletins').that.is.an('array').with.lengthOf(1);
+			assertType<GetBulletinsResponse>(res.body.data);
+			expect(res.body.data.bulletins).to.have.lengthOf(1);
 		});
 	});
 

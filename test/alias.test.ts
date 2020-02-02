@@ -1,9 +1,10 @@
-import { AliasType } from '@mymicds/sdk';
+import { AliasType, ListAliasesResponse } from '@mymicds/sdk';
 import { expect, use } from 'chai';
 import chaiSubset from 'chai-subset';
 import { ObjectID } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
+import { assertType } from 'typescript-is';
 import { initAPI } from '../src/init';
 import * as aliases from '../src/libs/aliases';
 import * as calServer from './calendars/server';
@@ -76,10 +77,10 @@ describe('Alias', () => {
 			);
 
 			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).expect(200);
+			assertType<ListAliasesResponse>(res.body.data);
 
-			expect(res.body.data).to.have.property('aliases').that.containSubset({
-				canvas: [{ _id: (aliasId as ObjectID).toHexString() }]
-			});
+			expect(res.body.data.aliases.canvas).to.have.lengthOf(1);
+			expect(res.body.data.aliases.canvas[0]).to.containSubset({ _id: (aliasId as ObjectID).toHexString() });
 		});
 
 		requireLoggedIn();

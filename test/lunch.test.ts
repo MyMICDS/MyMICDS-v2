@@ -1,9 +1,9 @@
-import { expect } from 'chai';
+import { GetLunchResponse } from '@mymicds/sdk';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
+import { assertType } from 'typescript-is';
 import { initAPI } from '../src/init';
 import { buildRequest } from './helpers/shared';
-import testLunch from './lunch.json';
 
 describe('Lunch', () => {
 	before(async function() {
@@ -17,13 +17,9 @@ describe('Lunch', () => {
 		this.ctx.method = 'get';
 		this.ctx.route = '/lunch';
 
-		// Might need to be changed every so often
-		const date = { year: 2020, month: 1, day: 31 };
-
-		it('retrieves the lunch', async function() {
-			const res = await buildRequest(this).query(date).expect(200);
-
-			expect(res.body.data).to.have.property('lunch').that.deep.equals(testLunch);
+		it('gets lunch data', async function() {
+			const res = await buildRequest(this).expect(200);
+			assertType<GetLunchResponse>(res.body.data);
 		});
 	});
 

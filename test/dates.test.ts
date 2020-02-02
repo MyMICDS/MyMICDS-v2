@@ -45,6 +45,8 @@ describe('Dates', () => {
 		it('returns a valid list of dates', async function() {
 			const res = await buildRequest(this).expect(200);
 
+			// Can't use typescript-is because the SDK type uses moment.Moment, not a date string
+
 			const breakTypes = ['weekends', 'longWeekends', 'vacations', 'other'];
 
 			expect(res.body.data)
