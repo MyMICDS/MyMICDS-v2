@@ -25,6 +25,13 @@ If you would like the server to restart on file changes, install [`nodemon`](htt
 Run `npm run docs` to build documentation. TypeDoc will generate documentation based on comments and type structures and dump it into the `/docs/` folder.
 This creates static HTML files, so you'll have to open them manually in your browser.
 
+### Testing
+Run `npm test` to do a compilation check on all source files and run the API tests.
+Similar to `src/libs/config.ts`, the tests require a `test/config.ts` that needs to be filled out.
+
+**Note:** When adding new routes to the API, contributors should always add a corresponding test,
+unless there are factors (performance, authentication, etc) that would make it unreasonable to run the test quickly on a CI server.
+
 
 ## Other Repositories
 
