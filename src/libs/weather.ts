@@ -3,7 +3,7 @@ import DarkSky from 'forecast.io';
 import * as fs from 'fs-extra';
 import config from './config';
 
-const JSON_PATH = __dirname + '/../api/weather.json';
+export const JSON_PATH = __dirname + '/../api/weather.json';
 
 // Coordinates for MICDS
 const latitude = 38.658241;
