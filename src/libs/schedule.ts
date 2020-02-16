@@ -288,7 +288,8 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 			const start = moment(calEvent.start);
 			const end = moment(calEvent.end);
 
-			// Make sure the event isn't all whacky
+			// It doesn't make any sense for end to come before start
+			// But I guess it's theoretically possible so we should check for it
 			if (end.isBefore(start)) {
 				continue;
 			}
