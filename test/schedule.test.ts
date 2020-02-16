@@ -32,17 +32,10 @@ describe('Schedule', () => {
 		this.ctx.method = 'get';
 		this.ctx.route = '/schedule';
 
-		// This must be changed every year to match with the day rotation.
 		const payload = {
 			year: 2020,
-			month: 1,
-			day: 13
-		};
-
-		const calendarPayload = {
-			year: 2020,
-			month: 1,
-			day: 13
+			month: 2,
+			day: 7
 		};
 
 		it('gets default schedule', async function() {
@@ -114,7 +107,7 @@ describe('Schedule', () => {
 			await saveTestUser(this.db, { portalURLClasses: `http://localhost:${calServer.port}/portalClasses.ics` });
 			const jwt = await generateJWT(this.db);
 
-			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).query(calendarPayload).expect(200);
+			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).query(payload).expect(200);
 			expect(res.body.data).to.containSubset({
 				hasURL: true,
 				schedule: {
@@ -137,7 +130,7 @@ describe('Schedule', () => {
 			const { _id } = await saveTestClass(this.db, { name: 'alias class' });
 			await aliases.add(this.db, testUser.user, AliasType.PORTAL, 'Test Class 1', (_id as ObjectID).toHexString());
 
-			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).query(calendarPayload).expect(200);
+			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).query(payload).expect(200);
 			expect(res.body.data).to.containSubset({
 				hasURL: true,
 				schedule: {

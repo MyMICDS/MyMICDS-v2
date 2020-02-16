@@ -6,6 +6,7 @@ import { Db, ObjectID } from 'mongodb';
 import request, { FullResponse } from 'request-promise-native';
 import * as _ from 'underscore';
 import { URL } from 'url';
+import * as calServer from '../../test/calendars/server';
 import config from './config';
 import { InputError } from './errors';
 import * as feeds from './feeds';
@@ -13,6 +14,10 @@ import * as users from './users';
 
 // URL Calendars come from
 const urlPrefix = 'https://api.veracross.com/micds/subscribe/';
+
+const dayRotationURL = process.env.CI ?
+	`http://localhost:${calServer.port}/dayRotation.ics` :
+	urlPrefix + config.portal.dayRotation;
 
 // RegEx to test if calendar summary contains a valid Day Rotation
 const validDayRotationPlain = /^US - Day [1-6]/;
@@ -294,7 +299,7 @@ export async function getDayRotation(date: Date) {
 
 	let body;
 	try {
-		body = await request(urlPrefix + config.portal.dayRotation);
+		body = await request(dayRotationURL);
 	} catch (e) {
 		throw new Error('There was a problem fetching the day rotation!');
 	}
@@ -336,7 +341,7 @@ export async function getDayRotations() {
 
 	let body;
 	try {
-		body = await request(urlPrefix + config.portal.dayRotation);
+		body = await request(dayRotationURL);
 	} catch (e) {
 		throw new Error('There was a problem fetching the day rotation!');
 	}

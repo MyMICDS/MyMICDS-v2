@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
 import { initAPI } from '../src/init';
+import * as calServer from './calendars/server';
 import { buildRequest } from './helpers/shared';
 
 describe('Dates', () => {
@@ -10,6 +11,8 @@ describe('Dates', () => {
 		this.mongo = new MongoMemoryServer();
 		const [app] = await initAPI(await this.mongo.getUri());
 		this.request = supertest(app);
+		// Breaks come from day rotation, so the calendar server needs to be on
+		await calServer.start();
 	});
 
 	describe('GET /dates/school-starts', function() {
@@ -67,5 +70,6 @@ describe('Dates', () => {
 
 	after(async function() {
 		await this.mongo.stop();
+		await calServer.stop();
 	});
 });
