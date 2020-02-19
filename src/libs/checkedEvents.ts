@@ -1,4 +1,5 @@
 import { Db, ObjectID } from 'mongodb';
+import { InputError } from './errors';
 import * as users from './users';
 
 /**
@@ -9,7 +10,7 @@ import * as users from './users';
  */
 async function checkEvent(db: Db, user: string, eventId: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	const checked = await getChecked(db, user, eventId);
 	// If already checked, just return null
@@ -39,7 +40,7 @@ async function checkEvent(db: Db, user: string, eventId: string) {
  */
 async function getChecked(db: Db, user: string, eventId: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	const checkedEventsData = db.collection('checkedEvents');
 
@@ -61,7 +62,7 @@ async function getChecked(db: Db, user: string, eventId: string) {
  */
 async function listChecked(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	const checkedEventsData = db.collection<CheckedEvent>('checkedEvents');
 
@@ -84,7 +85,7 @@ async function listChecked(db: Db, user: string) {
  */
 async function uncheckEvent(db: Db, user: string, eventId: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	const checkedEventsData = db.collection('checkedEvents');
 

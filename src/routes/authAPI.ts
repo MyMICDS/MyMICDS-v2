@@ -125,11 +125,7 @@ export default ((app, db) => {
 		}
 	});
 
-	app.get('/auth/verify', (req, res) => {
-		if (!(req.user && req.user.user)) {
-			api.error(res, 'JWT not provided!');
-			return;
-		}
+	app.get('/auth/verify', jwt.requireLoggedIn, (req, res) => {
 		api.success(res, {
 			payload: req.user
 		});

@@ -3,6 +3,7 @@ import * as crypto from 'crypto';
 import { Db } from 'mongodb';
 import { promisify } from 'util';
 import * as cryptoUtils from './cryptoUtils';
+import { InputError } from './errors';
 import * as mail from './mail';
 import * as users from './users';
 
@@ -45,15 +46,15 @@ export async function passwordMatches(db: Db, user: string, password: string) {
  */
 export async function changePassword(db: Db, user: string, oldPassword: string, newPassword: string) {
 	if (passwordBlacklist.includes(newPassword)) {
-		throw new Error('Invalid old password!');
+		throw new InputError('Invalid old password!');
 	}
 
 	const { isUser } = await users.get(db, user);
-	if (!isUser) { throw new Error('Invalid user!'); }
+	if (!isUser) { throw new InputError('Invalid user!'); }
 
 	// Compare oldPassword with password in database
 	const { matches } = await passwordMatches(db, user, oldPassword);
-	if (!matches) { throw new Error('Password does not match!'); }
+	if (!matches) { throw new InputError('Password does not match!'); }
 
 	const hash = await cryptoUtils.hashPassword(newPassword);
 
@@ -74,7 +75,7 @@ export async function changePassword(db: Db, user: string, oldPassword: string, 
  */
 export async function resetPasswordEmail(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	// Generate password hash for confirmation link
 	let buf: Buffer;
@@ -119,18 +120,18 @@ export async function resetPasswordEmail(db: Db, user: string) {
  * @param hash The reset hash.
  */
 export async function resetPassword(db: Db, user: string, password: string, hash: string) {
-	if (passwordBlacklist.includes(password)) { throw new Error('Invalid password!'); }
+	if (passwordBlacklist.includes(password)) { throw new InputError('Invalid password!'); }
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	if (typeof userDoc!.passwordChangeHash !== 'string') {
-		throw new Error('Password change email was never sent!');
+		throw new InputError('Password change email was never sent!');
 	}
 
 	if (!cryptoUtils.safeCompare(hash, userDoc!.passwordChangeHash!)) {
 		// Hash is not valid
-		throw new Error('Invalid hash!');
+		throw new InputError('Invalid hash!');
 	}
 
 	// Change password

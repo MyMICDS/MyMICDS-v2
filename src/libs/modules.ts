@@ -1,6 +1,7 @@
 import { MyMICDSModule, MyMICDSModuleType } from '@mymicds/sdk';
 import { Db, ObjectID } from 'mongodb';
 import * as _ from 'underscore';
+import { InputError } from './errors';
 import * as users from './users';
 import { Constructor, StringDict } from './utils';
 
@@ -103,7 +104,7 @@ const columnsPerRow = 4;
 const rowStarts = 0;
 
 // Modules to give user if none found
-const defaultModules: MyMICDSModule[] = [
+export const defaultModules: MyMICDSModule[] = [
 	{
 		type: MyMICDSModuleType.PROGRESS,
 		row: 0,
@@ -258,19 +259,19 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 			}
 		}
 	}
-	if (!modules.every(m => m.width > 0)) { throw new Error('Modules must be at least 1 cell wide!'); }
-	if (!modules.every(m => m.height > 0)) { throw new Error('Modules must be at least 1 cell tall!'); }
+	if (!modules.every(m => m.width > 0)) { throw new InputError('Modules must be at least 1 cell wide!'); }
+	if (!modules.every(m => m.height > 0)) { throw new InputError('Modules must be at least 1 cell tall!'); }
 
 	if (!modules.every(m => (columnStarts <= m.column) && (m.column + m.width - columnStarts <= columnsPerRow))) {
-		throw new Error(`Module column exceeds range between ${columnStarts} - ${columnsPerRow}!`);
+		throw new InputError(`Module column exceeds range between ${columnStarts} - ${columnsPerRow}!`);
 	}
 	if (!modules.every(m => (rowStarts <= m.row))) {
-		throw new Error(`Module row below minimum value of ${rowStarts}!`);
+		throw new InputError(`Module row below minimum value of ${rowStarts}!`);
 	}
 
 	// Check for user validity, get ID
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
 
 	const moduleGrid: boolean[][] = [];
 
@@ -279,7 +280,7 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 			if (typeof moduleGrid[j] !== 'object') { moduleGrid[j] = []; }
 
 			for (let k = mod.column; k <= mod.column + mod.width - 1; k++) {
-				if (moduleGrid[j][k]) { throw new Error('Modules overlap!'); }
+				if (moduleGrid[j][k]) { throw new InputError('Modules overlap!'); }
 
 				moduleGrid[j][k] = true;
 			}

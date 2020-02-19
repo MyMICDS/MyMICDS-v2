@@ -13,7 +13,7 @@ const gmail = google.gmail('v1');
 // Where public accesses backgrounds
 export const baseURL = config.hostedOn + '/daily-bulletin';
 // Where to save Daily Bulletin PDFs
-const bulletinPDFDir = __dirname + '/../public/daily-bulletin';
+export const bulletinPDFDir = __dirname + '/../public/daily-bulletin';
 // Query to retrieve emails from Gmail
 const query = 'label:us-daily-bulletin';
 

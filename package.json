@@ -22,7 +22,9 @@
     "start": "npm run build && ts-node -C ttypescript --files src/index.ts",
     "prod": "npm run build && pm2 start ts-node -i max --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds\" -- -C ttypescript --files src/index.ts",
     "tasks": "pm2 start ts-node --watch=\"src\" --ignore-watch=\"src/public src/api\" --name=\"mymicds-tasks\" -- -C ttypescript --files src/tasks.ts",
-    "test": "tsc --noEmit",
+    "test:mocha": "npm run build && TS_NODE_PROJECT=test/tsconfig.json TS_NODE_FILES=true TS_NODE_COMPILER=ttypescript CI=true mocha",
+    "test:compile": "tsc --noEmit",
+    "test": "npm run test:compile && npm run test:mocha",
     "docs": "typedoc --out ./docs --mode modules ./src/libs ./src/external.d.ts",
     "lint": "tslint --project tsconfig.json \"src/**/*.ts\""
   },
@@ -42,7 +44,7 @@
   },
   "homepage": "https://mymicds.net",
   "dependencies": {
-    "@mymicds/sdk": "^1.9.0",
+    "@mymicds/sdk": "^1.9.1",
     "@types/bcrypt": "^3.0.0",
     "@types/cheerio": "^0.22.13",
     "@types/cors": "^2.8.4",
@@ -97,6 +99,15 @@
   },
   "devDependencies": {
     "@mymicds/configs": "^1.1.0",
+    "@types/chai": "^4.2.7",
+    "@types/chai-subset": "^1.3.3",
+    "@types/mocha": "^5.2.7",
+    "@types/supertest": "^2.0.8",
+    "chai": "^4.2.0",
+    "chai-subset": "^1.6.0",
+    "mocha": "^6.2.2",
+    "mongodb-memory-server": "^6.2.1",
+    "supertest": "^4.0.2",
     "tslint": "^5.20.1",
     "typedoc": "^0.15.0"
   }

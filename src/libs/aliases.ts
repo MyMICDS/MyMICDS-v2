@@ -2,6 +2,7 @@ import { AliasType, PortalClass } from '@mymicds/sdk';
 import { Db, InsertOneWriteOpResult, ObjectID } from 'mongodb';
 import * as classes from './classes';
 import { MyMICDSClassWithIDs } from './classes';
+import { InputError } from './errors';
 import * as users from './users';
 
 /**
@@ -148,7 +149,7 @@ async function deleteAlias(db: Db, user: string, type: AliasType, aliasId: strin
 		}
 	}
 
-	if (!validAliasId) { throw new Error('Invalid alias id!'); }
+	if (!validAliasId) { throw new InputError('Invalid alias id!'); }
 
 	const aliasdata = db.collection('aliases');
 
