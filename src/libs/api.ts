@@ -81,10 +81,9 @@ function respondError(res: Response, error: Error | string | null, action: Actio
 		res.status(400);
 	} else {
 		res.status(500);
-	}
-
-	if (!process.env.CI) {
-		Sentry.captureException(error);
+		if (!process.env.CI) {
+			Sentry.captureException(error);
+		}
 	}
 
 	res.json({
