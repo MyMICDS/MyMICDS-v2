@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import * as bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
@@ -18,6 +19,11 @@ export async function initAPI(dbUri: string) {
 	// Socket.io setup
 	const io = socketFactory(server);
 	const socketIO = socketHelper(io);
+
+	// Sentry request tracking
+	app.use(Sentry.Handlers.requestHandler({
+		user: ['user', 'scopes']
+	}));
 
 	// Enable Cross-origin Resource Sharing
 	app.use(cors());
@@ -47,14 +53,6 @@ export async function initAPI(dbUri: string) {
 
 	// Enable admin overrides
 	app.use(api.adminOverride);
-
-	// Synchronous error handler
-	app.use(((err, req, res, next) => {
-		if (res.headersSent) {
-			return next(err);
-		}
-		api.error(res, err);
-	}) as express.ErrorRequestHandler);
 
 	assetsHandler(app);
 
@@ -88,6 +86,14 @@ export async function initAPI(dbUri: string) {
 	for (const route of routes) {
 		route(app, db, socketIO);
 	}
+
+	// Synchronous error handler
+	app.use(((err, req, res, next) => {
+		if (res.headersSent) {
+			return next(err);
+		}
+		api.error(res, err);
+	}) as express.ErrorRequestHandler);
 
 	return [app, db, server] as const;
 }

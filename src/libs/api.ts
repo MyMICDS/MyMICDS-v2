@@ -1,4 +1,5 @@
 import { Action } from '@mymicds/sdk';
+import * as Sentry from '@sentry/node';
 import { NextFunction, Request, Response } from 'express';
 import { TypeGuardError } from 'typescript-is';
 import { InputError } from './errors';
@@ -73,17 +74,17 @@ function respondError(res: Response, error: Error | string | null, action: Actio
 		action = null;
 	}
 
-	// Since it's an error, we gotta let the people know
-	res.status(500);
-
-	// If unauthorized, add proper HTTP header
+	// Use proper status codes
 	if ([Action.LOGIN_EXPIRED, Action.UNAUTHORIZED, Action.NOT_LOGGED_IN].includes(action!)) {
 		res.status(401);
+	} else if (error instanceof TypeGuardError || error instanceof InputError) {
+		res.status(400);
+	} else {
+		res.status(500);
 	}
 
-	// If validation or other input error, use proper status code
-	if (error instanceof TypeGuardError || error instanceof InputError) {
-		res.status(400);
+	if (!process.env.CI) {
+		Sentry.captureException(error);
 	}
 
 	res.json({
