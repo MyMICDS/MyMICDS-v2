@@ -45,6 +45,7 @@
   "homepage": "https://mymicds.net",
   "dependencies": {
     "@mymicds/sdk": "^1.9.1",
+    "@sentry/node": "^5.12.4",
     "@types/bcrypt": "^3.0.0",
     "@types/cheerio": "^0.22.13",
     "@types/cors": "^2.8.4",
