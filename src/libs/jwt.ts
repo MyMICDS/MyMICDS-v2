@@ -1,7 +1,6 @@
 import { Action } from '@mymicds/sdk';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
-import * as _ from 'lodash';
 import { Db, ObjectID } from 'mongodb';
 import * as api from './api';
 import config from './config';
@@ -186,7 +185,7 @@ export async function generate(db: Db, user: string, rememberMe: boolean, commen
 		pleb: true
 	};
 
-	if (_.isArray(userDoc!.scopes)) {
+	if (Array.isArray(userDoc!.scopes)) {
 		for (const scope of userDoc!.scopes) {
 			scopes[scope] = true;
 		}

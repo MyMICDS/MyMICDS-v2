@@ -502,7 +502,7 @@ function combineClassesSchedule(date: Date | moment.Moment, schedule: BlockForma
 	// TODO: Is this still needed? Looks like something left behind after a refactor.
 	// noinspection JSUnusedAssignment
 	date = moment(date);
-	if (!_.isArray(schedule)) { schedule = []; }
+	if (!Array.isArray(schedule)) { schedule = []; }
 	if (typeof blocks !== 'object') { blocks = {}; }
 
 	// Loop through schedule
@@ -553,8 +553,8 @@ function combineClassesSchedule(date: Date | moment.Moment, schedule: BlockForma
  * @returns A sorted array of classes.
  */
 function ordineSchedule(baseSchedule: ClassesOrBlocks, addClasses: ClassesOrBlocks): ClassesOrBlocks {
-	if (!_.isArray(baseSchedule)) { baseSchedule = []; }
-	if (!_.isArray(addClasses)) { addClasses = []; }
+	if (!Array.isArray(baseSchedule)) { baseSchedule = []; }
+	if (!Array.isArray(addClasses)) { addClasses = []; }
 
 	// Add each class to the base schedule
 	for (const addClass of addClasses) {

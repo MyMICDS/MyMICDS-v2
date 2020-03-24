@@ -189,7 +189,7 @@ export async function getClasses(db: Db, user: string) {
 			const parsedEvent = parseCanvasTitle(calEvent.summary);
 
 			// If not already in classes array, push to array
-			if (parsedEvent.class.raw.length > 0 && !_.contains(classes, parsedEvent.class.raw)) {
+			if (parsedEvent.class.raw.length > 0 && !classes.includes(parsedEvent.class.raw)) {
 				classes.push(parsedEvent.class.raw);
 			}
 		}
@@ -313,7 +313,7 @@ export async function getFromCache(db: Db, user: string) {
 			start,
 			end,
 			link: calendarToEvent(canvasEvent.url!) || '',
-			checked: _.contains(checkedEventsList, canvasEvent.uid)
+			checked: checkedEventsList.includes(canvasEvent.uid!)
 		};
 
 		if (typeof canvasEvent['ALT-DESC'] === 'object') {

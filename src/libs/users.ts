@@ -113,7 +113,7 @@ export async function changeInfo(db: Db, user: string, info: ChangeUserInfoParam
 	}
 	if (info.gradYear === null) {
 		set.gradYear = null;
-	} else if (typeof info.gradYear === 'number' && info.gradYear % 1 === 0 && !_.isNaN(info.gradYear)) {
+	} else if (typeof info.gradYear === 'number' && info.gradYear % 1 === 0 && !Number.isNaN(info.gradYear)) {
 		set.gradYear = info.gradYear;
 	}
 

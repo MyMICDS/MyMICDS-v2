@@ -1,6 +1,5 @@
 import * as fs from 'fs-extra';
 import { gmail_v1, google } from 'googleapis';
-import * as _ from 'lodash';
 import moment from 'moment';
 import pAll from 'p-all';
 import * as path from 'path';
@@ -308,7 +307,7 @@ function generateFilename(filename: string, sentDate: Date): string | null {
 
 	date.setFullYear(sentDate.getFullYear());
 
-	if (_.isNaN(date.getTime())) {
+	if (Number.isNaN(date.getTime())) {
 		return null;
 	}
 
