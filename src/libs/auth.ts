@@ -1,7 +1,7 @@
 import { RegisterParameters } from '@mymicds/sdk';
 import * as crypto from 'crypto';
+import * as _ from 'lodash';
 import { Db } from 'mongodb';
-import * as _ from 'underscore';
 import { promisify } from 'util';
 import * as admins from './admins';
 import * as cryptoUtils from './cryptoUtils';

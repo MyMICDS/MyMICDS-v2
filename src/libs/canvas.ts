@@ -1,10 +1,10 @@
 import { AliasType, Block, CanvasEvent, ClassType, DefaultCanvasClass } from '@mymicds/sdk';
 import * as ical from 'ical';
+import * as _ from 'lodash';
 import { Db, ObjectID } from 'mongodb';
 import * as prisma from 'prisma';
 import * as querystring from 'querystring';
 import request from 'request-promise-native';
-import * as _ from 'underscore';
 import * as url from 'url';
 import * as aliases from './aliases';
 import * as checkedEvents from './checkedEvents';

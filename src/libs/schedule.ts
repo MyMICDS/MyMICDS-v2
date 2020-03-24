@@ -1,8 +1,8 @@
 import { Block, ClassType, GetScheduleResponse, ScheduleClass } from '@mymicds/sdk';
+import * as _ from 'lodash';
 import moment from 'moment';
 import { Db } from 'mongodb';
 import prisma from 'prisma';
-import * as _ from 'underscore';
 import * as aliases from './aliases';
 import * as blockSchedule from './blockSchedule';
 import { BlockFormat, LunchBlockFormat } from './blockSchedule';

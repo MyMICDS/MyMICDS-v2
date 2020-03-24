@@ -1,11 +1,11 @@
+import * as _ from 'lodash';
 import { Db } from 'mongodb';
-import * as _ from 'underscore';
-import { CanvasCacheEvent } from './canvas';
 import * as canvas from './canvas';
-import { PortalCacheEvent } from './portal';
+import { CanvasCacheEvent } from './canvas';
 import * as portal from './portal';
-import { UserDoc } from './users';
+import { PortalCacheEvent } from './portal';
 import * as users from './users';
+import { UserDoc } from './users';
 
 /**
  * Updates a user's Canvas cache data.

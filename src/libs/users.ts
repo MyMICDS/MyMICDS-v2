@@ -1,7 +1,7 @@
 import { ChangeUserInfoParameters, GetUserInfoResponse, School } from '@mymicds/sdk';
+import * as _ from 'lodash';
 import moment from 'moment';
 import { Db, ObjectID } from 'mongodb';
-import * as _ from 'underscore';
 
 import * as dates from './dates';
 

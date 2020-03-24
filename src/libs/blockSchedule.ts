@@ -1,6 +1,6 @@
 import { Block } from '@mymicds/sdk';
+import * as _ from 'lodash';
 import moment from 'moment';
-import * as _ from 'underscore';
 import * as users from './users';
 
 type Days = 'day1' | 'day2' | 'day3' | 'day4' | 'day5' | 'day6';

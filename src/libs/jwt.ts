@@ -1,8 +1,8 @@
 import { Action } from '@mymicds/sdk';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
+import * as _ from 'lodash';
 import { Db, ObjectID } from 'mongodb';
-import * as _ from 'underscore';
 import * as api from './api';
 import config from './config';
 import { InputError } from './errors';

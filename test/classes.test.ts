@@ -1,10 +1,10 @@
 import { ClassType } from '@mymicds/sdk';
 import { expect, use } from 'chai';
 import chaiSubset from 'chai-subset';
+import _ from 'lodash';
 import { ObjectID } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
-import _ from 'underscore';
 import { initAPI } from '../src/init';
 import * as classes from '../src/libs/classes';
 import { saveTestClass, testClass } from './helpers/class';
