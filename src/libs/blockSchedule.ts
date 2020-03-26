@@ -1,6 +1,5 @@
 import { Block } from '@mymicds/sdk';
 import moment from 'moment';
-import * as _ from 'underscore';
 import * as users from './users';
 
 type Days = 'day1' | 'day2' | 'day3' | 'day4' | 'day5' | 'day6';
@@ -31,10 +30,10 @@ function getSchedule(date: Date | moment.Moment | null, grade: number | null, da
 	} else {
 		date = null;
 	}
-	if (typeof grade !== 'number' || _.isNaN(grade) || -1 > grade || grade > 12) {
+	if (typeof grade !== 'number' || Number.isNaN(grade) || -1 > grade || grade > 12) {
 		return null;
 	}
-	if (typeof day !== 'number' || _.isNaN(day) || 1 > day || day > 6) {
+	if (typeof day !== 'number' || Number.isNaN(day) || 1 > day || day > 6) {
 		return null;
 	}
 

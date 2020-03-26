@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import * as jwtLib from 'jsonwebtoken';
+import _ from 'lodash';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
-import _ from 'underscore';
 import { initAPI } from '../src/init';
 import config from '../src/libs/config';
 import * as passwords from '../src/libs/passwords';

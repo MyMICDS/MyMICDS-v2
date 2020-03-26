@@ -1,8 +1,8 @@
 import { expect, use } from 'chai';
 import chaiSubset from 'chai-subset';
+import _ from 'lodash';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
-import _ from 'underscore';
 import { initAPI } from '../src/init';
 import * as canvas from '../src/libs/canvas';
 import * as portal from '../src/libs/portal';

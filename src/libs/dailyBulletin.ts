@@ -3,7 +3,6 @@ import { gmail_v1, google } from 'googleapis';
 import moment from 'moment';
 import pAll from 'p-all';
 import * as path from 'path';
-import * as _ from 'underscore';
 import config from './config';
 import * as googleServiceAccount from './googleServiceAccount';
 import * as utils from './utils';
@@ -308,7 +307,7 @@ function generateFilename(filename: string, sentDate: Date): string | null {
 
 	date.setFullYear(sentDate.getFullYear());
 
-	if (_.isNaN(date.getTime())) {
+	if (Number.isNaN(date.getTime())) {
 		return null;
 	}
 

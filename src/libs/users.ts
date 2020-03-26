@@ -1,7 +1,7 @@
 import { ChangeUserInfoParameters, GetUserInfoResponse, School } from '@mymicds/sdk';
+import * as _ from 'lodash';
 import moment from 'moment';
 import { Db, ObjectID } from 'mongodb';
-import * as _ from 'underscore';
 
 import * as dates from './dates';
 
@@ -113,7 +113,7 @@ export async function changeInfo(db: Db, user: string, info: ChangeUserInfoParam
 	}
 	if (info.gradYear === null) {
 		set.gradYear = null;
-	} else if (typeof info.gradYear === 'number' && info.gradYear % 1 === 0 && !_.isNaN(info.gradYear)) {
+	} else if (typeof info.gradYear === 'number' && info.gradYear % 1 === 0 && !Number.isNaN(info.gradYear)) {
 		set.gradYear = info.gradYear;
 	}
 

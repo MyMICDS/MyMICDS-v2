@@ -1,8 +1,8 @@
 import { Block, ClassType, GetScheduleResponse, ScheduleClass } from '@mymicds/sdk';
+import * as _ from 'lodash';
 import moment from 'moment';
 import { Db } from 'mongodb';
 import prisma from 'prisma';
-import * as _ from 'underscore';
 import * as aliases from './aliases';
 import * as blockSchedule from './blockSchedule';
 import { BlockFormat, LunchBlockFormat } from './blockSchedule';
@@ -502,7 +502,7 @@ function combineClassesSchedule(date: Date | moment.Moment, schedule: BlockForma
 	// TODO: Is this still needed? Looks like something left behind after a refactor.
 	// noinspection JSUnusedAssignment
 	date = moment(date);
-	if (!_.isArray(schedule)) { schedule = []; }
+	if (!Array.isArray(schedule)) { schedule = []; }
 	if (typeof blocks !== 'object') { blocks = {}; }
 
 	// Loop through schedule
@@ -553,8 +553,8 @@ function combineClassesSchedule(date: Date | moment.Moment, schedule: BlockForma
  * @returns A sorted array of classes.
  */
 function ordineSchedule(baseSchedule: ClassesOrBlocks, addClasses: ClassesOrBlocks): ClassesOrBlocks {
-	if (!_.isArray(baseSchedule)) { baseSchedule = []; }
-	if (!_.isArray(addClasses)) { addClasses = []; }
+	if (!Array.isArray(baseSchedule)) { baseSchedule = []; }
+	if (!Array.isArray(addClasses)) { addClasses = []; }
 
 	// Add each class to the base schedule
 	for (const addClass of addClasses) {

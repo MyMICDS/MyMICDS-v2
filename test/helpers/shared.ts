@@ -1,9 +1,9 @@
 import { expect } from 'chai';
+import _ from 'lodash';
 import { Context } from 'mocha';
 import { Db } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
-import _ from 'underscore';
 import { generateJWT, saveTestUser } from './user';
 
 declare global {

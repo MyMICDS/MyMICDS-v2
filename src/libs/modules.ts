@@ -1,6 +1,6 @@
 import { MyMICDSModule, MyMICDSModuleType } from '@mymicds/sdk';
+import * as _ from 'lodash';
 import { Db, ObjectID } from 'mongodb';
-import * as _ from 'underscore';
 import { InputError } from './errors';
 import * as users from './users';
 import { Constructor, StringDict } from './utils';

@@ -1,7 +1,6 @@
 import { RegisterParameters } from '@mymicds/sdk';
 import * as crypto from 'crypto';
 import { Db } from 'mongodb';
-import * as _ from 'underscore';
 import { promisify } from 'util';
 import * as admins from './admins';
 import * as cryptoUtils from './cryptoUtils';
@@ -62,7 +61,7 @@ export async function register(db: Db, user: NewUserData) {
 	}
 
 	// If gradYear not valid, default to faculty
-	if (typeof user.gradYear !== 'number' || user.gradYear % 1 !== 0 || _.isNaN(user.gradYear)) {
+	if (typeof user.gradYear !== 'number' || user.gradYear % 1 !== 0 || Number.isNaN(user.gradYear)) {
 		user.gradYear = null;
 	}
 

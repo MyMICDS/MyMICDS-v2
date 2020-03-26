@@ -1,8 +1,8 @@
 import { GetPortalDayRotationResponse } from '@mymicds/sdk';
 import { expect } from 'chai';
+import _ from 'lodash';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
-import _ from 'underscore';
 import { initAPI } from '../src/init';
 import * as users from '../src/libs/users';
 import * as calServer from './calendars/server';

@@ -1,10 +1,10 @@
 import { GetPortalDayRotationResponse } from '@mymicds/sdk';
 
 import * as ical from 'ical';
+import * as _ from 'lodash';
 import moment from 'moment';
 import { Db, ObjectID } from 'mongodb';
 import request, { FullResponse } from 'request-promise-native';
-import * as _ from 'underscore';
 import { URL } from 'url';
 import * as calServer from '../../test/calendars/server';
 import config from './config';
