@@ -11,6 +11,8 @@ export default {
 
 	forceError: [] as string[], // List of routes to force error responses on. Used for testing.
 
+	forceSpecial: false, // Forces all schedule requests to use portal schedule directly (added for COVID-19 schedule)
+
 	email: {
 		URI      : '',
 		fromEmail: 'support@mymicds.net',
