@@ -8,4 +8,5 @@ ssh apps@$IP -p $PORT <<EOF
   cd $DEPLOY_DIR
   git pull
   npm ci
+  pm2 restart mymicds mymicds-tasks
 EOF
