@@ -179,10 +179,6 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 		end: defaultEnd
 	}];
 
-	// Get block schedule for user
-	// tslint:disable-next-line:max-line-length
-	const daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc!.gradYear)!, scheduleDay, lateStart);
-
 	// If it isn't a user OR it's a teacher with no Portal URL
 	if (!isUser || (userDoc!.gradYear === null && typeof userDoc!.portalURLClasses !== 'string')) {
 		// Fallback to default schedule if user is invalid
@@ -200,6 +196,10 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 
 		return { hasURL: false, schedule };
 	}
+
+	// Get block schedule for user
+	// tslint:disable-next-line:max-line-length
+	const daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc!.gradYear)!, scheduleDay, lateStart);
 
 	if (portalBroke || typeof userDoc!.portalURLClasses !== 'string') {
 		// If user is logged in, but hasn't configured their Portal URL
