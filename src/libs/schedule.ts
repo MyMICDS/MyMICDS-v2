@@ -7,7 +7,6 @@ import * as aliases from './aliases';
 import * as blockSchedule from './blockSchedule';
 import { BlockFormat, LunchBlockFormat } from './blockSchedule';
 import * as classes from './classes';
-import config from './config';
 import * as feeds from './feeds';
 import * as portal from './portal';
 import { PortalCacheEvent } from './portal';
@@ -299,7 +298,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 			if (scheduleDate.isSame(start, 'day')) {
 				// Check if special schedule
 				const lowercaseSummary = calEvent.summary!.toLowerCase();
-				if (config.forceSpecial || (lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule'))) {
+				if (lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
 					schedule.special = true;
 					continue;
 				}
