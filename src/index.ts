@@ -4,7 +4,10 @@ import config from './libs/config';
 
 const port = process.env.PORT || config.port;
 
-Sentry.init({ dsn: 'https://7b1ca7e5c35043b3a79c69e83d4fd709@sentry.io/2721831' });
+Sentry.init({
+	dsn: 'https://7b1ca7e5c35043b3a79c69e83d4fd709@sentry.io/2721831',
+	enabled: config.production
+});
 
 initAPI(config.mongodb.uri).then(([app, _, server]) => {
 	app.get('/', (req, res) => {
