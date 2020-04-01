@@ -116,13 +116,13 @@ function parseCanvasTitle(title: string) {
 	const firstLastBrackets = /(^\[)|(]$)/g;
 
 	// Get what's in the square brackets, including square brackets
-	const classTeacher = _.last(Array.from(title.match(classTeacherRegex)!)) || '';
+	const classTeacher = _.last(Array.from(title.match(classTeacherRegex) || [])) || '';
 	const classTeacherNoBrackets = classTeacher.replace(firstLastBrackets, '');
 	// Subtract the class/teacher from the Canvas title
 	const assignmentName = title.replace(classTeacherRegex, '').trim();
 
 	// Also check if there's a teacher, typically separated by a colon
-	const teacher = (_.last(classTeacherNoBrackets.match(teacherRegex)!) || '').replace(/^:/g, '');
+	const teacher = (_.last(classTeacherNoBrackets.match(teacherRegex) || []) || '').replace(/^:/g, '');
 	const teacherFirstName = teacher[0] || '';
 	const teacherLastName = (teacher[1] || '') + teacher.substring(2).toLowerCase();
 
