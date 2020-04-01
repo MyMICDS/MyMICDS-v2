@@ -7,7 +7,6 @@ import * as aliases from './aliases';
 import * as blockSchedule from './blockSchedule';
 import { BlockFormat, LunchBlockFormat } from './blockSchedule';
 import * as classes from './classes';
-import config from './config';
 import * as feeds from './feeds';
 import * as portal from './portal';
 import { PortalCacheEvent } from './portal';
@@ -198,6 +197,10 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 		return { hasURL: false, schedule };
 	}
 
+	// Get block schedule for user
+	// tslint:disable-next-line:max-line-length
+	const daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc!.gradYear)!, scheduleDay, lateStart);
+
 	if (portalBroke || typeof userDoc!.portalURLClasses !== 'string') {
 		// If user is logged in, but hasn't configured their Portal URL
 		// We would know their grade, and therefore their generic block schedule, as well as any classes they configured
@@ -218,10 +221,6 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 			classes: [],
 			allDay: []
 		};
-
-		// Look up Block Schedule for user
-		// tslint:disable-next-line:no-shadowed-variable max-line-length
-		const daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc!.gradYear!)!, scheduleDay!, lateStart);
 
 		// Only combine with block schedule if the block schedule exists
 		if (!daySchedule) { return { hasURL: false, schedule }; }
@@ -299,7 +298,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 			if (scheduleDate.isSame(start, 'day')) {
 				// Check if special schedule
 				const lowercaseSummary = calEvent.summary!.toLowerCase();
-				if (config.forceSpecial || (lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule'))) {
+				if (lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
 					schedule.special = true;
 					continue;
 				}
@@ -396,14 +395,43 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 
 	portalSchedule = ordineSchedule([], portalSchedule) as ScheduleClasses;
 
+	let misaligned = false;
+
+	// Loop through portal schedule to check for inconsistencies with the block schedule
+	// If there's multiple periods that don't line up, just call it a special schedule
+	// (If there's no block schedule, just ignore it I guess?)
+	if (daySchedule) {
+		for (const portalClass of portalSchedule) {
+			const portalBlock = portalClass.class.block;
+			if (portalBlock !== Block.OTHER) {
+				const dayClass = daySchedule.find(d => d.block === portalBlock);
+
+				if (
+					// If there's no matching day class with the same block, just skip
+					// Sometimes this happens because of lunch blocks
+					// It's extremely ugly to workaround, but it works fine as is so I don't think it matters
+					dayClass &&
+					!(
+						(dayClass.start as moment.Moment).isSame(portalClass.start) &&
+						(dayClass.end as moment.Moment).isSame(portalClass.end)
+					)
+				) {
+					misaligned = true;
+				}
+			}
+
+			if (misaligned) {
+				schedule.special = true;
+				break;
+			}
+		}
+	}
+
 	// If special schedule, just use default portal schedule
 	if (schedule.special) {
 		schedule.classes = portalSchedule;
 		return { hasURL: true, schedule };
 	}
-
-	// tslint:disable-next-line:max-line-length
-	const daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc!.gradYear)!, schedule.day!, lateStart);
 
 	// If schedule is null for some reason, default back to portal schedule
 	if (daySchedule === null) {
