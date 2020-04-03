@@ -28,8 +28,12 @@ export async function updateCanvasCache(db: Db, user: string) {
 
 	if (events === null || events.length === 0) { return; }
 
+	const creationDate = new Date();
+
 	for (const ev of events) {
 		(ev as any).user = userDoc!._id;
+		// Mongo operators don't work for insertMany so set creation time manually
+		(ev as any).createdAt = creationDate;
 	}
 
 	try {
