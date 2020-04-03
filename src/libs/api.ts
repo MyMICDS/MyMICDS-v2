@@ -64,7 +64,7 @@ function respondError(res: Response, error: Error | string | null, action: Actio
 	let err = null;
 
 	if (typeof error === 'object') {
-		// optional chaining
+		// ignore if error is null
 		err = error?.message;
 	}
 
