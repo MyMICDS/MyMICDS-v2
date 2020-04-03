@@ -36,7 +36,8 @@ export async function initAPI(dbUri: string) {
 
 	// Force error response for testing routes
 	app.use((req, res, next) => {
-		if (config.forceError && config.forceError.includes(req.originalUrl)) {
+		//  ignore if forceError is null/undefined
+		if (config.forceError?.includes(req.originalUrl)) {
 			api.error(res, new Error('Forced error response for route'));
 			return;
 		}

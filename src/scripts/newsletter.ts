@@ -90,7 +90,8 @@ getBlacklist().then(async blacklist => {
 		}
 
 		// Make sure user hasn't unsubscribed from these types of things
-		if (userDoc.unsubscribed && (userDoc.unsubscribed.includes('ALL') || userDoc.unsubscribed.includes(messageType.toUpperCase()))) {
+		// ignore if userDoc.unsubscribed does not exist
+		if ((userDoc.unsubscribed?.includes('ALL') || userDoc.unsubscribed?.includes(messageType.toUpperCase()))) {
 			console.log(`[${getDuration()}] Skipping user ${userDoc.user} because they are unsubscribed from these messages. ${percent}% complete (${i + 1} / ${userDocs.length})`);
 			continue;
 		}
