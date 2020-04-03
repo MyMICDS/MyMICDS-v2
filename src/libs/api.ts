@@ -62,9 +62,12 @@ function respondSuccess(res: Response, data: any = {}, action: Action | null = n
 function respondError(res: Response, error: Error | string | null, action: Action | null = null) {
 	// Check for different types of errors
 	let err = null;
-	if (error !== null && typeof error === 'object') {
-		err = error.message;
+
+	if (typeof error === 'object') {
+		// optional chaining
+		err = error?.message;
 	}
+
 	if (typeof error === 'string') {
 		err = error;
 	}
