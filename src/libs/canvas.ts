@@ -376,7 +376,7 @@ export async function getUniqueEvents(db: Db) {
 	return assignments;
 }
 
-export type CanvasCacheEvent = ical.CalendarComponent & { _id: string | ObjectID };
+export type CanvasCacheEvent = ical.CalendarComponent & { _id: string | ObjectID, user: ObjectID, createdAt: Date };
 
 export interface UniqueEvent {
 	_id: string;
