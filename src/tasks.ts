@@ -6,6 +6,7 @@ import * as admins from './libs/admins';
 import config from './libs/config';
 import * as dailyBulletin from './libs/dailyBulletin';
 import * as feeds from './libs/feeds';
+import { UserDoc } from './libs/users';
 import * as weather from './libs/weather';
 
 // Only run these intervals in production so we don't waste our API calls
@@ -105,11 +106,11 @@ if (config.production) {
 		 */
 
 		later.setInterval(async () => {
-			const userdata = db.collection('users');
+			const userdata = db.collection<UserDoc>('users');
 
 			const users = await userdata.find({ confirmed: true }).toArray();
 
-			for (const user of users) {
+			for (const { user } of users) {
 				setTimeout(async () => {
 					try {
 						await feeds.updateCanvasCache(db, user);
@@ -127,11 +128,11 @@ if (config.production) {
 		 */
 
 		later.setInterval(async () => {
-			const userdata = db.collection('users');
+			const userdata = db.collection<UserDoc>('users');
 
 			const users = await userdata.find({ confirmed: true }).toArray();
 
-			for (const user of users) {
+			for (const { user } of users) {
 				setTimeout(async () => {
 					try {
 						await feeds.addPortalQueueClasses(db, user);
