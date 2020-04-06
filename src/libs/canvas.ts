@@ -313,7 +313,8 @@ export async function getFromCache(db: Db, user: string) {
 			start,
 			end,
 			link: calendarToEvent(canvasEvent.url!) || '',
-			checked: checkedEventsList.includes(canvasEvent.uid!)
+			checked: checkedEventsList.includes(canvasEvent.uid!),
+			createdAt: canvasEvent.createdAt
 		};
 
 		if (typeof canvasEvent['ALT-DESC'] === 'object') {
