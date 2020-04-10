@@ -293,9 +293,6 @@ export async function getFromCache(db: Db, user: string) {
 	}
 
 	for (const canvasEvent of events) {
-		// Skip custom Canvas calendar events
-		if (canvasEvent.uid!.includes('event-calendar-event')) { continue; }
-
 		const parsedEvent = parseCanvasTitle(canvasEvent.summary!);
 
 		// Check if alias for class first
