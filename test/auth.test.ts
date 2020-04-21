@@ -27,6 +27,12 @@ describe('Auth', () => {
 		this.ctx.route = '/auth/register';
 		const payload = _.pick(testUser, ['user', 'password', 'firstName', 'lastName', 'gradYear']);
 
+		const teacherPayload = {
+			...payload,
+			gradYear: null,
+			teacher: true
+		};
+
 		it('creates a user', async function() {
 			await buildRequest(this).send(payload).expect(200);
 
@@ -34,6 +40,16 @@ describe('Auth', () => {
 			expect(isUser).to.be.true;
 			expect(userDoc).to.be.not.null;
 			expect(userDoc).to.have.property('confirmationHash').that.is.a('string');
+		});
+
+		it('creates a teacher', async function() {
+			await buildRequest(this).send(teacherPayload).expect(200);
+
+			const { isUser, userDoc } = await users.get(this.db, 'test');
+			expect(isUser).to.be.true;
+			expect(userDoc).to.be.not.null;
+			expect(userDoc).to.have.property('confirmationHash').that.is.a('string');
+			expect(userDoc).to.have.property('gradYear').that.is.null;
 		});
 
 		it('rejects blacklisted passwords', async function() {
