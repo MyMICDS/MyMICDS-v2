@@ -1,22 +1,17 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
-name: Node.js CI
+name: MyMICDS CI
 
 on:
   push:
-    branches: [ master ]
+    branches: master
   pull_request:
-    branches: [ master ]
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 14.x]
+        node-version: [12.x, 14.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -24,5 +19,34 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm ci
-    - run: npm test
+    - name: Install dependencies
+      run: npm ci
+    - name: Decrypt secret files
+      run: ./.github/scripts/decrypt_secrets.sh
+      env:
+        FILE_DECRYPT_KEY: ${{ secrets.FILE_DECRYPT_KEY }}
+        FILE_DECRYPT_IV: ${{ secrets.FILE_DECRYPT_IV }}
+    - name: Run tests
+      run: npm test
+
+  deploy:
+    # even though the workflow should only run if we're on master in the first place,
+    # explicitly check before running the deploy in case we broaden the workflow events
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Decrypt secret files
+        run: ./.github/scripts/decrypt_secrets.sh
+        env:
+          FILE_DECRYPT_KEY: ${{ secrets.FILE_DECRYPT_KEY }}
+          FILE_DECRYPT_IV: ${{ secrets.FILE_DECRYPT_IV }}
+      - name: Deploy to remote server
+        run: ./.github/scripts/deploy.sh
+        env:
+          IP: ${{ secrets.DEPLOY_SSH_IP }}
+          PORT: ${{ secrets.DEPLOY_SSH_PORT }}
+          DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
