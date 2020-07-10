@@ -8,7 +8,7 @@ export const testUser = {
 	password: 'test',
 	firstName: 'Test',
 	lastName: 'User',
-	gradYear: 2020,
+	gradYear: 2021,
 	confirmed: true,
 	registered: new Date(),
 	confirmationHash: 'asdf',
