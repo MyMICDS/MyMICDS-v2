@@ -2,7 +2,7 @@ name: MyMICDS CI
 
 on:
   push:
-    branches: master
+    branches: migrate-actions
   pull_request:
 
 jobs:
@@ -32,7 +32,7 @@ jobs:
   deploy:
     # even though the workflow should only run if we're on master in the first place,
     # explicitly check before running the deploy in case we broaden the workflow events
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/migrate-actions'
 
     runs-on: ubuntu-latest
     needs: test
