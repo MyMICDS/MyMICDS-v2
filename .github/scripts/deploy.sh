@@ -1,8 +1,12 @@
 #!/bin/bash
 
 eval "$(ssh-agent -s)"
-chmod 600 .travis/id_rsa
-ssh-add .travis/id_rsa
+chmod 600 .github/secrets/id_rsa
+ssh-add .github/secrets/id_rsa
+
+# set up known hosts
+mkdir -p ~/.ssh
+ssh-keyscan -p $PORT $IP >> ~/.ssh/known_hosts
 
 ssh apps@$IP -p $PORT <<EOF
   cd $DEPLOY_DIR

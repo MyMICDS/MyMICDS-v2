@@ -1,0 +1,52 @@
+name: MyMICDS CI
+
+on:
+  push:
+    branches: master
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Install dependencies
+      run: npm ci
+    - name: Decrypt secret files
+      run: ./.github/scripts/decrypt_secrets.sh
+      env:
+        FILE_DECRYPT_KEY: ${{ secrets.FILE_DECRYPT_KEY }}
+        FILE_DECRYPT_IV: ${{ secrets.FILE_DECRYPT_IV }}
+    - name: Run tests
+      run: npm test
+
+  deploy:
+    # even though the workflow should only run if we're on master in the first place,
+    # explicitly check before running the deploy in case we broaden the workflow events
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Decrypt secret files
+        run: ./.github/scripts/decrypt_secrets.sh
+        env:
+          FILE_DECRYPT_KEY: ${{ secrets.FILE_DECRYPT_KEY }}
+          FILE_DECRYPT_IV: ${{ secrets.FILE_DECRYPT_IV }}
+      - name: Deploy to remote server
+        run: ./.github/scripts/deploy.sh
+        env:
+          IP: ${{ secrets.DEPLOY_SSH_IP }}
+          PORT: ${{ secrets.DEPLOY_SSH_PORT }}
+          DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
