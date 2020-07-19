@@ -1,5 +1,5 @@
-import * as Sentry from '@sentry/node';
 import { initAPI } from './init';
+import * as Sentry from '@sentry/node';
 import config from './libs/config';
 
 const port = process.env.PORT || config.port;

@@ -1,7 +1,7 @@
-import { Teacher } from '@mymicds/sdk';
 import { Db, ObjectID } from 'mongodb';
 import { InputError } from './errors';
 import { Omit } from './utils';
+import { Teacher } from '@mymicds/sdk';
 
 const validTeacherPrefixes = [
 	'Mr.',

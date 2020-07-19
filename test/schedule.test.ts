@@ -1,17 +1,17 @@
 import { AliasType, Block } from '@mymicds/sdk';
+import { buildRequest } from './helpers/shared';
+import { defaultSchoolBlock } from '../src/libs/schedule';
 import { expect, use } from 'chai';
+import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { ObjectID } from 'mongodb';
+import { saveTestClass } from './helpers/class';
+import * as aliases from '../src/libs/aliases';
+import * as calServer from './calendars/server';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
-import { ObjectID } from 'mongodb';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
-import { initAPI } from '../src/init';
-import * as aliases from '../src/libs/aliases';
-import { defaultSchoolBlock } from '../src/libs/schedule';
-import * as calServer from './calendars/server';
-import { saveTestClass } from './helpers/class';
-import { buildRequest } from './helpers/shared';
-import { generateJWT, saveTestUser, testUser } from './helpers/user';
 
 use(chaiSubset);
 

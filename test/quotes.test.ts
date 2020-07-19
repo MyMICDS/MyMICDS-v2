@@ -1,10 +1,10 @@
-import { expect, use } from 'chai';
-import chaiSubset from 'chai-subset';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
-import { initAPI } from '../src/init';
-import * as quotes from '../src/libs/quotes';
 import { buildRequest, validateParameters } from './helpers/shared';
+import { expect, use } from 'chai';
+import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import * as quotes from '../src/libs/quotes';
+import chaiSubset from 'chai-subset';
+import supertest from 'supertest';
 
 use(chaiSubset);
 

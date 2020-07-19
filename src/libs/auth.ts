@@ -1,15 +1,15 @@
-import { RegisterParameters } from '@mymicds/sdk';
-import * as crypto from 'crypto';
 import { Db } from 'mongodb';
-import { promisify } from 'util';
-import * as admins from './admins';
-import * as cryptoUtils from './cryptoUtils';
 import { InputError } from './errors';
+import { Omit } from './utils';
+import { promisify } from 'util';
+import { RegisterParameters } from '@mymicds/sdk';
+import * as admins from './admins';
+import * as crypto from 'crypto';
+import * as cryptoUtils from './cryptoUtils';
 import * as jwt from './jwt';
 import * as mail from './mail';
 import * as passwords from './passwords';
 import * as users from './users';
-import { Omit } from './utils';
 
 /**
  * Validates a user's credentials and updates the last time they logged in.

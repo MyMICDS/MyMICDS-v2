@@ -1,7 +1,7 @@
 import { Weather } from '@mymicds/sdk';
-import DarkSky from 'forecast.io';
 import * as fs from 'fs-extra';
 import config from './config';
+import DarkSky from 'forecast.io';
 
 export const JSON_PATH = __dirname + '/../api/weather.json';
 

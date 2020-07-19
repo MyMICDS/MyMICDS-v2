@@ -1,16 +1,16 @@
-import * as Sentry from '@sentry/node';
+import { MongoClient } from 'mongodb';
+import * as api from './libs/api';
 import * as bodyParser from 'body-parser';
+import * as http from 'http';
+import * as jwt from './libs/jwt';
+import * as Sentry from '@sentry/node';
+import assetsHandler from './routes/assets';
+import config from './libs/config';
 import cors from 'cors';
 import express from 'express';
-import * as http from 'http';
-import { MongoClient } from 'mongodb';
-import socketFactory from 'socket.io';
-import * as api from './libs/api';
-import config from './libs/config';
-import * as jwt from './libs/jwt';
-import socketHelper from './libs/socket.io';
-import assetsHandler from './routes/assets';
 import RoutesFunction from './routes/routesFunction';
+import socketFactory from 'socket.io';
+import socketHelper from './libs/socket.io';
 
 export async function initAPI(dbUri: string) {
 	const app = express();

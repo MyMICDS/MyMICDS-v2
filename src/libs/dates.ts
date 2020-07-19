@@ -1,6 +1,6 @@
 import { GetBreaksResponse } from '@mymicds/sdk';
-import moment from 'moment';
 import * as portal from './portal';
+import moment from 'moment';
 
 /**
  * Gets the day that school will start for a given year.
@@ -23,9 +23,9 @@ export function schoolStarts() {
 
 	if (firstDayThisYear.isAfter(current)) {
 		return firstDayThisYear;
-	} else {
+	} 
 		return thirdWednesdayAugust(current.year() + 1);
-	}
+	
 }
 
 /**
@@ -85,9 +85,9 @@ export function schoolEnds() {
 
 	if (day.date() === 31) {
 		return day.subtract(1, 'week');
-	} else {
+	} 
 		return day;
-	}
+	
 }
 
 /**
@@ -102,9 +102,9 @@ export function getSchoolYear(date: Date): [number, number] {
 	// If after summer, include next year. Otherwise, include last year
 	if (dateObj.isAfter(lastDayThisYear)) {
 		return [dateObj.year(), dateObj.year() + 1];
-	} else {
+	} 
 		return [dateObj.year() - 1, dateObj.year()];
-	}
+	
 }
 
 /**

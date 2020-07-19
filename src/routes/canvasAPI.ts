@@ -1,5 +1,5 @@
-import { SetCanvasURLParameters, TestCanvasURLParameters } from '@mymicds/sdk';
 import { assertType } from 'typescript-is';
+import { SetCanvasURLParameters, TestCanvasURLParameters } from '@mymicds/sdk';
 import * as api from '../libs/api';
 import * as canvas from '../libs/canvas';
 import * as feeds from '../libs/feeds';

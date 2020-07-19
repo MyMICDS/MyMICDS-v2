@@ -1,7 +1,7 @@
-import { GetStatsResponse } from '@mymicds/sdk';
-import moment from 'moment';
 import { Db } from 'mongodb';
+import { GetStatsResponse } from '@mymicds/sdk';
 import { UserDoc } from './users';
+import moment from 'moment';
 
 /**
  * Collects usage statistics for MyMICDS.

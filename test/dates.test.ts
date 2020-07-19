@@ -1,9 +1,9 @@
-import { expect } from 'chai';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
-import { initAPI } from '../src/init';
-import * as calServer from './calendars/server';
 import { buildRequest } from './helpers/shared';
+import { expect } from 'chai';
+import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import * as calServer from './calendars/server';
+import supertest from 'supertest';
 
 describe('Dates', () => {
 	before(async function() {

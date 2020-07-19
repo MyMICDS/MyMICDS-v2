@@ -1,15 +1,15 @@
+import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
 import { ClassType } from '@mymicds/sdk';
 import { expect, use } from 'chai';
-import chaiSubset from 'chai-subset';
-import _ from 'lodash';
-import { ObjectID } from 'mongodb';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
-import { initAPI } from '../src/init';
-import * as classes from '../src/libs/classes';
-import { saveTestClass, testClass } from './helpers/class';
-import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { ObjectID } from 'mongodb';
+import { saveTestClass, testClass } from './helpers/class';
+import * as classes from '../src/libs/classes';
+import _ from 'lodash';
+import chaiSubset from 'chai-subset';
+import supertest from 'supertest';
 
 use(chaiSubset);
 

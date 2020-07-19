@@ -1,14 +1,14 @@
+import { buildRequest, requireLoggedIn } from './helpers/shared';
 import { expect, use } from 'chai';
-import chaiSubset from 'chai-subset';
-import _ from 'lodash';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
+import { generateJWT, saveTestUser, testUser } from './helpers/user';
 import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import * as calServer from './calendars/server';
 import * as canvas from '../src/libs/canvas';
 import * as portal from '../src/libs/portal';
-import * as calServer from './calendars/server';
-import { buildRequest, requireLoggedIn } from './helpers/shared';
-import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import _ from 'lodash';
+import chaiSubset from 'chai-subset';
+import supertest from 'supertest';
 
 use(chaiSubset);
 

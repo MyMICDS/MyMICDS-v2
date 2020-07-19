@@ -1,5 +1,5 @@
-import { SubmitSuggestionParameters } from '@mymicds/sdk';
 import { assertType } from 'typescript-is';
+import { SubmitSuggestionParameters } from '@mymicds/sdk';
 import * as admins from '../libs/admins';
 import * as api from '../libs/api';
 import * as jwt from '../libs/jwt';

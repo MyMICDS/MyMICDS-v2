@@ -1,5 +1,5 @@
-import { Scope } from '@mymicds/sdk';
 import { Db } from 'mongodb';
+import { Scope } from '@mymicds/sdk';
 import * as cryptoUtils from './cryptoUtils';
 import * as users from './users';
 

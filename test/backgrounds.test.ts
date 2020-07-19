@@ -1,12 +1,12 @@
-import { expect } from 'chai';
-import * as fs from 'fs-extra';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
-import { URL } from 'url';
-import { initAPI } from '../src/init';
-import * as backgrounds from '../src/libs/backgrounds';
 import { buildRequest, requireLoggedIn } from './helpers/shared';
+import { expect } from 'chai';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { URL } from 'url';
+import * as backgrounds from '../src/libs/backgrounds';
+import * as fs from 'fs-extra';
+import supertest from 'supertest';
 
 const testImageDir = __dirname + '/images';
 const testImages = {

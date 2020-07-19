@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-// ESLint doesn't like the imports just for type declarations I guess
 import { expect } from 'chai';
 import _ from 'lodash';
+// ESLint doesn't like the imports just for type declarations I guess
 import { Db } from 'mongodb';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
-import { StringDict } from '../../src/libs/utils';
 import { generateJWT, saveTestUser } from './user';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { StringDict } from '../../src/libs/utils';
+import supertest from 'supertest';
 
 declare global {
 	namespace Mocha {

@@ -1,9 +1,9 @@
+import { Db } from 'mongodb';
+import { InputError } from './errors';
+import { promisify } from 'util';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { Db } from 'mongodb';
-import { promisify } from 'util';
 import * as cryptoUtils from './cryptoUtils';
-import { InputError } from './errors';
 import * as mail from './mail';
 import * as users from './users';
 

@@ -1,13 +1,13 @@
-import { Weather } from '@mymicds/sdk';
-import { expect } from 'chai';
-import * as fs from 'fs-extra';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
 import { assertType } from 'typescript-is';
-import { initAPI } from '../src/init';
-import * as weather from '../src/libs/weather';
 import { buildRequest, requireLoggedIn } from './helpers/shared';
+import { expect } from 'chai';
 import { generateJWT, saveTestUser } from './helpers/user';
+import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { Weather } from '@mymicds/sdk';
+import * as fs from 'fs-extra';
+import * as weather from '../src/libs/weather';
+import supertest from 'supertest';
 
 describe('Weather', () => {
 	before(async function() {

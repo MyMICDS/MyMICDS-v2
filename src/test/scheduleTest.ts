@@ -1,5 +1,5 @@
-import moment from 'moment';
 import * as schedule from '../libs/schedule';
+import moment from 'moment';
 
 // Array containing classes to test
 const tests = [

@@ -1,7 +1,7 @@
-import * as jwt from 'jsonwebtoken';
 import { Server } from 'socket.io';
-import config from './config';
 import { UserPayload } from './jwt';
+import * as jwt from 'jsonwebtoken';
+import config from './config';
 
 declare global {
 	namespace SocketIO {

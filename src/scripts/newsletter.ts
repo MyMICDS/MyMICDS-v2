@@ -1,13 +1,13 @@
 // USE WITH CAUTION
 
-import { Scope } from '@mymicds/sdk';
-import * as fs from 'fs-extra';
-import moment from 'moment';
 import { MongoClient } from 'mongodb';
+import { Scope } from '@mymicds/sdk';
+import { UserDoc } from '../libs/users';
+import * as fs from 'fs-extra';
+import * as mail from '../libs/mail';
 import * as nodemailer from 'nodemailer';
 import config from '../libs/config';
-import * as mail from '../libs/mail';
-import { UserDoc } from '../libs/users';
+import moment from 'moment';
 
 const messageType = Scope.ANNOUNCEMENTS;
 const subject = 'We need your help!';
@@ -61,7 +61,7 @@ getBlacklist().then(async blacklist => {
 	}
 
 	for (let i = 0; i < userDocs.length; i++) {
-		const percent = (((i + 1) / userDocs.length) * 100).toFixed(2);
+		const percent = ((i + 1) / userDocs.length * 100).toFixed(2);
 		const userDoc = userDocs[i];
 
 		// If we're in debug mode
@@ -78,7 +78,7 @@ getBlacklist().then(async blacklist => {
 
 		// Make sure user hasn't unsubscribed from these types of things
 		// ignore if userDoc.unsubscribed does not exist
-		if ((userDoc.unsubscribed?.includes('ALL') || userDoc.unsubscribed?.includes(messageType.toUpperCase()))) {
+		if (userDoc.unsubscribed?.includes('ALL') || userDoc.unsubscribed?.includes(messageType.toUpperCase())) {
 			console.log(`[${getDuration()}] Skipping user ${userDoc.user} because they are unsubscribed from these messages. ${percent}% complete (${i + 1} / ${userDocs.length})`);
 			continue;
 		}

@@ -77,6 +77,7 @@ export async function calculate(): Promise<GetSnowdayResponse['data']> {
 		if (!labels[name]) { continue; }
 
 		// Get value of variable (we need `eval` in order to parse concatenated strings)
+		// eslint-disable-next-line no-eval
 		let value = eval(parts[1]);
 		// Get date (which is index of array)
 		const date = moment(dateString, 'YYYYMMDD');

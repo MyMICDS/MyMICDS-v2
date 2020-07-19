@@ -1,10 +1,10 @@
-import { PlannerEvent } from '@mymicds/sdk';
 import { Db, ObjectID } from 'mongodb';
-import * as classes from './classes';
 import { InputError } from './errors';
+import { Omit } from './utils';
+import { PlannerEvent } from '@mymicds/sdk';
+import * as classes from './classes';
 import * as htmlParser from './htmlParser';
 import * as users from './users';
-import { Omit } from './utils';
 
 /**
  * Adds/edits a planner event.

@@ -1,17 +1,17 @@
 import { AliasType, Block, CanvasEvent, ClassType, DefaultCanvasClass } from '@mymicds/sdk';
-import * as ical from 'ical';
-import * as _ from 'lodash';
 import { Db, ObjectID } from 'mongodb';
-import * as prisma from 'prisma';
-import * as querystring from 'querystring';
-import request from 'request-promise-native';
-import * as url from 'url';
+import { MyMICDSClassWithIDs } from './classes';
+import * as _ from 'lodash';
 import * as aliases from './aliases';
 import * as checkedEvents from './checkedEvents';
-import { MyMICDSClassWithIDs } from './classes';
 import * as feeds from './feeds';
 import * as htmlParser from './htmlParser';
+import * as ical from 'ical';
+import * as prisma from 'prisma';
+import * as querystring from 'querystring';
+import * as url from 'url';
 import * as users from './users';
+import request from 'request-promise-native';
 
 // URL Calendars come from
 const urlPrefix = 'https://micds.instructure.com/feeds/calendars/';
@@ -212,7 +212,7 @@ export async function getClasses(db: Db, user: string) {
 	// If cache is empty, update it
 	if (events.length > 0) {
 		return parseEvents(events);
-	} else {
+	} 
 		await feeds.updateCanvasCache(db, user);
 
 		let retryEvents;
@@ -223,7 +223,7 @@ export async function getClasses(db: Db, user: string) {
 		}
 
 		return parseEvents(retryEvents);
-	}
+	
 }
 
 /**
@@ -321,7 +321,7 @@ export async function getFromCache(db: Db, user: string) {
 		};
 
 		if (typeof canvasEvent['ALT-DESC'] === 'object') {
-			insertEvent.desc = (canvasEvent['ALT-DESC']).val;
+			insertEvent.desc = canvasEvent['ALT-DESC'].val;
 			insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
 		} else {
 			insertEvent.desc = '';

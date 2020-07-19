@@ -1,14 +1,14 @@
+import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
 import { expect } from 'chai';
-import * as jwtLib from 'jsonwebtoken';
-import _ from 'lodash';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
+import { generateJWT, saveTestUser, testUser } from './helpers/user';
 import { initAPI } from '../src/init';
-import config from '../src/libs/config';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import * as jwtLib from 'jsonwebtoken';
 import * as passwords from '../src/libs/passwords';
 import * as users from '../src/libs/users';
-import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
-import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import _ from 'lodash';
+import config from '../src/libs/config';
+import supertest from 'supertest';
 
 describe('Auth', () => {
 	before(async function() {

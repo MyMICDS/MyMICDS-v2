@@ -1,13 +1,13 @@
 import { Block, ClassType } from '@mymicds/sdk';
-import { Teacher } from '@mymicds/sdk/dist/libs/teachers';
 import { Db, ObjectID } from 'mongodb';
+import { InputError } from './errors';
+import { Omit } from './utils';
+import { Teacher } from '@mymicds/sdk/dist/libs/teachers';
+import * as aliases from './aliases';
 import * as prisma from 'prisma';
 import * as Random from 'random-js';
-import * as aliases from './aliases';
-import { InputError } from './errors';
 import * as teachers from './teachers';
 import * as users from './users';
-import { Omit } from './utils';
 
 const engine = Random.engines.mt19937().autoSeed();
 

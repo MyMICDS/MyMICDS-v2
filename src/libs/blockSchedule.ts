@@ -1,12 +1,11 @@
 import { Block } from '@mymicds/sdk';
-import moment from 'moment';
 import grade5Schedule from '../schedules/grade5.json';
 import grade6Schedule from '../schedules/grade6.json';
 import grade7Schedule from '../schedules/grade7.json';
-
 import grade8Schedule from '../schedules/grade8.json';
-// Schedules
 import highschoolSchedule from '../schedules/highschool.json';
+import moment from 'moment'
+// Schedules
 import * as users from './users';
 
 type Days = 'day1' | 'day2' | 'day3' | 'day4' | 'day5' | 'day6';
@@ -51,8 +50,8 @@ function getSchedule(date: Date | moment.Moment | null, grade: number | null, da
 	// Use highschool schedule if upperschool
 	if (schoolName === 'upperschool') {
 		// Determine if lowerclassman (9 - 10) or upperclassman (11 - 12)
-		const lowerclass = (grade === 9 || grade === 10);
-		const upperclass = (grade === 11 || grade === 12);
+		const lowerclass = grade === 9 || grade === 10;
+		const upperclass = grade === 11 || grade === 12;
 
 		// Loop through JSON and append classes to user schedule
 		const jsonSchedule = highschoolSchedule[`day${day}` as Days][lateStart ? 'lateStart' : 'regular'];

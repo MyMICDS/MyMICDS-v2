@@ -1,13 +1,13 @@
-import { GetBulletinsResponse } from '@mymicds/sdk';
-import { expect } from 'chai';
-import * as fs from 'fs-extra';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
 import { assertType } from 'typescript-is';
-import { initAPI } from '../src/init';
-import * as dailyBulletin from '../src/libs/dailyBulletin';
 import { buildRequest, requireLoggedIn } from './helpers/shared';
+import { expect } from 'chai';
 import { generateJWT, saveTestUser } from './helpers/user';
+import { GetBulletinsResponse } from '@mymicds/sdk';
+import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import * as dailyBulletin from '../src/libs/dailyBulletin';
+import * as fs from 'fs-extra';
+import supertest from 'supertest';
 
 describe('Daily Bulletin', () => {
 	before(async function() {

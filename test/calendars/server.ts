@@ -1,6 +1,6 @@
-import express from 'express';
-import * as http from 'http';
 import { promisify } from 'util';
+import * as http from 'http';
+import express from 'express';
 
 export const port = 42020;
 
@@ -10,9 +10,9 @@ app.use(express.static(__dirname));
 const server = new http.Server(app);
 
 export async function start() {
-	return await promisify(server.listen.bind(server))(port);
+	return promisify(server.listen.bind(server))(port);
 }
 
 export async function stop() {
-	return await promisify(server.close.bind(server))();
+	return promisify(server.close.bind(server))();
 }

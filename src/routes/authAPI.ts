@@ -1,3 +1,4 @@
+import { assertType } from 'typescript-is';
 import {
 	ChangePasswordParameters,
 	ConfirmParameters,
@@ -6,7 +7,6 @@ import {
 	RegisterParameters,
 	ResetPasswordParameters
 } from '@mymicds/sdk';
-import { assertType } from 'typescript-is';
 import * as api from '../libs/api';
 import * as auth from '../libs/auth';
 import * as jwt from '../libs/jwt';

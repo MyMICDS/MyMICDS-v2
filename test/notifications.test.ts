@@ -1,11 +1,11 @@
-import { Scope } from '@mymicds/sdk';
-import { expect } from 'chai';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
-import { initAPI } from '../src/init';
-import * as users from '../src/libs/users';
 import { buildRequest, validateParameters } from './helpers/shared';
+import { expect } from 'chai';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { Scope } from '@mymicds/sdk';
+import * as users from '../src/libs/users';
+import supertest from 'supertest';
 
 describe('Notifications', () => {
 	before(async function() {

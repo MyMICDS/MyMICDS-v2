@@ -1,16 +1,16 @@
 import { GetPortalDayRotationResponse } from '@mymicds/sdk';
-
-import * as ical from 'ical';
 import * as _ from 'lodash';
+import * as ical from 'ical';
 import moment from 'moment';
+
 import { Db, ObjectID } from 'mongodb';
-import request, { FullResponse } from 'request-promise-native';
+import { InputError } from './errors';
 import { URL } from 'url';
 import * as calServer from '../../test/calendars/server';
-import config from './config';
-import { InputError } from './errors';
 import * as feeds from './feeds';
 import * as users from './users';
+import config from './config';
+import request, { FullResponse } from 'request-promise-native';
 
 // URL Calendars come from
 const urlPrefix = 'https://api.veracross.com/micds/subscribe/';
@@ -122,7 +122,7 @@ export async function verifyURLCalendar(portalURL: string) {
 	}
 
 	// Do exact opposite as classes feed
-	if ((count / events.length) >= 0.5) {
+	if (count / events.length >= 0.5) {
 		return { isValid: 'The calendar does not contain the information we need!' +
 				'Make sure you\'re copying your \'My Calendar\' calendar!', url: null };
 	}
@@ -398,13 +398,13 @@ export async function getClasses(db: Db, user: string) {
 	// If cache is empty, update it
 	if (events!.length > 0) {
 		return { hasURL: true, classes: parsePortalClasses(events!) };
-	} else {
+	} 
 		await feeds.addPortalQueueClasses(db, user);
 
 		const { events: retryEvents } = await getFromCacheClasses(db, user);
 
 		return { hasURL: true, classes: parsePortalClasses(retryEvents!) };
-	}
+	
 }
 
 /**

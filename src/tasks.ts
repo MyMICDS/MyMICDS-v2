@@ -1,11 +1,11 @@
-import * as later from 'later';
 import { MongoClient } from 'mongodb';
+import { UserDoc } from './libs/users';
 import * as admins from './libs/admins';
-import config from './libs/config';
 import * as dailyBulletin from './libs/dailyBulletin';
 import * as feeds from './libs/feeds';
-import { UserDoc } from './libs/users';
+import * as later from 'later';
 import * as weather from './libs/weather';
+import config from './libs/config';
 
 function log(message: string) {
 	console.log(`[${new Date().toString()}] ${message}`)
@@ -124,7 +124,7 @@ if (config.production) {
 					} catch (err) {
 						log(`Error occurred updating ${user}'s Canvas cache! (${(err as Error).message})`);
 					}
-				}, (6 * 60 * 60 * 1000) / users.length);
+				}, 6 * 60 * 60 * 1000 / users.length);
 			}
 		}, later.parse.text('every 6 hours'));
 
@@ -154,7 +154,7 @@ if (config.production) {
 					} catch (err) {
 						log(`Error occurred adding ${user} to the Portal Calendar queue! (${(err as Error).message})`);
 					}
-				}, (6 * 60 * 60 * 1000) / users.length);
+				}, 6 * 60 * 60 * 1000 / users.length);
 			}
 		}, later.parse.text('every 24 hours'));
 	}).catch(err => {

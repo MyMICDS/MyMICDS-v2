@@ -1,16 +1,16 @@
 import { AliasType, ListAliasesResponse } from '@mymicds/sdk';
-import { expect, use } from 'chai';
-import chaiSubset from 'chai-subset';
-import { ObjectID } from 'mongodb';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
 import { assertType } from 'typescript-is';
+import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
+import { expect, use } from 'chai';
+import { generateJWT, saveTestUser, testUser } from './helpers/user';
 import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { ObjectID } from 'mongodb';
+import { saveTestClass } from './helpers/class';
 import * as aliases from '../src/libs/aliases';
 import * as calServer from './calendars/server';
-import { saveTestClass } from './helpers/class';
-import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
-import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import chaiSubset from 'chai-subset';
+import supertest from 'supertest';
 
 use(chaiSubset);
 

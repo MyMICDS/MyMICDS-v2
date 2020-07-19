@@ -1,8 +1,8 @@
 import { Action } from '@mymicds/sdk';
-import * as Sentry from '@sentry/node';
+import { InputError } from './errors';
 import { NextFunction, Request, Response } from 'express';
 import { TypeGuardError } from 'typescript-is';
-import { InputError } from './errors';
+import * as Sentry from '@sentry/node';
 
 declare global {
 	namespace Express {

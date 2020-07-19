@@ -1,9 +1,9 @@
+import { assertType } from 'typescript-is';
+import { buildRequest } from './helpers/shared';
 import { GetSnowdayResponse } from '@mymicds/sdk';
+import { initAPI } from '../src/init';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import supertest from 'supertest';
-import { assertType } from 'typescript-is';
-import { initAPI } from '../src/init';
-import { buildRequest } from './helpers/shared';
 
 describe('Snowday', () => {
 	before(async function() {

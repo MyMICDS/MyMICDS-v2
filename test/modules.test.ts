@@ -1,13 +1,13 @@
-import { MyMICDSModuleType } from '@mymicds/sdk';
-import { expect, use } from 'chai';
-import chaiSubset from 'chai-subset';
-import _ from 'lodash';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
-import { initAPI } from '../src/init';
-import * as modules from '../src/libs/modules';
 import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
+import { expect, use } from 'chai';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { MyMICDSModuleType } from '@mymicds/sdk';
+import * as modules from '../src/libs/modules';
+import _ from 'lodash';
+import chaiSubset from 'chai-subset';
+import supertest from 'supertest';
 
 const testModule = {
 	type: MyMICDSModuleType.PROGRESS,

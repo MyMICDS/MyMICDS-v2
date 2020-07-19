@@ -1,11 +1,8 @@
-import * as _ from 'lodash';
 import { Db } from 'mongodb';
+import * as _ from 'lodash';
 import * as canvas from './canvas';
-import { CanvasCacheEvent } from './canvas';
 import * as portal from './portal';
-import { PortalCacheEvent } from './portal';
 import * as users from './users';
-import { UserDoc } from './users';
 
 /**
  * Updates a user's Canvas cache data.
@@ -30,7 +27,7 @@ export async function updateCanvasCache(db: Db, user: string) {
 
 	const creationDate = new Date();
 
-	const newEvents = events as CanvasCacheEvent[];
+	const newEvents = events as canvas.CanvasCacheEvent[];
 
 	for (const ev of newEvents) {
 		ev.user = userDoc!._id;
@@ -55,8 +52,8 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	const portaldata = db.collection<PortalCacheEvent>('portalFeedsClasses');
-	const userdata   = db.collection<UserDoc>('users');
+	const portaldata = db.collection<portal.PortalCacheEvent>('portalFeedsClasses');
+	const userdata   = db.collection<users.UserDoc>('users');
 
 	const { cal: events } = await portal.getFromCalClasses(db, user);
 
@@ -84,7 +81,7 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 		throw new Error('There was an error removing the old events from the database!');
 	}
 
-	const newEvents = events as PortalCacheEvent[];
+	const newEvents = events as portal.PortalCacheEvent[];
 
 	for (const ev of newEvents) {
 		ev.user = userDoc!._id.toHexString();
@@ -115,8 +112,8 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	const portaldata = db.collection<PortalCacheEvent>('portalFeedsCalendar');
-	const userdata   = db.collection<UserDoc>('users');
+	const portaldata = db.collection<portal.PortalCacheEvent>('portalFeedsCalendar');
+	const userdata   = db.collection<users.UserDoc>('users');
 
 	const { cal: events } = await portal.getFromCalCalendar(db, user);
 
@@ -144,7 +141,7 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 		throw new Error('There was an error removing the old events from the database!');
 	}
 
-	const newEvents = events as PortalCacheEvent[];
+	const newEvents = events as portal.PortalCacheEvent[];
 
 	for (const ev of events) {
 		ev.user = userDoc!._id.toHexString();
@@ -170,9 +167,9 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
  * @param db Database connection.
  */
 export async function processPortalQueue(db: Db) {
-	const userdata = db.collection<UserDoc>('users');
+	const userdata = db.collection<users.UserDoc>('users');
 
-	let queue: UserDoc[];
+	let queue: users.UserDoc[];
 	try {
 		queue = await userdata.find({ $or: [{ inPortalQueueClasses: true }, { inPortalQueueCalendar: true }] }).toArray();
 	} catch (e) {

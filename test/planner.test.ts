@@ -1,16 +1,16 @@
+import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
 import { expect, use } from 'chai';
-import chaiSubset from 'chai-subset';
-import _ from 'lodash';
-import moment from 'moment';
-import { ObjectID } from 'mongodb';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
+import { generateJWT, saveTestUser, testUser } from './helpers/user';
 import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { ObjectID } from 'mongodb';
+import { saveTestClass } from './helpers/class';
 import * as checkedEvents from '../src/libs/checkedEvents';
 import * as planner from '../src/libs/planner';
-import { saveTestClass } from './helpers/class';
-import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
-import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import _ from 'lodash';
+import chaiSubset from 'chai-subset';
+import moment from 'moment';
+import supertest from 'supertest';
 
 const testEvent = {
 	title: 'test event',

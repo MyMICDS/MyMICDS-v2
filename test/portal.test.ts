@@ -1,14 +1,14 @@
-import { GetPortalDayRotationResponse } from '@mymicds/sdk';
-import { expect } from 'chai';
-import _ from 'lodash';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
-import { initAPI } from '../src/init';
-import * as users from '../src/libs/users';
-import * as calServer from './calendars/server';
-import config from './config';
 import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
+import { expect } from 'chai';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import { GetPortalDayRotationResponse } from '@mymicds/sdk';
+import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import * as calServer from './calendars/server';
+import * as users from '../src/libs/users';
+import _ from 'lodash';
+import config from './config';
+import supertest from 'supertest';
 
 describe('Portal', () => {
 	before(async function() {

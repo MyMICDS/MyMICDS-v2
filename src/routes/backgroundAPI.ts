@@ -25,9 +25,9 @@ export default ((app, db, socketIO) => {
 
 	app.put('/background', jwt.requireLoggedIn, (req, res) => {
 		// Write image to user-backgrounds
-		backgrounds.upload()(req, res, async err => {
-			if (err) {
-				api.error(res, err);
+		backgrounds.upload()(req, res, async uploadErr => {
+			if (uploadErr) {
+				api.error(res, uploadErr);
 				return;
 			}
 

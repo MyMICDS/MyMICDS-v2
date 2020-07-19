@@ -1,12 +1,12 @@
 import { Action } from '@mymicds/sdk';
-import { NextFunction, Request, RequestHandler, Response } from 'express';
-import * as jwt from 'jsonwebtoken';
 import { Db, ObjectID } from 'mongodb';
-import * as api from './api';
-import config from './config';
 import { InputError } from './errors';
-import * as users from './users';
+import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { StringDict } from './utils';
+import * as api from './api';
+import * as jwt from 'jsonwebtoken';
+import * as users from './users';
+import config from './config';
 
 declare global {
 	namespace Express {

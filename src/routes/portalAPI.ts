@@ -1,5 +1,5 @@
-import { SetPortalURLParameters, TestPortalURLParameters } from '@mymicds/sdk';
 import { assertType } from 'typescript-is';
+import { SetPortalURLParameters, TestPortalURLParameters } from '@mymicds/sdk';
 import * as api from '../libs/api';
 import * as jwt from '../libs/jwt';
 import * as portal from '../libs/portal';

@@ -1,8 +1,8 @@
-import * as crypto from 'crypto';
 import { MongoClient } from 'mongodb';
 import { promisify } from 'util';
-import config from '../libs/config';
 import { UserDoc } from '../libs/users';
+import * as crypto from 'crypto';
+import config from '../libs/config';
 
 // Connect to database
 MongoClient.connect(config.mongodb.uri).then(async (client: MongoClient) => {

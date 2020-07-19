@@ -1,8 +1,7 @@
 import { AliasType, PortalClass } from '@mymicds/sdk';
 import { Db, InsertOneWriteOpResult, ObjectID } from 'mongodb';
-import * as classes from './classes';
-import { MyMICDSClassWithIDs } from './classes';
 import { InputError } from './errors';
+import * as classes from './classes';
 import * as users from './users';
 
 /**
@@ -27,7 +26,7 @@ async function addAlias(db: Db, user: string, type: AliasType, classString: stri
 	const theClasses = await classes.get(db, user);
 
 	// Loop through classes and search for class with id specified
-	let validClassObject: MyMICDSClassWithIDs | null = null;
+	let validClassObject: classes.MyMICDSClassWithIDs | null = null;
 	for (const classObject of theClasses) {
 		if (classObject._id.toHexString() === classId) {
 			validClassObject = classObject;
@@ -108,8 +107,8 @@ async function mapAliases(db: Db, user: string) {
 		classes.get(db, user)
 	]);
 
-	const classMap: { [id: string]: MyMICDSClassWithIDs } = {};
-	const aliasMap: Partial<Record<AliasType, { [id: string]: MyMICDSClassWithIDs }>> = {};
+	const classMap: { [id: string]: classes.MyMICDSClassWithIDs } = {};
+	const aliasMap: Partial<Record<AliasType, { [id: string]: classes.MyMICDSClassWithIDs }>> = {};
 
 	// Organize classes by id
 	for (const scheduleClass of theClasses) {
@@ -127,7 +126,7 @@ async function mapAliases(db: Db, user: string) {
 		}
 	}
 
-	return aliasMap as Record<AliasType, { [id: string]: MyMICDSClassWithIDs | PortalClass }>;
+	return aliasMap as Record<AliasType, { [id: string]: classes.MyMICDSClassWithIDs | PortalClass }>;
 }
 
 /**

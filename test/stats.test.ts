@@ -1,12 +1,12 @@
-import { GetStatsResponse } from '@mymicds/sdk';
-import { expect } from 'chai';
-import moment from 'moment';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
 import { assertType } from 'typescript-is';
-import { initAPI } from '../src/init';
 import { buildRequest } from './helpers/shared';
+import { expect } from 'chai';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import { GetStatsResponse } from '@mymicds/sdk';
+import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import moment from 'moment';
+import supertest from 'supertest';
 
 describe('Stats', () => {
 	before(async function() {

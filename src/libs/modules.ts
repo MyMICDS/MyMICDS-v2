@@ -1,9 +1,9 @@
-import { MyMICDSModule, MyMICDSModuleType } from '@mymicds/sdk';
-import * as _ from 'lodash';
+import { Constructor, StringDict } from './utils';
 import { Db, ObjectID } from 'mongodb';
 import { InputError } from './errors';
+import { MyMICDSModule, MyMICDSModuleType } from '@mymicds/sdk';
+import * as _ from 'lodash';
 import * as users from './users';
-import { Constructor, StringDict } from './utils';
 
 // Custom enum types
 enum CountdownMode {
@@ -263,10 +263,10 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 	if (!modules.every(m => m.width > 0)) { throw new InputError('Modules must be at least 1 cell wide!'); }
 	if (!modules.every(m => m.height > 0)) { throw new InputError('Modules must be at least 1 cell tall!'); }
 
-	if (!modules.every(m => (columnStarts <= m.column) && (m.column + m.width - columnStarts <= columnsPerRow))) {
+	if (!modules.every(m => columnStarts <= m.column && m.column + m.width - columnStarts <= columnsPerRow)) {
 		throw new InputError(`Module column exceeds range between ${columnStarts} - ${columnsPerRow}!`);
 	}
-	if (!modules.every(m => (rowStarts <= m.row))) {
+	if (!modules.every(m => rowStarts <= m.row)) {
 		throw new InputError(`Module row below minimum value of ${rowStarts}!`);
 	}
 

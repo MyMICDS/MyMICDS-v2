@@ -1,7 +1,7 @@
 import { Db } from 'mongodb';
+import { UserDoc } from '../../src/libs/users';
 import * as cryptoUtils from '../../src/libs/cryptoUtils';
 import * as jwt from '../../src/libs/jwt';
-import { UserDoc } from '../../src/libs/users';
 
 export const testUser = {
 	user: 'test',
@@ -25,5 +25,5 @@ export async function saveTestUser(db: Db, params: Partial<UserDoc> = {}) {
 }
 
 export async function generateJWT(db: Db) {
-	return await jwt.generate(db, testUser.user, false, 'test JWT');
+	return jwt.generate(db, testUser.user, false, 'test JWT');
 }

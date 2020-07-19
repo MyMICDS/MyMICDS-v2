@@ -1,5 +1,5 @@
-import { Quote } from '@mymicds/sdk';
 import { Db } from 'mongodb';
+import { Quote } from '@mymicds/sdk';
 
 /**
  * Retrieves all quotes from the database.

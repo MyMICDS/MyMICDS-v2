@@ -1,12 +1,12 @@
+import { Db } from 'mongodb';
+import { InputError } from './errors';
+import { promisify } from 'util';
+import { UserDoc } from './users';
 import * as fs from 'fs-extra';
 import * as Jimp from 'jimp';
-import { Db } from 'mongodb';
-import multer from 'multer';
 import * as path from 'path';
-import { promisify } from 'util';
 import config from './config';
-import { InputError } from './errors';
-import { UserDoc } from './users';
+import multer from 'multer';
 
 // Valid MIME Types for image backgrounds
 const validMimeTypes: { [mime: string]: string } = {

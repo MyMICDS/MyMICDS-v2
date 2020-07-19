@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb';
-import config from '../libs/config';
 import * as portal from '../libs/portal';
+import config from '../libs/config';
 
 const user = process.argv[2];
 
