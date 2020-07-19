@@ -1,20 +1,21 @@
 import { Block } from '@mymicds/sdk';
+import * as users from './users';
+import moment from 'moment'
+
+type Days = 'day1' | 'day2' | 'day3' | 'day4' | 'day5' | 'day6';
+
 import grade5Schedule from '../schedules/grade5.json';
 import grade6Schedule from '../schedules/grade6.json';
 import grade7Schedule from '../schedules/grade7.json';
 import grade8Schedule from '../schedules/grade8.json';
-import highschoolSchedule from '../schedules/highschool.json';
-import moment from 'moment'
-// Schedules
-import * as users from './users';
+import hsSchedule from '../schedules/highschool.json';
 
-type Days = 'day1' | 'day2' | 'day3' | 'day4' | 'day5' | 'day6';
-
+const highschoolSchedule = hsSchedule as Record<Days, DaySchedule>;
 const middleschoolSchedule = {
-	8: grade8Schedule,
-	7: grade7Schedule,
-	6: grade6Schedule,
-	5: grade5Schedule
+	8: grade8Schedule as Record<Days, DaySchedule>,
+	7: grade7Schedule as Record<Days, DaySchedule>,
+	6: grade6Schedule as Record<Days, DaySchedule>,
+	5: grade5Schedule as Record<Days, DaySchedule>
 };
 
 /**
