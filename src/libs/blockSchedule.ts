@@ -1,19 +1,22 @@
 import { Block } from '@mymicds/sdk';
 import moment from 'moment';
+import grade5Schedule from '../schedules/grade5.json';
+import grade6Schedule from '../schedules/grade6.json';
+import grade7Schedule from '../schedules/grade7.json';
+
+import grade8Schedule from '../schedules/grade8.json';
+// Schedules
+import highschoolSchedule from '../schedules/highschool.json';
 import * as users from './users';
 
 type Days = 'day1' | 'day2' | 'day3' | 'day4' | 'day5' | 'day6';
 
-// tslint:disable:no-var-requires
-// Schedules
-const highschoolSchedule = require(__dirname + '/../schedules/highschool.json') as Record<Days, DaySchedule>;
 const middleschoolSchedule = {
-	8: require(__dirname + '/../schedules/grade8.json') as Record<Days, DaySchedule>,
-	7: require(__dirname + '/../schedules/grade7.json') as Record<Days, DaySchedule>,
-	6: require(__dirname + '/../schedules/grade6.json') as Record<Days, DaySchedule>,
-	5: require(__dirname + '/../schedules/grade5.json') as Record<Days, DaySchedule>
+	8: grade8Schedule,
+	7: grade7Schedule,
+	6: grade6Schedule,
+	5: grade5Schedule
 };
-// tslint:enable:no-var-requires
 
 /**
  * Gets the generic schedule for a user depending on their grade.
@@ -52,7 +55,7 @@ function getSchedule(date: Date | moment.Moment | null, grade: number | null, da
 		const upperclass = (grade === 11 || grade === 12);
 
 		// Loop through JSON and append classes to user schedule
-		const jsonSchedule = highschoolSchedule['day' + day as Days][lateStart ? 'lateStart' : 'regular'];
+		const jsonSchedule = highschoolSchedule[`day${day}` as Days][lateStart ? 'lateStart' : 'regular'];
 
 		for (const jsonBlock of jsonSchedule) {
 			// Check for any restrictions on the block
@@ -69,7 +72,7 @@ function getSchedule(date: Date | moment.Moment | null, grade: number | null, da
 
 	} else if (schoolName === 'middleschool') {
 		// Directly return JSON from middleschool schedule
-		userSchedule = middleschoolSchedule[grade as 8 | 7 | 6 | 5]['day' + day as Days][lateStart ? 'lateStart' : 'regular'];
+		userSchedule = middleschoolSchedule[grade as 8 | 7 | 6 | 5][`day${day}` as Days][lateStart ? 'lateStart' : 'regular'];
 	}
 
 	// Copy the JSON so we don't modify the original reference

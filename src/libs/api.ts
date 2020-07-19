@@ -40,7 +40,7 @@ export function adminOverride(req: Request, res: Response, next: NextFunction) {
  * @param data Any data that the API should respond with.
  * @param action An action for the front-end client to perform.
  */
-function respondSuccess(res: Response, data: any = {}, action: Action | null = null) {
+function respondSuccess(res: Response, data: unknown = {}, action: Action | null = null) {
 	// Make sure it's a valid action
 	if (action && !Object.values(Action).includes(action)) {
 		action = null;

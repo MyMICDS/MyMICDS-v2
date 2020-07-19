@@ -58,7 +58,7 @@ export async function initAPI(dbUri: string) {
 	assetsHandler(app);
 
 	// Require all routes
-	const routes = await Promise.all<RoutesFunction>([
+	const routes = await Promise.all([
 		'alias',
 		'auth',
 		'background',
@@ -82,7 +82,7 @@ export async function initAPI(dbUri: string) {
 		'teacher',
 		'user',
 		'weather'
-	].map(r => import(`./routes/${r}API`).then(i => i.default)));
+	].map(r => import(`./routes/${r}API`).then(i => i.default as RoutesFunction)));
 
 	for (const route of routes) {
 		route(app, db, socketIO);

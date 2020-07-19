@@ -88,8 +88,8 @@ async function listAliases(db: Db, user: string) {
 	// Loop through aliases and organize them by type
 	for (const alias of aliases) {
 		// Make sure alias type exists
-		if (aliasList[alias.type as AliasType]) {
-			aliasList[alias.type as AliasType].push(alias);
+		if (aliasList[alias.type]) {
+			aliasList[alias.type].push(alias);
 		}
 	}
 
@@ -118,12 +118,12 @@ async function mapAliases(db: Db, user: string) {
 
 	// Organize aliases by native class id
 	for (const type of Object.values(AliasType)) {
-		aliasMap[type as AliasType] = {};
+		aliasMap[type] = {};
 
-		if (typeof aliases[type as AliasType] !== 'object') { continue; }
+		if (typeof aliases[type] !== 'object') { continue; }
 
-		for (const aliasObject of aliases[type as AliasType]) {
-			aliasMap[type as AliasType]![aliasObject.classRemote] = classMap[aliasObject.classNative.toHexString()];
+		for (const aliasObject of aliases[type]) {
+			aliasMap[type]![aliasObject.classRemote] = classMap[aliasObject.classNative.toHexString()];
 		}
 	}
 

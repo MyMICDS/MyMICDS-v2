@@ -3,7 +3,6 @@
  * DO NOT MODIFY THIS DOCUMENT. Instead, create a 'config.ts' with the filled out information.
  */
 
-// tslint:disable:max-line-length
 export default {
 	port: 1420,
 	hostedOn: 'http://localhost:1420', // URL to access this server. Used for signing JWT's

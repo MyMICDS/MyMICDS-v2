@@ -27,7 +27,6 @@ export async function login(db: Db, user: string, password: string, rememberMe: 
 	if (!confirmed) {
 		return {
 			success: false,
-			// tslint:disable-next-line:max-line-length
 			message: 'Account is not confirmed! Please check your email or register under the same username to resend the email.',
 			jwt: null
 		};
@@ -128,12 +127,10 @@ export async function register(db: Db, user: NewUserData) {
 	try {
 		await admins.sendEmail(db, {
 			subject: newUser.user + ' just created a 2.0 account!',
-			// tslint:disable-next-line:max-line-length
-			html: `${newUser.firstName} ${newUser.lastName} (${newUser.gradYear}) just created an account with the username ${newUser.user}`
+			html: `${newUser.firstName} ${newUser.lastName} (${newUser.gradYear || 'teacher'}) just created an account with the username ${newUser.user}`
 		});
 	} catch (e) {
-		// tslint:disable-next-line:no-console
-		console.log('[' + new Date() + '] Error occured when sending admin notification! (' + e + ')');
+		console.log(`[${new Date().toString()}] Error occured when sending admin notification! (${(e as Error).message})`);
 	}
 }
 

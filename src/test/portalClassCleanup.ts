@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-
 import { MongoClient } from 'mongodb';
 import config from '../libs/config';
 import * as portal from '../libs/portal';

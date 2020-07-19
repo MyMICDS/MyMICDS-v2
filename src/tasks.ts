@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-
 import * as later from 'later';
 import { MongoClient } from 'mongodb';
 import * as admins from './libs/admins';
@@ -9,11 +7,15 @@ import * as feeds from './libs/feeds';
 import { UserDoc } from './libs/users';
 import * as weather from './libs/weather';
 
+function log(message: string) {
+	console.log(`[${new Date().toString()}] ${message}`)
+}
+
 // Only run these intervals in production so we don't waste our API calls
 if (config.production) {
 	console.log('Starting tasks server!');
 
-	MongoClient.connect(config.mongodb.uri).then(async (client: MongoClient) => {
+	MongoClient.connect(config.mongodb.uri).then(client => {
 		const db = client.db();
 		const fiveMinuteInterval = later.parse.text('every 5 min');
 
@@ -22,25 +24,26 @@ if (config.production) {
 		 */
 
 		later.setInterval(async () => {
-			console.log(`[${new Date()}] Check for latest Daily Bulletin`);
+			log('Check for latest Daily Bulletin');
 
 			try {
 				await dailyBulletin.queryLatest();
 
-				console.log(`[${new Date()}] Successfully got latest Daily Bulletin!`);
-			} catch (err) {
-				console.log(`[${new Date()}] Error occured for Daily Bulletin! (${err})`);
+				log('Successfully got latest Daily Bulletin!');
+			} catch (e) {
+				const err = (e as Error).message;
+				log(`Error occurred for Daily Bulletin! (${err})`);
 
 				// Alert admins if there's an error querying the Daily Bulletin
 				try {
 					await admins.sendEmail(db, {
 						subject: 'Error Notification - Daily Bulletin Retrieval',
-						html: 'There was an error when retrieving the daily bulletin.<br>Error message: ' + err
+						html: `There was an error when retrieving the daily bulletin.<br>Error message: ${err}`
 					});
 
-					console.log(`[${new Date()}] Alerted admins of error! (${err})`);
-				} catch (err) {
-					console.log(`[${new Date()}] Error occured when sending admin error notifications! (${err})`);
+					log(`Alerted admins of error! (${err})`);
+				} catch (mailErr) {
+					log(`Error occured when sending admin error notifications! (${(mailErr as Error).message})`);
 				}
 			}
 		}, fiveMinuteInterval);
@@ -50,25 +53,26 @@ if (config.production) {
 		 */
 
 		later.setInterval(async () => {
-			console.log(`[${new Date()}] Update Weather`);
+			log('Update Weather');
 
 			try {
 				await weather.update();
 
-				console.log(`[${new Date()}] Successfully updated weather!`);
-			} catch (err) {
-				console.log(`[${new Date()}] Error occured for weather! (${err})`);
+				log('Successfully updated weather!');
+			} catch (e) {
+				const err = (e as Error).message;
+				log(`Error occurred for weather! (${err})`);
 
 				// Alert admins if problem getting weather
 				try {
 					await admins.sendEmail(db, {
 						subject: 'Error Notification - Weather Retrieval',
-						html: 'There was an error when retrieving the weather.<br>Error message: ' + err
+						html: `There was an error when retrieving the weather.<br>Error message: ${err}`
 					});
 
-					console.log(`[${new Date()}] Alerted admins of error! (${err})`);
-				} catch (err) {
-					console.log(`[${new Date()}] Error occured when sending admin error notifications! (${err})`);
+					log(`Alerted admins of error! (${err})`);
+				} catch (mailErr) {
+					log(`Error occured when sending admin error notifications! (${(mailErr as Error).message})`);
 				}
 			}
 		}, fiveMinuteInterval);
@@ -78,25 +82,26 @@ if (config.production) {
 		 */
 
 		later.setInterval(async () => {
-			console.log(`[${new Date()}] Process Portal queue`);
+			log('Process Portal queue');
 
 			try {
 				await feeds.processPortalQueue(db);
 
-				console.log(`[${new Date()}] Successfully processed Portal queue!`);
-			} catch (err) {
-				console.log(`[${new Date()}] Error occurred processing Portal queue! (${err})`);
+				log('Successfully processed Portal queue!');
+			} catch (e) {
+				const err = (e as Error).message;
+				log(`Error occurred processing Portal queue! (${err})`);
 
 				// Alert admins if there's an error processing the Portal queue
 				try {
 					await admins.sendEmail(db, {
 						subject: 'Error Notification - Portal Queue',
-						html: 'There was an error when processing the Portal queue.<br>Error message: ' + err
+						html: `There was an error when processing the Portal queue.<br>Error message: ${err}`
 					});
 
-					console.log(`[${new Date()}] Alerted admins of error! (${err})`);
-				} catch (err) {
-					console.log(`[${new Date()}] Error occured when sending admin error notifications! (${err})`);
+					log(`Alerted admins of error! (${err})`);
+				} catch (mailErr) {
+					log(`Error occured when sending admin error notifications! (${(mailErr as Error).message})`);
 				}
 			}
 		}, later.parse.text('every 15 min'));
@@ -115,9 +120,9 @@ if (config.production) {
 					try {
 						await feeds.updateCanvasCache(db, user);
 
-						console.log(`[${new Date()}] Successfully updated ${user}'s Canvas cache!`);
+						log(`Successfully updated ${user}'s Canvas cache!`);
 					} catch (err) {
-						console.log(`[${new Date()}] Error occurred updating ${user}'s Canvas cache! (${err})`);
+						log(`Error occurred updating ${user}'s Canvas cache! (${(err as Error).message})`);
 					}
 				}, (6 * 60 * 60 * 1000) / users.length);
 			}
@@ -137,17 +142,17 @@ if (config.production) {
 					try {
 						await feeds.addPortalQueueClasses(db, user);
 
-						console.log(`[${new Date()}] Successfully added ${user} to the Portal Classes queue!`);
+						log(`Successfully added ${user} to the Portal Classes queue!`);
 					} catch (err) {
-						console.log(`[${new Date()}] Error occurred adding ${user} to the Portal queue! Classes (${err})`);
+						log(`Error occurred adding ${user} to the Portal Classes queue! (${(err as Error).message})`);
 					}
 
 					try {
 						await feeds.addPortalQueueCalendar(db, user);
 
-						console.log(`[${new Date()}] Successfully added ${user} to the Portal Calendar queue!`);
+						log(`Successfully added ${user} to the Portal Calendar queue!`);
 					} catch (err) {
-						console.log(`[${new Date()}] Error occurred adding ${user} to the Portal Calendar queue! (${err})`);
+						log(`Error occurred adding ${user} to the Portal Calendar queue! (${(err as Error).message})`);
 					}
 				}, (6 * 60 * 60 * 1000) / users.length);
 			}

@@ -1,6 +1,15 @@
 import * as jwt from 'jsonwebtoken';
 import { Server } from 'socket.io';
 import config from './config';
+import { UserPayload } from './jwt';
+
+declare global {
+	namespace SocketIO {
+		interface Socket {
+			decodedToken?: UserPayload;
+		}
+	}
+}
 
 export default (io: Server) => {
 
@@ -21,7 +30,7 @@ export default (io: Server) => {
 					audience: config.hostedOn,
 					issuer: config.hostedOn,
 					clockTolerance: 30
-				});
+				}) as UserPayload;
 			} catch (err) {
 				socket.emit('unauthorized');
 				return;
@@ -29,22 +38,22 @@ export default (io: Server) => {
 
 			// User is valid!
 			if (decoded) {
-				(socket as any).decodedToken = decoded;
+				socket.decodedToken = decoded;
 				socket.emit('authorized');
 			}
 		});
 	});
 
 	return {
-		global(event: string, ...args: any[]) {
+		global(event: string, ...args: unknown[]) {
 			io.emit(event, ...args);
 		},
-		user(emitUser: string, event: string, ...args: any[]) {
+		user(emitUser: string, event: string, ...args: unknown[]) {
 			for (const value of Object.values(io.sockets.connected)) {
 				// Check if user is authorized
-				if (!(value as any).decodedToken) { return; }
+				if (!value.decodedToken) { return; }
 				// If logged in user has same username as target user
-				if (emitUser === (value as any).decodedToken.user) {
+				if (emitUser === value.decodedToken.user) {
 					value.emit(event, ...args);
 				}
 			}

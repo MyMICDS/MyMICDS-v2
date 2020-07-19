@@ -29,7 +29,7 @@ export async function passwordMatches(db: Db, user: string, password: string) {
 
 	let res: boolean;
 	try {
-		res = await promisify(bcrypt.compare)(password, hash);
+		res = await bcrypt.compare(password, hash);
 	} catch (e) {
 		throw new Error('There was a problem comparing the passwords!');
 	}
@@ -129,7 +129,7 @@ export async function resetPassword(db: Db, user: string, password: string, hash
 		throw new InputError('Password change email was never sent!');
 	}
 
-	if (!cryptoUtils.safeCompare(hash, userDoc!.passwordChangeHash!)) {
+	if (!cryptoUtils.safeCompare(hash, userDoc!.passwordChangeHash)) {
 		// Hash is not valid
 		throw new InputError('Invalid hash!');
 	}

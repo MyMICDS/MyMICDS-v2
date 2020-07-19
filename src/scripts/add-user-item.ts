@@ -1,14 +1,13 @@
-// tslint:disable:no-console
-
 import * as crypto from 'crypto';
 import { MongoClient } from 'mongodb';
 import { promisify } from 'util';
 import config from '../libs/config';
+import { UserDoc } from '../libs/users';
 
 // Connect to database
 MongoClient.connect(config.mongodb.uri).then(async (client: MongoClient) => {
 	const db = client.db();
-	const userdata = db.collection('users');
+	const userdata = db.collection<UserDoc>('users');
 
 	// Get all users
 	const userDocs = await userdata.find({}).toArray();

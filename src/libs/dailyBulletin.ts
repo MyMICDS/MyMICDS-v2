@@ -114,7 +114,6 @@ export async function queryLatest() {
  * Gets every single Daily Bulletin and writes them to disk.
  */
 export async function queryAll() {
-	// tslint:disable:no-console
 	console.log('Trying to query all the Daily Bulletins in existence. This may take a bit of time...');
 
 	const jwtClient = await googleServiceAccount.create();
@@ -244,7 +243,6 @@ export async function queryAll() {
 	}));
 
 	console.log('Done!');
-	// tslint:enable:no-console
 }
 
 /**

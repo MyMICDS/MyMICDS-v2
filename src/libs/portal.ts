@@ -54,12 +54,14 @@ async function verifyURLGeneric(portalURL: string) {
 
 	const pathID = parsedURL.pathname.split('/')[3];
 
+	const uid = params.get('uid');
+
 	// noinspection SuspiciousTypeOfGuard
-	if (typeof pathID !== 'string' && typeof params.get('uid') !== 'string') {
+	if (typeof pathID !== 'string' || typeof uid !== 'string') {
 		throw new InputError('URL does not contain calendar ID!');
 	}
 
-	const validURL = `${urlPrefix}${pathID}?uid=${params.get('uid')}`;
+	const validURL = `${urlPrefix}${pathID}?uid=${uid}`;
 
 	// Now let's actually check if we can get any data from here
 	let response: FullResponse;
@@ -243,7 +245,7 @@ export async function getFromCalClasses(db: Db, user: string) {
 
 	let response: FullResponse;
 	try {
-		response = await request(userDoc!.portalURLClasses!, {
+		response = await request(userDoc!.portalURLClasses, {
 			resolveWithFullResponse: true,
 			simple: false
 		});
@@ -273,7 +275,7 @@ export async function getFromCalCalendar(db: Db, user: string) {
 
 	let response: FullResponse;
 	try {
-		response = await request(userDoc!.portalURLCalendar!, {
+		response = await request(userDoc!.portalURLCalendar, {
 			resolveWithFullResponse: true,
 			simple: false
 		});
@@ -324,7 +326,7 @@ export async function getDayRotation(date: Date) {
 			// See if valid day
 			if (validDayRotationPlain.test(calEvent.summary)) {
 				// Get actual day
-				return parseInt(calEvent.summary.match(/Day ([1-6])/)![1], 10);
+				return parseInt(/Day ([1-6])/.exec(calEvent.summary)![1], 10);
 			}
 		}
 	}
@@ -364,7 +366,7 @@ export async function getDayRotations() {
 		// See if valid day
 		if (validDayRotationPlain.test(calEvent.summary)) {
 			// Get actual day
-			const day = parseInt(calEvent.summary.match(/[1-6]/)![0], 10);
+			const day = parseInt(/[1-6]/.exec(calEvent.summary)![0], 10);
 
 			if (typeof days[year] !== 'object') {
 				days[year] = {};

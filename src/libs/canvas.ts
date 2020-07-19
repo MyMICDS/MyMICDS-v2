@@ -93,7 +93,7 @@ export async function getUserCal(db: Db, user: string) {
 
 	let response;
 	try {
-		response = await request(userDoc!.canvasURL!, {
+		response = await request(userDoc!.canvasURL, {
 			resolveWithFullResponse: true,
 			simple: false
 		});
@@ -111,7 +111,7 @@ export async function getUserCal(db: Db, user: string) {
  * @returns Parsed class and teacher data.
  */
 function parseCanvasTitle(title: string) {
-	const classTeacherRegex = /\[[^\[]+]$/g;
+	const classTeacherRegex = /\[[^[]+]$/g;
 	const teacherRegex = /:[A-Z]{5}$/g;
 	const firstLastBrackets = /(^\[)|(]$)/g;
 
@@ -127,7 +127,7 @@ function parseCanvasTitle(title: string) {
 	const teacherLastName = (teacher[1] || '') + teacher.substring(2).toLowerCase();
 
 	// Subtract teacher from classTeacher to get the class
-	const className = classTeacher.replace(teacher, '').replace(/[\[\]]/g, '').replace(/:$/g, '');
+	const className = classTeacher.replace(teacher, '').replace(/[[\]]/g, '').replace(/:$/g, '');
 
 	return {
 		assignment: assignmentName,
@@ -157,14 +157,17 @@ function calendarToEvent(calLink: string) {
 
 	// Remove hash sign and switch to event URL format
 	const eventString = calObject.hash!.slice(1);
-	let eventId;
+	// If there's a weird event ID then just pretend there's no event ID
+	// Which I think should actually create a redirect to the course
+	// There are no mistakes, just happy accidents
+	let eventId = '';
 	if (eventString.includes('assignment')) {
 		eventId = eventString.replace('assignment_', 'assignments/');
 	} else if (eventString.includes('calendar_event')) {
 		eventId = eventString.replace('calendar_event_', 'calendar_events/');
 	}
 
-	return 'https://micds.instructure.com/' + courseId + '/' + eventId;
+	return `https://micds.instructure.com/${courseId}/${eventId}`;
 }
 
 /**
@@ -301,6 +304,9 @@ export async function getFromCache(db: Db, user: string) {
 		const end = new Date(canvasEvent.end!);
 
 		// class will be null if error in getting class name.
+		// Just type it as any cause it doesn't like things like ObjectID vs string and Date vs moment
+		// But I don't really think it actually matters, maybe come back and take a look at this
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const insertEvent: any = {
 			_id: canvasEvent.uid,
 			canvas: true,
@@ -315,7 +321,7 @@ export async function getFromCache(db: Db, user: string) {
 		};
 
 		if (typeof canvasEvent['ALT-DESC'] === 'object') {
-			insertEvent.desc = (canvasEvent['ALT-DESC'] as ical.ParamList).val;
+			insertEvent.desc = (canvasEvent['ALT-DESC']).val;
 			insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
 		} else {
 			insertEvent.desc = '';

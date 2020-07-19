@@ -2,7 +2,6 @@
 	"extends": "../tsconfig",
   "include": [".", "../src/external.d.ts"],
 	"compilerOptions": {
-		"types": ["mocha"], // Imports Mocha types into the global namespace for describe(), it(), etc.
-    "resolveJsonModule": true
+		"types": ["mocha"] // Imports Mocha types into the global namespace for describe(), it(), etc.
   }
 }

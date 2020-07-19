@@ -44,8 +44,8 @@ async function getStats(db: Db) {
 		}
 
 		// If gradYear isn't in the array yet, push to gradYears
-		if (!gradYears.includes(gradYear!)) {
-			gradYears.push(gradYear!);
+		if (!gradYears.includes(gradYear)) {
+			gradYears.push(gradYear);
 		}
 	}
 
@@ -73,13 +73,13 @@ async function getStats(db: Db) {
 			stats.registered.today++;
 		}
 
-		stats.registered.gradYears[gradYear!][formatRegistered] =
-			stats.registered.gradYears[gradYear!][formatRegistered] + 1 || 1;
+		stats.registered.gradYears[gradYear][formatRegistered] =
+			stats.registered.gradYears[gradYear][formatRegistered] + 1 || 1;
 
 		// Check if user visited today
 		if (today.isSame(userDoc.lastVisited, 'day')) {
 			stats.visitedToday.total++;
-			stats.visitedToday.gradYears[gradYear!]++;
+			stats.visitedToday.gradYears[gradYear]++;
 		}
 	}
 

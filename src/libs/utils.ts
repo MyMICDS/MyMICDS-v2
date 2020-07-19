@@ -5,7 +5,7 @@
  */
 export function leadingZeros(n: number) {
 	if (n < 10) {
-		return '0' + n;
+		return `0${n}`;
 	} else {
 		return n;
 	}
@@ -27,9 +27,11 @@ export function validFilename(filename: string) {
 }
 
 export interface StringDict {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[key: string]: any;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Constructor<T = any> = new (...args: any[]) => T;
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;

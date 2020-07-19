@@ -30,14 +30,16 @@ export async function updateCanvasCache(db: Db, user: string) {
 
 	const creationDate = new Date();
 
-	for (const ev of events) {
-		(ev as any).user = userDoc!._id;
+	const newEvents = events as CanvasCacheEvent[];
+
+	for (const ev of newEvents) {
+		ev.user = userDoc!._id;
 		// Mongo operators don't work for insertMany so set creation time manually
-		(ev as any).createdAt = creationDate;
+		ev.createdAt = creationDate;
 	}
 
 	try {
-		await canvasdata.insertMany(events as CanvasCacheEvent[]);
+		await canvasdata.insertMany(newEvents);
 	} catch (e) {
 		throw new Error('There was an error inserting events into the database!');
 	}
@@ -82,16 +84,16 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 		throw new Error('There was an error removing the old events from the database!');
 	}
 
-	for (const ev of events) {
-		(ev as any).user = userDoc!._id;
-	}
-
 	const newEvents = events as PortalCacheEvent[];
+
+	for (const ev of newEvents) {
+		ev.user = userDoc!._id.toHexString();
+	}
 
 	try {
 		await portaldata.insertMany(newEvents);
 	} catch (e) {
-		throw new Error(`There was an error inserting events into the database! (${e})`);
+		throw new Error(`There was an error inserting events into the database! (${(e as Error).message})`);
 	}
 
 	try {
@@ -133,7 +135,7 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 			throw new Error('There was an error adding the user to the queue!');
 		}
 
-		return events!;
+		return events;
 	}
 
 	try {
@@ -142,16 +144,16 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 		throw new Error('There was an error removing the old events from the database!');
 	}
 
-	for (const ev of events) {
-		(ev as any).user = userDoc!._id;
-	}
-
 	const newEvents = events as PortalCacheEvent[];
+
+	for (const ev of events) {
+		ev.user = userDoc!._id.toHexString();
+	}
 
 	try {
 		await portaldata.insertMany(newEvents);
 	} catch (e) {
-		throw new Error(`There was an error inserting events into the database! (${e})`);
+		throw new Error(`There was an error inserting events into the database! (${(e as Error).message})`);
 	}
 
 	try {

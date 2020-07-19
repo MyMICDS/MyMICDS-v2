@@ -17,7 +17,7 @@ export async function unsubscribe(db: Db, user: string, hash: string | true, sco
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) { throw new Error('User doesn\'t exist!'); }
 
-	const dbHash = userDoc!.unsubscribeHash!;
+	const dbHash = userDoc!.unsubscribeHash;
 
 	if (hash === true || cryptoUtils.safeCompare(hash, dbHash)) {
 		// Hash matches, unsubscribe account!

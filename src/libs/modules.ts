@@ -30,6 +30,7 @@ interface OptionsValues {
 		// If TypeScript had some sort of existential type this could be so much cooler
 		// TODO: Maybe turn this into an internal enum, since we already have to use strings for primitive comparisons
 		type: Constructor | typeof CountdownMode | typeof Color | 'string' | 'boolean',
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		default: any,
 		optional?: boolean
 	};
@@ -135,7 +136,7 @@ export const defaultModules: MyMICDSModule[] = [
  * @param type Module type.
  * @returns The default module configuration options.
  */
-function getDefaultOptions(type: MyMICDSModuleType): any {
+function getDefaultOptions(type: MyMICDSModuleType) {
 	const moduleConfig = modulesConfig[type];
 	if (typeof moduleConfig === 'undefined') {
 		return {};
@@ -179,9 +180,9 @@ async function getModules(db: Db, user: string) {
 			mod.options = Object.assign({}, defaultOptions, mod.options);
 
 			// Get rid of excess options
-			for (const optionKey of Object.keys(mod.options!)) {
+			for (const optionKey of Object.keys(mod.options)) {
 				if (!defaultKeys.includes(optionKey)) {
-					delete mod.options![optionKey];
+					delete mod.options[optionKey];
 				}
 			}
 
@@ -220,9 +221,9 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 		const optionKeys = Object.keys(optionsConfig);
 
 		// Remove any extra options
-		for (const modOptionKey of Object.keys(mod.options!)) {
+		for (const modOptionKey of Object.keys(mod.options)) {
 			if (!optionKeys.includes(modOptionKey)) {
-				delete mod.options![modOptionKey];
+				delete mod.options[modOptionKey];
 			}
 		}
 
@@ -310,7 +311,7 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 		}
 
 		// Make sure user is an ObjectID and not a string
-		(mod as any).user = userDoc!._id;
+		(mod as MyMICDSModuleWithIDs).user = userDoc!._id;
 
 		await moduledata.updateOne({ _id: mod._id, user: userDoc!._id }, { $set: mod }, { upsert: true });
 	}

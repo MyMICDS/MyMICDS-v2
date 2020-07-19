@@ -1,16 +1,24 @@
 import { Server } from 'socket.io';
 
+declare global {
+	namespace SocketIO {
+		interface Socket {
+			pressingProgressLabel: boolean;
+		}
+	}
+}
+
 export default (io: Server) => {
 	io.on('connection', socket => {
-		(socket as any).pressingProgressLabel = false;
+		socket.pressingProgressLabel = false;
 
 		socket.on('progress label click', pressed => {
-			(socket as any).pressingProgressLabel = pressed;
+			socket.pressingProgressLabel = pressed;
 			calcProgressSpin();
 		});
 
 		socket.on('disconnect', () => {
-			(socket as any).pressingProgressLabel = false;
+			socket.pressingProgressLabel = false;
 			calcProgressSpin();
 		});
 	});
@@ -22,7 +30,7 @@ export default (io: Server) => {
 		let anyPressing = false;
 
 		for (const socket of Object.values(io.sockets.connected)) {
-			if ((socket as any).pressingProgressLabel) {
+			if (socket.pressingProgressLabel) {
 				anyPressing = true;
 				break;
 			}

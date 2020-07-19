@@ -58,7 +58,7 @@ function uploadBackground() {
 			}
 
 			// Make sure directory is created for user backgrounds
-			const userDir = userBackgroundsDir + '/' + req.apiUser + '-' + Date.now();
+			const userDir = `${userBackgroundsDir}/${req.apiUser!}-${Date.now()}`;
 
 			try {
 				await fs.ensureDir(userDir);
@@ -226,11 +226,13 @@ async function getAllBackgrounds(db: Db) {
 
 		const extension = await getDirExtension(dirname);
 
+		if (!extension) { continue; }
+
 		result[user] = {
 			hasDefault: false,
 			variants: {
-				normal: userBackgroundUrl + '/' + dirname + '/normal' + extension,
-				blur: userBackgroundUrl + '/' + dirname + '/blur' + extension
+				normal: `${userBackgroundUrl}/${dirname}/normal${extension}`,
+				blur: `${userBackgroundUrl}/${dirname}/blur${extension}`
 			}
 		};
 		// Remove user from list of people that don't have backgrounds
@@ -283,7 +285,7 @@ async function getDirExtension(userDir: string) {
  * @param blurRadius Gaussian blur radius to use.
  */
 async function addBlur(fromPath: string, toPath: string, blurRadius: number) {
-	let image: any; // There is a `Jimp` type but there's like two different ones that conflict I guess?
+	let image: Jimp.Jimp;
 	try {
 		image = await Jimp.read(fromPath);
 	} catch (e) {

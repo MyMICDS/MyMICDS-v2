@@ -42,7 +42,7 @@ export default ((app, db, socketIO) => {
 			socketIO.user(req.apiUser!, 'background', 'upload');
 
 			try {
-				const responseObj = await backgrounds.get(req.apiUser!);
+				const responseObj = await backgrounds.get(req.apiUser);
 				api.success(res, responseObj);
 			} catch (err) {
 				api.error(res, err);
@@ -59,7 +59,7 @@ export default ((app, db, socketIO) => {
 		}
 
 		try {
-			const responseObj = await backgrounds.get(req.apiUser!);
+			const responseObj = await backgrounds.get(req.apiUser);
 			api.success(res, responseObj);
 		} catch (err) {
 			api.error(res, err);

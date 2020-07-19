@@ -1,8 +1,13 @@
-// tslint:disable:no-console max-line-length
 // USE WITH CAUTION
 
-import { URL } from 'url';
+import { Scope } from '@mymicds/sdk';
+import * as fs from 'fs-extra';
+import moment from 'moment';
+import { MongoClient } from 'mongodb';
+import * as nodemailer from 'nodemailer';
 import config from '../libs/config';
+import * as mail from '../libs/mail';
+import { UserDoc } from '../libs/users';
 
 const messageType = Scope.ANNOUNCEMENTS;
 const subject = 'We need your help!';
@@ -19,14 +24,6 @@ const DEBUG = true;
 // const debugList = ['mgira', 'nclifford', 'jcai'];
 const debugList = ['mgira'];
 
-import { Scope } from '@mymicds/sdk';
-import * as fs from 'fs-extra';
-import moment from 'moment';
-import { MongoClient } from 'mongodb';
-import * as nodemailer from 'nodemailer';
-import * as mail from '../libs/mail';
-import { UserDoc } from '../libs/users';
-
 if (!Object.values(Scope).includes(messageType)) {
 	console.log(`"${messageType}" is an invalid message type! Refer to \`/src/libs/notifications.js\` for list of valid types.`);
 	process.exit();
@@ -40,17 +37,7 @@ if (!DEBUG && !I_REALLY_WANT_TO_DO_THIS) {
 // See who we've already sent email to
 getBlacklist().then(async blacklist => {
 	// Log into email
-	const parsed = new URL(config.email.URI);
-	const transporter = nodemailer.createTransport({
-		host: parsed.hostname,
-		port: parsed.port,
-		secure: true,
-		auth: {
-			user: 'support@mymicds.net',
-			pass: parsed.password
-		},
-		pool: true
-	} as any);
+	const transporter = nodemailer.createTransport(config.email.URI + '/?pool=true');
 
 	// Connect to database
 	const client: MongoClient = await MongoClient.connect(config.mongodb.uri);

@@ -49,7 +49,7 @@ describe('User', () => {
 		});
 	});
 
-	describe('GET /user/grade-range', async function() {
+	describe('GET /user/grade-range', function() {
 		this.ctx.method = 'get';
 		this.ctx.route = '/user/grade-range';
 

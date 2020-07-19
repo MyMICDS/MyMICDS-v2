@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-
 import moment from 'moment';
 import * as schedule from '../libs/schedule';
 
@@ -73,6 +71,7 @@ const tests = [
 
 for (let i = 0; i < tests.length; i++) {
 	const test = tests[i];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const results = schedule.ordine(test.base, test.add as any[]); // Too lazy to do type gymnastics right now
 
 	// Convert moment.js objects to readable strings
@@ -85,5 +84,5 @@ for (let i = 0; i < tests.length; i++) {
 		}
 	}
 
-	console.log(`Test ${i + 1} = ${results}`);
+	console.log(`Test ${i + 1} = ${results.toString()}`);
 }

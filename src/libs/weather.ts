@@ -38,7 +38,7 @@ async function updateWeather() {
 	const darksky = new DarkSky(options);
 
 	const data = await new Promise<Weather>((resolve, reject) => {
-		darksky.get(latitude, longitude, (err: Error, res: any, resData: Weather) => {
+		darksky.get(latitude, longitude, (err: Error, _: never, resData: Weather) => {
 			if (err) {
 				reject(new Error('There was a problem fetching the weather data!'));
 				return;

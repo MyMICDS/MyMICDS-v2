@@ -80,7 +80,7 @@ describe('Alias', () => {
 			assertType<ListAliasesResponse>(res.body.data);
 
 			expect(res.body.data.aliases.canvas).to.have.lengthOf(1);
-			expect(res.body.data.aliases.canvas[0]).to.containSubset({ _id: (aliasId as ObjectID).toHexString() });
+			expect(res.body.data.aliases.canvas[0]).to.containSubset({ _id: aliasId.toHexString() });
 		});
 
 		requireLoggedIn();

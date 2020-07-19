@@ -148,9 +148,9 @@ export async function getBreaks() {
 	let i = 0;
 	const groupedDays = days.reduce((stack, b) => {
 		const cur = stack[i];
-		const a: any = cur ? cur[cur.length - 1] : 0;
+		const a = cur ? cur[cur.length - 1].valueOf() : 0;
 
-		if ((b as any) - a > 86400000) {
+		if (b.valueOf() - a > 86400000) {
 			i++;
 		}
 

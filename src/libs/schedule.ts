@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// TODO: This desperately needs a refactor
+// All the mutation and temporary fields makes TypeScript complain and my head hurt
 import { Block, ClassType, GetScheduleResponse, ScheduleClass } from '@mymicds/sdk';
 import * as _ from 'lodash';
 import moment from 'moment';
@@ -151,7 +154,6 @@ const genericBlocks: Record<
  * @returns An object containing the day rotation, whether the schedule is special,
  * 			and the different classes for the day.
  */
-// tslint:disable-next-line:max-line-length
 async function getSchedule(db: Db, user: string, date: Date, portalBroke = false): Promise<{ hasURL: boolean; schedule: FullSchedule }> {
 	const scheduleDate = moment(date).startOf('day');
 	const scheduleNextDay = scheduleDate.clone().add(1, 'day');
@@ -182,8 +184,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 	// If it isn't a user OR it's a teacher with no Portal URL
 	if (!isUser || (userDoc!.gradYear === null && typeof userDoc!.portalURLClasses !== 'string')) {
 		// Fallback to default schedule if user is invalid
-		// tslint:disable-next-line:no-shadowed-variable
-		const schedule: FullSchedule = {
+			const schedule: FullSchedule = {
 			day: scheduleDay,
 			special: false,
 			classes: [],
@@ -198,8 +199,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 	}
 
 	// Get block schedule for user
-	// tslint:disable-next-line:max-line-length
-	const daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc!.gradYear)!, scheduleDay, lateStart);
+	const daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc!.gradYear), scheduleDay, lateStart);
 
 	if (portalBroke || typeof userDoc!.portalURLClasses !== 'string') {
 		// If user is logged in, but hasn't configured their Portal URL
@@ -214,8 +214,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 			// blockTypeMap[block.block] = block.type;
 		}
 
-		// tslint:disable-next-line:no-shadowed-variable
-		const schedule: FullSchedule = {
+			const schedule: FullSchedule = {
 			day: scheduleDay,
 			special: false,
 			classes: [],
@@ -358,11 +357,12 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 			if (typeof aliasesResult.portal[calEvent.summary!] !== 'object') {
 
 				// Determine block
-				const blockPart = _.last(calEvent.summary!.match(portal.portalSummaryBlock)!);
+				// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+				const blockPart = _.last(calEvent.summary!.match(portal.portalSummaryBlock));
 				let block = Block.OTHER;
 
 				if (blockPart) {
-					block = _.last(blockPart.match(/[A-G]/g)!)!.toLowerCase() as Block;
+					block = _.last(blockPart.match(/[A-G]/g))!.toLowerCase() as Block;
 				}
 
 				// Generate random color
@@ -526,7 +526,6 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
  * @param blocks An object pairing blocks with class objects.
  * @returns An array containing the block schedule with possibly configured classes.
  */
-// tslint:disable-next-line:max-line-length
 function combineClassesSchedule(date: Date | moment.Moment, schedule: BlockFormat[], blocks: Partial<Record<Block, ScheduleClass>>) {
 	// TODO: Is this still needed? Looks like something left behind after a refactor.
 	// noinspection JSUnusedAssignment
@@ -701,7 +700,7 @@ function ordineSchedule(baseSchedule: ClassesOrBlocks, addClasses: ClassesOrBloc
 	baseSchedule = (baseSchedule as any[]).filter(value => value.start.unix() < value.end.unix());
 
 	// Reorder schedule because of deleted classes
-	(baseSchedule as any[]).sort((a, b) => (a.start as any) - (b.start as any));
+	(baseSchedule as any[]).sort((a, b) => (a.start) - (b.start));
 
 	return baseSchedule;
 }

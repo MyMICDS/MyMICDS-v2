@@ -9,7 +9,7 @@ Sentry.init({
 	enabled: config.production
 });
 
-initAPI(config.mongodb.uri).then(([app, _, server]) => {
+initAPI(config.mongodb.uri).then(([app, , server]) => {
 	app.get('/', (req, res) => {
 		res.sendFile(__dirname + '/html/admin.html');
 	});
@@ -31,7 +31,9 @@ initAPI(config.mongodb.uri).then(([app, _, server]) => {
 	 */
 
 	server.listen(port, () => {
-		// tslint:disable-next-line:no-console
-		console.log('Server listening on *:' + port);
+		console.log(`Server listening on *:${port}`);
 	});
+}).catch((err: Error) => {
+	console.error(`Error starting server: ${err.message}`);
+	process.exit(1);
 });

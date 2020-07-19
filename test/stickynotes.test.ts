@@ -55,7 +55,7 @@ describe('Quotes', () => {
 		requireLoggedIn();
 	});
 
-	describe('PUT /stickynotes', async function() {
+	describe('PUT /stickynotes', function() {
 		this.ctx.method = 'put';
 		this.ctx.route = '/stickynotes';
 
