@@ -16,56 +16,67 @@ const testStickynote = {
 };
 
 describe('Quotes', () => {
-	before(async function() {
+	before(async function () {
 		this.mongo = new MongoMemoryServer();
 		const [app, db] = await initAPI(await this.mongo.getUri());
 		this.db = db;
 		this.request = supertest(app);
 	});
 
-	describe('GET /stickynotes', function() {
+	describe('GET /stickynotes', function () {
 		this.ctx.method = 'get';
 		this.ctx.route = '/stickynotes';
 
 		const payload = _.pick(testStickynote, 'moduleId');
 
-		it('gets a user stickynote', async function() {
+		it('gets a user stickynote', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
-			const { upsertedId: { _id } } = await stickynotes.post(
+			const {
+				upsertedId: { _id }
+			} = await stickynotes.post(
 				this.db,
 				testUser.user,
 				testStickynote.moduleId,
 				testStickynote.text
 			);
 
-			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).query(payload).expect(200);
+			const res = await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.query(payload)
+				.expect(200);
 			expect(res.body.data).to.have.property('_id').that.equals(_id.toHexString());
 		});
 
-		it('returns a new stickynote', async function() {
+		it('returns a new stickynote', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
-			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).query(payload).expect(200);
+			const res = await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.query(payload)
+				.expect(200);
 			expect(res.body.data).to.be.a('string').that.is.empty;
 		});
 
 		requireLoggedIn();
 	});
 
-	describe('PUT /stickynotes', function() {
+	describe('PUT /stickynotes', function () {
 		this.ctx.method = 'put';
 		this.ctx.route = '/stickynotes';
 
 		const payload = testStickynote;
 
-		it('saves a stickynote', async function() {
+		it('saves a stickynote', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
-			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(200);
+			await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.send(payload)
+				.expect(200);
 
 			const note = await stickynotes.get(this.db, testUser.user, testStickynote.moduleId);
 			expect(note).to.containSubset(testStickynote);
@@ -75,11 +86,11 @@ describe('Quotes', () => {
 		validateParameters(payload);
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.db.dropDatabase();
 	});
 
-	after(async function() {
+	after(async function () {
 		await this.mongo.stop();
 	});
 });

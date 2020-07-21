@@ -9,31 +9,33 @@ Sentry.init({
 	enabled: config.production
 });
 
-initAPI(config.mongodb.uri).then(([app, , server]) => {
-	app.get('/', (req, res) => {
-		res.sendFile(__dirname + '/html/admin.html');
-	});
+initAPI(config.mongodb.uri)
+	.then(([app, , server]) => {
+		app.get('/', (req, res) => {
+			res.sendFile(__dirname + '/html/admin.html');
+		});
 
-	app.get('/start', (req, res) => {
-		res.sendFile(__dirname + '/html/start.html');
-	});
+		app.get('/start', (req, res) => {
+			res.sendFile(__dirname + '/html/start.html');
+		});
 
-	app.get('/socket-io-test', (req, res) => {
-		res.sendFile(__dirname + '/html/socket.html');
-	});
+		app.get('/socket-io-test', (req, res) => {
+			res.sendFile(__dirname + '/html/socket.html');
+		});
 
-	app.get('/spin', (req, res) => {
-		res.sendFile(__dirname + '/html/spin.html');
-	});
+		app.get('/spin', (req, res) => {
+			res.sendFile(__dirname + '/html/spin.html');
+		});
 
-	/*
-	 * Initialize Server
-	 */
+		/*
+		 * Initialize Server
+		 */
 
-	server.listen(port, () => {
-		console.log(`Server listening on *:${port}`);
+		server.listen(port, () => {
+			console.log(`Server listening on *:${port}`);
+		});
+	})
+	.catch((err: Error) => {
+		console.error(`Error starting server: ${err.message}`);
+		process.exit(1);
 	});
-}).catch((err: Error) => {
-	console.error(`Error starting server: ${err.message}`);
-	process.exit(1);
-});

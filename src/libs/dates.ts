@@ -10,7 +10,14 @@ import moment from 'moment';
  * @returns A Moment.js object with the start of school.
  */
 export function thirdWednesdayAugust(year: number) {
-	return moment().year(year).month('August').startOf('month').day('Wednesday').add(2, 'weeks').startOf('day').hours(8);
+	return moment()
+		.year(year)
+		.month('August')
+		.startOf('month')
+		.day('Wednesday')
+		.add(2, 'weeks')
+		.startOf('day')
+		.hours(8);
 }
 
 /**
@@ -23,9 +30,8 @@ export function schoolStarts() {
 
 	if (firstDayThisYear.isAfter(current)) {
 		return firstDayThisYear;
-	} 
-		return thirdWednesdayAugust(current.year() + 1);
-	
+	}
+	return thirdWednesdayAugust(current.year() + 1);
 }
 
 /**
@@ -40,7 +46,13 @@ export function lastFridayMay(year?: number) {
 		year = current.year();
 	}
 
-	const lastDayOfMay = moment().year(year).month('May').endOf('month').startOf('day').hours(11).minutes(30);
+	const lastDayOfMay = moment()
+		.year(year)
+		.month('May')
+		.endOf('month')
+		.startOf('day')
+		.hours(11)
+		.minutes(30);
 
 	/*
 	 * Fun fact: This is literally the only switch statement in the whole MyMICDS codebase.
@@ -48,21 +60,21 @@ export function lastFridayMay(year?: number) {
 
 	let lastDay;
 	switch (lastDayOfMay.day()) {
-	case 5:
-		// If day is already Friday
-		lastDay = lastDayOfMay;
-		break;
+		case 5:
+			// If day is already Friday
+			lastDay = lastDayOfMay;
+			break;
 
-	case 6:
-		// Last day is Sunday
-		lastDay = lastDayOfMay.subtract(1, 'day');
-		break;
+		case 6:
+			// Last day is Sunday
+			lastDay = lastDayOfMay.subtract(1, 'day');
+			break;
 
-	default:
-		// Subtract day of week (which cancels it out) and start on Saturday.
-		// Then subtract to days to get from Saturday to Friday.
-		lastDay = lastDayOfMay.subtract(lastDayOfMay.day() + 2, 'days');
-		break;
+		default:
+			// Subtract day of week (which cancels it out) and start on Saturday.
+			// Then subtract to days to get from Saturday to Friday.
+			lastDay = lastDayOfMay.subtract(lastDayOfMay.day() + 2, 'days');
+			break;
 	}
 
 	return lastDay;
@@ -85,9 +97,8 @@ export function schoolEnds() {
 
 	if (day.date() === 31) {
 		return day.subtract(1, 'week');
-	} 
-		return day;
-	
+	}
+	return day;
 }
 
 /**
@@ -102,9 +113,8 @@ export function getSchoolYear(date: Date): [number, number] {
 	// If after summer, include next year. Otherwise, include last year
 	if (dateObj.isAfter(lastDayThisYear)) {
 		return [dateObj.year(), dateObj.year() + 1];
-	} 
-		return [dateObj.year() - 1, dateObj.year()];
-	
+	}
+	return [dateObj.year() - 1, dateObj.year()];
 }
 
 /**
@@ -122,11 +132,14 @@ async function getDaysOff() {
 
 	// Go through all days
 	while (dayPointer.isSameOrBefore(dayMax)) {
-
 		// Check if there's no rotation day and that it isn't the weekend
-		if (!(days[dayPointer.year()] &&
+		if (
+			!(
+				days[dayPointer.year()] &&
 				days[dayPointer.year()][dayPointer.month() + 1] &&
-				days[dayPointer.year()][dayPointer.month() + 1][dayPointer.date()])) {
+				days[dayPointer.year()][dayPointer.month() + 1][dayPointer.date()]
+			)
+		) {
 			daysOff.push(dayPointer.clone());
 		}
 
@@ -215,7 +228,6 @@ export async function getBreaks() {
 				end: group[group.length - 1]
 			});
 		}
-
 	}
 
 	return categorizedBreaks;

@@ -96,7 +96,4 @@ function respondError(res: Response, error: Error | string | null, action: Actio
 	});
 }
 
-export {
-	respondSuccess as success,
-	respondError as error
-};
+export { respondSuccess as success, respondError as error };

@@ -6,7 +6,6 @@ import * as modules from '../libs/modules';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db) => {
-
 	app.get('/modules', async (req, res) => {
 		try {
 			const modulesResult = await modules.get(db, req.apiUser || '');
@@ -41,5 +40,4 @@ export default ((app, db) => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

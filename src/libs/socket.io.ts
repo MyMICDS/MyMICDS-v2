@@ -12,9 +12,7 @@ declare global {
 }
 
 export default (io: Server) => {
-
 	io.on('connection', socket => {
-
 		/*
 		 * We keep the client connected so it can still recieve global events like weahter.
 		 * If the client supplies a JWT though, then it can recieve user-specific events
@@ -51,7 +49,9 @@ export default (io: Server) => {
 		user(emitUser: string, event: string, ...args: unknown[]) {
 			for (const value of Object.values(io.sockets.connected)) {
 				// Check if user is authorized
-				if (!value.decodedToken) { return; }
+				if (!value.decodedToken) {
+					return;
+				}
 				// If logged in user has same username as target user
 				if (emitUser === value.decodedToken.user) {
 					value.emit(event, ...args);

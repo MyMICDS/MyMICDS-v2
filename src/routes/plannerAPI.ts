@@ -12,7 +12,6 @@ import * as planner from '../libs/planner';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db, socketIO) => {
-
 	app.get('/planner', jwt.requireLoggedIn, async (req, res) => {
 		try {
 			const events = await planner.get(db, req.apiUser!);
@@ -24,7 +23,8 @@ export default ((app, db, socketIO) => {
 
 	app.post('/planner', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			type AddEventBody = Omit<AddPlannerEventParameters, 'start' | 'end'> & Partial<Record<'start' | 'end', string>>;
+			type AddEventBody = Omit<AddPlannerEventParameters, 'start' | 'end'> &
+				Partial<Record<'start' | 'end', string>>;
 			assertType<AddEventBody>(req.body);
 		} catch (err) {
 			api.error(res, err);
@@ -42,9 +42,9 @@ export default ((app, db, socketIO) => {
 		}
 
 		const insertEvent: planner.NewEventData = {
-			_id    : req.body.id,
-			title  : req.body.title,
-			desc   : req.body.desc,
+			_id: req.body.id,
+			title: req.body.title,
+			desc: req.body.desc,
 			classId: req.body.classId,
 			start,
 			end
@@ -98,5 +98,4 @@ export default ((app, db, socketIO) => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

@@ -15,10 +15,7 @@ const validMimeTypes: { [mime: string]: string } = {
 };
 // These are only for finding what kind of image the user has saved.
 // This DOES NOT check whether an uploaded image is valid! Configure that via MIME Types!
-const validExtensions = [
-	'.png',
-	'.jpg'
-];
+const validExtensions = ['.png', '.jpg'];
 
 // Where public accesses backgrounds
 const userBackgroundUrl = config.hostedOn + '/user-backgrounds';
@@ -46,7 +43,6 @@ const defaultBlurRadius = 10;
  * @returns A function that can be used as Express middleware or independently.
  */
 function uploadBackground() {
-
 	const storage = multer.diskStorage({
 		async destination(req, file, cb) {
 			// Delete current background
@@ -137,7 +133,9 @@ async function getCurrentFiles(user: string) {
 	}
 
 	// User doesn't have any background
-	if (userDir === null) { return { dirname: null, extension: null }; }
+	if (userDir === null) {
+		return { dirname: null, extension: null };
+	}
 
 	const extension = await getDirExtension(userDir);
 
@@ -153,7 +151,9 @@ async function deleteBackground(user: string) {
 	const { dirname, extension } = await getCurrentFiles(user);
 
 	// Check if no existing background
-	if (dirname === null || extension === null) { return; }
+	if (dirname === null || extension === null) {
+		return;
+	}
 
 	const currentPath = userBackgroundsDir + '/' + dirname;
 	const deletedPath = userBackgroundsDir + '/deleted-' + dirname;
@@ -171,13 +171,17 @@ async function deleteBackground(user: string) {
  * @returns All the different variants of a background image and whether or not it's the default background.
  */
 async function getBackground(user: string | null): Promise<BackgroundObject> {
-	if (typeof user !== 'string') { return { variants: defaultVariants, hasDefault: true }; }
+	if (typeof user !== 'string') {
+		return { variants: defaultVariants, hasDefault: true };
+	}
 
 	// Get user's extension
 	const { dirname, extension } = await getCurrentFiles(user);
 
 	// Fallback to default background if no custom extension
-	if (dirname === null || extension === null) { return { variants: defaultVariants, hasDefault: true }; }
+	if (dirname === null || extension === null) {
+		return { variants: defaultVariants, hasDefault: true };
+	}
 
 	const backgroundURLs = {
 		normal: userBackgroundUrl + '/' + dirname + '/normal' + extension,
@@ -216,7 +220,9 @@ async function getAllBackgrounds(db: Db) {
 		const dirname = path.parse(userDir).name;
 		const dirnameSplit = dirname.split('-');
 
-		if (dirnameSplit[0] === 'deleted' || dirnameSplit[0] === 'default') { continue; }
+		if (dirnameSplit[0] === 'deleted' || dirnameSplit[0] === 'default') {
+			continue;
+		}
 
 		// Remove timestamp
 		dirnameSplit.pop();
@@ -226,7 +232,9 @@ async function getAllBackgrounds(db: Db) {
 
 		const extension = await getDirExtension(dirname);
 
-		if (!extension) { continue; }
+		if (!extension) {
+			continue;
+		}
 
 		result[user] = {
 			hasDefault: false,
@@ -259,7 +267,7 @@ async function getDirExtension(userDir: string) {
 	try {
 		userImages = await fs.readdir(userBackgroundsDir + '/' + userDir);
 	} catch (e) {
-		throw new Error('There was a problem reading the user\'s background directory!');
+		throw new Error("There was a problem reading the user's background directory!");
 	}
 
 	// Loop through all valid files until there's either a .png or .jpg extention
@@ -306,7 +314,9 @@ async function addBlur(fromPath: string, toPath: string, blurRadius: number) {
 export async function blurUser(user: string) {
 	const { dirname, extension } = await getCurrentFiles(user);
 
-	if (dirname === null || extension === null) { return; }
+	if (dirname === null || extension === null) {
+		return;
+	}
 
 	const userDir = userBackgroundsDir + '/' + dirname;
 	const fromPath = userDir + '/normal' + extension;

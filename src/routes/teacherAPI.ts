@@ -4,7 +4,6 @@ import * as teachers from '../libs/teachers';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db) => {
-
 	app.get('/teachers', jwt.requireLoggedIn, async (req, res) => {
 		try {
 			const teachersResult = await teachers.list(db);
@@ -13,5 +12,4 @@ export default ((app, db) => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

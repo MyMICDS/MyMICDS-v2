@@ -3,10 +3,7 @@ import { InputError } from './errors';
 import { Omit } from './utils';
 import { Teacher } from '@mymicds/sdk';
 
-const validTeacherPrefixes = [
-	'Mr.',
-	'Ms.'
-];
+const validTeacherPrefixes = ['Mr.', 'Ms.'];
 
 /**
  * Inserts a new (unique) teacher into the database.
@@ -14,7 +11,9 @@ const validTeacherPrefixes = [
  * @param teacher Teacher object to insert.
  */
 async function addTeacher(db: Db, teacher: Omit<Teacher, '_id'>) {
-	if (!validTeacherPrefixes.includes(teacher.prefix)) { throw new InputError('Invalid teacher prefix!'); }
+	if (!validTeacherPrefixes.includes(teacher.prefix)) {
+		throw new InputError('Invalid teacher prefix!');
+	}
 
 	const teacherdata = db.collection<TeacherWithIDOptional>('teachers');
 
@@ -86,25 +85,27 @@ export async function deleteClasslessTeachers(db: Db) {
 
 	try {
 		// Find all teachers with 0 classes
-		docs = await teacherdata.aggregate([
-			// Stage 1
-			{
-				$lookup: {
-					from: 'classes',
-					localField: '_id',
-					foreignField: 'teacher',
-					as: 'classes'
-				}
-			},
-			// Stage 2
-			{
-				$match: {
-					classes: {
-						$size: 0
+		docs = await teacherdata
+			.aggregate([
+				// Stage 1
+				{
+					$lookup: {
+						from: 'classes',
+						localField: '_id',
+						foreignField: 'teacher',
+						as: 'classes'
+					}
+				},
+				// Stage 2
+				{
+					$match: {
+						classes: {
+							$size: 0
+						}
 					}
 				}
-			}
-		]).toArray();
+			])
+			.toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
@@ -116,11 +117,7 @@ export async function deleteClasslessTeachers(db: Db) {
 	}
 }
 
-export {
-	addTeacher as add,
-	getTeacher as get,
-	listTeachers as list
-};
+export { addTeacher as add, getTeacher as get, listTeachers as list };
 
 export interface TeacherWithIDOptional {
 	_id?: ObjectID;

@@ -3,7 +3,6 @@ import * as snowdayCalculator from '../libs/snowdayCalculator';
 import RoutesFunction from './routesFunction';
 
 export default (app => {
-
 	app.get('/snowday', async (req, res) => {
 		try {
 			const data = await snowdayCalculator.calculate();
@@ -12,5 +11,4 @@ export default (app => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

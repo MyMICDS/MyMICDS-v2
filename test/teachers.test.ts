@@ -11,22 +11,22 @@ import supertest from 'supertest';
 use(chaiSubset);
 
 describe('Teachers', () => {
-	before(async function() {
+	before(async function () {
 		this.mongo = new MongoMemoryServer();
 		const [app, db] = await initAPI(await this.mongo.getUri());
 		this.db = db;
 		this.request = supertest(app);
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.db.dropDatabase();
 	});
 
-	describe('GET /teachers', function() {
+	describe('GET /teachers', function () {
 		this.ctx.method = 'get';
 		this.ctx.route = '/teachers';
 
-		it('gets all teachers', async function() {
+		it('gets all teachers', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
@@ -40,7 +40,7 @@ describe('Teachers', () => {
 		requireLoggedIn();
 	});
 
-	after(async function() {
+	after(async function () {
 		await this.mongo.stop();
 	});
 });

@@ -13,7 +13,9 @@ export async function updateCanvasCache(db: Db, user: string) {
 	const canvasdata = db.collection('canvasFeeds');
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
 	const { events } = await canvas.getUserCal(db, userDoc!.user);
 
@@ -23,7 +25,9 @@ export async function updateCanvasCache(db: Db, user: string) {
 		throw new Error('There was an error removing the old events from the database!');
 	}
 
-	if (events === null || events.length === 0) { return; }
+	if (events === null || events.length === 0) {
+		return;
+	}
 
 	const creationDate = new Date();
 
@@ -50,10 +54,12 @@ export async function updateCanvasCache(db: Db, user: string) {
  */
 export async function addPortalQueueClasses(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
 	const portaldata = db.collection<portal.PortalCacheEvent>('portalFeedsClasses');
-	const userdata   = db.collection<users.UserDoc>('users');
+	const userdata = db.collection<users.UserDoc>('users');
 
 	const { cal: events } = await portal.getFromCalClasses(db, user);
 
@@ -90,7 +96,9 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 	try {
 		await portaldata.insertMany(newEvents);
 	} catch (e) {
-		throw new Error(`There was an error inserting events into the database! (${(e as Error).message})`);
+		throw new Error(
+			`There was an error inserting events into the database! (${(e as Error).message})`
+		);
 	}
 
 	try {
@@ -110,10 +118,12 @@ export async function addPortalQueueClasses(db: Db, user: string) {
  */
 export async function addPortalQueueCalendar(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
 	const portaldata = db.collection<portal.PortalCacheEvent>('portalFeedsCalendar');
-	const userdata   = db.collection<users.UserDoc>('users');
+	const userdata = db.collection<users.UserDoc>('users');
 
 	const { cal: events } = await portal.getFromCalCalendar(db, user);
 
@@ -150,7 +160,9 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 	try {
 		await portaldata.insertMany(newEvents);
 	} catch (e) {
-		throw new Error(`There was an error inserting events into the database! (${(e as Error).message})`);
+		throw new Error(
+			`There was an error inserting events into the database! (${(e as Error).message})`
+		);
 	}
 
 	try {
@@ -171,14 +183,20 @@ export async function processPortalQueue(db: Db) {
 
 	let queue: users.UserDoc[];
 	try {
-		queue = await userdata.find({ $or: [{ inPortalQueueClasses: true }, { inPortalQueueCalendar: true }] }).toArray();
+		queue = await userdata
+			.find({ $or: [{ inPortalQueueClasses: true }, { inPortalQueueCalendar: true }] })
+			.toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
 
 	for (const queueObj of queue) {
-		if (queueObj.inPortalQueueClasses) { await addPortalQueueClasses(db, queueObj.user); }
-		if (queueObj.inPortalQueueCalendar) { await addPortalQueueCalendar(db, queueObj.user); }
+		if (queueObj.inPortalQueueClasses) {
+			await addPortalQueueClasses(db, queueObj.user);
+		}
+		if (queueObj.inPortalQueueCalendar) {
+			await addPortalQueueCalendar(db, queueObj.user);
+		}
 	}
 }
 
@@ -191,7 +209,9 @@ export async function processPortalQueue(db: Db) {
 export async function canvasCacheRetry(db: Db, user: string) {
 	const { hasURL, events } = await canvas.getFromCache(db, user);
 
-	if (!hasURL || !events || events.length > 0) { return { hasURL, events }; }
+	if (!hasURL || !events || events.length > 0) {
+		return { hasURL, events };
+	}
 
 	// If the events are empty, there's a chance that we just didn't cache results yet
 	await updateCanvasCache(db, user);

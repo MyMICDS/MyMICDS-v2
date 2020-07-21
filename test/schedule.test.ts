@@ -16,7 +16,7 @@ import supertest from 'supertest';
 use(chaiSubset);
 
 describe('Schedule', () => {
-	before(async function() {
+	before(async function () {
 		this.mongo = new MongoMemoryServer();
 		const [app, db] = await initAPI(await this.mongo.getUri());
 		this.db = db;
@@ -24,11 +24,11 @@ describe('Schedule', () => {
 		await calServer.start();
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.db.dropDatabase();
 	});
 
-	describe('GET /schedule', function() {
+	describe('GET /schedule', function () {
 		this.ctx.method = 'get';
 		this.ctx.route = '/schedule';
 
@@ -38,7 +38,7 @@ describe('Schedule', () => {
 			day: 7
 		};
 
-		it('gets default schedule', async function() {
+		it('gets default schedule', async function () {
 			const momentDate = moment({ ...payload, month: payload.month - 1 });
 			const res = await buildRequest(this).query(payload).expect(200);
 			expect(res.body.data).to.deep.equal({
@@ -46,21 +46,26 @@ describe('Schedule', () => {
 				schedule: {
 					day: 6,
 					special: false,
-					classes: [{
-						class: defaultSchoolBlock,
-						start: momentDate.clone().hour(8).toISOString(),
-						end: momentDate.clone().hour(15).minute(15).toISOString()
-					}],
+					classes: [
+						{
+							class: defaultSchoolBlock,
+							start: momentDate.clone().hour(8).toISOString(),
+							end: momentDate.clone().hour(15).minute(15).toISOString()
+						}
+					],
 					allDay: []
 				}
 			});
 		});
 
-		it('gets schedule with no Portal URL', async function() {
+		it('gets schedule with no Portal URL', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
-			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).query(payload).expect(200);
+			const res = await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.query(payload)
+				.expect(200);
 			expect(res.body.data).to.containSubset({
 				hasURL: false,
 				schedule: {
@@ -78,14 +83,17 @@ describe('Schedule', () => {
 			});
 		});
 
-		it('gets schedule with no Portal URL and configured classes', async function() {
+		it('gets schedule with no Portal URL and configured classes', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
 			await saveTestClass(this.db, { name: 'b block class', block: Block.B });
 			await saveTestClass(this.db, { name: 'f block class', block: Block.F });
 
-			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).query(payload).expect(200);
+			const res = await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.query(payload)
+				.expect(200);
 			expect(res.body.data).to.containSubset({
 				hasURL: false,
 				schedule: {
@@ -103,11 +111,16 @@ describe('Schedule', () => {
 			});
 		});
 
-		it('gets schedule from Portal URL', async function() {
-			await saveTestUser(this.db, { portalURLClasses: `http://localhost:${calServer.port}/portalClasses.ics` });
+		it('gets schedule from Portal URL', async function () {
+			await saveTestUser(this.db, {
+				portalURLClasses: `http://localhost:${calServer.port}/portalClasses.ics`
+			});
 			const jwt = await generateJWT(this.db);
 
-			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).query(payload).expect(200);
+			const res = await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.query(payload)
+				.expect(200);
 			expect(res.body.data).to.containSubset({
 				hasURL: true,
 				schedule: {
@@ -123,14 +136,25 @@ describe('Schedule', () => {
 			});
 		});
 
-		it('gets schedule from Portal URL with aliases', async function() {
-			await saveTestUser(this.db, { portalURLClasses: `http://localhost:${calServer.port}/portalClasses.ics` });
+		it('gets schedule from Portal URL with aliases', async function () {
+			await saveTestUser(this.db, {
+				portalURLClasses: `http://localhost:${calServer.port}/portalClasses.ics`
+			});
 			const jwt = await generateJWT(this.db);
 
 			const { _id } = await saveTestClass(this.db, { name: 'alias class' });
-			await aliases.add(this.db, testUser.user, AliasType.PORTAL, 'Test Class 1', (_id as ObjectID).toHexString());
+			await aliases.add(
+				this.db,
+				testUser.user,
+				AliasType.PORTAL,
+				'Test Class 1',
+				(_id as ObjectID).toHexString()
+			);
 
-			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).query(payload).expect(200);
+			const res = await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.query(payload)
+				.expect(200);
 			expect(res.body.data).to.containSubset({
 				hasURL: true,
 				schedule: {
@@ -147,7 +171,7 @@ describe('Schedule', () => {
 		});
 	});
 
-	after(async function() {
+	after(async function () {
 		await this.mongo.stop();
 		await calServer.stop();
 	});

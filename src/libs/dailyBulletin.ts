@@ -32,11 +32,13 @@ export async function queryLatest() {
 	// Get list of messages
 	let messageList;
 	try {
-		messageList = await gmail.users.messages.list({
-			auth: jwtClient,
-			userId: 'me',
-			q: query
-		}).then(r => r.data);
+		messageList = await gmail.users.messages
+			.list({
+				auth: jwtClient,
+				userId: 'me',
+				q: query
+			})
+			.then(r => r.data);
 	} catch (e) {
 		throw new Error('There was a problem listing the messages from Gmail!');
 	}
@@ -47,11 +49,13 @@ export async function queryLatest() {
 	// Now get details on most recent email
 	let recentMessage;
 	try {
-		recentMessage = await gmail.users.messages.get({
-			auth: jwtClient,
-			userId: 'me',
-			id: recentMsgId
-		}).then(r => r.data);
+		recentMessage = await gmail.users.messages
+			.get({
+				auth: jwtClient,
+				userId: 'me',
+				id: recentMsgId
+			})
+			.then(r => r.data);
 	} catch (e) {
 		throw new Error('There was a problem getting the most recent email!');
 	}
@@ -76,12 +80,14 @@ export async function queryLatest() {
 	// Get PDF attachment with attachment id
 	let attachment;
 	try {
-		attachment = await gmail.users.messages.attachments.get({
-			auth: jwtClient,
-			userId: 'me',
-			messageId: recentMsgId,
-			id: attachmentId
-		}).then(r => r.data);
+		attachment = await gmail.users.messages.attachments
+			.get({
+				auth: jwtClient,
+				userId: 'me',
+				messageId: recentMsgId,
+				id: attachmentId
+			})
+			.then(r => r.data);
 	} catch (e) {
 		throw new Error('There was a problem getting the PDF attachment!');
 	}
@@ -89,11 +95,16 @@ export async function queryLatest() {
 	// PDF Contents
 	const pdf = Buffer.from(attachment.data!, 'base64');
 	// Get PDF name
-	const bulletinName = generateFilename(originalFilename!.name, new Date(parseInt(recentMessage.internalDate!, 10)));
+	const bulletinName = generateFilename(
+		originalFilename!.name,
+		new Date(parseInt(recentMessage.internalDate!, 10))
+	);
 
 	// If bulletinName is null, we are unable to parse bulletin and should skip
 	// This probably means it's not a bulletin
-	if (!bulletinName) { return; }
+	if (!bulletinName) {
+		return;
+	}
 
 	// Make sure directory for Daily Bulletin exists
 	try {
@@ -114,7 +125,9 @@ export async function queryLatest() {
  * Gets every single Daily Bulletin and writes them to disk.
  */
 export async function queryAll() {
-	console.log('Trying to query all the Daily Bulletins in existence. This may take a bit of time...');
+	console.log(
+		'Trying to query all the Daily Bulletins in existence. This may take a bit of time...'
+	);
 
 	const jwtClient = await googleServiceAccount.create();
 
@@ -168,7 +181,7 @@ export async function queryAll() {
 	console.log(`Got ${getMessages.length} emails containing Daily Bulletins`);
 
 	// Now that we're all done getting information about the email, make an array of all the attachments.
-	const attachments: Array<{ emailId: string, attachmentId: string }>  = [];
+	const attachments: Array<{ emailId: string; attachmentId: string }> = [];
 	// Array containing filenames matching the indexes of the attachments array
 	const attachmentIdFilenames: string[] = [];
 	// Array containing dates matching the indexes of the attachments array
@@ -181,7 +194,10 @@ export async function queryAll() {
 		// Loop through parts looking for a PDF attachment
 		for (const part of parts) {
 			// If part contains PDF attachment, append attachment id and filename to arrays.
-			if (part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
+			if (
+				part.mimeType === 'application/pdf' ||
+				part.mimeType === 'application/octet-stream'
+			) {
 				const attachmentId = part.body!.attachmentId!;
 				attachments.push({
 					emailId: response.id!,
@@ -222,25 +238,29 @@ export async function queryAll() {
 		throw new Error('There was a problem ensuring directory for Daily Bulletins!');
 	}
 
-	await Promise.all(dailyBulletins.map(async (dailyBulletin, i) => {
-		// PDF contents
-		const pdf = Buffer.from(dailyBulletin.data!, 'base64');
-		// We must now get the filename of the Daily Bulletin
-		const originalFilename = path.parse(attachmentIdFilenames[i]);
-		// Get PDF name
-		const bulletinName = generateFilename(originalFilename.name, sentDates[i]);
+	await Promise.all(
+		dailyBulletins.map(async (dailyBulletin, i) => {
+			// PDF contents
+			const pdf = Buffer.from(dailyBulletin.data!, 'base64');
+			// We must now get the filename of the Daily Bulletin
+			const originalFilename = path.parse(attachmentIdFilenames[i]);
+			// Get PDF name
+			const bulletinName = generateFilename(originalFilename.name, sentDates[i]);
 
-		// If bulletinName is null, we are unable to parse bulletin and should skip
-		// This probably means it's not a bulletin
-		if (!bulletinName) { return; }
+			// If bulletinName is null, we are unable to parse bulletin and should skip
+			// This probably means it's not a bulletin
+			if (!bulletinName) {
+				return;
+			}
 
-		// Write PDF to file
-		try {
-			await fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf);
-		} catch (e) {
-			throw new Error('There was a problem writing the PDF!');
-		}
-	}));
+			// Write PDF to file
+			try {
+				await fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf);
+			} catch (e) {
+				throw new Error('There was a problem writing the PDF!');
+			}
+		})
+	);
 
 	console.log('Done!');
 }
@@ -309,7 +329,9 @@ function generateFilename(filename: string, sentDate: Date): string | null {
 		return null;
 	}
 
-	const [year, month, day] = [date.getFullYear(), date.getMonth() + 1, date.getDate()].map(utils.leadingZeros);
+	const [year, month, day] = [date.getFullYear(), date.getMonth() + 1, date.getDate()].map(
+		utils.leadingZeros
+	);
 
 	return `${year}-${month}-${day}.pdf`;
 }

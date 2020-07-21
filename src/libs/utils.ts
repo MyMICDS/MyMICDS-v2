@@ -6,9 +6,8 @@
 export function leadingZeros(n: number) {
 	if (n < 10) {
 		return `0${n}`;
-	} 
-		return n;
-	
+	}
+	return n;
 }
 
 /**
@@ -17,11 +16,7 @@ export function leadingZeros(n: number) {
  * @param filename The filename to check.
  */
 export function validFilename(filename: string) {
-	const nonoChars = [
-		'..',
-		'/',
-		'\\'
-	];
+	const nonoChars = ['..', '/', '\\'];
 
 	return !nonoChars.includes(filename);
 }

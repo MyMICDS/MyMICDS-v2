@@ -32,13 +32,15 @@ async function sendAdminEmail(db: Db, message: mail.Message) {
 		throw new Error('Error getting list of admins!');
 	}
 
-	if (admins.length < 1) { return; }
+	if (admins.length < 1) {
+		return;
+	}
 
 	// Send email
-	return mail.send(admins.map(a => a.user + '@micds.org'), message);
+	return mail.send(
+		admins.map(a => a.user + '@micds.org'),
+		message
+	);
 }
 
-export {
-	getAdmins as get,
-	sendAdminEmail as sendEmail
-};
+export { getAdmins as get, sendAdminEmail as sendEmail };

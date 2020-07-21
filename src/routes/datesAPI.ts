@@ -3,7 +3,6 @@ import * as dates from '../libs/dates';
 import RoutesFunction from './routesFunction';
 
 export default (app => {
-
 	app.get('/dates/school-starts', (req, res) => {
 		api.success(res, { date: dates.schoolStarts() });
 	});
@@ -20,5 +19,4 @@ export default (app => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

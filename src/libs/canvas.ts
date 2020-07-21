@@ -47,7 +47,9 @@ export async function verifyURL(canvasURL: string) {
 		throw new Error('There was a problem fetching calendar data from the URL!');
 	}
 
-	if (response.statusCode !== 200) { return { isValid: 'Invalid URL!', url: null }; }
+	if (response.statusCode !== 200) {
+		return { isValid: 'Invalid URL!', url: null };
+	}
 
 	return { isValid: true, url: validURL };
 }
@@ -61,15 +63,23 @@ export async function verifyURL(canvasURL: string) {
  */
 export async function setURL(db: Db, user: string, calUrl: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
 	const { isValid, url: validURL } = await verifyURL(calUrl);
-	if (isValid !== true) { return { isValid, validURL: null }; }
+	if (isValid !== true) {
+		return { isValid, validURL: null };
+	}
 
 	const userdata = db.collection('users');
 
 	try {
-		await userdata.updateOne({ _id: userDoc!._id }, { $set: { canvasURL: validURL } }, { upsert: true });
+		await userdata.updateOne(
+			{ _id: userDoc!._id },
+			{ $set: { canvasURL: validURL } },
+			{ upsert: true }
+		);
 	} catch (e) {
 		throw new Error('There was a problem updating the URL to the database!');
 	}
@@ -87,9 +97,13 @@ export async function setURL(db: Db, user: string, calUrl: string) {
  */
 export async function getUserCal(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
-	if (typeof userDoc!.canvasURL !== 'string') { return { hasURL: false, events: null }; }
+	if (typeof userDoc!.canvasURL !== 'string') {
+		return { hasURL: false, events: null };
+	}
 
 	let response;
 	try {
@@ -100,7 +114,9 @@ export async function getUserCal(db: Db, user: string) {
 	} catch (e) {
 		throw new Error('There was a problem fetching canvas data from the URL!');
 	}
-	if (response.statusCode !== 200) { throw new Error('Invalid URL!'); }
+	if (response.statusCode !== 200) {
+		throw new Error('Invalid URL!');
+	}
 
 	return { hasURL: true, events: Object.values(ical.parseICS(response.body)) };
 }
@@ -122,7 +138,10 @@ function parseCanvasTitle(title: string) {
 	const assignmentName = title.replace(classTeacherRegex, '').trim();
 
 	// Also check if there's a teacher, typically separated by a colon
-	const teacher = (_.last(classTeacherNoBrackets.match(teacherRegex) || []) || '').replace(/^:/g, '');
+	const teacher = (_.last(classTeacherNoBrackets.match(teacherRegex) || []) || '').replace(
+		/^:/g,
+		''
+	);
 	const teacherFirstName = teacher[0] || '';
 	const teacherLastName = (teacher[1] || '') + teacher.substring(2).toLowerCase();
 
@@ -153,7 +172,10 @@ function calendarToEvent(calLink: string) {
 	// 'assignment' can also be 'calendar_event'
 	const calObject = url.parse(calLink);
 
-	const courseId = (querystring.parse(calObject.query!).include_contexts as string).replace('_', 's/');
+	const courseId = (querystring.parse(calObject.query!).include_contexts as string).replace(
+		'_',
+		's/'
+	);
 
 	// Remove hash sign and switch to event URL format
 	const eventString = calObject.hash!.slice(1);
@@ -178,16 +200,22 @@ function calendarToEvent(calLink: string) {
  */
 export async function getClasses(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
-	if (typeof userDoc!.canvasURL !== 'string') { return { hasURL: false, classes: null }; }
+	if (typeof userDoc!.canvasURL !== 'string') {
+		return { hasURL: false, classes: null };
+	}
 
 	function parseEvents(eventsToParse: CanvasCacheEvent[]) {
 		const classes: string[] = [];
 
 		for (const calEvent of eventsToParse) {
 			// If event doesn't have a summary, skip
-			if (typeof calEvent.summary !== 'string') { continue; }
+			if (typeof calEvent.summary !== 'string') {
+				continue;
+			}
 
 			const parsedEvent = parseCanvasTitle(calEvent.summary);
 
@@ -212,18 +240,17 @@ export async function getClasses(db: Db, user: string) {
 	// If cache is empty, update it
 	if (events.length > 0) {
 		return parseEvents(events);
-	} 
-		await feeds.updateCanvasCache(db, user);
+	}
+	await feeds.updateCanvasCache(db, user);
 
-		let retryEvents;
-		try {
-			retryEvents = await canvasdata.find({ user: userDoc!._id }).toArray();
-		} catch (e) {
-			throw new Error('There was an error retrieving Canvas events!');
-		}
+	let retryEvents;
+	try {
+		retryEvents = await canvasdata.find({ user: userDoc!._id }).toArray();
+	} catch (e) {
+		throw new Error('There was an error retrieving Canvas events!');
+	}
 
-		return parseEvents(retryEvents);
-	
+	return parseEvents(retryEvents);
 }
 
 /**
@@ -234,9 +261,13 @@ export async function getClasses(db: Db, user: string) {
  */
 export async function getFromCache(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
-	if (typeof userDoc!.canvasURL !== 'string') { return { hasURL: false, events: null }; }
+	if (typeof userDoc!.canvasURL !== 'string') {
+		return { hasURL: false, events: null };
+	}
 
 	const canvasdata = db.collection<CanvasCacheEvent>('canvasFeeds');
 
@@ -265,7 +296,12 @@ export async function getFromCache(db: Db, user: string) {
 		}
 
 		// Query aliases to see if possible class object exists
-		const { hasAlias, classObject: aliasClass } = await aliases.getClass(db, user, AliasType.CANVAS, name);
+		const { hasAlias, classObject: aliasClass } = await aliases.getClass(
+			db,
+			user,
+			AliasType.CANVAS,
+			name
+		);
 
 		// Backup object if Canvas class doesn't have alias
 		const defaultColor = '#34444F';
@@ -341,16 +377,18 @@ export async function getFromCache(db: Db, user: string) {
  */
 export async function getUniqueEvents(db: Db) {
 	const canvasdata = db.collection<CanvasCacheEvent>('canvasFeeds');
-	const docs = await canvasdata.aggregate([
-		{
-			$group: {
-				_id: '$uid',
-				summary: { $first: '$summary' },
-				start: { $first: '$start' },
-				end: { $first: '$end' }
+	const docs = await canvasdata
+		.aggregate([
+			{
+				$group: {
+					_id: '$uid',
+					summary: { $first: '$summary' },
+					start: { $first: '$start' },
+					end: { $first: '$end' }
+				}
 			}
-		}
-	]).toArray();
+		])
+		.toArray();
 
 	const assignments: { [className: string]: UniqueEvent[] } = {};
 
@@ -380,7 +418,11 @@ export async function getUniqueEvents(db: Db) {
 	return assignments;
 }
 
-export type CanvasCacheEvent = ical.CalendarComponent & { _id: string | ObjectID, user: ObjectID, createdAt: Date };
+export type CanvasCacheEvent = ical.CalendarComponent & {
+	_id: string | ObjectID;
+	user: ObjectID;
+	createdAt: Date;
+};
 
 export interface UniqueEvent {
 	_id: string;

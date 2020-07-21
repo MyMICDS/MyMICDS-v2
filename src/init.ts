@@ -21,18 +21,23 @@ export async function initAPI(dbUri: string) {
 	const socketIO = socketHelper(io);
 
 	// Sentry request tracking
-	app.use(Sentry.Handlers.requestHandler({
-		user: ['user', 'scopes']
-	}));
+	app.use(
+		Sentry.Handlers.requestHandler({
+			user: ['user', 'scopes']
+		})
+	);
 
 	// Enable Cross-origin Resource Sharing
 	app.use(cors());
 
 	// Body Parser for POST Variables
-	app.use(bodyParser.json());     // to support JSON-encoded bodies
-	app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
-		extended: true
-	}));
+	app.use(bodyParser.json()); // to support JSON-encoded bodies
+	app.use(
+		bodyParser.urlencoded({
+			// to support URL-encoded bodies
+			extended: true
+		})
+	);
 
 	// Force error response for testing routes
 	app.use((req, res, next) => {
@@ -58,31 +63,33 @@ export async function initAPI(dbUri: string) {
 	assetsHandler(app);
 
 	// Require all routes
-	const routes = await Promise.all([
-		'alias',
-		'auth',
-		'background',
-		'canvas',
-		'class',
-		'dailyBulletin',
-		'dates',
-		'feeds',
-		'lunch',
-		'modules',
-		'notifications',
-		'planner',
-		'portal',
-		'quotes',
-		'schedule',
-		'snowday',
-		'sports',
-		'stats',
-		'stickynotes',
-		'suggestion',
-		'teacher',
-		'user',
-		'weather'
-	].map(r => import(`./routes/${r}API`).then(i => i.default as RoutesFunction)));
+	const routes = await Promise.all(
+		[
+			'alias',
+			'auth',
+			'background',
+			'canvas',
+			'class',
+			'dailyBulletin',
+			'dates',
+			'feeds',
+			'lunch',
+			'modules',
+			'notifications',
+			'planner',
+			'portal',
+			'quotes',
+			'schedule',
+			'snowday',
+			'sports',
+			'stats',
+			'stickynotes',
+			'suggestion',
+			'teacher',
+			'user',
+			'weather'
+		].map(r => import(`./routes/${r}API`).then(i => i.default as RoutesFunction))
+	);
 
 	for (const route of routes) {
 		route(app, db, socketIO);

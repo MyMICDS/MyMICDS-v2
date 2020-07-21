@@ -11,7 +11,9 @@ import * as users from './users';
  */
 async function getNotes(db: Db, user: string, moduleId: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('Invalid username!'); }
+	if (!isUser) {
+		throw new InputError('Invalid username!');
+	}
 
 	const stickynotes = db.collection<StickyNoteDoc>('stickynotes');
 
@@ -34,7 +36,9 @@ async function getNotes(db: Db, user: string, moduleId: string) {
  */
 async function postNote(db: Db, user: string, moduleId: string, text: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('Invalid username!'); }
+	if (!isUser) {
+		throw new InputError('Invalid username!');
+	}
 
 	const stickynotes = db.collection('stickynotes');
 
@@ -52,7 +56,4 @@ export interface StickyNoteDoc {
 	text: string;
 }
 
-export {
-	getNotes as get,
-	postNote as post
-};
+export { getNotes as get, postNote as post };

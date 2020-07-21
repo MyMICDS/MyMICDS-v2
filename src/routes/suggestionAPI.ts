@@ -11,7 +11,9 @@ export default ((app, db) => {
 			assertType<SubmitSuggestionParameters>(req.body);
 			await admins.sendEmail(db, {
 				subject: `Suggestion From: ${req.apiUser!}`,
-				html: `Suggestion From: ${req.apiUser!}\nType: ${req.body.type as string}\nSubmission: ${req.body.submission as string}`
+				html: `Suggestion From: ${req.apiUser!}\nType: ${
+					req.body.type as string
+				}\nSubmission: ${req.body.submission as string}`
 			});
 			api.success(res);
 		} catch (err) {

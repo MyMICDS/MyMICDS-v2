@@ -23,7 +23,9 @@ export const passwordBlacklist = [
 export async function passwordMatches(db: Db, user: string, password: string) {
 	const { isUser, userDoc } = await users.get(db, user);
 	// If invalid user, we just want to say username / password doesn't match
-	if (!isUser) { return { matches: false, confirmed: false }; }
+	if (!isUser) {
+		return { matches: false, confirmed: false };
+	}
 
 	const hash = userDoc!.password;
 
@@ -44,17 +46,26 @@ export async function passwordMatches(db: Db, user: string, password: string) {
  * @param oldPassword The user's current/old password.
  * @param newPassword The new password to set.
  */
-export async function changePassword(db: Db, user: string, oldPassword: string, newPassword: string) {
+export async function changePassword(
+	db: Db,
+	user: string,
+	oldPassword: string,
+	newPassword: string
+) {
 	if (passwordBlacklist.includes(newPassword)) {
 		throw new InputError('Invalid old password!');
 	}
 
 	const { isUser } = await users.get(db, user);
-	if (!isUser) { throw new InputError('Invalid user!'); }
+	if (!isUser) {
+		throw new InputError('Invalid user!');
+	}
 
 	// Compare oldPassword with password in database
 	const { matches } = await passwordMatches(db, user, oldPassword);
-	if (!matches) { throw new InputError('Password does not match!'); }
+	if (!matches) {
+		throw new InputError('Password does not match!');
+	}
 
 	const hash = await cryptoUtils.hashPassword(newPassword);
 
@@ -62,7 +73,10 @@ export async function changePassword(db: Db, user: string, oldPassword: string, 
 	const userdata = db.collection('users');
 
 	try {
-		await userdata.updateOne({ user }, { $set: { password: hash }, $currentDate: { lastPasswordChange: true } });
+		await userdata.updateOne(
+			{ user },
+			{ $set: { password: hash }, $currentDate: { lastPasswordChange: true } }
+		);
 	} catch (e) {
 		throw new Error('There was a problem updating the password in the database!');
 	}
@@ -75,7 +89,9 @@ export async function changePassword(db: Db, user: string, oldPassword: string, 
  */
 export async function resetPasswordEmail(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
 	// Generate password hash for confirmation link
 	let buf: Buffer;
@@ -91,10 +107,14 @@ export async function resetPasswordEmail(db: Db, user: string) {
 	const userdata = db.collection('users');
 
 	try {
-		await userdata.updateOne({
-			_id: userDoc!._id,
-			user: userDoc!.user
-		}, { $set: { passwordChangeHash: hash } }, { upsert: true });
+		await userdata.updateOne(
+			{
+				_id: userDoc!._id,
+				user: userDoc!.user
+			},
+			{ $set: { passwordChangeHash: hash } },
+			{ upsert: true }
+		);
 	} catch (e) {
 		throw new Error('There was a problem inserting the confirmation hash into the database!');
 	}
@@ -109,7 +129,12 @@ export async function resetPasswordEmail(db: Db, user: string) {
 
 	// Send email confirmation
 
-	return mail.sendHTML(email, 'Change Your Password', __dirname + '/../html/messages/password.html', emailReplace);
+	return mail.sendHTML(
+		email,
+		'Change Your Password',
+		__dirname + '/../html/messages/password.html',
+		emailReplace
+	);
 }
 
 /**
@@ -120,10 +145,14 @@ export async function resetPasswordEmail(db: Db, user: string) {
  * @param hash The reset hash.
  */
 export async function resetPassword(db: Db, user: string, password: string, hash: string) {
-	if (passwordBlacklist.includes(password)) { throw new InputError('Invalid password!'); }
+	if (passwordBlacklist.includes(password)) {
+		throw new InputError('Invalid password!');
+	}
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
 	if (typeof userDoc!.passwordChangeHash !== 'string') {
 		throw new InputError('Password change email was never sent!');
@@ -141,12 +170,16 @@ export async function resetPassword(db: Db, user: string, password: string, hash
 
 	// Update password in the database
 	try {
-		await userdata.updateOne({ _id: userDoc!._id, user: userDoc!.user }, {
-			$set: {
-				password: hashedPassword,
-				passwordChangeHash: null
-			}, $currentDate: { lastPasswordChange: true }
-		});
+		await userdata.updateOne(
+			{ _id: userDoc!._id, user: userDoc!.user },
+			{
+				$set: {
+					password: hashedPassword,
+					passwordChangeHash: null
+				},
+				$currentDate: { lastPasswordChange: true }
+			}
+		);
 	} catch (e) {
 		throw new Error('There was a problem updating the password in the database!');
 	}

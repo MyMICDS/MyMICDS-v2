@@ -12,7 +12,7 @@ const schoolId = 231;
  */
 async function login() {
 	let err: Error;
-	let body: { response: string; error: string; loginkey: string; };
+	let body: { response: string; error: string; loginkey: string };
 	try {
 		body = await request.post({
 			url: 'https://api.superfanu.com/5.0.0/gen/login.php',
@@ -58,6 +58,4 @@ async function getScores() {
 	} as GetScoresResponse['scores'];
 }
 
-export {
-	getScores as scores
-};
+export { getScores as scores };

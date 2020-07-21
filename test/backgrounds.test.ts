@@ -15,22 +15,22 @@ const testImages = {
 };
 
 describe('Backgrounds', () => {
-	before(async function() {
+	before(async function () {
 		this.mongo = new MongoMemoryServer();
 		const [app, db] = await initAPI(await this.mongo.getUri());
 		this.db = db;
 		this.request = supertest(app);
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.db.dropDatabase();
 	});
 
-	describe('GET /background', function() {
+	describe('GET /background', function () {
 		this.ctx.method = 'get';
 		this.ctx.route = '/background';
 
-		it('returns the default background', async function() {
+		it('returns the default background', async function () {
 			const res = await buildRequest(this).expect(200);
 
 			expect(res.body.data).to.have.property('hasDefault').that.is.true;
@@ -38,14 +38,16 @@ describe('Backgrounds', () => {
 
 			const normalPath = new URL(res.body.data.variants.normal).pathname;
 			const normalRes = await this.request.get(normalPath).expect(200);
-			expect(normalRes.body).to.deep.equal(await fs.readFile(backgrounds.defaultPaths.normal));
+			expect(normalRes.body).to.deep.equal(
+				await fs.readFile(backgrounds.defaultPaths.normal)
+			);
 
 			const blurPath = new URL(res.body.data.variants.blur).pathname;
 			const blurRes = await this.request.get(blurPath).expect(200);
 			expect(blurRes.body).to.deep.equal(await fs.readFile(backgrounds.defaultPaths.blur));
 		});
 
-		it('returns the user background', async function() {
+		it('returns the user background', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
@@ -69,11 +71,11 @@ describe('Backgrounds', () => {
 		});
 	});
 
-	describe('PUT /background', function() {
+	describe('PUT /background', function () {
 		this.ctx.method = 'put';
 		this.ctx.route = '/background';
 
-		it('uploads a user background', async function() {
+		it('uploads a user background', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
@@ -97,7 +99,7 @@ describe('Backgrounds', () => {
 			await fs.remove(backgrounds.userBackgroundsDir + '/' + dirname);
 		});
 
-		it('rejects invalid files', async function() {
+		it('rejects invalid files', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
@@ -110,11 +112,11 @@ describe('Backgrounds', () => {
 		requireLoggedIn();
 	});
 
-	describe('DELETE /background', function() {
+	describe('DELETE /background', function () {
 		this.ctx.method = 'delete';
 		this.ctx.route = '/background';
 
-		it('deletes a user background', async function() {
+		it('deletes a user background', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
@@ -128,7 +130,9 @@ describe('Backgrounds', () => {
 
 			const normalPath = new URL(res.body.data.variants.normal).pathname;
 			const normalRes = await this.request.get(normalPath).expect(200);
-			expect(normalRes.body).to.deep.equal(await fs.readFile(backgrounds.defaultPaths.normal));
+			expect(normalRes.body).to.deep.equal(
+				await fs.readFile(backgrounds.defaultPaths.normal)
+			);
 
 			const blurPath = new URL(res.body.data.variants.blur).pathname;
 			const blurRes = await this.request.get(blurPath).expect(200);
@@ -140,7 +144,7 @@ describe('Backgrounds', () => {
 		requireLoggedIn();
 	});
 
-	after(async function() {
+	after(async function () {
 		await this.mongo.stop();
 	});
 });

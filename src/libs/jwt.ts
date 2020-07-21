@@ -35,7 +35,11 @@ export function authorize(db: Db): RequestHandler {
 
 		// Otherwise, make sure it's in the correct format
 		if (!header.startsWith('Bearer ')) {
-			api.error(res, 'Authorization header must be in bearer token format.', Action.UNAUTHORIZED);
+			api.error(
+				res,
+				'Authorization header must be in bearer token format.',
+				Action.UNAUTHORIZED
+			);
 			return;
 		}
 
@@ -55,18 +59,20 @@ export function authorize(db: Db): RequestHandler {
 		}
 
 		// Express doesn't like async/await so we need promise chains
-		isRevoked(db, req, payload).then(revoked => {
-			if (revoked) {
-				api.error(res, 'Invalid token.', Action.UNAUTHORIZED);
-			} else {
-				// Type predicates can't be used asynchronously so we need to manually assert
-				const { user, scopes } = payload as StringDict;
-				req.user = { user, scopes };
-				next();
-			}
-		}).catch(err => {
-			api.error(res, err, Action.UNAUTHORIZED);
-		});
+		isRevoked(db, req, payload)
+			.then(revoked => {
+				if (revoked) {
+					api.error(res, 'Invalid token.', Action.UNAUTHORIZED);
+				} else {
+					// Type predicates can't be used asynchronously so we need to manually assert
+					const { user, scopes } = payload as StringDict;
+					req.user = { user, scopes };
+					next();
+				}
+			})
+			.catch(err => {
+				api.error(res, err, Action.UNAUTHORIZED);
+			});
 	};
 }
 
@@ -78,9 +84,7 @@ export function authorize(db: Db): RequestHandler {
  * @returns Whether the JWT is revoked.
  */
 async function isRevoked(db: Db, req: Request, payload: string | StringDict) {
-	const ignoredRoutes = [
-		'/auth/logout'
-	];
+	const ignoredRoutes = ['/auth/logout'];
 
 	// Get rid of possible ending slash
 	const testUrl = req.url.endsWith('/') ? req.url.slice(0, -1) : req.url;
@@ -129,10 +133,13 @@ async function isRevoked(db: Db, req: Request, payload: string | StringDict) {
 
 	// Update 'lastVisited' field in user document
 	const userdata = db.collection('users');
-	await userdata.updateOne(userDoc!, { $currentDate: { lastVisited: true }});
+	await userdata.updateOne(userDoc!, { $currentDate: { lastVisited: true } });
 
 	const jwtData = db.collection('jwtWhitelist');
-	await jwtData.updateOne({ user: userDoc!._id, jwt: authJwt }, { $currentDate: { lastUsed: true }});
+	await jwtData.updateOne(
+		{ user: userDoc!._id, jwt: authJwt },
+		{ $currentDate: { lastUsed: true } }
+	);
 
 	return blacklisted;
 }
@@ -155,7 +162,7 @@ export function requireLoggedIn(req: Request, res: Response, next: NextFunction)
  */
 export function requireScope(
 	scope: string,
-	message = 'You\'re not authorized in this part of the site, punk.'
+	message = "You're not authorized in this part of the site, punk."
 ): RequestHandler {
 	return (req, res, next) => {
 		if (req.user && (req.user.scopes[scope] || req.user.scopes.admin)) {
@@ -178,7 +185,9 @@ export async function generate(db: Db, user: string, rememberMe: boolean, commen
 	const expiration = rememberMe ? '30 days' : '12 hours';
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
 	// Default scope
 	const scopes: { [scope: string]: true } = {
@@ -197,15 +206,20 @@ export async function generate(db: Db, user: string, rememberMe: boolean, commen
 
 	let token;
 	try {
-		token = jwt.sign({
-			user, scopes
-		}, config.jwt.secret, {
-			subject: 'MyMICDS API',
-			algorithm: 'HS256',
-			expiresIn: expiration,
-			audience: config.hostedOn,
-			issuer: config.hostedOn
-		});
+		token = jwt.sign(
+			{
+				user,
+				scopes
+			},
+			config.jwt.secret,
+			{
+				subject: 'MyMICDS API',
+				algorithm: 'HS256',
+				expiresIn: expiration,
+				audience: config.hostedOn,
+				issuer: config.hostedOn
+			}
+		);
 	} catch (e) {
 		throw new Error('There was a problem generating a JWT!');
 	}
@@ -249,7 +263,9 @@ export async function isBlacklisted(db: Db, checkJwt: string) {
  */
 export async function revoke(db: Db, payload: UserPayload, revokeJwt: string) {
 	const { isUser, userDoc } = await users.get(db, payload.user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
 	const jwtData = db.collection('jwtWhitelist');
 

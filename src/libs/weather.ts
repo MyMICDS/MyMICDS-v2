@@ -57,7 +57,4 @@ async function updateWeather() {
 	return data;
 }
 
-export {
-	getWeather as get,
-	updateWeather as update
-};
+export { getWeather as get, updateWeather as update };

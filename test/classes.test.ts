@@ -14,22 +14,22 @@ import supertest from 'supertest';
 use(chaiSubset);
 
 describe('Classes', () => {
-	before(async function() {
+	before(async function () {
 		this.mongo = new MongoMemoryServer();
 		const [app, db] = await initAPI(await this.mongo.getUri());
 		this.db = db;
 		this.request = supertest(app);
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.db.dropDatabase();
 	});
 
-	describe('GET /classes', function() {
+	describe('GET /classes', function () {
 		this.ctx.method = 'get';
 		this.ctx.route = '/classes';
 
-		it('gets user classes', async function() {
+		it('gets user classes', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
@@ -44,7 +44,7 @@ describe('Classes', () => {
 		requireLoggedIn();
 	});
 
-	describe('POST /classes', function() {
+	describe('POST /classes', function () {
 		this.ctx.method = 'post';
 		this.ctx.route = '/classes';
 
@@ -55,15 +55,18 @@ describe('Classes', () => {
 			teacherLastName: testClass.teacher.lastName
 		};
 
-		it('saves a new class', async function() {
+		it('saves a new class', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
-			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(200);
+			const res = await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.send(payload)
+				.expect(200);
 			expect(res.body.data).to.have.property('id').that.is.a('string');
 		});
 
-		it('modifies an existing class', async function() {
+		it('modifies an existing class', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
@@ -77,7 +80,10 @@ describe('Classes', () => {
 				type: ClassType.ART
 			};
 
-			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(updatePayload).expect(200);
+			const res = await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.send(updatePayload)
+				.expect(200);
 			expect(res.body.data).to.have.property('id').that.equals(idString);
 
 			const userClasses = await classes.get(this.db, testUser.user);
@@ -85,7 +91,7 @@ describe('Classes', () => {
 			expect(userClasses[0]).to.containSubset(_.pick(updatePayload, ['color', 'type']));
 		});
 
-		it('rejects invalid teacher data', async function() {
+		it('rejects invalid teacher data', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
@@ -94,14 +100,17 @@ describe('Classes', () => {
 				teacherPrefix: 'not a real prefix'
 			};
 
-			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(badPayload).expect(400);
+			await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.send(badPayload)
+				.expect(400);
 		});
 
 		requireLoggedIn();
 		validateParameters(payload);
 	});
 
-	describe('DELETE /classes', function() {
+	describe('DELETE /classes', function () {
 		this.ctx.method = 'delete';
 		this.ctx.route = '/classes';
 
@@ -109,7 +118,7 @@ describe('Classes', () => {
 			id: ''
 		};
 
-		it('deletes an existing class', async function() {
+		it('deletes an existing class', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
@@ -119,26 +128,32 @@ describe('Classes', () => {
 				id: (_id as ObjectID).toHexString()
 			};
 
-			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(deletePayload).expect(200);
+			await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.send(deletePayload)
+				.expect(200);
 
 			const userClasses = await classes.get(this.db, testUser.user);
 			expect(userClasses).to.be.empty;
 		});
 
-		it('rejects an invalid id', async function() {
+		it('rejects an invalid id', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
 			await saveTestClass(this.db);
 
-			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(400);
+			await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.send(payload)
+				.expect(400);
 		});
 
 		requireLoggedIn();
 		validateParameters(payload);
 	});
 
-	after(async function() {
+	after(async function () {
 		await this.mongo.stop();
 	});
 });

@@ -13,14 +13,24 @@ import * as users from './users';
  * @param classId ID of the local class.
  * @returns ID of the inserted alias.
  */
-async function addAlias(db: Db, user: string, type: AliasType, classString: string, classId: string) {
+async function addAlias(
+	db: Db,
+	user: string,
+	type: AliasType,
+	classString: string,
+	classId: string
+) {
 	// Make sure valid user
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
 	// Check if alias already exists
 	const { hasAlias } = await getAliasClass(db, user, type, classString);
-	if (hasAlias) { throw new Error('Alias already exists for a class!'); }
+	if (hasAlias) {
+		throw new Error('Alias already exists for a class!');
+	}
 
 	// Make sure class id is valid
 	const theClasses = await classes.get(db, user);
@@ -34,7 +44,9 @@ async function addAlias(db: Db, user: string, type: AliasType, classString: stri
 		}
 	}
 
-	if (!validClassObject) { throw new Error('Native class doesn\'t exist!'); }
+	if (!validClassObject) {
+		throw new Error("Native class doesn't exist!");
+	}
 
 	// Class is valid! Insert into database
 	const insertAlias = {
@@ -66,7 +78,9 @@ async function addAlias(db: Db, user: string, type: AliasType, classString: stri
 async function listAliases(db: Db, user: string) {
 	// Make sure valid user
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
 	// Query database for all aliases under specific user
 	const aliasdata = db.collection<AliasWithIDs>('aliases');
@@ -102,10 +116,7 @@ async function listAliases(db: Db, user: string) {
  * @returns Object containing all classes for each alias type.
  */
 async function mapAliases(db: Db, user: string) {
-	const [aliases, theClasses] = await Promise.all([
-		listAliases(db, user),
-		classes.get(db, user)
-	]);
+	const [aliases, theClasses] = await Promise.all([listAliases(db, user), classes.get(db, user)]);
 
 	const classMap: { [id: string]: classes.MyMICDSClassWithIDs } = {};
 	const aliasMap: Partial<Record<AliasType, { [id: string]: classes.MyMICDSClassWithIDs }>> = {};
@@ -119,14 +130,20 @@ async function mapAliases(db: Db, user: string) {
 	for (const type of Object.values(AliasType)) {
 		aliasMap[type] = {};
 
-		if (typeof aliases[type] !== 'object') { continue; }
+		if (typeof aliases[type] !== 'object') {
+			continue;
+		}
 
 		for (const aliasObject of aliases[type]) {
-			aliasMap[type]![aliasObject.classRemote] = classMap[aliasObject.classNative.toHexString()];
+			aliasMap[type]![aliasObject.classRemote] =
+				classMap[aliasObject.classNative.toHexString()];
 		}
 	}
 
-	return aliasMap as Record<AliasType, { [id: string]: classes.MyMICDSClassWithIDs | PortalClass }>;
+	return aliasMap as Record<
+		AliasType,
+		{ [id: string]: classes.MyMICDSClassWithIDs | PortalClass }
+	>;
 }
 
 /**
@@ -148,7 +165,9 @@ async function deleteAlias(db: Db, user: string, type: AliasType, aliasId: strin
 		}
 	}
 
-	if (!validAliasId) { throw new InputError('Invalid alias id!'); }
+	if (!validAliasId) {
+		throw new InputError('Invalid alias id!');
+	}
 
 	const aliasdata = db.collection('aliases');
 
@@ -171,18 +190,24 @@ async function deleteAlias(db: Db, user: string, type: AliasType, aliasId: strin
 async function getAliasClass(db: Db, user: string, type: AliasType, classInput: string) {
 	// Make sure valid user
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
 	const aliasdata = db.collection<AliasWithIDs>('aliases');
 
 	let aliases: AliasWithIDs[];
 	try {
-		aliases = await aliasdata.find({ user: userDoc!._id, type, classRemote: classInput }).toArray();
+		aliases = await aliasdata
+			.find({ user: userDoc!._id, type, classRemote: classInput })
+			.toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
 
-	if (aliases.length === 0) { return { hasAlias: false, classObject: classInput }; }
+	if (aliases.length === 0) {
+		return { hasAlias: false, classObject: classInput };
+	}
 
 	const classId = aliases[0].classNative;
 
@@ -210,31 +235,35 @@ export async function deleteClasslessAliases(db: Db) {
 	let classless: AliasWithIDs[];
 
 	try {
-		classless = await aliasdata.aggregate([
-			// Stage 1
-			{
-				$lookup: {
-					from: 'classes',
-					localField: 'classNative',
-					foreignField: '_id',
-					as: 'classes'
-				}
-			},
-			// Stage 2
-			{
-				$match: {
-					classes: {
-						$size: 0
+		classless = await aliasdata
+			.aggregate([
+				// Stage 1
+				{
+					$lookup: {
+						from: 'classes',
+						localField: 'classNative',
+						foreignField: '_id',
+						as: 'classes'
+					}
+				},
+				// Stage 2
+				{
+					$match: {
+						classes: {
+							$size: 0
+						}
 					}
 				}
-			}
-		]).toArray();
+			])
+			.toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
 
 	try {
-		await Promise.all(classless.map(alias => aliasdata.deleteOne({ _id: alias._id, user: alias.user })));
+		await Promise.all(
+			classless.map(alias => aliasdata.deleteOne({ _id: alias._id, user: alias.user }))
+		);
 	} catch (e) {
 		throw new Error('There was a problem deleting aliases in the database!');
 	}

@@ -5,27 +5,29 @@ import * as crypto from 'crypto';
 import config from '../libs/config';
 
 // Connect to database
-MongoClient.connect(config.mongodb.uri).then(async (client: MongoClient) => {
-	const db = client.db();
-	const userdata = db.collection<UserDoc>('users');
+MongoClient.connect(config.mongodb.uri)
+	.then(async (client: MongoClient) => {
+		const db = client.db();
+		const userdata = db.collection<UserDoc>('users');
 
-	// Get all users
-	const userDocs = await userdata.find({}).toArray();
+		// Get all users
+		const userDocs = await userdata.find({}).toArray();
 
-	for (const userDoc of userDocs) {
-		const buf = await promisify(crypto.randomBytes)(16);
+		for (const userDoc of userDocs) {
+			const buf = await promisify(crypto.randomBytes)(16);
 
-		const unsubscribeHash = buf.toString('hex');
+			const unsubscribeHash = buf.toString('hex');
 
-		// Update user doc
-		await userdata.updateOne({ _id: userDoc._id }, { $set: { unsubscribeHash } });
+			// Update user doc
+			await userdata.updateOne({ _id: userDoc._id }, { $set: { unsubscribeHash } });
 
-		console.log(`Successfully added unsubscribe hash for ${userDoc.user}!`);
-	}
+			console.log(`Successfully added unsubscribe hash for ${userDoc.user}!`);
+		}
 
-	// All done!
-	console.log('All done!');
-	process.exit();
-}).catch(err => {
-	throw err;
-});
+		// All done!
+		console.log('All done!');
+		process.exit();
+	})
+	.catch(err => {
+		throw err;
+	});

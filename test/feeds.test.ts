@@ -13,7 +13,7 @@ import supertest from 'supertest';
 use(chaiSubset);
 
 describe('Feeds', () => {
-	before(async function() {
+	before(async function () {
 		this.mongo = new MongoMemoryServer();
 		const [app, db] = await initAPI(await this.mongo.getUri());
 		this.db = db;
@@ -21,16 +21,18 @@ describe('Feeds', () => {
 		await calServer.start();
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.db.dropDatabase();
 	});
 
-	describe('POST /feeds/canvas-cache', function() {
+	describe('POST /feeds/canvas-cache', function () {
 		this.ctx.method = 'post';
 		this.ctx.route = '/feeds/canvas-cache';
 
-		it('updates the Canvas cache', async function() {
-			await saveTestUser(this.db, { canvasURL: `http://localhost:${calServer.port}/canvas.ics` });
+		it('updates the Canvas cache', async function () {
+			await saveTestUser(this.db, {
+				canvasURL: `http://localhost:${calServer.port}/canvas.ics`
+			});
 			const jwt = await generateJWT(this.db);
 
 			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).expect(200);
@@ -46,11 +48,11 @@ describe('Feeds', () => {
 		requireLoggedIn();
 	});
 
-	describe('POST /feeds/portal-queue', function() {
+	describe('POST /feeds/portal-queue', function () {
 		this.ctx.method = 'post';
 		this.ctx.route = '/feeds/portal-queue';
 
-		it('updates the Portal cache', async function() {
+		it('updates the Portal cache', async function () {
 			await saveTestUser(this.db, {
 				portalURLClasses: `http://localhost:${calServer.port}/portalClasses.ics`,
 				portalURLCalendar: `http://localhost:${calServer.port}/portalCalendar.ics`
@@ -59,17 +61,27 @@ describe('Feeds', () => {
 
 			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).expect(200);
 
-			const { events: classesEvents } = await portal.getFromCacheClasses(this.db, testUser.user);
-			expect(classesEvents).to.containSubset(_.range(1, 6).map(i => ({ summary: `Test Class ${i}` })));
+			const { events: classesEvents } = await portal.getFromCacheClasses(
+				this.db,
+				testUser.user
+			);
+			expect(classesEvents).to.containSubset(
+				_.range(1, 6).map(i => ({ summary: `Test Class ${i}` }))
+			);
 
-			const { events: calendarEvents } = await portal.getFromCacheCalendar(this.db, testUser.user);
-			expect(calendarEvents).to.containSubset(_.range(1, 5).map(i => ({ summary: `Test Event ${i}` })));
+			const { events: calendarEvents } = await portal.getFromCacheCalendar(
+				this.db,
+				testUser.user
+			);
+			expect(calendarEvents).to.containSubset(
+				_.range(1, 5).map(i => ({ summary: `Test Event ${i}` }))
+			);
 		});
 
 		requireLoggedIn();
 	});
 
-	after(async function() {
+	after(async function () {
 		await this.mongo.stop();
 		await calServer.stop();
 	});

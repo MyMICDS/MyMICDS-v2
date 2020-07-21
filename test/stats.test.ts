@@ -9,28 +9,28 @@ import moment from 'moment';
 import supertest from 'supertest';
 
 describe('Stats', () => {
-	before(async function() {
+	before(async function () {
 		this.mongo = new MongoMemoryServer();
 		const [app, db] = await initAPI(await this.mongo.getUri());
 		this.db = db;
 		this.request = supertest(app);
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.db.dropDatabase();
 	});
 
-	describe('GET /stats', function() {
+	describe('GET /stats', function () {
 		this.ctx.method = 'get';
 		this.ctx.route = '/stats';
 
-		it('gets empty usage statistics', async function() {
+		it('gets empty usage statistics', async function () {
 			const res = await buildRequest(this).expect(200);
 			assertType<GetStatsResponse>(res.body.data);
 			expect(res.body.data.stats.registered.total).to.equal(0);
 		});
 
-		it('gets registered usage statistics', async function() {
+		it('gets registered usage statistics', async function () {
 			await saveTestUser(this.db);
 
 			const res = await buildRequest(this).expect(200);
@@ -44,7 +44,7 @@ describe('Stats', () => {
 			});
 		});
 
-		it('gets logged in usage statistics', async function() {
+		it('gets logged in usage statistics', async function () {
 			await saveTestUser(this.db);
 			await generateJWT(this.db);
 
@@ -57,7 +57,7 @@ describe('Stats', () => {
 		});
 	});
 
-	after(async function() {
+	after(async function () {
 		await this.mongo.stop();
 	});
 });

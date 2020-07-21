@@ -29,10 +29,10 @@ interface OptionsValues {
 	[key: string]: {
 		// If TypeScript had some sort of existential type this could be so much cooler
 		// TODO: Maybe turn this into an internal enum, since we already have to use strings for primitive comparisons
-		type: Constructor | typeof CountdownMode | typeof Color | 'string' | 'boolean',
+		type: Constructor | typeof CountdownMode | typeof Color | 'string' | 'boolean';
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		default: any,
-		optional?: boolean
+		default: any;
+		optional?: boolean;
 	};
 }
 
@@ -160,7 +160,9 @@ async function getModules(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
 
 	// If user doesn't exist, return default modules
-	if (!isUser) { return defaultModules; }
+	if (!isUser) {
+		return defaultModules;
+	}
 
 	const moduledata = db.collection<MyMICDSModuleWithIDs>('modules');
 
@@ -240,13 +242,19 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 			if (configType === Date) {
 				mod.options[optionKey] = new Date(moduleValue);
 				valid = !isNaN(mod.options[optionKey].getTime());
-			} else if (!(configType as Constructor).prototype && Object.values(configType).includes(moduleValue)) {
+			} else if (
+				!(configType as Constructor).prototype &&
+				Object.values(configType).includes(moduleValue)
+			) {
 				// Check if custom enum type
 				valid = true;
 			} else if (typeof moduleValue === configType) {
 				// Check if native primitive type
 				valid = true;
-			} else if ((configType as Constructor).prototype && moduleValue instanceof (configType as Constructor)) {
+			} else if (
+				(configType as Constructor).prototype &&
+				moduleValue instanceof (configType as Constructor)
+			) {
 				// Check if native object type
 				valid = true;
 			}
@@ -260,11 +268,21 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 			}
 		}
 	}
-	if (!modules.every(m => m.width > 0)) { throw new InputError('Modules must be at least 1 cell wide!'); }
-	if (!modules.every(m => m.height > 0)) { throw new InputError('Modules must be at least 1 cell tall!'); }
+	if (!modules.every(m => m.width > 0)) {
+		throw new InputError('Modules must be at least 1 cell wide!');
+	}
+	if (!modules.every(m => m.height > 0)) {
+		throw new InputError('Modules must be at least 1 cell tall!');
+	}
 
-	if (!modules.every(m => columnStarts <= m.column && m.column + m.width - columnStarts <= columnsPerRow)) {
-		throw new InputError(`Module column exceeds range between ${columnStarts} - ${columnsPerRow}!`);
+	if (
+		!modules.every(
+			m => columnStarts <= m.column && m.column + m.width - columnStarts <= columnsPerRow
+		)
+	) {
+		throw new InputError(
+			`Module column exceeds range between ${columnStarts} - ${columnsPerRow}!`
+		);
 	}
 	if (!modules.every(m => rowStarts <= m.row)) {
 		throw new InputError(`Module row below minimum value of ${rowStarts}!`);
@@ -272,16 +290,22 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 
 	// Check for user validity, get ID
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
 	const moduleGrid: boolean[][] = [];
 
 	for (const mod of modules) {
 		for (let j = mod.row; j <= mod.row + mod.height - 1; j++) {
-			if (typeof moduleGrid[j] !== 'object') { moduleGrid[j] = []; }
+			if (typeof moduleGrid[j] !== 'object') {
+				moduleGrid[j] = [];
+			}
 
 			for (let k = mod.column; k <= mod.column + mod.width - 1; k++) {
-				if (moduleGrid[j][k]) { throw new InputError('Modules overlap!'); }
+				if (moduleGrid[j][k]) {
+					throw new InputError('Modules overlap!');
+				}
 
 				moduleGrid[j][k] = true;
 			}
@@ -301,7 +325,7 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 
 	const dbModuleIds = dbModules.map(m => m._id.toHexString());
 
-	for (const mod of (modules as Array<MyMICDSModule & { _id: ObjectID | string }>)) {
+	for (const mod of modules as Array<MyMICDSModule & { _id: ObjectID | string }>) {
 		// If _id doesn't exist or is invalid, create a new one
 		if (!mod._id || !dbModuleIds.includes(mod._id as string)) {
 			mod._id = new ObjectID();
@@ -313,7 +337,11 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 		// Make sure user is an ObjectID and not a string
 		(mod as MyMICDSModuleWithIDs).user = userDoc!._id;
 
-		await moduledata.updateOne({ _id: mod._id, user: userDoc!._id }, { $set: mod }, { upsert: true });
+		await moduledata.updateOne(
+			{ _id: mod._id, user: userDoc!._id },
+			{ $set: mod },
+			{ upsert: true }
+		);
 	}
 }
 
@@ -322,7 +350,4 @@ export interface MyMICDSModuleWithIDs extends MyMICDSModule {
 	user: ObjectID;
 }
 
-export {
-	getModules as get,
-	upsertModules as upsert
-};
+export { getModules as get, upsertModules as upsert };

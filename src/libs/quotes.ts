@@ -35,7 +35,4 @@ async function insertQuote(db: Db, author: string, quote: string) {
 	}
 }
 
-export {
-	getQuotes as get,
-	insertQuote as insert
-};
+export { getQuotes as get, insertQuote as insert };

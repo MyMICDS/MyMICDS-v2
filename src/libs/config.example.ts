@@ -11,9 +11,9 @@ export default {
 	forceError: [] as string[], // List of routes to force error responses on. Used for testing.
 
 	email: {
-		URI      : '',
+		URI: '',
 		fromEmail: 'support@mymicds.net',
-		fromName : 'MyMICDS Support'
+		fromName: 'MyMICDS Support'
 	},
 
 	forecast: {

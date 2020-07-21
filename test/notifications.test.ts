@@ -8,18 +8,18 @@ import * as users from '../src/libs/users';
 import supertest from 'supertest';
 
 describe('Notifications', () => {
-	before(async function() {
+	before(async function () {
 		this.mongo = new MongoMemoryServer();
 		const [app, db] = await initAPI(await this.mongo.getUri());
 		this.db = db;
 		this.request = supertest(app);
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.db.dropDatabase();
 	});
 
-	describe('POST /notifications/unsubscribe', function() {
+	describe('POST /notifications/unsubscribe', function () {
 		this.ctx.method = 'post';
 		this.ctx.route = '/notifications/unsubscribe';
 
@@ -43,27 +43,35 @@ describe('Notifications', () => {
 			...multiplePayload
 		};
 
-		it('unsubscribes the user from a notification type', async function() {
+		it('unsubscribes the user from a notification type', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
-			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(200);
+			await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.send(payload)
+				.expect(200);
 
 			const { userDoc } = await users.get(this.db, testUser.user);
 			expect(userDoc).to.have.property('unsubscribed').that.deep.equals([payload.scopes]);
 		});
 
-		it('unsubscribes the user from multiple notification types', async function() {
+		it('unsubscribes the user from multiple notification types', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
-			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(multiplePayload).expect(200);
+			await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.send(multiplePayload)
+				.expect(200);
 
 			const { userDoc } = await users.get(this.db, testUser.user);
-			expect(userDoc).to.have.property('unsubscribed').that.deep.equals(multiplePayload.scopes);
+			expect(userDoc)
+				.to.have.property('unsubscribed')
+				.that.deep.equals(multiplePayload.scopes);
 		});
 
-		it('anonymously unsubscribes the user from a notification type', async function() {
+		it('anonymously unsubscribes the user from a notification type', async function () {
 			await saveTestUser(this.db);
 
 			await buildRequest(this).send(anonPayload).expect(200);
@@ -72,20 +80,22 @@ describe('Notifications', () => {
 			expect(userDoc).to.have.property('unsubscribed').that.deep.equals([anonPayload.scopes]);
 		});
 
-		it('anonymously unsubscribes the user from multiple notification types', async function() {
+		it('anonymously unsubscribes the user from multiple notification types', async function () {
 			await saveTestUser(this.db);
 
 			await buildRequest(this).send(anonMultiplePayload).expect(200);
 
 			const { userDoc } = await users.get(this.db, testUser.user);
-			expect(userDoc).to.have.property('unsubscribed').that.deep.equals(anonMultiplePayload.scopes);
+			expect(userDoc)
+				.to.have.property('unsubscribed')
+				.that.deep.equals(anonMultiplePayload.scopes);
 		});
 
 		validateParameters(payload);
 		validateParameters(anonPayload, false);
 	});
 
-	after(async function() {
+	after(async function () {
 		await this.mongo.stop();
 	});
 });

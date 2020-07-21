@@ -10,7 +10,7 @@ import * as fs from 'fs-extra';
 import supertest from 'supertest';
 
 describe('Daily Bulletin', () => {
-	before(async function() {
+	before(async function () {
 		this.mongo = new MongoMemoryServer();
 		const [app, db] = await initAPI(await this.mongo.getUri());
 		this.db = db;
@@ -20,11 +20,11 @@ describe('Daily Bulletin', () => {
 		await fs.move(dailyBulletin.bulletinPDFDir, dailyBulletin.bulletinPDFDir + '_old');
 	});
 
-	describe('GET /daily-bulletin', function() {
+	describe('GET /daily-bulletin', function () {
 		this.ctx.method = 'get';
 		this.ctx.route = '/daily-bulletin/';
 
-		it('retrieves the list of daily bulletins', async function() {
+		it('retrieves the list of daily bulletins', async function () {
 			await dailyBulletin.queryLatest();
 			const res = await buildRequest(this).expect(200);
 
@@ -33,11 +33,11 @@ describe('Daily Bulletin', () => {
 		});
 	});
 
-	describe('POST /daily-bulletin/query', function() {
+	describe('POST /daily-bulletin/query', function () {
 		this.ctx.method = 'post';
 		this.ctx.route = '/daily-bulletin/query';
 
-		it('saves the latest daily bulletin', async function() {
+		it('saves the latest daily bulletin', async function () {
 			await saveTestUser(this.db, { scopes: ['admin'] });
 			const jwt = await generateJWT(this.db);
 
@@ -47,7 +47,7 @@ describe('Daily Bulletin', () => {
 			expect(bulletins).to.have.lengthOf(1);
 		});
 
-		it('requires admin scope', async function() {
+		it('requires admin scope', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
@@ -57,12 +57,12 @@ describe('Daily Bulletin', () => {
 		requireLoggedIn();
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.db.dropDatabase();
 		await fs.emptyDir(dailyBulletin.bulletinPDFDir);
 	});
 
-	after(async function() {
+	after(async function () {
 		await this.mongo.stop();
 		await fs.rmdir(dailyBulletin.bulletinPDFDir);
 		await fs.move(dailyBulletin.bulletinPDFDir + '_old', dailyBulletin.bulletinPDFDir);

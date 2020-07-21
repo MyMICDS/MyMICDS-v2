@@ -5,7 +5,8 @@ import moment from 'moment';
 import objectAssignDeep from 'object-assign-deep';
 import request from 'request-promise-native';
 
-const lunchBaseURL = 'https://micds.flikisdining.com/menu/api/weeks/school/mary-institute-country-day-school-micds/menu-type';
+const lunchBaseURL =
+	'https://micds.flikisdining.com/menu/api/weeks/school/mary-institute-country-day-school-micds/menu-type';
 const schools: Record<School, string> = {
 	lowerschool: 'lunch',
 	middleschool: 'middle-school-menu',
@@ -25,8 +26,9 @@ async function getLunch(db: Db, date: Date) {
 	try {
 		for (const school of Object.keys(schools) as School[]) {
 			const schoolUrl = schools[school];
-			const lunchUrl =
-				`${lunchBaseURL}/${schoolUrl}/${currentDay.year()}/${currentDay.month() + 1}/${currentDay.date()}`;
+			const lunchUrl = `${lunchBaseURL}/${schoolUrl}/${currentDay.year()}/${
+				currentDay.month() + 1
+			}/${currentDay.date()}`;
 			// Send POST request to lunch website
 			res = await request.get(lunchUrl, {
 				resolveWithFullResponse: true,
@@ -94,7 +96,4 @@ function parseLunch(school: School, body: any) {
 	return json;
 }
 
-export {
-	getLunch as get,
-	parseLunch as parse
-};
+export { getLunch as get, parseLunch as parse };

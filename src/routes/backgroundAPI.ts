@@ -4,7 +4,6 @@ import * as jwt from '../libs/jwt';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db, socketIO) => {
-
 	app.get('/background', async (req, res) => {
 		try {
 			const responseObj = await backgrounds.get(req.apiUser);
@@ -65,5 +64,4 @@ export default ((app, db, socketIO) => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

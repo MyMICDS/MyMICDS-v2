@@ -86,6 +86,4 @@ async function getStats(db: Db) {
 	return stats;
 }
 
-export {
-	getStats as get
-};
+export { getStats as get };

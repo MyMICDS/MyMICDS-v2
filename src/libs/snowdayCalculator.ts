@@ -74,7 +74,9 @@ export async function calculate(): Promise<GetSnowdayResponse['data']> {
 		const dateString = /(?!\[)\d+(?=])/.exec(varName)![0];
 
 		// If variable name isn't mapped, we don't care about it
-		if (!labels[name]) { continue; }
+		if (!labels[name]) {
+			continue;
+		}
 
 		// Get value of variable (we need `eval` in order to parse concatenated strings)
 		// eslint-disable-next-line no-eval

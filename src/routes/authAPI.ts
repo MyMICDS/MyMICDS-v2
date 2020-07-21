@@ -14,13 +14,12 @@ import * as passwords from '../libs/passwords';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db) => {
-
 	app.post('/auth/login', async (req, res) => {
 		if (req.user) {
 			api.success(res, {
 				success: true,
-				message: 'You\'re already logged in, silly!',
-				jwt    : null
+				message: "You're already logged in, silly!",
+				jwt: null
 			});
 			return;
 		}
@@ -30,7 +29,13 @@ export default ((app, db) => {
 		try {
 			assertType<LoginParameters>(req.body);
 
-			const responseObj = await auth.login(db, req.body.user, req.body.password, rememberMe, req.body.comment);
+			const responseObj = await auth.login(
+				db,
+				req.body.user,
+				req.body.password,
+				rememberMe,
+				req.body.comment
+			);
 			api.success(res, responseObj);
 		} catch (err) {
 			api.error(res, err);
@@ -90,7 +95,12 @@ export default ((app, db) => {
 	app.put('/auth/change-password', jwt.requireLoggedIn, async (req, res) => {
 		try {
 			assertType<ChangePasswordParameters>(req.body);
-			await passwords.changePassword(db, req.apiUser!, req.body.oldPassword, req.body.newPassword);
+			await passwords.changePassword(
+				db,
+				req.apiUser!,
+				req.body.oldPassword,
+				req.body.newPassword
+			);
 			api.success(res);
 		} catch (err) {
 			api.error(res, err);
@@ -130,5 +140,4 @@ export default ((app, db) => {
 			payload: req.user
 		});
 	});
-
 }) as RoutesFunction;

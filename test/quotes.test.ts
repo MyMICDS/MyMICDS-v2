@@ -14,22 +14,22 @@ const testQuote = {
 };
 
 describe('Quotes', () => {
-	before(async function() {
+	before(async function () {
 		this.mongo = new MongoMemoryServer();
 		const [app, db] = await initAPI(await this.mongo.getUri());
 		this.db = db;
 		this.request = supertest(app);
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.db.dropDatabase();
 	});
 
-	describe('GET /quote', function() {
+	describe('GET /quote', function () {
 		this.ctx.method = 'get';
 		this.ctx.route = '/quote';
 
-		it('retrieves a quote', async function() {
+		it('retrieves a quote', async function () {
 			await quotes.insert(this.db, testQuote.author, testQuote.quote);
 
 			const res = await buildRequest(this).expect(200);
@@ -37,23 +37,23 @@ describe('Quotes', () => {
 		});
 	});
 
-	describe('POST /quote', function() {
+	describe('POST /quote', function () {
 		this.ctx.method = 'post';
 		this.ctx.route = '/quote';
 
 		const payload = testQuote;
 
-		it('inserts a quote', async function() {
+		it('inserts a quote', async function () {
 			await buildRequest(this).send(payload).expect(200);
 
 			const allQuotes = await quotes.get(this.db);
-			expect(allQuotes).to.containSubset([ testQuote ]);
+			expect(allQuotes).to.containSubset([testQuote]);
 		});
 
 		validateParameters(payload);
 	});
 
-	after(async function() {
+	after(async function () {
 		await this.mongo.stop();
 	});
 });

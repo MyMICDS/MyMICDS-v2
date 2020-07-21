@@ -25,89 +25,122 @@ const DEBUG = true;
 const debugList = ['mgira'];
 
 if (!Object.values(Scope).includes(messageType)) {
-	console.log(`"${messageType}" is an invalid message type! Refer to \`/src/libs/notifications.js\` for list of valid types.`);
+	console.log(
+		`"${messageType}" is an invalid message type! Refer to \`/src/libs/notifications.js\` for list of valid types.`
+	);
 	process.exit();
 }
 
 if (!DEBUG && !I_REALLY_WANT_TO_DO_THIS) {
-	console.log('Are you sure you really want to do this? Set `I_REALLY_WANT_TO_DO_THIS` to true on line 15. Make sure to set back to false before committing.');
+	console.log(
+		'Are you sure you really want to do this? Set `I_REALLY_WANT_TO_DO_THIS` to true on line 15. Make sure to set back to false before committing.'
+	);
 	process.exit();
 }
 
 // See who we've already sent email to
-getBlacklist().then(async blacklist => {
-	// Log into email
-	const transporter = nodemailer.createTransport(config.email.URI + '/?pool=true');
+getBlacklist()
+	.then(async blacklist => {
+		// Log into email
+		const transporter = nodemailer.createTransport(config.email.URI + '/?pool=true');
 
-	// Connect to database
-	const client: MongoClient = await MongoClient.connect(config.mongodb.uri);
-	const db = client.db();
-	const userdata = db.collection<UserDoc>('users');
+		// Connect to database
+		const client: MongoClient = await MongoClient.connect(config.mongodb.uri);
+		const db = client.db();
+		const userdata = db.collection<UserDoc>('users');
 
-	// Get all confirmed users that are either teachers or not graduated yet
-	const userDocs = await userdata.find({
-		confirmed: true,
-		$or: [
-			{ gradYear: { $gte: 2019 } },
-			{ gradYear: null }
-		]
-	}).toArray();
+		// Get all confirmed users that are either teachers or not graduated yet
+		const userDocs = await userdata
+			.find({
+				confirmed: true,
+				$or: [{ gradYear: { $gte: 2019 } }, { gradYear: null }]
+			})
+			.toArray();
 
-	const startTime = Date.now();
+		const startTime = Date.now();
 
-	function getDuration() {
-		const duration = moment.duration(Date.now() - startTime);
-		return `${duration.minutes()}:${duration.seconds().toString().padStart(2, '0')}.${duration.milliseconds().toString().padStart(3, '0')}`;
-	}
-
-	for (let i = 0; i < userDocs.length; i++) {
-		const percent = ((i + 1) / userDocs.length * 100).toFixed(2);
-		const userDoc = userDocs[i];
-
-		// If we're in debug mode
-		if (DEBUG && !debugList.includes(userDoc.user)) {
-			// console.log(`[${getDuration()}] Skipping user ${userDoc.user} because we're in debug mode. ${percent}% complete (${i + 1} / ${userDocs.length})`);
-			continue;
+		function getDuration() {
+			const duration = moment.duration(Date.now() - startTime);
+			return `${duration.minutes()}:${duration
+				.seconds()
+				.toString()
+				.padStart(2, '0')}.${duration.milliseconds().toString().padStart(3, '0')}`;
 		}
 
-		// Make sure we haven't already sent user the email
-		if (typeof blacklist[userDoc.user] !== 'undefined') {
-			console.log(`[${getDuration()}] Skipping user ${userDoc.user} because they are already in blacklist. ${percent}% complete (${i + 1} / ${userDocs.length})`);
-			continue;
+		for (let i = 0; i < userDocs.length; i++) {
+			const percent = (((i + 1) / userDocs.length) * 100).toFixed(2);
+			const userDoc = userDocs[i];
+
+			// If we're in debug mode
+			if (DEBUG && !debugList.includes(userDoc.user)) {
+				// console.log(`[${getDuration()}] Skipping user ${userDoc.user} because we're in debug mode. ${percent}% complete (${i + 1} / ${userDocs.length})`);
+				continue;
+			}
+
+			// Make sure we haven't already sent user the email
+			if (typeof blacklist[userDoc.user] !== 'undefined') {
+				console.log(
+					`[${getDuration()}] Skipping user ${
+						userDoc.user
+					} because they are already in blacklist. ${percent}% complete (${i + 1} / ${
+						userDocs.length
+					})`
+				);
+				continue;
+			}
+
+			// Make sure user hasn't unsubscribed from these types of things
+			// ignore if userDoc.unsubscribed does not exist
+			if (
+				userDoc.unsubscribed?.includes('ALL') ||
+				userDoc.unsubscribed?.includes(messageType.toUpperCase())
+			) {
+				console.log(
+					`[${getDuration()}] Skipping user ${
+						userDoc.user
+					} because they are unsubscribed from these messages. ${percent}% complete (${
+						i + 1
+					} / ${userDocs.length})`
+				);
+				continue;
+			}
+
+			// Send email
+			const email = userDoc.user + '@micds.org';
+			const emailReplace = {
+				firstName: userDoc.firstName,
+				unsubscribeLink: `https://mymicds.net/unsubscribe/${userDoc.user}/${userDoc.unsubscribeHash}?type=${messageType}`
+			};
+			const startEmailTime = Date.now();
+			console.log(`[${getDuration()}] Sending email for ${userDoc.user}...`);
+			try {
+				await mail.sendHTML(email, subject, messageDir, emailReplace, transporter);
+			} catch (err) {
+				console.log(
+					`Error sending mail for user ${userDoc.user}! They have not been added to the blacklist.\n`,
+					err,
+					'\n'
+				);
+				process.exit();
+			}
+
+			const emailSendDuration = Date.now() - startEmailTime;
+			console.log(
+				`[${getDuration()}] Email for ${
+					userDoc.user
+				} sent! Took ${emailSendDuration} ms. ${percent}% complete (${i + 1} / ${
+					userDocs.length
+				})`
+			);
+			await blacklistUser(userDoc.user);
 		}
 
-		// Make sure user hasn't unsubscribed from these types of things
-		// ignore if userDoc.unsubscribed does not exist
-		if (userDoc.unsubscribed?.includes('ALL') || userDoc.unsubscribed?.includes(messageType.toUpperCase())) {
-			console.log(`[${getDuration()}] Skipping user ${userDoc.user} because they are unsubscribed from these messages. ${percent}% complete (${i + 1} / ${userDocs.length})`);
-			continue;
-		}
-
-		// Send email
-		const email = userDoc.user + '@micds.org';
-		const emailReplace = {
-			firstName: userDoc.firstName,
-			unsubscribeLink: `https://mymicds.net/unsubscribe/${userDoc.user}/${userDoc.unsubscribeHash}?type=${messageType}`
-		};
-		const startEmailTime = Date.now();
-		console.log(`[${getDuration()}] Sending email for ${userDoc.user}...`);
-		try {
-			await mail.sendHTML(email, subject, messageDir, emailReplace, transporter);
-		} catch (err) {
-			console.log(`Error sending mail for user ${userDoc.user}! They have not been added to the blacklist.\n`, err, '\n');
-			process.exit();
-		}
-
-		const emailSendDuration = Date.now() - startEmailTime;
-		console.log(`[${getDuration()}] Email for ${userDoc.user} sent! Took ${emailSendDuration} ms. ${percent}% complete (${i + 1} / ${userDocs.length})`);
-		await blacklistUser(userDoc.user);
-	}
-
-	console.log('All done!');
-	process.exit();
-}).catch(err => {
-	throw err;
-});
+		console.log('All done!');
+		process.exit();
+	})
+	.catch(err => {
+		throw err;
+	});
 
 /**
  * Prevent user from being sent mail
