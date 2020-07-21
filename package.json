@@ -28,6 +28,11 @@
     "docs": "typedoc --out ./docs --mode modules ./src/libs ./src/external.d.ts",
     "lint": "eslint --ext .ts ./"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MyMICDS/MyMICDS-v2.git"
@@ -110,9 +115,11 @@
     "eslint": "^7.4.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-sort-imports-es6-autofix": "^0.5.0",
+    "husky": "^4.2.5",
     "mocha": "^6.2.2",
     "mongodb-memory-server": "^6.2.1",
     "prettier": "^2.0.5",
+    "pretty-quick": "^2.0.1",
     "supertest": "^4.0.2",
     "typedoc": "^0.15.0"
   }
