@@ -17,6 +17,8 @@ jobs:
         node-version: 12.x # this shouldn't matter since we're just running ESLint
     - name: Install dependencies
       run: npm ci
+    - name: Create fake config
+      run: cp ./src/libs/config.example.ts ./src/libs/config.ts
     - name: Run ESLint
       run: npm run lint
 
