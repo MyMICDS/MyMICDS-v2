@@ -528,4 +528,4 @@ export function cleanUp(str: string) {
 	return str.replace(cleanUpBlockSuffix, '');
 }
 
-export type PortalCacheEvent = ical.CalendarComponent & { _id: ObjectID };
+export type PortalCacheEvent = ical.CalendarComponent & { _id: ObjectID; user: ObjectID };

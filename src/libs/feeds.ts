@@ -90,7 +90,7 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 	const newEvents = events as portal.PortalCacheEvent[];
 
 	for (const ev of newEvents) {
-		ev.user = userDoc!._id.toHexString();
+		ev.user = userDoc!._id;
 	}
 
 	try {
@@ -153,8 +153,8 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 
 	const newEvents = events as portal.PortalCacheEvent[];
 
-	for (const ev of events) {
-		ev.user = userDoc!._id.toHexString();
+	for (const ev of newEvents) {
+		ev.user = userDoc!._id;
 	}
 
 	try {
