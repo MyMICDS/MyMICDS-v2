@@ -4,7 +4,6 @@ import * as weather from '../libs/weather';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db, socketIO) => {
-
 	app.get('/weather', async (req, res) => {
 		try {
 			const weatherJSON = await weather.get();
@@ -23,5 +22,4 @@ export default ((app, db, socketIO) => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

@@ -1,7 +1,7 @@
 import { Weather } from '@mymicds/sdk';
-import DarkSky from 'forecast.io';
 import * as fs from 'fs-extra';
 import config from './config';
+import DarkSky from 'forecast.io';
 
 export const JSON_PATH = __dirname + '/../api/weather.json';
 
@@ -38,7 +38,7 @@ async function updateWeather() {
 	const darksky = new DarkSky(options);
 
 	const data = await new Promise<Weather>((resolve, reject) => {
-		darksky.get(latitude, longitude, (err: Error, res: any, resData: Weather) => {
+		darksky.get(latitude, longitude, (err: Error, _: never, resData: Weather) => {
 			if (err) {
 				reject(new Error('There was a problem fetching the weather data!'));
 				return;
@@ -57,7 +57,4 @@ async function updateWeather() {
 	return data;
 }
 
-export {
-	getWeather as get,
-	updateWeather as update
-};
+export { getWeather as get, updateWeather as update };

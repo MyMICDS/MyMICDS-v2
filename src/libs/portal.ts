@@ -1,23 +1,23 @@
 import { GetPortalDayRotationResponse } from '@mymicds/sdk';
-
-import * as ical from 'ical';
 import * as _ from 'lodash';
+import * as ical from 'ical';
 import moment from 'moment';
+
 import { Db, ObjectID } from 'mongodb';
-import request, { FullResponse } from 'request-promise-native';
+import { InputError } from './errors';
 import { URL } from 'url';
 import * as calServer from '../../test/calendars/server';
-import config from './config';
-import { InputError } from './errors';
 import * as feeds from './feeds';
 import * as users from './users';
+import config from './config';
+import request, { FullResponse } from 'request-promise-native';
 
 // URL Calendars come from
 const urlPrefix = 'https://api.veracross.com/micds/subscribe/';
 
-const dayRotationURL = process.env.CI ?
-	`http://localhost:${calServer.port}/dayRotation.ics` :
-	urlPrefix + config.portal.dayRotation;
+const dayRotationURL = process.env.CI
+	? `http://localhost:${calServer.port}/dayRotation.ics`
+	: urlPrefix + config.portal.dayRotation;
 
 // RegEx to test if calendar summary contains a valid Day Rotation
 const validDayRotationPlain = /^US - Day [1-6]/;
@@ -54,12 +54,14 @@ async function verifyURLGeneric(portalURL: string) {
 
 	const pathID = parsedURL.pathname.split('/')[3];
 
+	const uid = params.get('uid');
+
 	// noinspection SuspiciousTypeOfGuard
-	if (typeof pathID !== 'string' && typeof params.get('uid') !== 'string') {
+	if (typeof pathID !== 'string' || typeof uid !== 'string') {
 		throw new InputError('URL does not contain calendar ID!');
 	}
 
-	const validURL = `${urlPrefix}${pathID}?uid=${params.get('uid')}`;
+	const validURL = `${urlPrefix}${pathID}?uid=${uid}`;
 
 	// Now let's actually check if we can get any data from here
 	let response: FullResponse;
@@ -71,7 +73,9 @@ async function verifyURLGeneric(portalURL: string) {
 	} catch (e) {
 		throw new Error('There was a problem fetching portal data from the URL!');
 	}
-	if (response.statusCode !== 200) { throw new InputError('Invalid URL!'); }
+	if (response.statusCode !== 200) {
+		throw new InputError('Invalid URL!');
+	}
 
 	return { isValid: true, url: validURL, body: response.body };
 }
@@ -120,9 +124,13 @@ export async function verifyURLCalendar(portalURL: string) {
 	}
 
 	// Do exact opposite as classes feed
-	if ((count / events.length) >= 0.5) {
-		return { isValid: 'The calendar does not contain the information we need!' +
-				'Make sure you\'re copying your \'My Calendar\' calendar!', url: null };
+	if (count / events.length >= 0.5) {
+		return {
+			isValid:
+				'The calendar does not contain the information we need!' +
+				"Make sure you're copying your 'My Calendar' calendar!",
+			url: null
+		};
 	}
 
 	return { isValid: true, url };
@@ -136,15 +144,23 @@ export async function verifyURLCalendar(portalURL: string) {
  */
 export async function setURLClasses(db: Db, user: string, calUrl: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
 	const { isValid, url: validURL } = await verifyURLClasses(calUrl);
-	if (!isValid) { return { isValid, validURL: null }; }
+	if (!isValid) {
+		return { isValid, validURL: null };
+	}
 
 	const userdata = db.collection('users');
 
 	try {
-		await userdata.updateOne({ _id: userDoc!._id }, { $set: { portalURLClasses: validURL } }, { upsert: true });
+		await userdata.updateOne(
+			{ _id: userDoc!._id },
+			{ $set: { portalURLClasses: validURL } },
+			{ upsert: true }
+		);
 	} catch (e) {
 		throw new Error('There was a problem updating the URL to the database!');
 	}
@@ -162,16 +178,24 @@ export async function setURLClasses(db: Db, user: string, calUrl: string) {
  */
 export async function setURLCalendar(db: Db, user: string, calUrl: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
 	const { isValid, url: validURL } = await verifyURLCalendar(calUrl);
 
-	if (isValid !== true) { return { isValid, validURL: null }; }
+	if (isValid !== true) {
+		return { isValid, validURL: null };
+	}
 
 	const userdata = db.collection('users');
 
 	try {
-		await userdata.updateOne({ _id: userDoc!._id }, { $set: { portalURLCalendar: validURL } }, { upsert: true });
+		await userdata.updateOne(
+			{ _id: userDoc!._id },
+			{ $set: { portalURLCalendar: validURL } },
+			{ upsert: true }
+		);
 	} catch (e) {
 		throw new Error('There was a problem updating the URL to the database!');
 	}
@@ -189,9 +213,13 @@ export async function setURLCalendar(db: Db, user: string, calUrl: string) {
  */
 export async function getFromCacheClasses(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
-	if (typeof userDoc!.portalURLClasses !== 'string') { return { hasURL: false, events: null }; }
+	if (typeof userDoc!.portalURLClasses !== 'string') {
+		return { hasURL: false, events: null };
+	}
 
 	const portaldata = db.collection<PortalCacheEvent>('portalFeedsClasses');
 
@@ -213,9 +241,13 @@ export async function getFromCacheClasses(db: Db, user: string) {
  */
 export async function getFromCacheCalendar(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
-	if (typeof userDoc!.portalURLCalendar !== 'string') { return { hasURL: false, events: null }; }
+	if (typeof userDoc!.portalURLCalendar !== 'string') {
+		return { hasURL: false, events: null };
+	}
 
 	const portaldata = db.collection<PortalCacheEvent>('portalFeedsCalendar');
 
@@ -237,13 +269,17 @@ export async function getFromCacheCalendar(db: Db, user: string) {
  */
 export async function getFromCalClasses(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
-	if (typeof userDoc!.portalURLClasses !== 'string') { return { hasURL: false, cal: null }; }
+	if (typeof userDoc!.portalURLClasses !== 'string') {
+		return { hasURL: false, cal: null };
+	}
 
 	let response: FullResponse;
 	try {
-		response = await request(userDoc!.portalURLClasses!, {
+		response = await request(userDoc!.portalURLClasses, {
 			resolveWithFullResponse: true,
 			simple: false
 		});
@@ -251,7 +287,9 @@ export async function getFromCalClasses(db: Db, user: string) {
 		throw new Error('There was a problem fetching the day rotation!');
 	}
 
-	if (response.statusCode !== 200) { throw new InputError('Invalid URL!'); }
+	if (response.statusCode !== 200) {
+		throw new InputError('Invalid URL!');
+	}
 
 	return {
 		hasURL: true,
@@ -267,13 +305,17 @@ export async function getFromCalClasses(db: Db, user: string) {
  */
 export async function getFromCalCalendar(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
-	if (typeof userDoc!.portalURLCalendar !== 'string') { return { hasURL: false, cal: null }; }
+	if (typeof userDoc!.portalURLCalendar !== 'string') {
+		return { hasURL: false, cal: null };
+	}
 
 	let response: FullResponse;
 	try {
-		response = await request(userDoc!.portalURLCalendar!, {
+		response = await request(userDoc!.portalURLCalendar, {
 			resolveWithFullResponse: true,
 			simple: false
 		});
@@ -281,7 +323,9 @@ export async function getFromCalCalendar(db: Db, user: string) {
 		throw new Error('There was a problem fetching the day rotation!');
 	}
 
-	if (response.statusCode !== 200) { throw new InputError('Invalid URL!'); }
+	if (response.statusCode !== 200) {
+		throw new InputError('Invalid URL!');
+	}
 
 	return {
 		hasURL: true,
@@ -308,10 +352,14 @@ export async function getDayRotation(date: Date) {
 
 	// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
 	// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-	if (_.isEmpty(data)) { throw new Error('There was a problem fetching the day rotation!'); }
+	if (_.isEmpty(data)) {
+		throw new Error('There was a problem fetching the day rotation!');
+	}
 
 	for (const calEvent of Object.values(data)) {
-		if (typeof calEvent.summary !== 'string') { continue; }
+		if (typeof calEvent.summary !== 'string') {
+			continue;
+		}
 
 		const start = new Date(calEvent.start!);
 		const end = new Date(calEvent.end || '');
@@ -324,7 +372,7 @@ export async function getDayRotation(date: Date) {
 			// See if valid day
 			if (validDayRotationPlain.test(calEvent.summary)) {
 				// Get actual day
-				return parseInt(calEvent.summary.match(/Day ([1-6])/)![1], 10);
+				return parseInt(/Day ([1-6])/.exec(calEvent.summary)![1], 10);
 			}
 		}
 	}
@@ -350,10 +398,14 @@ export async function getDayRotations() {
 
 	// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
 	// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-	if (_.isEmpty(data)) { throw new Error('There was a problem fetching the day rotation!'); }
+	if (_.isEmpty(data)) {
+		throw new Error('There was a problem fetching the day rotation!');
+	}
 
 	for (const calEvent of Object.values(data)) {
-		if (typeof calEvent.summary !== 'string') { continue; }
+		if (typeof calEvent.summary !== 'string') {
+			continue;
+		}
 
 		const start = new Date(calEvent.start!);
 
@@ -364,7 +416,7 @@ export async function getDayRotations() {
 		// See if valid day
 		if (validDayRotationPlain.test(calEvent.summary)) {
 			// Get actual day
-			const day = parseInt(calEvent.summary.match(/[1-6]/)![0], 10);
+			const day = parseInt(/[1-6]/.exec(calEvent.summary)![0], 10);
 
 			if (typeof days[year] !== 'object') {
 				days[year] = {};
@@ -396,13 +448,12 @@ export async function getClasses(db: Db, user: string) {
 	// If cache is empty, update it
 	if (events!.length > 0) {
 		return { hasURL: true, classes: parsePortalClasses(events!) };
-	} else {
-		await feeds.addPortalQueueClasses(db, user);
-
-		const { events: retryEvents } = await getFromCacheClasses(db, user);
-
-		return { hasURL: true, classes: parsePortalClasses(retryEvents!) };
 	}
+	await feeds.addPortalQueueClasses(db, user);
+
+	const { events: retryEvents } = await getFromCacheClasses(db, user);
+
+	return { hasURL: true, classes: parsePortalClasses(retryEvents!) };
 }
 
 /**
@@ -411,7 +462,9 @@ export async function getClasses(db: Db, user: string) {
  * @returns A list of Portal class names.
  */
 function parsePortalClasses(events: PortalCacheEvent[]) {
-	if (typeof events !== 'object') { throw new InputError('Invalid events array!'); }
+	if (typeof events !== 'object') {
+		throw new InputError('Invalid events array!');
+	}
 
 	const classes: { [name: string]: number } = {};
 
@@ -444,12 +497,9 @@ function parsePortalClasses(events: PortalCacheEvent[]) {
 		const occurrences = classes[uniqueClass];
 
 		// Remove all class names containing a certain keyword
-		const classKeywordBlacklist = [
-			'US'
-		];
+		const classKeywordBlacklist = ['US'];
 
 		if (occurrences >= 10) {
-
 			// Check if class contains any word blacklisted
 			let containsBlacklistedWord = false;
 			for (const keyword of classKeywordBlacklist) {
@@ -478,4 +528,4 @@ export function cleanUp(str: string) {
 	return str.replace(cleanUpBlockSuffix, '');
 }
 
-export type PortalCacheEvent = ical.CalendarComponent & { _id: ObjectID };
+export type PortalCacheEvent = ical.CalendarComponent & { _id: ObjectID; user: ObjectID };

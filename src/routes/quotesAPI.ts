@@ -8,7 +8,6 @@ import * as Random from 'random-js';
 const engine = Random.engines.mt19937().autoSeed();
 
 export default ((app, db) => {
-
 	app.get('/quote', async (req, res) => {
 		try {
 			const quotesResult = await quotes.get(db);
@@ -28,5 +27,4 @@ export default ((app, db) => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

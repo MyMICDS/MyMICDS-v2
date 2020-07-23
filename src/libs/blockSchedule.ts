@@ -1,19 +1,22 @@
 import { Block } from '@mymicds/sdk';
-import moment from 'moment';
 import * as users from './users';
+import moment from 'moment';
 
 type Days = 'day1' | 'day2' | 'day3' | 'day4' | 'day5' | 'day6';
 
-// tslint:disable:no-var-requires
-// Schedules
-const highschoolSchedule = require(__dirname + '/../schedules/highschool.json') as Record<Days, DaySchedule>;
+import grade5Schedule from '../schedules/grade5.json';
+import grade6Schedule from '../schedules/grade6.json';
+import grade7Schedule from '../schedules/grade7.json';
+import grade8Schedule from '../schedules/grade8.json';
+import hsSchedule from '../schedules/highschool.json';
+
+const highschoolSchedule = hsSchedule as Record<Days, DaySchedule>;
 const middleschoolSchedule = {
-	8: require(__dirname + '/../schedules/grade8.json') as Record<Days, DaySchedule>,
-	7: require(__dirname + '/../schedules/grade7.json') as Record<Days, DaySchedule>,
-	6: require(__dirname + '/../schedules/grade6.json') as Record<Days, DaySchedule>,
-	5: require(__dirname + '/../schedules/grade5.json') as Record<Days, DaySchedule>
+	8: grade8Schedule as Record<Days, DaySchedule>,
+	7: grade7Schedule as Record<Days, DaySchedule>,
+	6: grade6Schedule as Record<Days, DaySchedule>,
+	5: grade5Schedule as Record<Days, DaySchedule>
 };
-// tslint:enable:no-var-requires
 
 /**
  * Gets the generic schedule for a user depending on their grade.
@@ -23,7 +26,12 @@ const middleschoolSchedule = {
  * @param lateStart Whether or not the schedule should be late start.
  * @returns The appropriate generic schedule.
  */
-function getSchedule(date: Date | moment.Moment | null, grade: number | null, day: number | null, lateStart: boolean) {
+function getSchedule(
+	date: Date | moment.Moment | null,
+	grade: number | null,
+	day: number | null,
+	lateStart: boolean
+) {
 	// Validate inputs
 	if (date) {
 		date = moment(date);
@@ -40,7 +48,9 @@ function getSchedule(date: Date | moment.Moment | null, grade: number | null, da
 	const schoolName = users.gradeToSchool(grade);
 
 	// We don't have lowerschool schedules
-	if (schoolName === 'lowerschool') { return null; }
+	if (schoolName === 'lowerschool') {
+		return null;
+	}
 
 	// User's final schedule
 	let userSchedule: BlockFormat[] = [];
@@ -48,28 +58,35 @@ function getSchedule(date: Date | moment.Moment | null, grade: number | null, da
 	// Use highschool schedule if upperschool
 	if (schoolName === 'upperschool') {
 		// Determine if lowerclassman (9 - 10) or upperclassman (11 - 12)
-		const lowerclass = (grade === 9 || grade === 10);
-		const upperclass = (grade === 11 || grade === 12);
+		const lowerclass = grade === 9 || grade === 10;
+		const upperclass = grade === 11 || grade === 12;
 
 		// Loop through JSON and append classes to user schedule
-		const jsonSchedule = highschoolSchedule['day' + day as Days][lateStart ? 'lateStart' : 'regular'];
+		const jsonSchedule =
+			highschoolSchedule[`day${day}` as Days][lateStart ? 'lateStart' : 'regular'];
 
 		for (const jsonBlock of jsonSchedule) {
 			// Check for any restrictions on the block
 			if (typeof (jsonBlock as AlternateBlockFormat).lowerclass !== 'undefined') {
-				if ((jsonBlock as AlternateBlockFormat).lowerclass !== lowerclass) { continue; }
+				if ((jsonBlock as AlternateBlockFormat).lowerclass !== lowerclass) {
+					continue;
+				}
 			}
 			if (typeof (jsonBlock as AlternateBlockFormat).upperclass !== 'undefined') {
-				if ((jsonBlock as AlternateBlockFormat).lowerclass !== upperclass) { continue; }
+				if ((jsonBlock as AlternateBlockFormat).lowerclass !== upperclass) {
+					continue;
+				}
 			}
 
 			// Push to user schedule
 			userSchedule.push(jsonBlock);
 		}
-
 	} else if (schoolName === 'middleschool') {
 		// Directly return JSON from middleschool schedule
-		userSchedule = middleschoolSchedule[grade as 8 | 7 | 6 | 5]['day' + day as Days][lateStart ? 'lateStart' : 'regular'];
+		userSchedule =
+			middleschoolSchedule[grade as 8 | 7 | 6 | 5][`day${day}` as Days][
+				lateStart ? 'lateStart' : 'regular'
+			];
 	}
 
 	// Copy the JSON so we don't modify the original reference
@@ -113,6 +130,4 @@ export interface LunchBlockFormat extends BlockFormat {
 	wleh: BlockFormat[];
 }
 
-export {
-	getSchedule as get
-};
+export { getSchedule as get };

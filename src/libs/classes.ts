@@ -1,13 +1,13 @@
 import { Block, ClassType } from '@mymicds/sdk';
-import { Teacher } from '@mymicds/sdk/dist/libs/teachers';
 import { Db, ObjectID } from 'mongodb';
+import { InputError } from './errors';
+import { Omit } from './utils';
+import { Teacher } from '@mymicds/sdk/dist/libs/teachers';
+import * as aliases from './aliases';
 import * as prisma from 'prisma';
 import * as Random from 'random-js';
-import * as aliases from './aliases';
-import { InputError } from './errors';
 import * as teachers from './teachers';
 import * as users from './users';
-import { Omit } from './utils';
 
 const engine = Random.engines.mt19937().autoSeed();
 
@@ -20,20 +20,30 @@ const validColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
  * @param user Username.
  * @param scheduleClass Class object.
  */
-async function upsertClass(db: Db, user: string, scheduleClass: {
-	_id?: string,
-	name: string,
-	color?: string,
-	block?: Block,
-	type?: ClassType,
-	teacher: Teacher
-}) {
+async function upsertClass(
+	db: Db,
+	user: string,
+	scheduleClass: {
+		_id?: string;
+		name: string;
+		color?: string;
+		block?: Block;
+		type?: ClassType;
+		teacher: Teacher;
+	}
+) {
 	// Set default
-	if (typeof scheduleClass._id !== 'string') { scheduleClass._id = ''; }
+	if (typeof scheduleClass._id !== 'string') {
+		scheduleClass._id = '';
+	}
 
 	// If no block or type, default to 'other'
-	if (!scheduleClass.block) { scheduleClass.block = Block.OTHER; }
-	if (!scheduleClass.type)  { scheduleClass.type  = ClassType.OTHER; }
+	if (!scheduleClass.block) {
+		scheduleClass.block = Block.OTHER;
+	}
+	if (!scheduleClass.type) {
+		scheduleClass.type = ClassType.OTHER;
+	}
 
 	// If not valid color, generate random
 	if (!(scheduleClass.color && validColor.test(scheduleClass.color))) {
@@ -48,7 +58,9 @@ async function upsertClass(db: Db, user: string, scheduleClass: {
 	// Make sure username is valid first
 	const { isUser, userDoc } = await users.get(db, user);
 
-	if (!isUser) { throw new InputError('Invalid username!'); }
+	if (!isUser) {
+		throw new InputError('Invalid username!');
+	}
 
 	// Add teacher to database
 	const teacherDoc = await teachers.add(db, scheduleClass.teacher);
@@ -79,12 +91,13 @@ async function upsertClass(db: Db, user: string, scheduleClass: {
 	const dupClassIds: string[] = [];
 	for (const classDoc of classes) {
 		// If duplicate class, push id to array
-		if (scheduleClass.name  === classDoc.name
-			&& teacherDoc._id.toHexString() === classDoc.teacher.toHexString()
-			&& scheduleClass.block === classDoc.block
-			&& scheduleClass.color === classDoc.color
-			&& scheduleClass.type  === classDoc.type) {
-
+		if (
+			scheduleClass.name === classDoc.name &&
+			teacherDoc._id.toHexString() === classDoc.teacher.toHexString() &&
+			scheduleClass.block === classDoc.block &&
+			scheduleClass.color === classDoc.color &&
+			scheduleClass.type === classDoc.type
+		) {
 			dupClassIds.push(classDoc._id.toHexString());
 		}
 	}
@@ -139,43 +152,47 @@ async function upsertClass(db: Db, user: string, scheduleClass: {
 async function getClasses(db: Db, user: string) {
 	// Make sure valid user and get user id
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
 	const classdata = db.collection<MyMICDSClassWithIDs>('classes');
 
 	let classes: MyMICDSClassWithIDs[];
 	try {
-		classes = await classdata.aggregate([
-			// Stage 1
-			// Get all classes under the specified user id
-			{
-				$match: {
-					user: userDoc!._id
+		classes = await classdata
+			.aggregate([
+				// Stage 1
+				// Get all classes under the specified user id
+				{
+					$match: {
+						user: userDoc!._id
+					}
+				},
+				// Stage 2
+				// Replace teacher id with array of teacher object
+				{
+					$lookup: {
+						from: 'teachers',
+						localField: 'teacher',
+						foreignField: '_id',
+						as: 'teacher'
+					}
+				},
+				// Stage 3
+				// Flatten the teacher object array
+				{
+					$unwind: {
+						path: '$teacher'
+					}
+				},
+				// Stage 4
+				// Replace user ObjectID with actual username
+				{
+					$addFields: { user }
 				}
-			},
-			// Stage 2
-			// Replace teacher id with array of teacher object
-			{
-				$lookup: {
-					from: 'teachers',
-					localField: 'teacher',
-					foreignField: '_id',
-					as: 'teacher'
-				}
-			},
-			// Stage 3
-			// Flatten the teacher object array
-			{
-				$unwind: {
-					path: '$teacher'
-				}
-			},
-			// Stage 4
-			// Replace user ObjectID with actual username
-			{
-				$addFields: { user }
-			}
-		]).toArray();
+			])
+			.toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
@@ -206,7 +223,7 @@ async function deleteClass(db: Db, user: string, classId: string) {
 	// Make sure valid user
 	const { isUser, userDoc } = await users.get(db, user);
 	if (!isUser) {
-		throw new InputError('User doesn\'t exist!');
+		throw new InputError("User doesn't exist!");
 	}
 
 	const classdata = db.collection('classes');
@@ -233,8 +250,4 @@ export interface MyMICDSClassWithIDs {
 	textDark?: boolean;
 }
 
-export {
-	upsertClass as upsert,
-	getClasses as get,
-	deleteClass as delete
-};
+export { upsertClass as upsert, getClasses as get, deleteClass as delete };

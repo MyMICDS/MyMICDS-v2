@@ -1,17 +1,18 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// TODO: This desperately needs a refactor
+// All the mutation and temporary fields makes TypeScript complain and my head hurt
 import { Block, ClassType, GetScheduleResponse, ScheduleClass } from '@mymicds/sdk';
-import * as _ from 'lodash';
-import moment from 'moment';
 import { Db } from 'mongodb';
-import prisma from 'prisma';
+import { StringDict } from './utils';
+import * as _ from 'lodash';
 import * as aliases from './aliases';
 import * as blockSchedule from './blockSchedule';
-import { BlockFormat, LunchBlockFormat } from './blockSchedule';
 import * as classes from './classes';
 import * as feeds from './feeds';
 import * as portal from './portal';
-import { PortalCacheEvent } from './portal';
 import * as users from './users';
-import { StringDict } from './utils';
+import moment from 'moment';
+import prisma from 'prisma';
 
 // Mappings for default blocks
 
@@ -29,7 +30,15 @@ export const defaultSchoolBlock: ScheduleClass = {
 };
 
 const genericBlocks: Record<
-	'activities' | 'advisory' | 'collaborative' | 'community' | 'enrichment' | 'flex' | 'lunch' | 'recess' | 'pe',
+	| 'activities'
+	| 'advisory'
+	| 'collaborative'
+	| 'community'
+	| 'enrichment'
+	| 'flex'
+	| 'lunch'
+	| 'recess'
+	| 'pe',
 	ScheduleClass
 > = {
 	activities: {
@@ -151,8 +160,12 @@ const genericBlocks: Record<
  * @returns An object containing the day rotation, whether the schedule is special,
  * 			and the different classes for the day.
  */
-// tslint:disable-next-line:max-line-length
-async function getSchedule(db: Db, user: string, date: Date, portalBroke = false): Promise<{ hasURL: boolean; schedule: FullSchedule }> {
+async function getSchedule(
+	db: Db,
+	user: string,
+	date: Date,
+	portalBroke = false
+): Promise<{ hasURL: boolean; schedule: FullSchedule }> {
 	const scheduleDate = moment(date).startOf('day');
 	const scheduleNextDay = scheduleDate.clone().add(1, 'day');
 
@@ -173,16 +186,17 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 	}
 	const defaultEnd = scheduleDate.clone().hour(15).minute(15);
 
-	const defaultClasses: ScheduleClasses = [{
-		class: defaultSchoolBlock,
-		start: defaultStart,
-		end: defaultEnd
-	}];
+	const defaultClasses: ScheduleClasses = [
+		{
+			class: defaultSchoolBlock,
+			start: defaultStart,
+			end: defaultEnd
+		}
+	];
 
 	// If it isn't a user OR it's a teacher with no Portal URL
 	if (!isUser || (userDoc!.gradYear === null && typeof userDoc!.portalURLClasses !== 'string')) {
 		// Fallback to default schedule if user is invalid
-		// tslint:disable-next-line:no-shadowed-variable
 		const schedule: FullSchedule = {
 			day: scheduleDay,
 			special: false,
@@ -198,8 +212,12 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 	}
 
 	// Get block schedule for user
-	// tslint:disable-next-line:max-line-length
-	const daySchedule = blockSchedule.get(scheduleDate, users.gradYearToGrade(userDoc!.gradYear)!, scheduleDay, lateStart);
+	const daySchedule = blockSchedule.get(
+		scheduleDate,
+		users.gradYearToGrade(userDoc!.gradYear),
+		scheduleDay,
+		lateStart
+	);
 
 	if (portalBroke || typeof userDoc!.portalURLClasses !== 'string') {
 		// If user is logged in, but hasn't configured their Portal URL
@@ -214,7 +232,6 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 			// blockTypeMap[block.block] = block.type;
 		}
 
-		// tslint:disable-next-line:no-shadowed-variable
 		const schedule: FullSchedule = {
 			day: scheduleDay,
 			special: false,
@@ -223,7 +240,9 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 		};
 
 		// Only combine with block schedule if the block schedule exists
-		if (!daySchedule) { return { hasURL: false, schedule }; }
+		if (!daySchedule) {
+			return { hasURL: false, schedule };
+		}
 
 		// Insert any possible classes the user as configured in Settings
 		schedule.classes = combineClassesSchedule(scheduleDate, daySchedule, blocks);
@@ -242,12 +261,10 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 
 				if (_.isEmpty(events)) {
 					return null;
-				} else {
-					return { hasURL, cal: events };
 				}
-			} else {
-				return { hasURL, cal };
+				return { hasURL, cal: events };
 			}
+			return { hasURL, cal };
 		}),
 		// Get Portal calendar feed
 		portal.getFromCacheCalendar(db, user).then(async ({ hasURL, events: cal }) => {
@@ -256,12 +273,10 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 
 				if (_.isEmpty(events)) {
 					return null;
-				} else {
-					return { hasURL, cal: events };
 				}
-			} else {
-				return { hasURL, cal };
+				return { hasURL, cal: events };
 			}
+			return { hasURL, cal };
 		})
 	] as const);
 
@@ -284,7 +299,9 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 
 	if (portalCalendarResult.hasURL) {
 		// Go through all the events in the Portal calendar
-		for (const calEvent of Object.values(portalCalendarResult.cal as PortalCacheEvent[])) {
+		for (const calEvent of Object.values(
+			portalCalendarResult.cal as portal.PortalCacheEvent[]
+		)) {
 			const start = moment(calEvent.start);
 			const end = moment(calEvent.end);
 
@@ -334,12 +351,14 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 	}
 
 	// Go through all the events in the Portal classes
-	for (const calEvent of Object.values(portalClassesResult.cal as PortalCacheEvent[])) {
+	for (const calEvent of Object.values(portalClassesResult.cal as portal.PortalCacheEvent[])) {
 		const start = moment(calEvent.start);
 		const end = moment(calEvent.end);
 
 		// Make sure the event isn't all whacky
-		if (end.isBefore(start)) { continue; }
+		if (end.isBefore(start)) {
+			continue;
+		}
 
 		// Check if it's an all-day event
 		if (start.isSameOrBefore(scheduleDate) && !end.isValid()) {
@@ -356,13 +375,13 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 
 			// We should use the Portal class's alias; otherwise, we should fallback to a default class object. [sp1a]
 			if (typeof aliasesResult.portal[calEvent.summary!] !== 'object') {
-
 				// Determine block
-				const blockPart = _.last(calEvent.summary!.match(portal.portalSummaryBlock)!);
+				// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+				const blockPart = _.last(calEvent.summary!.match(portal.portalSummaryBlock));
 				let block = Block.OTHER;
 
 				if (blockPart) {
-					block = _.last(blockPart.match(/[A-G]/g)!)!.toLowerCase() as Block;
+					block = _.last(blockPart.match(/[A-G]/g))!.toLowerCase() as Block;
 				}
 
 				// Generate random color
@@ -439,7 +458,7 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 	} else {
 		// Keep track of original start and end of blocks detecting overlap
 		for (const block of daySchedule) {
-			if ((block as LunchBlockFormat).noOverlapAddBlocks) {
+			if ((block as blockSchedule.LunchBlockFormat).noOverlapAddBlocks) {
 				(block as any).originalStart = block.start;
 				(block as any).originalEnd = block.end;
 			}
@@ -460,18 +479,26 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 		for (const block of schedule.classes) {
 			if ((block as any).noOverlapAddBlocks) {
 				// If no overlap, add blocks
-				if ((block as any).originalStart === block.start && (block as any).originalEnd === block.end) {
-
+				if (
+					(block as any).originalStart === block.start &&
+					(block as any).originalEnd === block.end
+				) {
 					// Before combining blocks to existing schedule, convert to moment objects
 					for (const addBlock of (block as any).noOverlapAddBlocks) {
 						const startTime = addBlock.start.split(':');
-						addBlock.start = scheduleDate.clone().hour(startTime[0]).minute(startTime[1]);
+						addBlock.start = scheduleDate
+							.clone()
+							.hour(startTime[0])
+							.minute(startTime[1]);
 
 						const endTime = addBlock.end.split(':');
 						addBlock.end = scheduleDate.clone().hour(endTime[0]).minute(endTime[1]);
 					}
 
-					schedule.classes = ordineSchedule(schedule.classes, (block as any).noOverlapAddBlocks);
+					schedule.classes = ordineSchedule(
+						schedule.classes,
+						(block as any).noOverlapAddBlocks
+					);
 				}
 				delete (block as any).originalStart;
 				delete (block as any).originalEnd;
@@ -484,11 +511,11 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
 		for (let i = 0; i < schedule.classes.length; i++) {
 			const scheduleClass = schedule.classes[i];
 
-			if ((scheduleClass as BlockFormat).block) {
-				const block = (scheduleClass as BlockFormat).block;
+			if ((scheduleClass as blockSchedule.BlockFormat).block) {
+				const block = (scheduleClass as blockSchedule.BlockFormat).block;
 
 				// It's a class from the block schedule. Create a class object for it
-				if (typeof ((genericBlocks as StringDict)[block]) === 'object') {
+				if (typeof (genericBlocks as StringDict)[block] === 'object') {
 					(scheduleClass as any).class = (genericBlocks as StringDict)[block];
 				} else {
 					const blockName = 'Block ' + block[0].toUpperCase() + block.slice(1);
@@ -526,13 +553,20 @@ async function getSchedule(db: Db, user: string, date: Date, portalBroke = false
  * @param blocks An object pairing blocks with class objects.
  * @returns An array containing the block schedule with possibly configured classes.
  */
-// tslint:disable-next-line:max-line-length
-function combineClassesSchedule(date: Date | moment.Moment, schedule: BlockFormat[], blocks: Partial<Record<Block, ScheduleClass>>) {
+function combineClassesSchedule(
+	date: Date | moment.Moment,
+	schedule: blockSchedule.BlockFormat[],
+	blocks: Partial<Record<Block, ScheduleClass>>
+) {
 	// TODO: Is this still needed? Looks like something left behind after a refactor.
 	// noinspection JSUnusedAssignment
 	date = moment(date);
-	if (!Array.isArray(schedule)) { schedule = []; }
-	if (typeof blocks !== 'object') { blocks = {}; }
+	if (!Array.isArray(schedule)) {
+		schedule = [];
+	}
+	if (typeof blocks !== 'object') {
+		blocks = {};
+	}
 
 	// Loop through schedule
 	const combinedSchedule: ScheduleClasses = [];
@@ -581,14 +615,21 @@ function combineClassesSchedule(date: Date | moment.Moment, schedule: BlockForma
  * @param addClasses The new blocks to add. Will override base classes if there is a conflict.
  * @returns A sorted array of classes.
  */
-function ordineSchedule(baseSchedule: ClassesOrBlocks, addClasses: ClassesOrBlocks): ClassesOrBlocks {
-	if (!Array.isArray(baseSchedule)) { baseSchedule = []; }
-	if (!Array.isArray(addClasses)) { addClasses = []; }
+function ordineSchedule(
+	baseSchedule: ClassesOrBlocks,
+	addClasses: ClassesOrBlocks
+): ClassesOrBlocks {
+	if (!Array.isArray(baseSchedule)) {
+		baseSchedule = [];
+	}
+	if (!Array.isArray(addClasses)) {
+		addClasses = [];
+	}
 
 	// Add each class to the base schedule
 	for (const addClass of addClasses) {
 		const start = moment(addClass.start);
-		const end   = moment(addClass.end);
+		const end = moment(addClass.end);
 
 		// Keep track of conflicting indexes
 		const conflictIndexes: number[] = [];
@@ -598,21 +639,17 @@ function ordineSchedule(baseSchedule: ClassesOrBlocks, addClasses: ClassesOrBloc
 			const scheduleClass = baseSchedule[i];
 
 			const blockStart = moment(scheduleClass.start);
-			const blockEnd   = moment(scheduleClass.end);
+			const blockEnd = moment(scheduleClass.end);
 			// Determine start/end times relative to the class we're currently trying to add
 			let startRelation = null;
 			if (start.isSame(blockStart)) {
 				startRelation = 'same start';
-
 			} else if (start.isSame(blockEnd)) {
 				startRelation = 'same end';
-
 			} else if (start.isBefore(blockStart)) {
 				startRelation = 'before';
-
 			} else if (start.isAfter(blockEnd)) {
 				startRelation = 'after';
-
 			} else if (start.isAfter(blockStart) && start.isBefore(blockEnd)) {
 				startRelation = 'inside';
 			}
@@ -620,23 +657,23 @@ function ordineSchedule(baseSchedule: ClassesOrBlocks, addClasses: ClassesOrBloc
 			let endRelation = null;
 			if (end.isSame(blockStart)) {
 				endRelation = 'same start';
-
 			} else if (end.isSame(blockEnd)) {
 				endRelation = 'same end';
-
 			} else if (end.isBefore(blockStart)) {
 				endRelation = 'before';
-
 			} else if (end.isAfter(blockEnd)) {
 				endRelation = 'after';
-
 			} else if (end.isAfter(blockStart) && end.isBefore(blockEnd)) {
 				endRelation = 'inside';
 			}
 
 			// If new event is totally unrelated to the block, just ignore
-			if (startRelation === 'same end' || startRelation === 'after') { continue; }
-			if (endRelation === 'same start' || endRelation === 'before') { continue; }
+			if (startRelation === 'same end' || startRelation === 'after') {
+				continue;
+			}
+			if (endRelation === 'same start' || endRelation === 'before') {
+				continue;
+			}
 
 			// If start is before or equal to block start
 			if (startRelation === 'before' || startRelation === 'same start') {
@@ -701,7 +738,7 @@ function ordineSchedule(baseSchedule: ClassesOrBlocks, addClasses: ClassesOrBloc
 	baseSchedule = (baseSchedule as any[]).filter(value => value.start.unix() < value.end.unix());
 
 	// Reorder schedule because of deleted classes
-	(baseSchedule as any[]).sort((a, b) => (a.start as any) - (b.start as any));
+	(baseSchedule as any[]).sort((a, b) => a.start - b.start);
 
 	return baseSchedule;
 }
@@ -713,11 +750,8 @@ export interface FullSchedule {
 	allDay: string[];
 }
 
-export type ClassesOrBlocks = ScheduleClasses | BlockFormat[];
+export type ClassesOrBlocks = ScheduleClasses | blockSchedule.BlockFormat[];
 
 export type ScheduleClasses = GetScheduleResponse['schedule']['classes'];
 
-export {
-	getSchedule as get,
-	ordineSchedule as ordine
-};
+export { getSchedule as get, ordineSchedule as ordine };

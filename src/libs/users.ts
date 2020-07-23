@@ -1,7 +1,7 @@
 import { ChangeUserInfoParameters, GetUserInfoResponse, School } from '@mymicds/sdk';
+import { Db, ObjectID } from 'mongodb';
 import * as _ from 'lodash';
 import moment from 'moment';
-import { Db, ObjectID } from 'mongodb';
 
 import * as dates from './dates';
 
@@ -43,18 +43,20 @@ async function getUser(db: Db, user: string) {
 export async function getInfo(db: Db, user: string, privateInfo: boolean) {
 	const { isUser, userDoc } = await getUser(db, user);
 
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
 	// Create userInfo object and manually move values from database.
 	// We don't want something accidentally being released to user.
 	const userInfo: Partial<GetUserInfoResponse> = {};
-	userInfo.user      = userDoc!.user;
-	userInfo.password  = 'Hunter2'; /** @TODO: Fix glitch? Shows up as ******* for me. */
+	userInfo.user = userDoc!.user;
+	userInfo.password = 'Hunter2'; /** @TODO: Fix glitch? Shows up as ******* for me. */
 	userInfo.firstName = userDoc!.firstName;
-	userInfo.lastName  = userDoc!.lastName;
-	userInfo.gradYear  = userDoc!.gradYear;
-	userInfo.grade     = gradYearToGrade(userInfo.gradYear);
-	userInfo.school    = gradeToSchool(userInfo.grade);
+	userInfo.lastName = userDoc!.lastName;
+	userInfo.gradYear = userDoc!.gradYear;
+	userInfo.grade = gradYearToGrade(userInfo.gradYear);
+	userInfo.school = gradeToSchool(userInfo.grade);
 
 	if (privateInfo) {
 		if (typeof userDoc!.canvasURL === 'string') {
@@ -84,7 +86,8 @@ export async function getInfo(db: Db, user: string, privateInfo: boolean) {
 		}
 	}
 
-	userInfo.migrateToVeracross = !!userInfo.portalURL && (!userInfo.portalURLClasses || !userInfo.portalURLCalendar);
+	userInfo.migrateToVeracross =
+		!!userInfo.portalURL && (!userInfo.portalURLClasses || !userInfo.portalURLCalendar);
 
 	return userInfo as GetUserInfoResponse;
 }
@@ -97,10 +100,14 @@ export async function getInfo(db: Db, user: string, privateInfo: boolean) {
  */
 export async function changeInfo(db: Db, user: string, info: ChangeUserInfoParameters) {
 	// I mean if they want nothing changed, I guess there's no error
-	if (_.isEmpty(info)) { return; }
+	if (_.isEmpty(info)) {
+		return;
+	}
 
 	const { isUser, userDoc } = await getUser(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
 	// See what information the user wants changed
 	const set: ChangeUserInfoParameters = {};
@@ -113,11 +120,17 @@ export async function changeInfo(db: Db, user: string, info: ChangeUserInfoParam
 	}
 	if (info.gradYear === null) {
 		set.gradYear = null;
-	} else if (typeof info.gradYear === 'number' && info.gradYear % 1 === 0 && !Number.isNaN(info.gradYear)) {
+	} else if (
+		typeof info.gradYear === 'number' &&
+		info.gradYear % 1 === 0 &&
+		!Number.isNaN(info.gradYear)
+	) {
 		set.gradYear = info.gradYear;
 	}
 
-	if (_.isEmpty(set)) { return; }
+	if (_.isEmpty(set)) {
+		return;
+	}
 
 	// Update data
 	const userdata = db.collection('users');
@@ -136,7 +149,9 @@ export async function changeInfo(db: Db, user: string, info: ChangeUserInfoParam
  * @returns A grade number.
  */
 export function gradYearToGrade(gradYear: number | null) {
-	if (typeof gradYear !== 'number' || gradYear % 1 !== 0) { return null; }
+	if (typeof gradYear !== 'number' || gradYear % 1 !== 0) {
+		return null;
+	}
 
 	const current = moment();
 	const differenceYears = current.year() - gradYear;
@@ -157,7 +172,9 @@ export function gradYearToGrade(gradYear: number | null) {
  * @returns A graduation year.
  */
 export function gradeToGradYear(grade: number | null) {
-	if (typeof grade !== 'number' || grade % 1 !== 0) { return null; }
+	if (typeof grade !== 'number' || grade % 1 !== 0) {
+		return null;
+	}
 
 	const current = moment();
 
@@ -177,8 +194,12 @@ export function gradeToGradYear(grade: number | null) {
  * @returns The corresponding school.
  */
 export function gradeToSchool(grade: number | null): School {
-	if (typeof grade !== 'number' || grade >= 9) { return 'upperschool'; }
-	if (grade < 5) { return 'lowerschool'; }
+	if (typeof grade !== 'number' || grade >= 9) {
+		return 'upperschool';
+	}
+	if (grade < 5) {
+		return 'lowerschool';
+	}
 	return 'middleschool';
 }
 

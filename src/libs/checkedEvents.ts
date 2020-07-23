@@ -10,11 +10,15 @@ import * as users from './users';
  */
 async function checkEvent(db: Db, user: string, eventId: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
 	const checked = await getChecked(db, user, eventId);
 	// If already checked, just return null
-	if (checked) { return null; }
+	if (checked) {
+		return null;
+	}
 
 	// Insert check into database
 	const insertChecked = {
@@ -40,7 +44,9 @@ async function checkEvent(db: Db, user: string, eventId: string) {
  */
 async function getChecked(db: Db, user: string, eventId: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
 	const checkedEventsData = db.collection('checkedEvents');
 
@@ -62,7 +68,9 @@ async function getChecked(db: Db, user: string, eventId: string) {
  */
 async function listChecked(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
 	const checkedEventsData = db.collection<CheckedEvent>('checkedEvents');
 
@@ -85,7 +93,9 @@ async function listChecked(db: Db, user: string) {
  */
 async function uncheckEvent(db: Db, user: string, eventId: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
 	const checkedEventsData = db.collection('checkedEvents');
 
@@ -103,9 +113,4 @@ export interface CheckedEvent {
 	checkedTime: Date;
 }
 
-export {
-	checkEvent as check,
-	getChecked as get,
-	listChecked as list,
-	uncheckEvent as uncheck
-};
+export { checkEvent as check, getChecked as get, listChecked as list, uncheckEvent as uncheck };

@@ -1,69 +1,82 @@
-// tslint:disable:no-console
-
-import moment from 'moment';
 import * as schedule from '../libs/schedule';
+import moment from 'moment';
 
 // Array containing classes to test
 const tests = [
 	{
 		base: [],
-		add: [{
-			class: 'class 1',
-			start: moment().hour(8).minute(0),
-			end: moment().hour(9).minute(0)
-		}, {
-			class: 'class 2',
-			start: moment().hour(8).minute(0),
-			end: moment().hour(9).minute(0)
-		}]
+		add: [
+			{
+				class: 'class 1',
+				start: moment().hour(8).minute(0),
+				end: moment().hour(9).minute(0)
+			},
+			{
+				class: 'class 2',
+				start: moment().hour(8).minute(0),
+				end: moment().hour(9).minute(0)
+			}
+		]
 	},
 	{
 		base: [],
-		add: [{
-			class: 'class 1',
-			start: moment().hour(8).minute(0),
-			end: moment().hour(9).minute(0)
-		}, {
-			class: 'class 2',
-			start: moment().hour(8).minute(30),
-			end: moment().hour(8).minute(45)
-		}]
+		add: [
+			{
+				class: 'class 1',
+				start: moment().hour(8).minute(0),
+				end: moment().hour(9).minute(0)
+			},
+			{
+				class: 'class 2',
+				start: moment().hour(8).minute(30),
+				end: moment().hour(8).minute(45)
+			}
+		]
 	},
 	{
 		base: [],
-		add: [{
-			class: 'class 1',
-			start: moment().hour(8).minute(0),
-			end: moment().hour(9).minute(0)
-		}, {
-			class: 'class 2',
-			start: moment().hour(7).minute(0),
-			end: moment().hour(8).minute(45)
-		}]
+		add: [
+			{
+				class: 'class 1',
+				start: moment().hour(8).minute(0),
+				end: moment().hour(9).minute(0)
+			},
+			{
+				class: 'class 2',
+				start: moment().hour(7).minute(0),
+				end: moment().hour(8).minute(45)
+			}
+		]
 	},
 	{
 		base: [],
-		add: [{
-			class: 'class 1',
-			start: moment().hour(8).minute(0),
-			end: moment().hour(9).minute(0)
-		}, {
-			class: 'class 2',
-			start: moment().hour(8).minute(30),
-			end: moment().hour(10).minute(0)
-		}]
+		add: [
+			{
+				class: 'class 1',
+				start: moment().hour(8).minute(0),
+				end: moment().hour(9).minute(0)
+			},
+			{
+				class: 'class 2',
+				start: moment().hour(8).minute(30),
+				end: moment().hour(10).minute(0)
+			}
+		]
 	},
 	{
 		base: [],
-		add: [{
-			class: 'class 1',
-			start: moment().hour(8).minute(30),
-			end: moment().hour(8).minute(45)
-		}, {
-			class: 'class 2',
-			start: moment().hour(8).minute(0),
-			end: moment().hour(9).minute(0)
-		}]
+		add: [
+			{
+				class: 'class 1',
+				start: moment().hour(8).minute(30),
+				end: moment().hour(8).minute(45)
+			},
+			{
+				class: 'class 2',
+				start: moment().hour(8).minute(0),
+				end: moment().hour(9).minute(0)
+			}
+		]
 	},
 	{
 		base: [],
@@ -73,6 +86,7 @@ const tests = [
 
 for (let i = 0; i < tests.length; i++) {
 	const test = tests[i];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const results = schedule.ordine(test.base, test.add as any[]); // Too lazy to do type gymnastics right now
 
 	// Convert moment.js objects to readable strings
@@ -85,5 +99,5 @@ for (let i = 0; i < tests.length; i++) {
 		}
 	}
 
-	console.log(`Test ${i + 1} = ${results}`);
+	console.log(`Test ${i + 1} = ${results.toString()}`);
 }

@@ -21,7 +21,7 @@ export async function hashPassword(password: string) {
  * @returns Whether the strings match.
  */
 export function safeCompare(a: string, b: string) {
-	let mismatch = (a.length === b.length ? 0 : 1);
+	let mismatch = a.length === b.length ? 0 : 1;
 	if (mismatch) {
 		b = a;
 	}
@@ -30,10 +30,10 @@ export function safeCompare(a: string, b: string) {
 	for (let i = 0; i < a.length; ++i) {
 		const ac = a.charCodeAt(i);
 		const bc = b.charCodeAt(i);
-		mismatch |= (ac ^ bc);
+		mismatch |= ac ^ bc;
 	}
 
-	return (mismatch === 0);
+	return mismatch === 0;
 }
 
 /**

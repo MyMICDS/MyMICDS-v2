@@ -1,12 +1,12 @@
-import { expect, use } from 'chai';
-import chaiSubset from 'chai-subset';
-import _ from 'lodash';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
-import { initAPI } from '../src/init';
-import * as dates from '../src/libs/dates';
 import { buildRequest, requireLoggedIn } from './helpers/shared';
+import { expect, use } from 'chai';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import { initAPI } from '../src/init';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import * as dates from '../src/libs/dates';
+import _ from 'lodash';
+import chaiSubset from 'chai-subset';
+import supertest from 'supertest';
 
 use(chaiSubset);
 
@@ -18,18 +18,18 @@ for (let grade = 12; grade >= -1; grade--) {
 }
 
 describe('User', () => {
-	before(async function() {
+	before(async function () {
 		this.mongo = new MongoMemoryServer();
 		const [app, db] = await initAPI(await this.mongo.getUri());
 		this.db = db;
 		this.request = supertest(app);
 	});
 
-	describe('GET /user/grad-year-to-grade', function() {
+	describe('GET /user/grad-year-to-grade', function () {
 		this.ctx.method = 'get';
 		this.ctx.route = '/user/grad-year-to-grade';
 
-		it('converts graduation years to grade levels', async function() {
+		it('converts graduation years to grade levels', async function () {
 			for (const [grade, year] of gradeMap) {
 				const res = await buildRequest(this).query({ year }).expect(200);
 				expect(res.body.data).to.have.property('grade').that.equals(grade);
@@ -37,11 +37,11 @@ describe('User', () => {
 		});
 	});
 
-	describe('GET /user/grade-to-grad-year', function() {
+	describe('GET /user/grade-to-grad-year', function () {
 		this.ctx.method = 'get';
 		this.ctx.route = '/user/grade-to-grad-year';
 
-		it('converts grade levels to graduation years', async function() {
+		it('converts grade levels to graduation years', async function () {
 			for (const [grade, year] of gradeMap) {
 				const res = await buildRequest(this).query({ grade }).expect(200);
 				expect(res.body.data).to.have.property('year').that.equals(year);
@@ -49,32 +49,36 @@ describe('User', () => {
 		});
 	});
 
-	describe('GET /user/grade-range', async function() {
+	describe('GET /user/grade-range', function () {
 		this.ctx.method = 'get';
 		this.ctx.route = '/user/grade-range';
 
-		it('returns a list of graduation years', async function() {
+		it('returns a list of graduation years', async function () {
 			const res = await buildRequest(this).expect(200);
-			expect(res.body.data).to.have.property('gradYears').that.deep.equals([...gradeMap.values()]);
+			expect(res.body.data)
+				.to.have.property('gradYears')
+				.that.deep.equals([...gradeMap.values()]);
 		});
 	});
 
-	describe('GET /user/info', function() {
+	describe('GET /user/info', function () {
 		this.ctx.method = 'get';
 		this.ctx.route = '/user/info';
 
-		it('gets user info', async function() {
+		it('gets user info', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
 			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).expect(200);
-			expect(res.body.data).to.containSubset(_.pick(testUser, ['user', 'firstName', 'lastName', 'gradYear']));
+			expect(res.body.data).to.containSubset(
+				_.pick(testUser, ['user', 'firstName', 'lastName', 'gradYear'])
+			);
 		});
 
 		requireLoggedIn();
 	});
 
-	describe('PATCH /user/info', function() {
+	describe('PATCH /user/info', function () {
 		this.ctx.method = 'patch';
 		this.ctx.route = '/user/info';
 
@@ -84,22 +88,25 @@ describe('User', () => {
 			gradYear: gradeMap.get(10)
 		};
 
-		it('modifies user info', async function() {
+		it('modifies user info', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
-			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(200);
+			const res = await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.send(payload)
+				.expect(200);
 			expect(res.body.data).to.containSubset(payload);
 		});
 
 		requireLoggedIn();
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.db.dropDatabase();
 	});
 
-	after(async function() {
+	after(async function () {
 		await this.mongo.stop();
 	});
 });

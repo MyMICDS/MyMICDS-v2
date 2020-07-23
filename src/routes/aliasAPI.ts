@@ -6,11 +6,16 @@ import * as jwt from '../libs/jwt';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db, socketIO) => {
-
 	app.post('/alias', jwt.requireLoggedIn, async (req, res) => {
 		try {
 			assertType<AddAliasParameters>(req.body);
-			const aliasId = await aliases.add(db, req.apiUser!, req.body.type, req.body.classString, req.body.classId);
+			const aliasId = await aliases.add(
+				db,
+				req.apiUser!,
+				req.body.type,
+				req.body.classString,
+				req.body.classId
+			);
 			socketIO.user(req.apiUser!, 'alias', 'add', {
 				_id: aliasId,
 				type: req.body.type,
@@ -42,5 +47,4 @@ export default ((app, db, socketIO) => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

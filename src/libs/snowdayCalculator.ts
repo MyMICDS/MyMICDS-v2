@@ -70,17 +70,19 @@ export async function calculate(): Promise<GetSnowdayResponse['data']> {
 
 		// Get variable name and date
 		const varName = parts[0];
-		const name = varName.match(/[a-zA-Z]+(?=\[)/)![0];
-		const dateString = varName.match(/(?!\[)\d+(?=])/)![0];
+		const name = /[a-zA-Z]+(?=\[)/.exec(varName)![0];
+		const dateString = /(?!\[)\d+(?=])/.exec(varName)![0];
 
 		// If variable name isn't mapped, we don't care about it
-		if (!labels[name]) { continue; }
+		if (!labels[name]) {
+			continue;
+		}
 
 		// Get value of variable (we need `eval` in order to parse concatenated strings)
-		let value = eval(parts[1]); // tslint:disable-line
-
+		// eslint-disable-next-line no-eval
+		let value = eval(parts[1]);
 		// Get date (which is index of array)
-		const date = moment(dateString as any, 'YYYYMMDD');
+		const date = moment(dateString, 'YYYYMMDD');
 		const formatDate = date.format('YYYY-MM-DD');
 
 		// If value is string, strip away HTML and remove redundant whitespaces
@@ -95,6 +97,7 @@ export async function calculate(): Promise<GetSnowdayResponse['data']> {
 		}
 
 		// TS 3.5 doesn't like this kind of assignment: https://github.com/microsoft/TypeScript/issues/31663
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(data[formatDate] as any)[labels[name]] = value;
 	}
 

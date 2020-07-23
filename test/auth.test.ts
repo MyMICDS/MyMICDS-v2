@@ -1,28 +1,28 @@
+import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
 import { expect } from 'chai';
-import * as jwtLib from 'jsonwebtoken';
-import _ from 'lodash';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import supertest from 'supertest';
+import { generateJWT, saveTestUser, testUser } from './helpers/user';
 import { initAPI } from '../src/init';
-import config from '../src/libs/config';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import * as jwtLib from 'jsonwebtoken';
 import * as passwords from '../src/libs/passwords';
 import * as users from '../src/libs/users';
-import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
-import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import _ from 'lodash';
+import config from '../src/libs/config';
+import supertest from 'supertest';
 
 describe('Auth', () => {
-	before(async function() {
+	before(async function () {
 		this.mongo = new MongoMemoryServer();
 		const [app, db] = await initAPI(await this.mongo.getUri());
 		this.db = db;
 		this.request = supertest(app);
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.db.dropDatabase();
 	});
 
-	describe('POST /auth/register', function() {
+	describe('POST /auth/register', function () {
 		this.ctx.method = 'post';
 		this.ctx.route = '/auth/register';
 		const payload = _.pick(testUser, ['user', 'password', 'firstName', 'lastName', 'gradYear']);
@@ -33,7 +33,7 @@ describe('Auth', () => {
 			teacher: true
 		};
 
-		it('creates a user', async function() {
+		it('creates a user', async function () {
 			await buildRequest(this).send(payload).expect(200);
 
 			const { isUser, userDoc } = await users.get(this.db, 'test');
@@ -42,7 +42,7 @@ describe('Auth', () => {
 			expect(userDoc).to.have.property('confirmationHash').that.is.a('string');
 		});
 
-		it('creates a teacher', async function() {
+		it('creates a teacher', async function () {
 			await buildRequest(this).send(teacherPayload).expect(200);
 
 			const { isUser, userDoc } = await users.get(this.db, 'test');
@@ -52,7 +52,7 @@ describe('Auth', () => {
 			expect(userDoc).to.have.property('gradYear').that.is.null;
 		});
 
-		it('rejects blacklisted passwords', async function() {
+		it('rejects blacklisted passwords', async function () {
 			for (const password of passwords.passwordBlacklist) {
 				const badPayload = {
 					...payload,
@@ -63,7 +63,7 @@ describe('Auth', () => {
 			}
 		});
 
-		it('rejects already existing users', async function() {
+		it('rejects already existing users', async function () {
 			await saveTestUser(this.db);
 
 			await buildRequest(this).send(payload).expect(400);
@@ -72,7 +72,7 @@ describe('Auth', () => {
 		validateParameters(payload);
 	});
 
-	describe('POST /auth/confirm', function() {
+	describe('POST /auth/confirm', function () {
 		this.ctx.method = 'post';
 		this.ctx.route = '/auth/confirm';
 		const payload = {
@@ -80,7 +80,7 @@ describe('Auth', () => {
 			hash: testUser.confirmationHash
 		};
 
-		it('confirms a user', async function() {
+		it('confirms a user', async function () {
 			await saveTestUser(this.db);
 
 			await buildRequest(this).send(payload).expect(200);
@@ -89,7 +89,7 @@ describe('Auth', () => {
 			expect(newDoc).to.have.property('confirmed').that.equals(true);
 		});
 
-		it('rejects a bad hash', async function() {
+		it('rejects a bad hash', async function () {
 			await saveTestUser(this.db);
 
 			const badPayload = {
@@ -103,12 +103,12 @@ describe('Auth', () => {
 		validateParameters(payload);
 	});
 
-	describe('POST /auth/login', function() {
+	describe('POST /auth/login', function () {
 		this.ctx.method = 'post';
 		this.ctx.route = '/auth/login';
 		const payload = _.pick(testUser, ['user', 'password']);
 
-		it('creates a valid JWT', async function() {
+		it('creates a valid JWT', async function () {
 			await saveTestUser(this.db);
 
 			const res = await buildRequest(this).send(payload).expect(200);
@@ -122,7 +122,7 @@ describe('Auth', () => {
 			expect(jwtPayload).to.have.property('scopes').that.deep.equals({ pleb: true });
 		});
 
-		it('rejects an incorrect password', async function() {
+		it('rejects an incorrect password', async function () {
 			await saveTestUser(this.db);
 
 			const badPayload = {
@@ -139,11 +139,11 @@ describe('Auth', () => {
 		validateParameters(payload, false);
 	});
 
-	describe('POST /auth/logout', function() {
+	describe('POST /auth/logout', function () {
 		this.ctx.method = 'post';
 		this.ctx.route = '/auth/logout';
 
-		it('invalidates the JWT', async function() {
+		it('invalidates the JWT', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
@@ -156,7 +156,7 @@ describe('Auth', () => {
 		requireLoggedIn();
 	});
 
-	describe('PUT /auth/change-password', function() {
+	describe('PUT /auth/change-password', function () {
 		this.ctx.method = 'put';
 		this.ctx.route = '/auth/change-password';
 		const payload = {
@@ -164,17 +164,24 @@ describe('Auth', () => {
 			newPassword: 'new different password'
 		};
 
-		it('changes the user password', async function() {
+		it('changes the user password', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
-			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(payload).expect(200);
+			await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.send(payload)
+				.expect(200);
 
-			const { matches } = await passwords.passwordMatches(this.db, testUser.user, payload.newPassword);
+			const { matches } = await passwords.passwordMatches(
+				this.db,
+				testUser.user,
+				payload.newPassword
+			);
 			expect(matches).to.be.true;
 		});
 
-		it('rejects an incorrect password', async function() {
+		it('rejects an incorrect password', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
@@ -183,19 +190,22 @@ describe('Auth', () => {
 				oldPassword: 'incorrect'
 			};
 
-			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).send(badPayload).expect(400);
+			await buildRequest(this)
+				.set('Authorization', `Bearer ${jwt}`)
+				.send(badPayload)
+				.expect(400);
 		});
 
 		requireLoggedIn();
 		validateParameters(payload);
 	});
 
-	describe('POST /auth/forgot-password', function() {
+	describe('POST /auth/forgot-password', function () {
 		this.ctx.method = 'post';
 		this.ctx.route = '/auth/forgot-password';
 		const payload = _.pick(testUser, 'user');
 
-		it('sets a forgot password hash', async function() {
+		it('sets a forgot password hash', async function () {
 			await saveTestUser(this.db);
 
 			await buildRequest(this).send(payload).expect(200);
@@ -207,7 +217,7 @@ describe('Auth', () => {
 		validateParameters(payload, false);
 	});
 
-	describe('PUT /auth/reset-password', function() {
+	describe('PUT /auth/reset-password', function () {
 		this.ctx.method = 'put';
 		this.ctx.route = '/auth/reset-password';
 
@@ -217,16 +227,20 @@ describe('Auth', () => {
 			hash: 'random bytes'
 		};
 
-		it("resets the user's password", async function() {
+		it("resets the user's password", async function () {
 			await saveTestUser(this.db, { passwordChangeHash: 'random bytes' });
 
 			await buildRequest(this).send(payload).expect(200);
 
-			const { matches } = await passwords.passwordMatches(this.db, testUser.user, payload.password);
+			const { matches } = await passwords.passwordMatches(
+				this.db,
+				testUser.user,
+				payload.password
+			);
 			expect(matches).to.be.true;
 		});
 
-		it('rejects a bad hash', async function() {
+		it('rejects a bad hash', async function () {
 			await saveTestUser(this.db, { passwordChangeHash: 'random bytes' });
 
 			const badPayload = {
@@ -240,24 +254,26 @@ describe('Auth', () => {
 		validateParameters(payload, false);
 	});
 
-	describe('GET /auth/verify', function() {
+	describe('GET /auth/verify', function () {
 		this.ctx.method = 'get';
 		this.ctx.route = '/auth/verify';
 
-		it('verifies a JWT', async function() {
+		it('verifies a JWT', async function () {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
 			await buildRequest(this).expect(401);
 			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).expect(200);
 
-			expect(res.body.data).to.have.property('payload').that.deep.equals({ user: testUser.user, scopes: { pleb: true } });
+			expect(res.body.data)
+				.to.have.property('payload')
+				.that.deep.equals({ user: testUser.user, scopes: { pleb: true } });
 		});
 
 		requireLoggedIn();
 	});
 
-	after(async function() {
+	after(async function () {
 		await this.mongo.stop();
 	});
 });

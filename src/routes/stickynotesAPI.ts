@@ -6,7 +6,6 @@ import * as stickynotes from '../libs/stickynotes';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db) => {
-
 	app.get('/stickynotes', jwt.requireLoggedIn, async (req, res) => {
 		try {
 			assertType<GetStickyNoteParameters>(req.query);
@@ -26,5 +25,4 @@ export default ((app, db) => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

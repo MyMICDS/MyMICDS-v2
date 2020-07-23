@@ -7,17 +7,20 @@ import * as htmlparser from 'htmlparser2';
 export function htmlToText(html: string) {
 	let plaintext = '';
 
-	const parser = new htmlparser.Parser({
-		onopentag() {
-			// Do nothing
+	const parser = new htmlparser.Parser(
+		{
+			onopentag() {
+				// Do nothing
+			},
+			ontext(text) {
+				plaintext += text;
+			},
+			onclosetag() {
+				// Do nothing
+			}
 		},
-		ontext(text) {
-			plaintext += text;
-		},
-		onclosetag() {
-			// Do nothing
-		}
-	}, { decodeEntities: true });
+		{ decodeEntities: true }
+	);
 
 	parser.parseComplete(html);
 	return plaintext;

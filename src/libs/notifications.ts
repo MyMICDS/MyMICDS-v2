@@ -1,5 +1,5 @@
-import { Scope } from '@mymicds/sdk';
 import { Db } from 'mongodb';
+import { Scope } from '@mymicds/sdk';
 import * as cryptoUtils from './cryptoUtils';
 import * as users from './users';
 
@@ -10,14 +10,23 @@ import * as users from './users';
  * @param hash Unsubscription hash.
  * @param scopes Scope(s) to unsubscribe from.
  */
-export async function unsubscribe(db: Db, user: string, hash: string | true, scopes: Scope | Scope[]) {
-	if (typeof scopes === 'string') { scopes = [scopes]; }
+export async function unsubscribe(
+	db: Db,
+	user: string,
+	hash: string | true,
+	scopes: Scope | Scope[]
+) {
+	if (typeof scopes === 'string') {
+		scopes = [scopes];
+	}
 
 	// Make sure valid user and get user id
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
-	const dbHash = userDoc!.unsubscribeHash!;
+	const dbHash = userDoc!.unsubscribeHash;
 
 	if (hash === true || cryptoUtils.safeCompare(hash, dbHash)) {
 		// Hash matches, unsubscribe account!

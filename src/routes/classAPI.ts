@@ -6,7 +6,6 @@ import * as jwt from '../libs/jwt';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db, socketIO) => {
-
 	app.get('/classes', jwt.requireLoggedIn, async (req, res) => {
 		try {
 			const classResult = await classes.get(db, req.apiUser!);
@@ -57,5 +56,4 @@ export default ((app, db, socketIO) => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

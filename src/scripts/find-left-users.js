@@ -9,15 +9,17 @@ const missing = [];
 let config;
 try {
 	config = require(__dirname + '/../libs/config');
-} catch(e) {
-	throw new Error('***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***');
+} catch (e) {
+	throw new Error(
+		'***PLEASE CREATE A CONFIG.JS ON YOUR LOCAL SYSTEM. REFER TO LIBS/CONFIG.EXAMPLE.JS***'
+	);
 }
 
 const MongoClient = require('mongodb').MongoClient;
 
 // Connect to database
 MongoClient.connect(config.mongodb.uri, (err, db) => {
-	if(err) throw err;
+	if (err) throw err;
 
 	const userdata = db.collection('users');
 

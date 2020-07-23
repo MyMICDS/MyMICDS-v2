@@ -4,7 +4,6 @@ import * as jwt from '../libs/jwt';
 import RoutesFunction from './routesFunction';
 
 export default (app => {
-
 	app.get('/daily-bulletin', async (req, res) => {
 		try {
 			const bulletins = await dailyBulletin.getList();
@@ -34,5 +33,4 @@ export default (app => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

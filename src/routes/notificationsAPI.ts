@@ -1,11 +1,10 @@
-import { Scope } from '@mymicds/sdk';
 import { assertType } from 'typescript-is';
+import { Scope } from '@mymicds/sdk';
 import * as api from '../libs/api';
 import * as notifications from '../libs/notifications';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db) => {
-
 	app.post('/notifications/unsubscribe', async (req, res) => {
 		// Union type is being difficult so we need to split this up
 		try {
@@ -20,7 +19,7 @@ export default ((app, db) => {
 
 		if (!user) {
 			try {
-				assertType<{ user: string, hash: string }>(req.body);
+				assertType<{ user: string; hash: string }>(req.body);
 			} catch (err) {
 				api.error(res, err);
 				return;
@@ -36,5 +35,4 @@ export default ((app, db) => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

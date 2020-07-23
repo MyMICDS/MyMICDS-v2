@@ -1,15 +1,15 @@
-import { RegisterParameters } from '@mymicds/sdk';
-import * as crypto from 'crypto';
 import { Db } from 'mongodb';
-import { promisify } from 'util';
-import * as admins from './admins';
-import * as cryptoUtils from './cryptoUtils';
 import { InputError } from './errors';
+import { Omit } from './utils';
+import { promisify } from 'util';
+import { RegisterParameters } from '@mymicds/sdk';
+import * as admins from './admins';
+import * as crypto from 'crypto';
+import * as cryptoUtils from './cryptoUtils';
 import * as jwt from './jwt';
 import * as mail from './mail';
 import * as passwords from './passwords';
 import * as users from './users';
-import { Omit } from './utils';
 
 /**
  * Validates a user's credentials and updates the last time they logged in.
@@ -20,15 +20,21 @@ import { Omit } from './utils';
  * @param comment Comment to associate with the JWT.
  * @returns JWT or human-readable error message.
  */
-export async function login(db: Db, user: string, password: string, rememberMe: boolean, comment?: string) {
+export async function login(
+	db: Db,
+	user: string,
+	password: string,
+	rememberMe: boolean,
+	comment?: string
+) {
 	user = user.toLowerCase();
 
 	const { matches, confirmed } = await passwords.passwordMatches(db, user, password);
 	if (!confirmed) {
 		return {
 			success: false,
-			// tslint:disable-next-line:max-line-length
-			message: 'Account is not confirmed! Please check your email or register under the same username to resend the email.',
+			message:
+				'Account is not confirmed! Please check your email or register under the same username to resend the email.',
 			jwt: null
 		};
 	}
@@ -38,7 +44,7 @@ export async function login(db: Db, user: string, password: string, rememberMe: 
 
 	// Update lastLogin in database
 	const userdata = db.collection('users');
-	await userdata.updateOne({ user }, { $currentDate: { lastLogin: true }});
+	await userdata.updateOne({ user }, { $currentDate: { lastLogin: true } });
 
 	// Login successful!
 	// Now we need to create a JWT
@@ -61,7 +67,11 @@ export async function register(db: Db, user: NewUserData) {
 	}
 
 	// If gradYear not valid, default to faculty
-	if (typeof user.gradYear !== 'number' || user.gradYear % 1 !== 0 || Number.isNaN(user.gradYear)) {
+	if (
+		typeof user.gradYear !== 'number' ||
+		user.gradYear % 1 !== 0 ||
+		Number.isNaN(user.gradYear)
+	) {
 		user.gradYear = null;
 	}
 
@@ -69,7 +79,9 @@ export async function register(db: Db, user: NewUserData) {
 	const { isUser, userDoc: data } = await users.get(db, user.user);
 
 	if (isUser && data!.confirmed) {
-		throw new InputError('An account is already registered under the email ' + user.user + '@micds.org!');
+		throw new InputError(
+			'An account is already registered under the email ' + user.user + '@micds.org!'
+		);
 	}
 
 	const userdata = db.collection('users');
@@ -122,18 +134,27 @@ export async function register(db: Db, user: NewUserData) {
 	};
 
 	// Send confirmation email
-	await mail.sendHTML(email, 'Confirm Your Account', __dirname + '/../html/messages/register.html', emailReplace);
+	await mail.sendHTML(
+		email,
+		'Confirm Your Account',
+		__dirname + '/../html/messages/register.html',
+		emailReplace
+	);
 
 	// Let's celebrate and the message throughout the land!
 	try {
 		await admins.sendEmail(db, {
 			subject: newUser.user + ' just created a 2.0 account!',
-			// tslint:disable-next-line:max-line-length
-			html: `${newUser.firstName} ${newUser.lastName} (${newUser.gradYear}) just created an account with the username ${newUser.user}`
+			html: `${newUser.firstName} ${newUser.lastName} (${
+				newUser.gradYear || 'teacher'
+			}) just created an account with the username ${newUser.user}`
 		});
 	} catch (e) {
-		// tslint:disable-next-line:no-console
-		console.log('[' + new Date() + '] Error occured when sending admin notification! (' + e + ')');
+		console.log(
+			`[${new Date().toString()}] Error occured when sending admin notification! (${
+				(e as Error).message
+			})`
+		);
 	}
 }
 
@@ -145,7 +166,9 @@ export async function register(db: Db, user: NewUserData) {
  */
 export async function confirm(db: Db, user: string, hash: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
 	const dbHash = userDoc!.confirmationHash;
 
@@ -164,4 +187,6 @@ export async function confirm(db: Db, user: string, hash: string) {
 	}
 }
 
-export type NewUserData = Omit<RegisterParameters, 'teacher' | 'gradYear'> & { gradYear: number | null };
+export type NewUserData = Omit<RegisterParameters, 'teacher' | 'gradYear'> & {
+	gradYear: number | null;
+};

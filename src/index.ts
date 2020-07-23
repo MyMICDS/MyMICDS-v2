@@ -1,5 +1,5 @@
-import * as Sentry from '@sentry/node';
 import { initAPI } from './init';
+import * as Sentry from '@sentry/node';
 import config from './libs/config';
 
 const port = process.env.PORT || config.port;
@@ -9,29 +9,33 @@ Sentry.init({
 	enabled: config.production
 });
 
-initAPI(config.mongodb.uri).then(([app, _, server]) => {
-	app.get('/', (req, res) => {
-		res.sendFile(__dirname + '/html/admin.html');
-	});
+initAPI(config.mongodb.uri)
+	.then(([app, , server]) => {
+		app.get('/', (req, res) => {
+			res.sendFile(__dirname + '/html/admin.html');
+		});
 
-	app.get('/start', (req, res) => {
-		res.sendFile(__dirname + '/html/start.html');
-	});
+		app.get('/start', (req, res) => {
+			res.sendFile(__dirname + '/html/start.html');
+		});
 
-	app.get('/socket-io-test', (req, res) => {
-		res.sendFile(__dirname + '/html/socket.html');
-	});
+		app.get('/socket-io-test', (req, res) => {
+			res.sendFile(__dirname + '/html/socket.html');
+		});
 
-	app.get('/spin', (req, res) => {
-		res.sendFile(__dirname + '/html/spin.html');
-	});
+		app.get('/spin', (req, res) => {
+			res.sendFile(__dirname + '/html/spin.html');
+		});
 
-	/*
-	 * Initialize Server
-	 */
+		/*
+		 * Initialize Server
+		 */
 
-	server.listen(port, () => {
-		// tslint:disable-next-line:no-console
-		console.log('Server listening on *:' + port);
+		server.listen(port, () => {
+			console.log(`Server listening on *:${port}`);
+		});
+	})
+	.catch((err: Error) => {
+		console.error(`Error starting server: ${err.message}`);
+		process.exit(1);
 	});
-});

@@ -1,17 +1,17 @@
 import { AliasType, Block, CanvasEvent, ClassType, DefaultCanvasClass } from '@mymicds/sdk';
-import * as ical from 'ical';
-import * as _ from 'lodash';
 import { Db, ObjectID } from 'mongodb';
-import * as prisma from 'prisma';
-import * as querystring from 'querystring';
-import request from 'request-promise-native';
-import * as url from 'url';
+import { MyMICDSClassWithIDs } from './classes';
+import * as _ from 'lodash';
 import * as aliases from './aliases';
 import * as checkedEvents from './checkedEvents';
-import { MyMICDSClassWithIDs } from './classes';
 import * as feeds from './feeds';
 import * as htmlParser from './htmlParser';
+import * as ical from 'ical';
+import * as prisma from 'prisma';
+import * as querystring from 'querystring';
+import * as url from 'url';
 import * as users from './users';
+import request from 'request-promise-native';
 
 // URL Calendars come from
 const urlPrefix = 'https://micds.instructure.com/feeds/calendars/';
@@ -47,7 +47,9 @@ export async function verifyURL(canvasURL: string) {
 		throw new Error('There was a problem fetching calendar data from the URL!');
 	}
 
-	if (response.statusCode !== 200) { return { isValid: 'Invalid URL!', url: null }; }
+	if (response.statusCode !== 200) {
+		return { isValid: 'Invalid URL!', url: null };
+	}
 
 	return { isValid: true, url: validURL };
 }
@@ -61,15 +63,23 @@ export async function verifyURL(canvasURL: string) {
  */
 export async function setURL(db: Db, user: string, calUrl: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
 	const { isValid, url: validURL } = await verifyURL(calUrl);
-	if (isValid !== true) { return { isValid, validURL: null }; }
+	if (isValid !== true) {
+		return { isValid, validURL: null };
+	}
 
 	const userdata = db.collection('users');
 
 	try {
-		await userdata.updateOne({ _id: userDoc!._id }, { $set: { canvasURL: validURL } }, { upsert: true });
+		await userdata.updateOne(
+			{ _id: userDoc!._id },
+			{ $set: { canvasURL: validURL } },
+			{ upsert: true }
+		);
 	} catch (e) {
 		throw new Error('There was a problem updating the URL to the database!');
 	}
@@ -87,20 +97,26 @@ export async function setURL(db: Db, user: string, calUrl: string) {
  */
 export async function getUserCal(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
-	if (typeof userDoc!.canvasURL !== 'string') { return { hasURL: false, events: null }; }
+	if (typeof userDoc!.canvasURL !== 'string') {
+		return { hasURL: false, events: null };
+	}
 
 	let response;
 	try {
-		response = await request(userDoc!.canvasURL!, {
+		response = await request(userDoc!.canvasURL, {
 			resolveWithFullResponse: true,
 			simple: false
 		});
 	} catch (e) {
 		throw new Error('There was a problem fetching canvas data from the URL!');
 	}
-	if (response.statusCode !== 200) { throw new Error('Invalid URL!'); }
+	if (response.statusCode !== 200) {
+		throw new Error('Invalid URL!');
+	}
 
 	return { hasURL: true, events: Object.values(ical.parseICS(response.body)) };
 }
@@ -111,7 +127,7 @@ export async function getUserCal(db: Db, user: string) {
  * @returns Parsed class and teacher data.
  */
 function parseCanvasTitle(title: string) {
-	const classTeacherRegex = /\[[^\[]+]$/g;
+	const classTeacherRegex = /\[[^[]+]$/g;
 	const teacherRegex = /:[A-Z]{5}$/g;
 	const firstLastBrackets = /(^\[)|(]$)/g;
 
@@ -122,12 +138,15 @@ function parseCanvasTitle(title: string) {
 	const assignmentName = title.replace(classTeacherRegex, '').trim();
 
 	// Also check if there's a teacher, typically separated by a colon
-	const teacher = (_.last(classTeacherNoBrackets.match(teacherRegex) || []) || '').replace(/^:/g, '');
+	const teacher = (_.last(classTeacherNoBrackets.match(teacherRegex) || []) || '').replace(
+		/^:/g,
+		''
+	);
 	const teacherFirstName = teacher[0] || '';
 	const teacherLastName = (teacher[1] || '') + teacher.substring(2).toLowerCase();
 
 	// Subtract teacher from classTeacher to get the class
-	const className = classTeacher.replace(teacher, '').replace(/[\[\]]/g, '').replace(/:$/g, '');
+	const className = classTeacher.replace(teacher, '').replace(/[[\]]/g, '').replace(/:$/g, '');
 
 	return {
 		assignment: assignmentName,
@@ -153,18 +172,24 @@ function calendarToEvent(calLink: string) {
 	// 'assignment' can also be 'calendar_event'
 	const calObject = url.parse(calLink);
 
-	const courseId = (querystring.parse(calObject.query!).include_contexts as string).replace('_', 's/');
+	const courseId = (querystring.parse(calObject.query!).include_contexts as string).replace(
+		'_',
+		's/'
+	);
 
 	// Remove hash sign and switch to event URL format
 	const eventString = calObject.hash!.slice(1);
-	let eventId;
+	// If there's a weird event ID then just pretend there's no event ID
+	// Which I think should actually create a redirect to the course
+	// There are no mistakes, just happy accidents
+	let eventId = '';
 	if (eventString.includes('assignment')) {
 		eventId = eventString.replace('assignment_', 'assignments/');
 	} else if (eventString.includes('calendar_event')) {
 		eventId = eventString.replace('calendar_event_', 'calendar_events/');
 	}
 
-	return 'https://micds.instructure.com/' + courseId + '/' + eventId;
+	return `https://micds.instructure.com/${courseId}/${eventId}`;
 }
 
 /**
@@ -175,16 +200,22 @@ function calendarToEvent(calLink: string) {
  */
 export async function getClasses(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
-	if (typeof userDoc!.canvasURL !== 'string') { return { hasURL: false, classes: null }; }
+	if (typeof userDoc!.canvasURL !== 'string') {
+		return { hasURL: false, classes: null };
+	}
 
 	function parseEvents(eventsToParse: CanvasCacheEvent[]) {
 		const classes: string[] = [];
 
 		for (const calEvent of eventsToParse) {
 			// If event doesn't have a summary, skip
-			if (typeof calEvent.summary !== 'string') { continue; }
+			if (typeof calEvent.summary !== 'string') {
+				continue;
+			}
 
 			const parsedEvent = parseCanvasTitle(calEvent.summary);
 
@@ -209,18 +240,17 @@ export async function getClasses(db: Db, user: string) {
 	// If cache is empty, update it
 	if (events.length > 0) {
 		return parseEvents(events);
-	} else {
-		await feeds.updateCanvasCache(db, user);
-
-		let retryEvents;
-		try {
-			retryEvents = await canvasdata.find({ user: userDoc!._id }).toArray();
-		} catch (e) {
-			throw new Error('There was an error retrieving Canvas events!');
-		}
-
-		return parseEvents(retryEvents);
 	}
+	await feeds.updateCanvasCache(db, user);
+
+	let retryEvents;
+	try {
+		retryEvents = await canvasdata.find({ user: userDoc!._id }).toArray();
+	} catch (e) {
+		throw new Error('There was an error retrieving Canvas events!');
+	}
+
+	return parseEvents(retryEvents);
 }
 
 /**
@@ -231,9 +261,13 @@ export async function getClasses(db: Db, user: string) {
  */
 export async function getFromCache(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new Error('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new Error("User doesn't exist!");
+	}
 
-	if (typeof userDoc!.canvasURL !== 'string') { return { hasURL: false, events: null }; }
+	if (typeof userDoc!.canvasURL !== 'string') {
+		return { hasURL: false, events: null };
+	}
 
 	const canvasdata = db.collection<CanvasCacheEvent>('canvasFeeds');
 
@@ -262,7 +296,12 @@ export async function getFromCache(db: Db, user: string) {
 		}
 
 		// Query aliases to see if possible class object exists
-		const { hasAlias, classObject: aliasClass } = await aliases.getClass(db, user, AliasType.CANVAS, name);
+		const { hasAlias, classObject: aliasClass } = await aliases.getClass(
+			db,
+			user,
+			AliasType.CANVAS,
+			name
+		);
 
 		// Backup object if Canvas class doesn't have alias
 		const defaultColor = '#34444F';
@@ -301,6 +340,9 @@ export async function getFromCache(db: Db, user: string) {
 		const end = new Date(canvasEvent.end!);
 
 		// class will be null if error in getting class name.
+		// Just type it as any cause it doesn't like things like ObjectID vs string and Date vs moment
+		// But I don't really think it actually matters, maybe come back and take a look at this
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const insertEvent: any = {
 			_id: canvasEvent.uid,
 			canvas: true,
@@ -315,7 +357,7 @@ export async function getFromCache(db: Db, user: string) {
 		};
 
 		if (typeof canvasEvent['ALT-DESC'] === 'object') {
-			insertEvent.desc = (canvasEvent['ALT-DESC'] as ical.ParamList).val;
+			insertEvent.desc = canvasEvent['ALT-DESC'].val;
 			insertEvent.descPlaintext = htmlParser.htmlToText(insertEvent.desc);
 		} else {
 			insertEvent.desc = '';
@@ -335,16 +377,18 @@ export async function getFromCache(db: Db, user: string) {
  */
 export async function getUniqueEvents(db: Db) {
 	const canvasdata = db.collection<CanvasCacheEvent>('canvasFeeds');
-	const docs = await canvasdata.aggregate([
-		{
-			$group: {
-				_id: '$uid',
-				summary: { $first: '$summary' },
-				start: { $first: '$start' },
-				end: { $first: '$end' }
+	const docs = await canvasdata
+		.aggregate([
+			{
+				$group: {
+					_id: '$uid',
+					summary: { $first: '$summary' },
+					start: { $first: '$start' },
+					end: { $first: '$end' }
+				}
 			}
-		}
-	]).toArray();
+		])
+		.toArray();
 
 	const assignments: { [className: string]: UniqueEvent[] } = {};
 
@@ -374,7 +418,11 @@ export async function getUniqueEvents(db: Db) {
 	return assignments;
 }
 
-export type CanvasCacheEvent = ical.CalendarComponent & { _id: string | ObjectID, user: ObjectID, createdAt: Date };
+export type CanvasCacheEvent = ical.CalendarComponent & {
+	_id: string | ObjectID;
+	user: ObjectID;
+	createdAt: Date;
+};
 
 export interface UniqueEvent {
 	_id: string;

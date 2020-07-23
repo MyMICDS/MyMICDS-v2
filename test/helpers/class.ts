@@ -1,7 +1,7 @@
 import { Block, ClassType, MyMICDSClass } from '@mymicds/sdk';
 import { Db } from 'mongodb';
-import * as classes from '../../src/libs/classes';
 import { testUser } from './user';
+import * as classes from '../../src/libs/classes';
 
 export const testClass = {
 	name: 'test class',
@@ -18,5 +18,5 @@ export const testClass = {
 export async function saveTestClass(db: Db, params: Partial<MyMICDSClass> = {}) {
 	const saveClass = Object.assign({}, testClass, params);
 
-	return await classes.upsert(db, testUser.user, saveClass);
+	return classes.upsert(db, testUser.user, saveClass);
 }

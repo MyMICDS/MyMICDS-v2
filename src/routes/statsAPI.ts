@@ -3,7 +3,6 @@ import * as stats from '../libs/stats';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db) => {
-
 	app.get('/stats', async (req, res) => {
 		try {
 			const statsObj = await stats.get(db);
@@ -12,5 +11,4 @@ export default ((app, db) => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

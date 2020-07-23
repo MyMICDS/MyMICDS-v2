@@ -1,5 +1,5 @@
-import { Quote } from '@mymicds/sdk';
 import { Db } from 'mongodb';
+import { Quote } from '@mymicds/sdk';
 
 /**
  * Retrieves all quotes from the database.
@@ -35,7 +35,4 @@ async function insertQuote(db: Db, author: string, quote: string) {
 	}
 }
 
-export {
-	getQuotes as get,
-	insertQuote as insert
-};
+export { getQuotes as get, insertQuote as insert };

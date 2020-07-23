@@ -1,0 +1,23 @@
+{
+	"ignorePatterns": ["src/public", "dist"],
+	"root": true,
+	"extends": ["@mymicds/eslint-config", "prettier", "prettier/@typescript-eslint"],
+	"parserOptions": {
+		"project": "tsconfig.json"
+	},
+	"env": {
+		"node": true,
+		"es6": true
+	},
+	"overrides": [
+		{
+			"files": ["test/**/*"],
+			"parserOptions": {
+				"project": "test/tsconfig.json"
+			}
+		}
+	],
+	"rules": {
+		"@typescript-eslint/ban-tslint-comment": "error"
+	}
+}

@@ -1,10 +1,10 @@
-import { PlannerEvent } from '@mymicds/sdk';
 import { Db, ObjectID } from 'mongodb';
-import * as classes from './classes';
 import { InputError } from './errors';
+import { Omit } from './utils';
+import { PlannerEvent } from '@mymicds/sdk';
+import * as classes from './classes';
 import * as htmlParser from './htmlParser';
 import * as users from './users';
-import { Omit } from './utils';
 
 /**
  * Adds/edits a planner event.
@@ -14,9 +14,15 @@ import { Omit } from './utils';
  */
 async function upsertEvent(db: Db, user: string, plannerEvent: NewEventData) {
 	// Defaults
-	if (typeof plannerEvent._id     !== 'string') { plannerEvent._id = ''; }
-	if (typeof plannerEvent.classId !== 'string') { plannerEvent.classId = null; }
-	if (typeof plannerEvent.link    !== 'string') { plannerEvent.link = ''; }
+	if (typeof plannerEvent._id !== 'string') {
+		plannerEvent._id = '';
+	}
+	if (typeof plannerEvent.classId !== 'string') {
+		plannerEvent.classId = null;
+	}
+	if (typeof plannerEvent.link !== 'string') {
+		plannerEvent.link = '';
+	}
 
 	// Made sure start time and end time are consecutive or the same
 	if (plannerEvent.start.getTime() > plannerEvent.end.getTime()) {
@@ -24,7 +30,9 @@ async function upsertEvent(db: Db, user: string, plannerEvent: NewEventData) {
 	}
 
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('Invalid username!'); }
+	if (!isUser) {
+		throw new InputError('Invalid username!');
+	}
 
 	const theClasses = await classes.get(db, user);
 
@@ -103,7 +111,9 @@ async function deleteEvent(db: Db, user: string, eventId: string) {
 
 	// Make sure valid user and get user id
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('Invalid username!'); }
+	if (!isUser) {
+		throw new InputError('Invalid username!');
+	}
 
 	const plannerdata = db.collection('planner');
 
@@ -123,14 +133,16 @@ async function deleteEvent(db: Db, user: string, eventId: string) {
  */
 async function getEvents(db: Db, user: string) {
 	const { isUser, userDoc } = await users.get(db, user);
-	if (!isUser) { throw new InputError('User doesn\'t exist!'); }
+	if (!isUser) {
+		throw new InputError("User doesn't exist!");
+	}
 
 	const plannerdata = db.collection<PlannerDBEvent>('planner');
 
 	let events: PlannerEvent[];
 	try {
-		events = await plannerdata.aggregate<PlannerEvent>(
-			[
+		events = await plannerdata
+			.aggregate<PlannerEvent>([
 				// Stage 1
 				// Get planner events for user
 				{
@@ -172,9 +184,12 @@ async function getEvents(db: Db, user: string) {
 					$addFields: {
 						// If there's no associated checked events, the event is not checked
 						checked: {
-							$ne: [0, {
-								$size: '$checked'
-							}]
+							$ne: [
+								0,
+								{
+									$size: '$checked'
+								}
+							]
 						},
 						// Add username
 						user,
@@ -184,8 +199,8 @@ async function getEvents(db: Db, user: string) {
 						}
 					}
 				}
-			]
-		).toArray();
+			])
+			.toArray();
 	} catch (e) {
 		throw new Error('There was a problem querying the database!');
 	}
@@ -220,8 +235,4 @@ export interface PlannerDBEvent extends BasePlannerEvent {
 
 export type NewEventData = Omit<PlannerInputEvent, 'user' | 'link'> & { link?: string };
 
-export {
-	upsertEvent as upsert,
-	deleteEvent as delete,
-	getEvents as get
-};
+export { upsertEvent as upsert, deleteEvent as delete, getEvents as get };

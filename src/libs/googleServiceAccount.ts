@@ -6,9 +6,7 @@ const key = config.googleServiceAccount;
 import { google } from 'googleapis';
 
 // Any Google scopes the Service Account uses
-const scopes = [
-	'https://www.googleapis.com/auth/gmail.readonly'
-];
+const scopes = ['https://www.googleapis.com/auth/gmail.readonly'];
 // Which user to sign in as under the MyMICDS.net domain
 const impersonate = 'support@mymicds.net';
 
@@ -17,7 +15,13 @@ const impersonate = 'support@mymicds.net';
  * @returns An authenticated account client.
  */
 async function createServiceAccount() {
-	const jwtClient = new google.auth.JWT(key.client_email, undefined, key.private_key, scopes, impersonate);
+	const jwtClient = new google.auth.JWT(
+		key.client_email,
+		undefined,
+		key.private_key,
+		scopes,
+		impersonate
+	);
 
 	try {
 		await jwtClient.authorize();
@@ -28,6 +32,4 @@ async function createServiceAccount() {
 	return jwtClient;
 }
 
-export {
-	createServiceAccount as create
-};
+export { createServiceAccount as create };

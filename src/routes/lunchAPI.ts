@@ -3,9 +3,7 @@ import * as lunch from '../libs/lunch';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db) => {
-
 	app.get('/lunch', async (req, res) => {
-
 		const current = new Date();
 
 		const year = req.query.year || current.getFullYear();
@@ -21,5 +19,4 @@ export default ((app, db) => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

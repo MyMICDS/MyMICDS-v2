@@ -1,12 +1,12 @@
-import { GetLunchResponse, School } from '@mymicds/sdk';
-import moment from 'moment';
 import { Db } from 'mongodb';
-import objectAssignDeep from 'object-assign-deep';
+import { GetLunchResponse, School, SchoolLunch } from '@mymicds/sdk';
 import { Response } from 'request';
+import moment from 'moment';
+import objectAssignDeep from 'object-assign-deep';
 import request from 'request-promise-native';
 
-// tslint:disable-next-line:max-line-length
-const lunchBaseURL = 'https://micds.flikisdining.com/menu/api/weeks/school/mary-institute-country-day-school-micds/menu-type';
+const lunchBaseURL =
+	'https://micds.flikisdining.com/menu/api/weeks/school/mary-institute-country-day-school-micds/menu-type';
 const schools: Record<School, string> = {
 	lowerschool: 'lunch',
 	middleschool: 'middle-school-menu',
@@ -26,8 +26,9 @@ async function getLunch(db: Db, date: Date) {
 	try {
 		for (const school of Object.keys(schools) as School[]) {
 			const schoolUrl = schools[school];
-			const lunchUrl =
-				`${lunchBaseURL}/${schoolUrl}/${currentDay.year()}/${currentDay.month() + 1}/${currentDay.date()}`;
+			const lunchUrl = `${lunchBaseURL}/${schoolUrl}/${currentDay.year()}/${
+				currentDay.month() + 1
+			}/${currentDay.date()}`;
 			// Send POST request to lunch website
 			res = await request.get(lunchUrl, {
 				resolveWithFullResponse: true,
@@ -40,7 +41,7 @@ async function getLunch(db: Db, date: Date) {
 			objectAssignDeep(fullLunchResponse, parseLunch(school, res.body));
 		}
 	} catch (e) {
-		throw new Error('There was a problem fetching the lunch data!' + e);
+		throw new Error(`There was a problem fetching the lunch data! (${(e as Error).message})`);
 	}
 
 	// Alert admins if lunch page has moved
@@ -64,8 +65,10 @@ async function getLunch(db: Db, date: Date) {
  * @param body HTML body of the page.
  * @returns An object with the lunch data.
  */
+// TODO: Check the format of the Flik lunch body
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseLunch(school: School, body: any) {
-	const json: any = {};
+	const json: { [date: string]: Partial<Record<School, SchoolLunch>> } = {};
 
 	for (const day of body.days) {
 		const date = day.date;
@@ -82,10 +85,10 @@ function parseLunch(school: School, body: any) {
 			if (item.text) {
 				latestCategory = item.text;
 			} else if (latestCategory && item.food) {
-				if (!json[date][school].categories[latestCategory]) {
-					json[date][school].categories[latestCategory] = [];
+				if (!json[date][school]!.categories[latestCategory]) {
+					json[date][school]!.categories[latestCategory] = [];
 				}
-				json[date][school].categories[latestCategory].push(item.food.name);
+				json[date][school]!.categories[latestCategory].push(item.food.name);
 			}
 		}
 	}
@@ -93,7 +96,4 @@ function parseLunch(school: School, body: any) {
 	return json;
 }
 
-export {
-	getLunch as get,
-	parseLunch as parse
-};
+export { getLunch as get, parseLunch as parse };

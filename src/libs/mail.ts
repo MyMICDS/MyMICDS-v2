@@ -10,7 +10,11 @@ import { StringDict } from './utils';
  * @param message Message to send.
  * @param transporter Nodemailer transport object.
  */
-export async function send(users: string | string[], message: Message, transporter?: nodemailer.Transporter) {
+export async function send(
+	users: string | string[],
+	message: Message,
+	transporter?: nodemailer.Transporter
+) {
 	if (typeof transporter !== 'object') {
 		transporter = nodemailer.createTransport(config.email.URI);
 	}
@@ -27,7 +31,7 @@ export async function send(users: string | string[], message: Message, transport
 			await transporter.sendMail(mailOptions);
 		}
 	} catch (e) {
-		throw new Error(`There was a problem sending the mail! (${e.message})`);
+		throw new Error(`There was a problem sending the mail! (${(e as Error).message})`);
 	}
 }
 
@@ -39,8 +43,13 @@ export async function send(users: string | string[], message: Message, transport
  * @param data Data to fill out the template file with.
  * @param transporter Nodemailer transport object.
  */
-// tslint:disable-next-line:max-line-length
-export async function sendHTML(users: string | string[], subject: string, file: string, data: StringDict, transporter?: nodemailer.Transporter) {
+export async function sendHTML(
+	users: string | string[],
+	subject: string,
+	file: string,
+	data: StringDict,
+	transporter?: nodemailer.Transporter
+) {
 	let body;
 	try {
 		body = await fs.readFile(file, 'utf8');

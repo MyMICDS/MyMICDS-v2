@@ -5,7 +5,6 @@ import * as users from '../libs/users';
 import RoutesFunction from './routesFunction';
 
 export default ((app, db, socketIO) => {
-
 	app.get('/user/grad-year-to-grade', (req, res) => {
 		const grade = users.gradYearToGrade(parseInt(req.query.year, 10));
 		api.success(res, { grade });
@@ -66,5 +65,4 @@ export default ((app, db, socketIO) => {
 			api.error(res, err);
 		}
 	});
-
 }) as RoutesFunction;

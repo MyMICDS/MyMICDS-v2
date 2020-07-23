@@ -4,13 +4,15 @@ import config from './config';
 
 const schoolId = 231;
 
+// TODO: Deprecate, possibly remove?
+
 /**
  * Logs into the Rams Army app.
  * @returns A login key to be used with all Rams Army API requests.
  */
 async function login() {
 	let err: Error;
-	let body: any;
+	let body: { response: string; error: string; loginkey: string };
 	try {
 		body = await request.post({
 			url: 'https://api.superfanu.com/5.0.0/gen/login.php',
@@ -23,13 +25,12 @@ async function login() {
 		err = e;
 	}
 
-	body = JSON.parse(body);
-	if (err! || body.response !== 'ok') {
-		const error = body.error ? body.error : 'Unknown';
-		throw new Error('There was a problem logging in the Rams Army app! Error: ' + error);
+	if (err! || body!.response !== 'ok') {
+		const error = body!.error ? body!.error : 'Unknown';
+		throw new Error(`There was a problem logging in the Rams Army app! Error: ${error}`);
 	}
 
-	return body.loginkey;
+	return body!.loginkey;
 }
 
 /**
@@ -42,7 +43,7 @@ async function getScores() {
 	let body;
 	try {
 		body = await request.post({
-			url: 'https://api.superfanu.com/5.0.0/gen/get_scores.php?nid=' + schoolId,
+			url: `https://api.superfanu.com/5.0.0/gen/get_scores.php?nid=${schoolId}`,
 			form: {
 				login_key: loginKey
 			}
@@ -57,6 +58,4 @@ async function getScores() {
 	} as GetScoresResponse['scores'];
 }
 
-export {
-	getScores as scores
-};
+export { getScores as scores };

@@ -1,8 +1,8 @@
 import { Action } from '@mymicds/sdk';
-import * as Sentry from '@sentry/node';
+import { InputError } from './errors';
 import { NextFunction, Request, Response } from 'express';
 import { TypeGuardError } from 'typescript-is';
-import { InputError } from './errors';
+import * as Sentry from '@sentry/node';
 
 declare global {
 	namespace Express {
@@ -40,7 +40,7 @@ export function adminOverride(req: Request, res: Response, next: NextFunction) {
  * @param data Any data that the API should respond with.
  * @param action An action for the front-end client to perform.
  */
-function respondSuccess(res: Response, data: any = {}, action: Action | null = null) {
+function respondSuccess(res: Response, data: unknown = {}, action: Action | null = null) {
 	// Make sure it's a valid action
 	if (action && !Object.values(Action).includes(action)) {
 		action = null;
@@ -96,7 +96,4 @@ function respondError(res: Response, error: Error | string | null, action: Actio
 	});
 }
 
-export {
-	respondSuccess as success,
-	respondError as error
-};
+export { respondSuccess as success, respondError as error };
