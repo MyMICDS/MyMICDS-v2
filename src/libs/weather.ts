@@ -1,7 +1,8 @@
-import { Weather } from '@mymicds/sdk';
+import { Weather, OpenWeather, SimplifiedWeather } from '@mymicds/sdk';
 import * as fs from 'fs-extra';
 import config from './config';
 import DarkSky from 'forecast.io';
+import axios from 'axios';
 
 export const JSON_PATH = __dirname + '/../api/weather.json';
 
@@ -13,6 +14,9 @@ const longitude = -90.3974471;
 const options = {
 	APIKey: config.forecast.APIKey
 };
+
+// endpoint for current weather and couple day's forecast for MICDS, in imperial units, without the by-minute calc
+const openWeatherEndpoint = `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&appid=${config.openWeather.APIKey}&units=imperial&exclude=minutely`;
 
 /**
  * Retrieves the weather. Checks the local file cache first, else updates the weather.
@@ -57,4 +61,21 @@ async function updateWeather() {
 	return data;
 }
 
-export { getWeather as get, updateWeather as update };
+// TODO rename when done
+async function getOpenWeather() {}
+
+async function updateOpenWeather() {
+	let rawWeather: OpenWeather;
+	try {
+		// grab dat DATA
+		const response = await axios.get(openWeatherEndpoint);
+		rawWeather = response.data;
+		const simplifiedWeather = new SimplifiedWeather(rawWeather);
+	} catch (err) {
+		new Error('There was a problem fetching the weather data!');
+	}
+
+	// convert dat DATA
+}
+
+export { updateOpenWeather as get, updateWeather as update };
