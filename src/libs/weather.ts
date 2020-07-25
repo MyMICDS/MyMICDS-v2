@@ -11,29 +11,31 @@ const longitude = -90.3974471;
 
 const openWeatherkey = config.openWeather.APIKey;
 
-// endpoint for current weather and couple day's forecast for MICDS, in imperial units, without the by-minute data
+// endpoint for current weather and couple day's forecast for MICDS,
+// in imperial units, without the by-minute data
 const openWeatherEndpoint = `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&appid=${openWeatherkey}&units=imperial&exclude=minutely`;
 
 /**
  * Retrieves the weather. Checks the local file cache first, else updates the weather.
  * @returns A weather object.
  */
-async function getOpenWeather() {
+async function getWeather() {
 	let weatherJSON: Weather;
 	try {
 		weatherJSON = await fs.readJSON(JSON_PATH);
 	} catch (e) {
-		weatherJSON = await updateOpenWeather();
+		weatherJSON = await updateWeather();
 	}
 
 	return weatherJSON;
 }
 
 /**
- * Retrieves the weather. Checks the local file cache first, else updates the weather.
+ * Grabs the Weather from OpenWeather Onecall API, converts it to MyMICDS
+ * Weather Object, and saves it in json.
  * @returns A weather object.
  */
-async function updateOpenWeather() {
+async function updateWeather() {
 	let rawWeather: OpenWeather | null = null;
 	let weather: Weather;
 
@@ -58,7 +60,7 @@ async function updateOpenWeather() {
 		percipitationChance: rawWeather.hourly[0].pop,
 		windSpeed: rawWeather.hourly[0].wind_speed,
 		windDir: rawWeather.hourly[0].wind_deg,
-		weatherIcon: rawWeather.current.weather[0].id
+		weatherIcon: rawWeather.current.weather[0].icon
 	};
 
 	// save dat DATA
@@ -71,4 +73,4 @@ async function updateOpenWeather() {
 	return weather;
 }
 
-export { getOpenWeather as get, updateOpenWeather as update };
+export { getWeather as get, updateWeather as update };
