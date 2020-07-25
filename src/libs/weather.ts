@@ -62,20 +62,43 @@ async function updateWeather() {
 }
 
 // TODO rename when done
-async function getOpenWeather() {}
+async function getOpenWeather() {
+	let weatherJSON: Weather;
+	try {
+		weatherJSON = await fs.readJSON(JSON_PATH);
+	} catch (e) {
+		weatherJSON = await updateWeather();
+	}
+
+	return weatherJSON;
+}
 
 async function updateOpenWeather() {
 	let rawWeather: OpenWeather;
+	let weather: SimplifiedWeather | null = null;
+
 	try {
 		// grab dat DATA
-		const response = await axios.get(openWeatherEndpoint);
+		let response = await axios.get(openWeatherEndpoint);
 		rawWeather = response.data;
-		const simplifiedWeather = new SimplifiedWeather(rawWeather);
+		// convert dat DATA
+		weather = {
+			temperature: rawWeather.current.temp,
+			temperatureHigh: rawWeather.daily[0].temp.max ?? 0,
+			temperatureLow: rawWeather.daily[0].temp.min ?? 0,
+			humidity: rawWeather.current.humidity,
+			percipitationChance: rawWeather.hourly[0].pop,
+			windSpeed: rawWeather.hourly[0].wind_speed,
+			windDir: rawWeather.hourly[0].wind_deg,
+			weatherIcon: rawWeather.current.weather[0].id
+		};
+		// save dat DATA
+		await fs.outputJSON(JSON_PATH, weather, { spaces: '\t' });
 	} catch (err) {
-		new Error('There was a problem fetching the weather data!');
+		new Error('There was a problem retrieving the weather data!');
 	}
 
-	// convert dat DATA
+	return weather;
 }
 
-export { updateOpenWeather as get, updateWeather as update };
+export { updateOpenWeather as get, updateOpenWeather as update };
