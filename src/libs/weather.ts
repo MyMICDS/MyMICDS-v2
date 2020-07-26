@@ -1,7 +1,7 @@
-import { Weather, OpenWeather } from '@mymicds/sdk';
+import { Weather } from '@mymicds/sdk';
 import * as fs from 'fs-extra';
-import config from './config';
 import axios from 'axios';
+import config from './config';
 
 export const JSON_PATH = __dirname + '/../api/weather.json';
 
@@ -37,27 +37,26 @@ async function getWeather() {
  */
 async function updateWeather() {
 	let rawWeather: OpenWeather | null = null;
-	let weather: Weather;
 
 	// grab dat DATA
 	try {
-		let response = await axios.get(openWeatherEndpoint);
+		const response = await axios.get(openWeatherEndpoint);
 		rawWeather = response.data;
 	} catch (err) {
 		throw new Error('There was a problem fetching the weather data!');
 	}
 
-	if (rawWeather == null) {
+	if (rawWeather === null) {
 		throw new Error('There was a problem fetching the weather data!');
 	}
 
 	// convert dat DATA
-	weather = {
+	const weather: Weather = {
 		temperature: rawWeather.current.temp,
 		temperatureHigh: rawWeather.daily[0].temp.max ?? 0,
 		temperatureLow: rawWeather.daily[0].temp.min ?? 0,
 		humidity: rawWeather.current.humidity,
-		percipitationChance: rawWeather.hourly[0].pop,
+		precipitationChance: rawWeather.hourly[0].pop,
 		windSpeed: rawWeather.hourly[0].wind_speed,
 		windDir: rawWeather.hourly[0].wind_deg,
 		weatherIcon: rawWeather.current.weather[0].icon
@@ -74,3 +73,96 @@ async function updateWeather() {
 }
 
 export { getWeather as get, updateWeather as update };
+
+/*
+ 	Open Weather interfaces below.
+ 	take note there is a "minutely" array, but our Open Weather request excludes it/
+ */
+interface OpenWeather {
+	lat: number;
+	lon: number;
+	timezone: string;
+	timezone_offset: number;
+	current: OpenWeatherCurrentSnapshot;
+	hourly: OpenWeatherHourSnapshot[];
+	daily: OpenWeatherDaySnapshot[];
+}
+
+interface OpenWeatherCurrentSnapshot {
+	dt: moment.Moment;
+	sunrise: moment.Moment;
+	sunset: moment.Moment;
+	temp: number;
+	feels_like: number;
+	pressure: number;
+	humidity: number;
+	dew_point: number;
+	clouds: number;
+	uvi: number;
+	visibility: number;
+	wind_speed: number;
+	wind_gust: number | null;
+	wind_deg: number;
+	rain: number | PrecipitationVolume;
+	snow: number | PrecipitationVolume;
+	weather: OpenWeatherSummary[];
+}
+
+interface OpenWeatherHourSnapshot {
+	dt: moment.Moment;
+	temp: number;
+	feels_like: number;
+	pressure: number;
+	humidity: number;
+	dew_point: number;
+	clouds: number;
+	visibility: number;
+	wind_speed: number;
+	wind_gust: number | null;
+	wind_deg: number;
+	rain: number | PrecipitationVolume;
+	snow: number | PrecipitationVolume;
+	pop: number;
+	weather: OpenWeatherSummary[];
+}
+
+interface OpenWeatherDaySnapshot {
+	dt: moment.Moment;
+	sunrise: moment.Moment;
+	sunset: moment.Moment;
+	temp: TemperatureDaySnapshot;
+	feels_like: TemperatureDaySnapshot;
+	pressure: number;
+	humidity: number;
+	dew_point: number;
+	clouds: number;
+	uvi: number;
+	visibility: number;
+	wind_speed: number;
+	wind_gust: number | null;
+	wind_deg: number;
+	pop: number;
+	rain: number | PrecipitationVolume | null;
+	snow: number | PrecipitationVolume | null;
+	weather: OpenWeatherSummary[];
+}
+
+interface OpenWeatherSummary {
+	id: string;
+	main: string;
+	description: string;
+	icon: string;
+}
+
+interface PrecipitationVolume {
+	h1: number;
+}
+
+interface TemperatureDaySnapshot {
+	morn: number;
+	day: number;
+	eve: number;
+	night: number;
+	min: number | null;
+	max: number | null;
+}
