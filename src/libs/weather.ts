@@ -9,11 +9,17 @@ export const JSON_PATH = __dirname + '/../api/weather.json';
 const latitude = 38.658241;
 const longitude = -90.3974471;
 
-const openWeatherkey = config.openWeather.APIKey;
+const openWeatherKey = config.openWeather.APIKey;
 
-// endpoint for current weather and couple day's forecast for MICDS,
-// in imperial units, without the by-minute data
-const openWeatherEndpoint = `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&appid=${openWeatherkey}&units=imperial&exclude=minutely`;
+// endpoint for current weather and couple day's forecast for MICDS, in imperial units, without the by-minute data
+const openWeatherEndpoint: string =
+	'https://api.openweathermap.org/data/2.5/onecall?lat=' +
+	String(latitude) +
+	'&lon=' +
+	String(longitude) +
+	'&appid=' +
+	openWeatherKey +
+	'&units=imperial&exclude=minutely';
 
 /**
  * Retrieves the weather. Checks the local file cache first, else updates the weather.
