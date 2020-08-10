@@ -1,0 +1,282 @@
+{
+    "Aday": {
+        "lunchBlock": "e",
+        "regular": [
+            {
+                "block": "a",
+                "start": "8:30",
+                "end": "9:55"
+            },
+            {
+                "block": "c",
+                "start": "10:00",
+                "end": "11:25"
+            },
+            {
+                "block": "e",
+                "start": "11:30",
+                "end": "13:45",
+                "aemsh": {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10"
+                },
+                "hswl": {
+                    "block": "lunch",
+                    "start": "12:15",
+                    "end": "12:55"
+                }
+            },
+            {
+                "block": "g",
+                "start": "1:50",
+                "end": "3:15"
+            }
+        ]
+    },
+    "Bday": {
+        "lunchBlock": "f",
+        "regular": [
+            {
+                "block": "b",
+                "start": "8:30",
+                "end": "9:55"
+            },
+            {
+                "block": "d",
+                "start": "10:00",
+                "end": "11:25"
+            },
+            {
+                "block": "f",
+                "start": "11:30",
+                "end": "13:45",
+                "aemsh": {
+                    "block": "lunch",
+                    "start": "12:15",
+                    "end": "12:55"
+                },
+                "hswl": {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10"
+                }
+            },
+            {
+                "block": "h",
+                "start": "1:50",
+                "end": "3:15"
+            }
+        ]
+    },
+    "Cday": {
+        "lunchBlock": "g",
+        "regular": [
+            {
+                "block": "c",
+                "start": "8:30",
+                "end": "9:55"
+            },
+            {
+                "block": "e",
+                "start": "10:00",
+                "end": "11:25"
+            },
+            {
+                "block": "g",
+                "start": "11:30",
+                "end": "13:45",
+                "aemsh": {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10"
+                },
+                "hswl": {
+                    "block": "lunch",
+                    "start": "12:15",
+                    "end": "12:55"
+                }
+            },
+            {
+                "block": "a",
+                "start": "1:50",
+                "end": "3:15"
+            }
+        ]
+    },
+    "Dday": {
+        "lunchBlock": "hFIGURE OUT D DAYS!",
+        "regular": [
+            {
+                "block": "d",
+                "start": "8:30",
+                "end": "9:55"
+            },
+            {
+                "block": "f",
+                "start": "10:00",
+                "end": "11:25"
+            },
+            {
+                "block": "hTHINGS GO DOWN HILL HERE",
+                "start": "11:30",
+                "end": "13:45",
+                "aemsh": {
+                    "block": "lunch",
+                    "start": "12:15",
+                    "end": "12:55"
+                },
+                "hswl": {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10"
+                }
+            },
+            {
+                "block": "b",
+                "start": "1:50",
+                "end": "3:15"
+            }
+        ]
+    },
+    "Eday": {
+        "lunchBlock": "a",
+        "regular": [
+            {
+                "block": "e",
+                "start": "8:30",
+                "end": "9:55"
+            },
+            {
+                "block": "g",
+                "start": "10:00",
+                "end": "11:25"
+            },
+            {
+                "block": "a",
+                "start": "11:30",
+                "end": "13:45",
+                "aemsh": {
+                    "block": "lunch",
+                    "start": "12:15",
+                    "end": "12:55"
+                },
+                "hswl": {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10"
+                }
+            },
+            {
+                "block": "c",
+                "start": "1:50",
+                "end": "3:15"
+            }
+        ]
+    },
+    "Fday": {
+        "lunchBlock": "b",
+        "regular": [
+            {
+                "block": "f",
+                "start": "8:30",
+                "end": "9:55"
+            },
+            {
+                "block": "h",
+                "start": "10:00",
+                "end": "11:25"
+            },
+            {
+                "block": "b",
+                "start": "11:30",
+                "end": "13:45",
+                "aemsh": {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10"
+                },
+                "hswl": {
+                    "block": "lunch",
+                    "start": "12:15",
+                    "end": "12:55"
+                }
+            },
+            {
+                "block": "d",
+                "start": "1:50",
+                "end": "3:15"
+            }
+        ]
+    },
+    "Gday": {
+        "lunchBlock": "c",
+        "regular": [
+            {
+                "block": "g",
+                "start": "8:30",
+                "end": "9:55"
+            },
+            {
+                "block": "a",
+                "start": "10:00",
+                "end": "11:25"
+            },
+            {
+                "block": "c",
+                "start": "11:30",
+                "end": "13:45",
+                "aemsh": {
+                    "block": "lunch",
+                    "start": "12:15",
+                    "end": "12:55"
+                },
+                "hswl": {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10"
+                }
+            },
+            {
+                "block": "e",
+                "start": "1:50",
+                "end": "3:15"
+            }
+        ]
+    },
+    "Hday": {
+        "lunchBlock": "d",
+        "regular": [
+            {
+                "block": "h",
+                "start": "8:30",
+                "end": "9:55"
+            },
+            {
+                "block": "b",
+                "start": "10:00",
+                "end": "11:25"
+            },
+            {
+                "block": "d",
+                "start": "11:30",
+                "end": "13:45",
+                "aemsh": {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10"
+                },
+                "hswl": {
+                    "block": "lunch",
+                    "start": "12:15",
+                    "end": "12:55"
+                }
+            },
+            {
+                "block": "f",
+                "start": "1:50",
+                "end": "3:15"
+            }
+        ]
+    }
+}

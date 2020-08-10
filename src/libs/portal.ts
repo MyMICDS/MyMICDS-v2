@@ -20,7 +20,9 @@ const dayRotationURL = process.env.CI
 	: urlPrefix + config.portal.dayRotation;
 
 // RegEx to test if calendar summary contains a valid Day Rotation
-const validDayRotationPlain = /^US - Day [1-6]/;
+const validDayRotationPlain = /^US [A-H] Day/;
+
+const isLateStart = /\(US [A-H]9 Day\)/;
 
 const checkClassSummary = /.*:.?:[--9]*/;
 export const portalSummaryBlock = /:[A-G]:\d{2}$/g;
@@ -336,7 +338,7 @@ export async function getFromCalCalendar(db: Db, user: string) {
 /**
  * Retrieves the day rotation for a given date.
  * @param date The date to get the rotation for, defaults to today.
- * @returns The day rotation (integer in [1, 6]).
+ * @returns The day rotation (character A-H).
  */
 export async function getDayRotation(date: Date) {
 	const scheduleDate = new Date(date);
@@ -416,8 +418,7 @@ export async function getDayRotations() {
 		// See if valid day
 		if (validDayRotationPlain.test(calEvent.summary)) {
 			// Get actual day
-			const day = parseInt(/[1-6]/.exec(calEvent.summary)![0], 10);
-
+			const day = /[A-H]/.exec(calEvent.summary)![0];
 			if (typeof days[year] !== 'object') {
 				days[year] = {};
 			}

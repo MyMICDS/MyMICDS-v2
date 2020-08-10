@@ -4,6 +4,8 @@ import moment from 'moment';
 
 type Days = 'day1' | 'day2' | 'day3' | 'day4' | 'day5' | 'day6';
 
+type NewDays = 'Aday' | 'Bday' | 'Cday' | 'Dday' | 'Eday' | 'Fday' | 'Gday' | 'Hday';
+
 import grade5Schedule from '../schedules/grade5.json';
 import grade6Schedule from '../schedules/grade6.json';
 import grade7Schedule from '../schedules/grade7.json';
@@ -29,7 +31,7 @@ const middleschoolSchedule = {
 function getSchedule(
 	date: Date | moment.Moment | null,
 	grade: number | null,
-	day: number | null,
+	day: string | null,
 	lateStart: boolean
 ) {
 	// Validate inputs
@@ -41,9 +43,10 @@ function getSchedule(
 	if (typeof grade !== 'number' || Number.isNaN(grade) || -1 > grade || grade > 12) {
 		return null;
 	}
-	if (typeof day !== 'number' || Number.isNaN(day) || 1 > day || day > 6) {
-		return null;
-	}
+	// TODO add regex? and fix for letter days
+	// if (typeof day !== 'string' || Number.isNaN(day) || 1 > day || day > 6) {
+	// 	return null;
+	// }
 
 	const schoolName = users.gradeToSchool(grade);
 
@@ -129,5 +132,7 @@ export interface LunchBlockFormat extends BlockFormat {
 	sam: BlockFormat[];
 	wleh: BlockFormat[];
 }
+
+// TODO add new models
 
 export { getSchedule as get };

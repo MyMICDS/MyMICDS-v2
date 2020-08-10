@@ -34,7 +34,7 @@ const genericBlocks: Record<
 	| 'advisory'
 	| 'collaborative'
 	| 'community'
-	| 'enrichment'
+	// | 'enrichment'
 	| 'flex'
 	| 'lunch'
 	| 'recess'
@@ -89,18 +89,18 @@ const genericBlocks: Record<
 		color: '#AA0031',
 		textDark: prisma.shouldTextBeDark('#AA0031')
 	},
-	enrichment: {
-		name: 'Enrichment',
-		teacher: {
-			prefix: '',
-			firstName: '',
-			lastName: ''
-		},
-		type: ClassType.OTHER,
-		block: Block.OTHER,
-		color: '#FF4500',
-		textDark: prisma.shouldTextBeDark('#FF4500')
-	},
+	// enrichment: { *should* be noop
+	// 	name: 'Enrichment',
+	// 	teacher: {
+	// 		prefix: '',
+	// 		firstName: '',
+	// 		lastName: ''
+	// 	},
+	// 	type: ClassType.OTHER,
+	// 	block: Block.OTHER,
+	// 	color: '#FF4500',
+	// 	textDark: prisma.shouldTextBeDark('#FF4500')
+	// },
 	flex: {
 		name: 'Flex',
 		teacher: {
@@ -156,7 +156,7 @@ const genericBlocks: Record<
  * @param db Database connection.
  * @param user Username.
  * @param date The date to get the schedule for.
- * @param portalBroke Whether or not the Portal should be used for calculating schedules. Used internally for recursion.
+ * @param isPortalBroken Whether or not the Portal should be used for calculating schedules. Used internally for recursion.
  * @returns An object containing the day rotation, whether the schedule is special,
  * 			and the different classes for the day.
  */
@@ -164,7 +164,7 @@ async function getSchedule(
 	db: Db,
 	user: string,
 	date: Date,
-	portalBroke = false
+	isPortalBroken = false
 ): Promise<{ hasURL: boolean; schedule: FullSchedule }> {
 	const scheduleDate = moment(date).startOf('day');
 	const scheduleNextDay = scheduleDate.clone().add(1, 'day');
@@ -219,7 +219,7 @@ async function getSchedule(
 		lateStart
 	);
 
-	if (portalBroke || typeof userDoc!.portalURLClasses !== 'string') {
+	if (isPortalBroken || typeof userDoc!.portalURLClasses !== 'string') {
 		// If user is logged in, but hasn't configured their Portal URL
 		// We would know their grade, and therefore their generic block schedule, as well as any classes they configured
 		const theClasses = await classes.get(db, user);
@@ -477,6 +477,7 @@ async function getSchedule(
 		// determines if they have first or second lunch; therefore, we must add it
 		// ourselves.
 		for (const block of schedule.classes) {
+			console.log(block);
 			if ((block as any).noOverlapAddBlocks) {
 				// If no overlap, add blocks
 				if (
