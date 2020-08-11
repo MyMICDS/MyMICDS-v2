@@ -2,15 +2,15 @@ import { Block } from '@mymicds/sdk';
 import * as users from './users';
 import moment from 'moment';
 
-type Days = 'day1' | 'day2' | 'day3' | 'day4' | 'day5' | 'day6';
-
-type NewDays = 'Aday' | 'Bday' | 'Cday' | 'Dday' | 'Eday' | 'Fday' | 'Gday' | 'Hday';
+type Days = 'Aday' | 'Bday' | 'Cday' | 'Dday' | 'Eday' | 'Fday' | 'Gday' | 'Hday';
 
 import grade5Schedule from '../schedules/grade5.json';
 import grade6Schedule from '../schedules/grade6.json';
 import grade7Schedule from '../schedules/grade7.json';
 import grade8Schedule from '../schedules/grade8.json';
 import hsSchedule from '../schedules/highschool.json';
+
+import NEW_hsSchdule from '../schedules/2020/regular_HS.json'; // some bork code for now
 
 const highschoolSchedule = hsSchedule as Record<Days, DaySchedule>;
 const middleschoolSchedule = {
@@ -111,9 +111,13 @@ function getSchedule(
 }
 
 export interface DaySchedule {
+	regular: BlockFormats;
+	lateStart: BlockFormats;
+}
+
+export interface BlockFormats {
 	lunchBlock?: Block | null;
-	regular: BlockFormat[];
-	lateStart: BlockFormat[];
+	blocks: BlockFormat[];
 }
 
 export interface BlockFormat {
@@ -128,11 +132,8 @@ export interface AlternateBlockFormat extends BlockFormat {
 }
 
 export interface LunchBlockFormat extends BlockFormat {
-	noOverlapAddBlocks: BlockFormat[];
-	sam: BlockFormat[];
-	wleh: BlockFormat[];
+	aemsh: BlockFormat;
+	hswl: BlockFormat;
 }
-
-// TODO add new models
 
 export { getSchedule as get };

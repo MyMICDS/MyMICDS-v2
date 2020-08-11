@@ -1,26 +1,23 @@
 {
     "Aday": {
-        "lunchBlock": "e"
+        "lateStart": {
+            "lunchBlock": "",
+            "blocks": [
+                {
+                    "block": "",
+                    "start": "",
+                    "end": ""
+                }
+            ]
+        }
     },
-    "Bday": {
-        "lunchBlock": "f"
-    },
-    "Cday": {
-        "lunchBlock": "g"
-    },
-    "Dday": {
-        "lunchBlock": "hFIGURE OUT D DAYS!"
-    },
-    "Eday": {
-        "lunchBlock": "a"
-    },
-    "Fday": {
-        "lunchBlock": "b"
-    },
-    "Gday": {
-        "lunchBlock": "c"
-    },
+    "Bday": {},
+    "Cday": {},
+    "Dday": {},
+    "Eday": {},
+    "Fday": {},
+    "Gday": {},
     "Hday": {
-        "lunchBlock": "d"
+        "regular": {}
     }
 }
