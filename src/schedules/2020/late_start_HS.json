@@ -20,8 +20,18 @@
                 },
                 {
                     "block": "d",
-                    "start": "9",
-                    "end": "9:40"
+                    "start": "11:30",
+                    "end": "12:55",
+                    "aemsh": {
+                        "block": "lunch",
+                        "start": "11:30",
+                        "end": "12:10"
+                    },
+                    "hswl": {
+                        "block": "lunch",
+                        "start": "12:15",
+                        "end": "12:55"
+                    }
                 },
                 {
                     "block": "e",
@@ -62,8 +72,18 @@
                 },
                 {
                     "block": "e",
-                    "start": "9",
-                    "end": "9:40"
+                    "start": "11:30",
+                    "end": "12:55",
+                    "hswl": {
+                        "block": "lunch",
+                        "start": "11:30",
+                        "end": "12:10"
+                    },
+                    "aemsh": {
+                        "block": "lunch",
+                        "start": "12:15",
+                        "end": "12:55"
+                    }
                 },
                 {
                     "block": "f",
@@ -104,8 +124,18 @@
                 },
                 {
                     "block": "f",
-                    "start": "9",
-                    "end": "9:40"
+                    "start": "11:30",
+                    "end": "12:55",
+                    "aemsh": {
+                        "block": "lunch",
+                        "start": "11:30",
+                        "end": "12:10"
+                    },
+                    "hswl": {
+                        "block": "lunch",
+                        "start": "12:15",
+                        "end": "12:55"
+                    }
                 },
                 {
                     "block": "g",
@@ -146,8 +176,18 @@
                 },
                 {
                     "block": "g",
-                    "start": "9",
-                    "end": "9:40"
+                    "start": "11:30",
+                    "end": "12:55",
+                    "hswl": {
+                        "block": "lunch",
+                        "start": "11:30",
+                        "end": "12:10"
+                    },
+                    "aemsh": {
+                        "block": "lunch",
+                        "start": "12:15",
+                        "end": "12:55"
+                    }
                 },
                 {
                     "block": "a",
@@ -188,8 +228,18 @@
                 },
                 {
                     "block": "a",
-                    "start": "9",
-                    "end": "9:40"
+                    "start": "11:30",
+                    "end": "12:55",
+                    "aemsh": {
+                        "block": "lunch",
+                        "start": "11:30",
+                        "end": "12:10"
+                    },
+                    "hswl": {
+                        "block": "lunch",
+                        "start": "12:15",
+                        "end": "12:55"
+                    }
                 },
                 {
                     "block": "b",
@@ -230,8 +280,18 @@
                 },
                 {
                     "block": "b",
-                    "start": "9",
-                    "end": "9:40"
+                    "start": "11:30",
+                    "end": "12:55",
+                    "hswl": {
+                        "block": "lunch",
+                        "start": "11:30",
+                        "end": "12:10"
+                    },
+                    "aemsh": {
+                        "block": "lunch",
+                        "start": "12:15",
+                        "end": "12:55"
+                    }
                 },
                 {
                     "block": "c",
@@ -272,8 +332,18 @@
                 },
                 {
                     "block": "c",
-                    "start": "9",
-                    "end": "9:40"
+                    "start": "11:30",
+                    "end": "12:55",
+                    "aemsh": {
+                        "block": "lunch",
+                        "start": "11:30",
+                        "end": "12:10"
+                    },
+                    "hswl": {
+                        "block": "lunch",
+                        "start": "12:15",
+                        "end": "12:55"
+                    }
                 },
                 {
                     "block": "d",

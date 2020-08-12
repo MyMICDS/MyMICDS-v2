@@ -374,7 +374,7 @@ export async function getDayRotation(date: Date) {
 			// See if valid day
 			if (validDayRotationPlain.test(calEvent.summary)) {
 				// Get actual day
-				return parseInt(/Day ([A-H])/.exec(calEvent.summary)![1], 10);
+				return /Day ([A-H])/.exec(calEvent.summary)![1];
 			}
 		}
 	}

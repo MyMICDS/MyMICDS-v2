@@ -43,10 +43,10 @@ function getSchedule(
 	if (typeof grade !== 'number' || Number.isNaN(grade) || -1 > grade || grade > 12) {
 		return null;
 	}
-	// TODO add regex? and fix for letter days
-	// if (typeof day !== 'string' || Number.isNaN(day) || 1 > day || day > 6) {
-	// 	return null;
-	// }
+	// TODO add regex ? and fix for letter days ([A-H])
+	if (typeof day !== 'string' || /([A-H])/.exec(day)?.length !== 1) {
+		return null;
+	}
 
 	const schoolName = users.gradeToSchool(grade);
 
@@ -56,7 +56,9 @@ function getSchedule(
 	}
 
 	// User's final schedule
-	let userSchedule: BlockFormat[] = [];
+	let userSchedule: BlockFormats = {
+		blocks: []
+	};
 
 	// Use highschool schedule if upperschool
 	if (schoolName === 'upperschool') {
@@ -66,7 +68,9 @@ function getSchedule(
 
 		// Loop through JSON and append classes to user schedule
 		const jsonSchedule =
-			highschoolSchedule[`day${day}` as Days][lateStart ? 'lateStart' : 'regular'];
+			highschoolSchedule[`${day.toUpperCase()}day` as Days][
+				lateStart ? 'lateStart' : 'regular'
+			];
 
 		for (const jsonBlock of jsonSchedule) {
 			// Check for any restrictions on the block
@@ -82,12 +86,12 @@ function getSchedule(
 			}
 
 			// Push to user schedule
-			userSchedule.push(jsonBlock);
+			userSchedule.blocks.push(jsonBlock);
 		}
 	} else if (schoolName === 'middleschool') {
 		// Directly return JSON from middleschool schedule
 		userSchedule =
-			middleschoolSchedule[grade as 8 | 7 | 6 | 5][`day${day}` as Days][
+			middleschoolSchedule[grade as 8 | 7 | 6 | 5][`${day?.toUpperCase()}day` as Days][
 				lateStart ? 'lateStart' : 'regular'
 			];
 	}

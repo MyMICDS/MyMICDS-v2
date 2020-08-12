@@ -246,7 +246,7 @@ async function getSchedule(
 		}
 
 		// Insert any possible classes the user as configured in Settings
-		schedule.classes = combineClassesSchedule(scheduleDate, daySchedule, blocks);
+		schedule.classes = combineClassesSchedule(scheduleDate, daySchedule.blocks, blocks);
 		return { hasURL: false, schedule };
 	}
 
@@ -424,7 +424,7 @@ async function getSchedule(
 		for (const portalClass of portalSchedule) {
 			const portalBlock = portalClass.class.block;
 			if (portalBlock !== Block.OTHER) {
-				const dayClass = daySchedule.find(d => d.block === portalBlock);
+				const dayClass = daySchedule.blocks.find(d => d.block === portalBlock);
 
 				if (
 					// If there's no matching day class with the same block, just skip
@@ -458,7 +458,7 @@ async function getSchedule(
 		schedule.classes = portalSchedule;
 	} else {
 		// Keep track of original start and end of blocks detecting overlap
-		for (const block of daySchedule) {
+		for (const block of daySchedule.blocks) {
 			if ((block as blockSchedule.LunchBlockFormat).noOverlapAddBlocks) {
 				(block as any).originalStart = block.start;
 				(block as any).originalEnd = block.end;
@@ -466,7 +466,7 @@ async function getSchedule(
 		}
 
 		// Overlap Portal classes over default
-		schedule.classes = ordineSchedule(daySchedule, portalSchedule);
+		schedule.classes = ordineSchedule(daySchedule.blocks, portalSchedule);
 
 		// Loop through all the blocks. If a block has a `noOverlapAddBlocks` property
 		// and the current start and end times are the same as the original, add the
@@ -746,7 +746,7 @@ function ordineSchedule(
 }
 
 export interface FullSchedule {
-	day: number | null;
+	day: string | null;
 	special: boolean;
 	classes: ClassesOrBlocks;
 	allDay: string[];
