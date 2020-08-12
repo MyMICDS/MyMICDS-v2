@@ -8,7 +8,7 @@ import request from 'request-promise-native';
 const lunchBaseURL =
 	'https://micds.flikisdining.com/menu/api/weeks/school/mary-institute-country-day-school-micds/menu-type';
 const schools: Record<School, string> = {
-	lowerschool: 'lunch',
+	lowerschool: 'middle-school-menu',
 	middleschool: 'middle-school-menu',
 	upperschool: 'upper-school-menu'
 };
