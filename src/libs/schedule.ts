@@ -177,6 +177,7 @@ async function getSchedule(
 	let lateStart = false;
 	let defaultStart: moment.Moment;
 	if (scheduleDate.day() !== 3) {
+		// TODO, default is 8:30, add checking for wednesday, portal, and the list of late starts
 		// Not Wednesday, school starts at 8
 		defaultStart = scheduleDate.clone().hour(8);
 	} else {

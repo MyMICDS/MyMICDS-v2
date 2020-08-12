@@ -12,7 +12,7 @@ import hsSchedule from '../schedules/highschool.json';
 
 import NEW_hsSchdule from '../schedules/2020/regular_HS.json'; // some bork code for now
 
-const highschoolSchedule = hsSchedule as Record<Days, DaySchedule>;
+const highschoolSchedule = NEW_hsSchdule as Record<Days, DaySchedule>;
 const middleschoolSchedule = {
 	8: grade8Schedule as Record<Days, DaySchedule>,
 	7: grade7Schedule as Record<Days, DaySchedule>,
@@ -112,7 +112,7 @@ function getSchedule(
 
 export interface DaySchedule {
 	regular: BlockFormats;
-	lateStart: BlockFormats;
+	lateStart?: BlockFormats;
 }
 
 export interface BlockFormats {
@@ -132,8 +132,8 @@ export interface AlternateBlockFormat extends BlockFormat {
 }
 
 export interface LunchBlockFormat extends BlockFormat {
-	aemsh: BlockFormat;
-	hswl: BlockFormat;
+	aemsh: BlockFormat; // Arts, English, Math, Study Hall
+	hswl: BlockFormat; // History, Science, World Language
 }
 
 export { getSchedule as get };
