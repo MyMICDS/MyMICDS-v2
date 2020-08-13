@@ -11,13 +11,17 @@ import grade8Schedule from '../schedules/grade8.json';
 import hsSchedule from '../schedules/highschool.json';
 
 import NEW_hsSchdule from '../schedules/2020/regular_HS.json'; // some bork code for now
+import NEW_grade5Schedule from '../schedules/2020/5and7.json';
+import NEW_grade6Schedule from '../schedules/2020/6and8.json'; // TODO UPDATE 6AND8
+import NEW_grade7Schedule from '../schedules/2020/5and7.json';
+import NEW_grade8Schedule from '../schedules/2020/6and8.json';
 
 const highschoolSchedule = NEW_hsSchdule as Record<Days, DaySchedule>;
 const middleschoolSchedule = {
-	8: grade8Schedule as Record<Days, DaySchedule>,
-	7: grade7Schedule as Record<Days, DaySchedule>,
-	6: grade6Schedule as Record<Days, DaySchedule>,
-	5: grade5Schedule as Record<Days, DaySchedule>
+	8: NEW_grade8Schedule as Record<Days, DaySchedule>,
+	7: NEW_grade7Schedule as Record<Days, DaySchedule>,
+	6: NEW_grade6Schedule as Record<Days, DaySchedule>,
+	5: NEW_grade5Schedule as Record<Days, DaySchedule>
 };
 
 /**
@@ -56,9 +60,7 @@ function getSchedule(
 	}
 
 	// User's final schedule
-	let userSchedule: BlockFormats = {
-		blocks: []
-	};
+	let userSchedule: BlockFormat[] = [];
 
 	// Use highschool schedule if upperschool
 	if (schoolName === 'upperschool') {
@@ -72,7 +74,7 @@ function getSchedule(
 				lateStart ? 'lateStart' : 'regular'
 			];
 
-		for (const jsonBlock of jsonSchedule) {
+		for (const jsonBlock of jsonSchedule!.blocks) {
 			// Check for any restrictions on the block
 			if (typeof (jsonBlock as AlternateBlockFormat).lowerclass !== 'undefined') {
 				if ((jsonBlock as AlternateBlockFormat).lowerclass !== lowerclass) {
@@ -86,14 +88,14 @@ function getSchedule(
 			}
 
 			// Push to user schedule
-			userSchedule.blocks.push(jsonBlock);
+			userSchedule.push(jsonBlock);
 		}
 	} else if (schoolName === 'middleschool') {
 		// Directly return JSON from middleschool schedule
 		userSchedule =
-			middleschoolSchedule[grade as 8 | 7 | 6 | 5][`${day?.toUpperCase()}day` as Days][
+			middleschoolSchedule[grade as 8 | 7 | 6 | 5][`${day.toUpperCase()}day` as Days][
 				lateStart ? 'lateStart' : 'regular'
-			];
+			]?.blocks ?? [];
 	}
 
 	// Copy the JSON so we don't modify the original reference

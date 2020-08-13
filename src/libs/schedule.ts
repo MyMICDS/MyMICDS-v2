@@ -177,9 +177,9 @@ async function getSchedule(
 	let lateStart = false;
 	let defaultStart: moment.Moment;
 	if (scheduleDate.day() !== 3) {
-		// TODO, default is 8:30, add checking for wednesday, portal, and the list of late starts
 		// Not Wednesday, school starts at 8
-		defaultStart = scheduleDate.clone().hour(8);
+		// defaultStart = scheduleDate.clone().hour(8);
+		defaultStart = scheduleDate.clone().hour(8).minute(30); // Covid classes
 	} else {
 		// Wednesday, school starts at 9
 		defaultStart = scheduleDate.clone().hour(9);
@@ -246,7 +246,7 @@ async function getSchedule(
 		}
 
 		// Insert any possible classes the user as configured in Settings
-		schedule.classes = combineClassesSchedule(scheduleDate, daySchedule.blocks, blocks);
+		schedule.classes = combineClassesSchedule(scheduleDate, daySchedule, blocks);
 		return { hasURL: false, schedule };
 	}
 
@@ -424,7 +424,7 @@ async function getSchedule(
 		for (const portalClass of portalSchedule) {
 			const portalBlock = portalClass.class.block;
 			if (portalBlock !== Block.OTHER) {
-				const dayClass = daySchedule.blocks.find(d => d.block === portalBlock);
+				const dayClass = daySchedule.find(d => d.block === portalBlock);
 
 				if (
 					// If there's no matching day class with the same block, just skip
@@ -458,15 +458,15 @@ async function getSchedule(
 		schedule.classes = portalSchedule;
 	} else {
 		// Keep track of original start and end of blocks detecting overlap
-		for (const block of daySchedule.blocks) {
-			if ((block as blockSchedule.LunchBlockFormat).noOverlapAddBlocks) {
-				(block as any).originalStart = block.start;
-				(block as any).originalEnd = block.end;
-			}
+		for (const block of daySchedule) {
+			// if ((block as blockSchedule.LunchBlockFormat).noOverlapAddBlocks) {
+			// 	(block as any).originalStart = block.start;
+			// 	(block as any).originalEnd = block.end;
+			// }
 		}
 
 		// Overlap Portal classes over default
-		schedule.classes = ordineSchedule(daySchedule.blocks, portalSchedule);
+		schedule.classes = ordineSchedule(daySchedule, portalSchedule);
 
 		// Loop through all the blocks. If a block has a `noOverlapAddBlocks` property
 		// and the current start and end times are the same as the original, add the
