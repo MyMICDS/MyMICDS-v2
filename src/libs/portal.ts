@@ -33,10 +33,7 @@ export const portalRange = {
 	upcoming: 12
 };
 
-async function withCalSummary(
-	date: Date,
-	summaryTest: (summary: string) => string | boolean | null
-) {
+async function withCalSummary<T>(date: Date, summaryTest: (summary: string) => T) {
 	const scheduleDate = new Date(date);
 
 	let body;
@@ -384,10 +381,23 @@ export async function getFromCalCalendar(db: Db, user: string) {
  * @returns The day rotation (character A-H).
  */
 export async function getDayRotation(date: Date) {
-	const day = await withCalSummary(date, (summary: string) => {
+	return withCalSummary<string>(date, (summary: string) => {
 		return /([A-H]) Day/.exec(summary)![1];
 	});
-	return day as string;
+}
+
+/**
+ * Return whether date is a late start
+ * @param Date the day to check
+ * @returns boolean of whether it is a late start day
+ */
+export async function isLateStart(date: Date) {
+	return (
+		(await withCalSummary<boolean>(date, (summary: string) => {
+			// [A - G] because there 7 late start schedules (WHY???)
+			return (/[A-G]9 Day/.exec(summary) ?? []).length > 0;
+		})) ?? false
+	);
 }
 
 /**
@@ -526,19 +536,6 @@ function parsePortalClasses(events: PortalCacheEvent[]) {
 	}
 
 	return filteredClasses;
-}
-
-/**
- * Return whether date is a late start
- * @param Date the day to check
- * @returns boolean of whether it is a late start day
- */
-export async function isLateStart(date: Date) {
-	const lateStart = await withCalSummary(date, (summary: string) => {
-		// [A - G] because there 7 late start schedules (WHY???)
-		return (/[A-G]9 Day/.exec(summary) ?? []).length > 0;
-	});
-	return lateStart ?? false;
 }
 
 /**
