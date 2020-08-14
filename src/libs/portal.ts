@@ -33,6 +33,51 @@ export const portalRange = {
 	upcoming: 12
 };
 
+async function withCalSummary(
+	date: Date,
+	summaryTest: (summary: string) => string | boolean | null
+) {
+	const scheduleDate = new Date(date);
+
+	let body;
+	try {
+		body = await request(dayRotationURL);
+	} catch (e) {
+		throw new Error('There was a problem fetching the day rotation!');
+	}
+
+	const data = ical.parseICS(body);
+
+	// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+	// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+	if (_.isEmpty(data)) {
+		throw new Error('There was a problem fetching the day rotation!');
+	}
+
+	for (const calEvent of Object.values(data)) {
+		if (typeof calEvent.summary !== 'string') {
+			continue;
+		}
+
+		const start = new Date(calEvent.start!);
+		const end = new Date(calEvent.end || '');
+
+		const startTime = start.getTime();
+		const endTime = end.getTime();
+
+		// Check if it's an all-day event
+		if (startTime === scheduleDate.getTime() && Number.isNaN(endTime)) {
+			// See if valid day
+			if (validDayRotationPlain.test(calEvent.summary)) {
+				// Run function
+				return summaryTest(calEvent.summary);
+			}
+		}
+	}
+
+	return null;
+}
+
 /**
  * Ensures that a URL points to a Portal calendar feed of some kind.
  * @param portalURL The iCal feed link to check.
@@ -339,45 +384,10 @@ export async function getFromCalCalendar(db: Db, user: string) {
  * @returns The day rotation (character A-H).
  */
 export async function getDayRotation(date: Date) {
-	const scheduleDate = new Date(date);
-
-	let body;
-	try {
-		body = await request(dayRotationURL);
-	} catch (e) {
-		throw new Error('There was a problem fetching the day rotation!');
-	}
-
-	const data = ical.parseICS(body);
-
-	// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-	// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-	if (_.isEmpty(data)) {
-		throw new Error('There was a problem fetching the day rotation!');
-	}
-
-	for (const calEvent of Object.values(data)) {
-		if (typeof calEvent.summary !== 'string') {
-			continue;
-		}
-
-		const start = new Date(calEvent.start!);
-		const end = new Date(calEvent.end || '');
-
-		const startTime = start.getTime();
-		const endTime = end.getTime();
-
-		// Check if it's an all-day event
-		if (startTime === scheduleDate.getTime() && Number.isNaN(endTime)) {
-			// See if valid day
-			if (validDayRotationPlain.test(calEvent.summary)) {
-				// Get actual day
-				return /([A-H]) Day/.exec(calEvent.summary)![1];
-			}
-		}
-	}
-
-	return null;
+	const day = await withCalSummary(date, (summary: string) => {
+		return /([A-H]) Day/.exec(summary)![1];
+	});
+	return day as string;
 }
 
 /**
@@ -524,46 +534,11 @@ function parsePortalClasses(events: PortalCacheEvent[]) {
  * @returns boolean of whether it is a late start day
  */
 export async function isLateStart(date: Date) {
-	const scheduleDate = new Date(date);
-
-	let body;
-	try {
-		body = await request(dayRotationURL);
-	} catch (e) {
-		throw new Error('There was a problem fetching the day rotation!');
-	}
-
-	const data = ical.parseICS(body);
-
-	// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-	// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-	if (_.isEmpty(data)) {
-		throw new Error('There was a problem fetching the day rotation!');
-	}
-
-	for (const calEvent of Object.values(data)) {
-		if (typeof calEvent.summary !== 'string') {
-			continue;
-		}
-
-		const start = new Date(calEvent.start!);
-		const end = new Date(calEvent.end || '');
-
-		const startTime = start.getTime();
-		const endTime = end.getTime();
-
-		// Check if it's an all-day event
-		if (startTime === scheduleDate.getTime() && Number.isNaN(endTime)) {
-			// See if valid day
-			if (validDayRotationPlain.test(calEvent.summary)) {
-				// Check with Regex
-				// [A - G] because there 7 late start schedules (WHY???)
-				return (/[A-G]9 Day/.exec(calEvent.summary) ?? []).length > 0;
-			}
-		}
-	}
-
-	return false;
+	const lateStart = await withCalSummary(date, (summary: string) => {
+		// [A - G] because there 7 late start schedules (WHY???)
+		return (/[A-G]9 Day/.exec(summary) ?? []).length > 0;
+	});
+	return lateStart ?? false;
 }
 
 /**
