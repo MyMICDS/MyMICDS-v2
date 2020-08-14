@@ -251,7 +251,7 @@ async function getSchedule(
 	}
 
 	// The user is logged in and has configured their Portal URL
-	// We can therefore overlay their Portal classes ontop of their default block schedule for 100% coverage.
+	// We can therefore overlay their Portal classes on top of their default block schedule for 100% coverage.
 	const [aliasesResult, portalClassesResult, portalCalendarResult] = await Promise.all([
 		// Get Portal aliases and their class objects
 		aliases.mapList(db, user),
@@ -356,7 +356,7 @@ async function getSchedule(
 		const start = moment(calEvent.start);
 		const end = moment(calEvent.end);
 
-		// Make sure the event isn't all whacky
+		// make sure event doesn't violate the 4th dimension and end before it starts
 		if (end.isBefore(start)) {
 			continue;
 		}
@@ -414,7 +414,6 @@ async function getSchedule(
 	}
 
 	portalSchedule = ordineSchedule([], portalSchedule) as ScheduleClasses;
-
 	let misaligned = false;
 
 	// Loop through portal schedule to check for inconsistencies with the block schedule
@@ -613,6 +612,15 @@ function combineClassesSchedule(
 }
 
 /**
+ * --------------------------------
+ * or·dine
+ * ôrdīn
+ * verb
+ *
+ * 1. To order and combine
+ *
+ * - Michael Gira.
+ * --------------------------------
  * Combines the two classes and orders them properly.
  * @param baseSchedule The existing classes.
  * @param addClasses The new blocks to add. Will override base classes if there is a conflict.

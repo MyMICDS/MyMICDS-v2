@@ -381,7 +381,7 @@ export async function getFromCalCalendar(db: Db, user: string) {
  * @returns The day rotation (character A-H).
  */
 export async function getDayRotation(date: Date) {
-	return withCalSummary<string>(date, (summary: string) => {
+	return withCalSummary(date, (summary: string) => {
 		return /([A-H]) Day/.exec(summary)![1];
 	});
 }
@@ -393,7 +393,7 @@ export async function getDayRotation(date: Date) {
  */
 export async function isLateStart(date: Date) {
 	return (
-		(await withCalSummary<boolean>(date, (summary: string) => {
+		(await withCalSummary(date, (summary: string) => {
 			// [A - G] because there 7 late start schedules (WHY???)
 			return (/[A-G]9 Day/.exec(summary) ?? []).length > 0;
 		})) ?? false
