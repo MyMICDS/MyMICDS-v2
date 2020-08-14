@@ -419,7 +419,9 @@ async function getSchedule(
 
 	// Loop through portal schedule to check for inconsistencies with the block schedule
 	// If there's multiple periods that don't line up, just call it a special schedule
+	// If the portal says it's a special schedule in summary (it will have 'SS' in summary)
 	// (If there's no block schedule, just ignore it I guess?)
+
 	if (daySchedule) {
 		for (const portalClass of portalSchedule) {
 			const portalBlock = portalClass.class.block;
@@ -441,6 +443,7 @@ async function getSchedule(
 			}
 
 			if (misaligned) {
+				// wait why, is this done like this? TODO fix
 				schedule.special = true;
 				break;
 			}
@@ -478,7 +481,6 @@ async function getSchedule(
 		// determines if they have first or second lunch; therefore, we must add it
 		// ourselves.
 		for (const block of schedule.classes) {
-			console.log(block);
 			if ((block as any).noOverlapAddBlocks) {
 				// If no overlap, add blocks
 				if (
@@ -544,7 +546,6 @@ async function getSchedule(
 			};
 		}
 	}
-
 	return { hasURL: true, schedule };
 }
 

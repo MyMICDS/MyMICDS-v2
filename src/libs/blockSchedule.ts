@@ -48,7 +48,7 @@ function getSchedule(
 		return null;
 	}
 	// TODO add regex ? and fix for letter days ([A-H])
-	if (typeof day !== 'string' || /([A-H])/.exec(day)?.length !== 1) {
+	if (typeof day !== 'string' || (/([A-H])/.exec(day) ?? []).length < 1) {
 		return null;
 	}
 

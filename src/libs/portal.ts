@@ -372,9 +372,7 @@ export async function getDayRotation(date: Date) {
 			// See if valid day
 			if (validDayRotationPlain.test(calEvent.summary)) {
 				// Get actual day
-				console.log(calEvent.summary);
-				console.log(isLateStart(date));
-				return /Day ([A-H])/.exec(calEvent.summary)![1];
+				return /([A-H]) Day/.exec(calEvent.summary)![1];
 			}
 		}
 	}
@@ -560,7 +558,7 @@ export async function isLateStart(date: Date) {
 			if (validDayRotationPlain.test(calEvent.summary)) {
 				// Check with Regex
 				// [A - G] because there 7 late start schedules (WHY???)
-				return /\(US [A-G]9 Day\)/.exec(calEvent.summary)!.length < 1 ? true : false;
+				return (/[A-G]9 Day/.exec(calEvent.summary) ?? []).length > 0;
 			}
 		}
 	}

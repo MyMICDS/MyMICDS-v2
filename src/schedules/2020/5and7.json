@@ -35,7 +35,7 @@
             "blocks": [
                 {
                     "block": "a",
-                    "start": "9",
+                    "start": "9:00",
                     "end": "9:40"
                 },
                 {
@@ -112,7 +112,7 @@
             "blocks": [
                 {
                     "block": "b",
-                    "start": "9",
+                    "start": "9:00",
                     "end": "9:40"
                 },
                 {
@@ -189,7 +189,7 @@
             "blocks": [
                 {
                     "block": "c",
-                    "start": "9",
+                    "start": "9:00",
                     "end": "9:40"
                 },
                 {
@@ -266,7 +266,7 @@
             "blocks": [
                 {
                     "block": "d",
-                    "start": "9",
+                    "start": "9:00",
                     "end": "9:40"
                 },
                 {
@@ -343,7 +343,7 @@
             "blocks": [
                 {
                     "block": "e",
-                    "start": "9",
+                    "start": "9:00",
                     "end": "9:40"
                 },
                 {
@@ -420,7 +420,7 @@
             "blocks": [
                 {
                     "block": "f",
-                    "start": "9",
+                    "start": "9:00",
                     "end": "9:40"
                 },
                 {
@@ -497,7 +497,7 @@
             "blocks": [
                 {
                     "block": "g",
-                    "start": "9",
+                    "start": "9:00",
                     "end": "9:40"
                 },
                 {
