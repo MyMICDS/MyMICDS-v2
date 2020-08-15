@@ -4,24 +4,18 @@ import moment from 'moment';
 
 type Days = 'Aday' | 'Bday' | 'Cday' | 'Dday' | 'Eday' | 'Fday' | 'Gday' | 'Hday';
 
-import grade5Schedule from '../schedules/grade5.json';
-import grade6Schedule from '../schedules/grade6.json';
-import grade7Schedule from '../schedules/grade7.json';
-import grade8Schedule from '../schedules/grade8.json';
-import hsSchedule from '../schedules/highschool.json';
+import hsSchdule from '../schedules/2020/regular_HS.json';
+import grade5Schedule from '../schedules/2020/5and7.json';
+import grade6Schedule from '../schedules/2020/6and8.json'; // TODO UPDATE 6AND8
+import grade7Schedule from '../schedules/2020/5and7.json';
+import grade8Schedule from '../schedules/2020/6and8.json';
 
-import NEW_hsSchdule from '../schedules/2020/regular_HS.json'; // some bork code for now
-import NEW_grade5Schedule from '../schedules/2020/5and7.json';
-import NEW_grade6Schedule from '../schedules/2020/6and8.json'; // TODO UPDATE 6AND8
-import NEW_grade7Schedule from '../schedules/2020/5and7.json';
-import NEW_grade8Schedule from '../schedules/2020/6and8.json';
-
-const highschoolSchedule = NEW_hsSchdule as Record<Days, DaySchedule>;
+const highschoolSchedule = hsSchdule as Record<Days, DaySchedule>;
 const middleschoolSchedule = {
-	8: NEW_grade8Schedule as Record<Days, DaySchedule>,
-	7: NEW_grade7Schedule as Record<Days, DaySchedule>,
-	6: NEW_grade6Schedule as Record<Days, DaySchedule>,
-	5: NEW_grade5Schedule as Record<Days, DaySchedule>
+	8: grade8Schedule as Record<Days, DaySchedule>,
+	7: grade7Schedule as Record<Days, DaySchedule>,
+	6: grade6Schedule as Record<Days, DaySchedule>,
+	5: grade5Schedule as Record<Days, DaySchedule>
 };
 
 /**
@@ -47,7 +41,6 @@ function getSchedule(
 	if (typeof grade !== 'number' || Number.isNaN(grade) || -1 > grade || grade > 12) {
 		return null;
 	}
-	// TODO add regex ? and fix for letter days ([A-H])
 	if (typeof day !== 'string' || (/([A-H])/.exec(day) ?? []).length < 1) {
 		return null;
 	}

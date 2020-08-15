@@ -1,6 +1,0 @@
-this *should* be deleted for merging. But as a note:
-
-people with free will have an assumed first lunch
-
-also, for sanity, I'm completing each day's regular and late start schedule in seperate json, then merging 
-when done

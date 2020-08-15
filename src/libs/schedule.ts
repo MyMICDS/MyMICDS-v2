@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// TODO: This desperately needs a refactor
+// TODO: This desperately needs a refactor. yes it does.
 // All the mutation and temporary fields makes TypeScript complain and my head hurt
 import { Block, ClassType, GetScheduleResponse, ScheduleClass } from '@mymicds/sdk';
 import { Db } from 'mongodb';
