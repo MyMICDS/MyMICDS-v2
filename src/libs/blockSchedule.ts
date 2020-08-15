@@ -6,7 +6,7 @@ type Days = 'Aday' | 'Bday' | 'Cday' | 'Dday' | 'Eday' | 'Fday' | 'Gday' | 'Hday
 
 import hsSchdule from '../schedules/2020/regular_HS.json';
 import grade5Schedule from '../schedules/2020/5and7.json';
-import grade6Schedule from '../schedules/2020/6and8.json'; // TODO UPDATE 6AND8
+import grade6Schedule from '../schedules/2020/6and8.json';
 import grade7Schedule from '../schedules/2020/5and7.json';
 import grade8Schedule from '../schedules/2020/6and8.json';
 

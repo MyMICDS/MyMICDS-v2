@@ -404,7 +404,6 @@ async function getSchedule(
 	}
 
 	portalSchedule = ordineSchedule([], portalSchedule) as ScheduleClasses;
-	let misaligned = false;
 
 	// Loop through portal schedule to check for inconsistencies with the block schedule
 	// If there's multiple periods that don't line up, just call it a special schedule
@@ -426,14 +425,9 @@ async function getSchedule(
 						(dayClass.end as moment.Moment).isSame(portalClass.end)
 					)
 				) {
-					misaligned = true;
+					schedule.special = true;
+					break;
 				}
-			}
-
-			if (misaligned) {
-				// wait why, is this done like this? TODO fix
-				schedule.special = true;
-				break;
 			}
 		}
 	}
