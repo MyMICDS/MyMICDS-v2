@@ -105,7 +105,6 @@ function getSchedule(
 			schedule.end = date.clone().hour(endTime[0]).minute(endTime[1]);
 		}
 	}
-
 	return userSchedule;
 }
 

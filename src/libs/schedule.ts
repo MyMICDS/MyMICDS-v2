@@ -14,6 +14,8 @@ import * as users from './users';
 import moment from 'moment';
 import prisma from 'prisma';
 
+import lateStarts from '../schedules/2020/late_starts.json';
+
 // Mappings for default blocks
 
 export const defaultSchoolBlock: ScheduleClass = {
@@ -30,15 +32,7 @@ export const defaultSchoolBlock: ScheduleClass = {
 };
 
 const genericBlocks: Record<
-	| 'activities'
-	| 'advisory'
-	| 'collaborative'
-	| 'community'
-	// | 'enrichment'
-	| 'flex'
-	| 'lunch'
-	| 'recess'
-	| 'pe',
+	'activities' | 'advisory' | 'collaborative' | 'community' | 'flex' | 'lunch' | 'recess' | 'pe',
 	ScheduleClass
 > = {
 	activities: {
@@ -89,18 +83,6 @@ const genericBlocks: Record<
 		color: '#AA0031',
 		textDark: prisma.shouldTextBeDark('#AA0031')
 	},
-	// enrichment: { *should* be noop
-	// 	name: 'Enrichment',
-	// 	teacher: {
-	// 		prefix: '',
-	// 		firstName: '',
-	// 		lastName: ''
-	// 	},
-	// 	type: ClassType.OTHER,
-	// 	block: Block.OTHER,
-	// 	color: '#FF4500',
-	// 	textDark: prisma.shouldTextBeDark('#FF4500')
-	// },
 	flex: {
 		name: 'Flex',
 		teacher: {
@@ -151,6 +133,18 @@ const genericBlocks: Record<
 	}
 };
 
+function isOnLateStartList(date: Date) {
+	const lateStartList = lateStarts as DateList;
+	lateStartList.date.forEach(value => {
+		const lateStartMoment = moment(value, 'MM/DD/YYYY');
+		if (moment(date).isSame(lateStartMoment)) {
+			return true;
+		}
+	});
+
+	return false;
+}
+
 /**
  * Retrieves a user's schedule for the given date.
  * @param db Database connection.
@@ -160,6 +154,7 @@ const genericBlocks: Record<
  * @returns An object containing the day rotation, whether the schedule is special,
  * 			and the different classes for the day.
  */
+
 async function getSchedule(
 	db: Db,
 	user: string,
@@ -176,10 +171,11 @@ async function getSchedule(
 	// Determine when school should start and end for a default schedule
 	let lateStart = false;
 	let defaultStart: moment.Moment;
-	if (scheduleDate.day() !== 3) {
+
+	if (scheduleDate.day() !== 3 || portal.isLateStart(date) || isOnLateStartList(date)) {
 		// Not Wednesday, school starts at 8
 		// defaultStart = scheduleDate.clone().hour(8);
-		defaultStart = scheduleDate.clone().hour(8).minute(30); // Covid classes
+		defaultStart = scheduleDate.clone().hour(8).minute(30); // covid class start
 	} else {
 		// Wednesday, school starts at 9
 		defaultStart = scheduleDate.clone().hour(9);
@@ -363,12 +359,6 @@ async function getSchedule(
 
 		// Check if it's an all-day event
 		if (start.isSameOrBefore(scheduleDate) && !end.isValid()) {
-			// // Check if special schedule
-			// const lowercaseSummary = calEvent.summary.toLowerCase();
-			// if(lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
-			// 	schedule.special = true;
-			// 	continue;
-			// }
 			// Push event to all-day events
 			schedule.allDay.push(portal.cleanUp(calEvent.summary!));
 		} else if (start.isAfter(scheduleDate) && end.isBefore(scheduleNextDay)) {
@@ -426,7 +416,6 @@ async function getSchedule(
 			const portalBlock = portalClass.class.block;
 			if (portalBlock !== Block.OTHER) {
 				const dayClass = daySchedule.find(d => d.block === portalBlock);
-
 				if (
 					// If there's no matching day class with the same block, just skip
 					// Sometimes this happens because of lunch blocks
@@ -461,10 +450,10 @@ async function getSchedule(
 	} else {
 		// Keep track of original start and end of blocks detecting overlap
 		for (const block of daySchedule) {
-			// if ((block as blockSchedule.LunchBlockFormat).noOverlapAddBlocks) {
-			// 	(block as any).originalStart = block.start;
-			// 	(block as any).originalEnd = block.end;
-			// }
+			if ((block as blockSchedule.LunchBlockFormat).aemsh) {
+				(block as any).originalStart = block.start;
+				(block as any).originalEnd = block.end;
+			}
 		}
 
 		// Overlap Portal classes over default
@@ -480,7 +469,7 @@ async function getSchedule(
 		// determines if they have first or second lunch; therefore, we must add it
 		// ourselves.
 		for (const block of schedule.classes) {
-			if ((block as any).noOverlapAddBlocks) {
+			if ((block as blockSchedule.LunchBlockFormat).aemsh) {
 				// If no overlap, add blocks
 				if (
 					(block as any).originalStart === block.start &&
@@ -593,11 +582,6 @@ function combineClassesSchedule(
 				color,
 				textDark: prisma.shouldTextBeDark(color)
 			};
-		}
-
-		// Check if we should also be adding lunch
-		if ((blockObject as any).includeLunch) {
-			scheduleClass.name += ' + Lunch!';
 		}
 
 		combinedSchedule.push({
@@ -759,6 +743,10 @@ export interface FullSchedule {
 	special: boolean;
 	classes: ClassesOrBlocks;
 	allDay: string[];
+}
+
+interface DateList {
+	date: string[];
 }
 
 export type ClassesOrBlocks = ScheduleClasses | blockSchedule.BlockFormat[];
