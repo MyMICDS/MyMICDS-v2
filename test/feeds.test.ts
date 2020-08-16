@@ -66,7 +66,7 @@ describe('Feeds', () => {
 				testUser.user
 			);
 			expect(classesEvents).to.containSubset(
-				_.range(1, 6).map(i => ({ summary: `Test Class ${i}` }))
+				_.range(1, 5).map(i => ({ summary: `Test Class ${i}` }))
 			);
 
 			const { events: calendarEvents } = await portal.getFromCacheCalendar(
