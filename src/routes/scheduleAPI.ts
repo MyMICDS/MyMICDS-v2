@@ -20,7 +20,7 @@ export default ((app, db) => {
 		}
 	});
 
-	// app.get('/block-schedule', async (req, res) => {
+	// app.get('/block-schedule', async (req, res) => { DO NOT UNCOMMENT
 	// 	try {
 	// 		const data = await fs.readFile(__dirname + '/../schedules/' + req.query.grade, 'utf8');
 	// 		api.success(res, data);
