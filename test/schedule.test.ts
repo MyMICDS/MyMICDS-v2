@@ -126,8 +126,8 @@ describe('Schedule', () => {
 					special: false,
 					classes: [
 						{ class: { name: 'Test Class 4' } },
-						{ class: { name: 'Test Class 2' } },
-						{ class: { name: 'Test Class 3' } }
+						{ class: { name: 'Test Class 1' } },
+						{ class: { name: 'Test Class 2' } }
 					],
 					allDay: []
 				}
