@@ -389,63 +389,95 @@ async function getSchedule(
 	//create lunch block (edited as needed)
 	const newLunchBlock: ScheduleBlock = {
 		class: genericBlocks['lunch'],
-		start: moment(),
-		end: moment()
+		start: requestedDate.clone(),
+		end: requestedDate.clone()
 	};
 
-	dayBlockSchedule.blocks.forEach(val => {
-		if (val.block === dayBlockSchedule.lunchBlock) {
-			const lunchBlock = val as blockSchedule.LunchBlockFormat;
-			const portalLunchBlock = portalSchedule.find(value => {
-				return value.class.block === val.block;
-			});
-
-			// if the lunch block overlaps with class, then use the other one, simple.
-			// if portalLunchBlock is null, user has free, so insert first lunch.
-
-			// a bit messy, but I have to convert everything to moment objects
-			lunchBlock.hswl.start = convertTimeStringToMoment(requestedDate, lunchBlock.hswl.start);
-			lunchBlock.hswl.end = convertTimeStringToMoment(requestedDate, lunchBlock.hswl.end);
-			lunchBlock.aemsh.start = convertTimeStringToMoment(
-				requestedDate,
-				lunchBlock.aemsh.start
-			);
-			lunchBlock.aemsh.end = convertTimeStringToMoment(requestedDate, lunchBlock.aemsh.end);
-
-			if (portalLunchBlock === undefined) {
-				const ishswlEarlier = (lunchBlock.hswl.start as Moment).isBefore(
-					lunchBlock.hswl.end
-				);
-
-				newLunchBlock.start = ishswlEarlier
-					? (lunchBlock.hswl.start as Moment)
-					: (lunchBlock.aemsh.start as Moment);
-				newLunchBlock.end = ishswlEarlier
-					? (lunchBlock.hswl.end as Moment)
-					: (lunchBlock.aemsh.end as Moment);
-				// break; <- turn this to a for of?
-			}
-
-			// details on time overlapping here: https://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
-			// slightly modified so that it can end/start at same times, but not overlap
-			const hswlOverlaps =
-				portalLunchBlock?.start.isSameOrAfter(lunchBlock.hswl.end) &&
-				portalLunchBlock?.end.isSameOrBefore(lunchBlock.hswl.start);
-			const aemshOverlaps =
-				portalLunchBlock?.start.isSameOrAfter(lunchBlock.aemsh.end) &&
-				portalLunchBlock?.end.isSameOrBefore(lunchBlock.aemsh.start);
-
-			console.log(lunchBlock);
-			console.log(portalLunchBlock);
+	for (const block of dayBlockSchedule.blocks) {
+		if (block.block !== dayBlockSchedule.lunchBlock) {
+			continue;
 		}
-	});
-	// userSchedule.classes = ordineSchedule(userSchedule.classes, portalSchedule);
+
+		const lunchBlock = block as blockSchedule.LunchBlockFormat;
+		const portalLunchBlock = portalSchedule.find(portalBlock => {
+			return portalBlock.class.block === block.block;
+		});
+
+		const portalLunchBlockIndex = portalSchedule.findIndex(portalBlock => {
+			return portalBlock.class.block === block.block;
+		});
+
+		// a bit messy, but I have to convert everything to moment objects
+		lunchBlock.hswl.start = convertTimeStringToMoment(requestedDate, lunchBlock.hswl.start);
+		lunchBlock.hswl.end = convertTimeStringToMoment(requestedDate, lunchBlock.hswl.end);
+		lunchBlock.aemsh.start = convertTimeStringToMoment(requestedDate, lunchBlock.aemsh.start);
+		lunchBlock.aemsh.end = convertTimeStringToMoment(requestedDate, lunchBlock.aemsh.end);
+
+		// if portalLunchBlock is null, user has free, so insert first lunch.
+		if (portalLunchBlock === undefined) {
+			const ishswlEarlier = lunchBlock.hswl.start.isBefore(lunchBlock.hswl.end);
+
+			newLunchBlock.start = ishswlEarlier ? lunchBlock.hswl.start : lunchBlock.aemsh.start;
+			newLunchBlock.end = ishswlEarlier ? lunchBlock.hswl.end : lunchBlock.aemsh.end;
+			break;
+		}
+
+		// details on time overlapping here: https://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
+		// slightly modified so that it can end/start at same times, but not overlap
+
+		const hswlOverlaps =
+			portalLunchBlock?.start.isSameOrAfter(lunchBlock.hswl.end) &&
+			portalLunchBlock?.end.isSameOrBefore(lunchBlock.hswl.start);
+		const aemshOverlaps =
+			portalLunchBlock?.start.isSameOrAfter(lunchBlock.aemsh.end) &&
+			portalLunchBlock?.end.isSameOrBefore(lunchBlock.aemsh.start);
+
+		if (hswlOverlaps && aemshOverlaps) {
+			portalSchedule[portalLunchBlockIndex].class.name =
+				portalSchedule[portalLunchBlockIndex].class.name + ' + Lunch!';
+			break;
+		} else if (hswlOverlaps) {
+			newLunchBlock.start = lunchBlock.aemsh.start;
+			newLunchBlock.end = lunchBlock.aemsh.end;
+		} else if (aemshOverlaps) {
+			newLunchBlock.start = lunchBlock.hswl.start;
+			newLunchBlock.end = lunchBlock.hswl.end;
+		}
+
+		// something is broken (or just a late start), declare special schedule and break
+		if (lateStart) {
+			// late start is special since we see which lunch period the portal overlaps with, then pick the other one as the user's lunch
+			portalSchedule[portalLunchBlockIndex].class.name =
+				portalSchedule[portalLunchBlockIndex].class.name + ' + Lunch!';
+
+			const lunchBlockIndex = userSchedule.classes.findIndex(val => {
+				return (
+					val.class.name.toLowerCase().indexOf(dayBlockSchedule.lunchBlock ?? 'bazinga') >
+					-1
+				);
+			});
+			console.log(userSchedule.classes);
+			userSchedule.classes.splice(lunchBlockIndex, 1);
+			console.log(userSchedule.classes);
+		} else {
+			userSchedule.special = true;
+			userSchedule.classes = portalSchedule;
+			return { hasURL: true, schedule: userSchedule };
+		}
+	}
+
+	userSchedule.classes.push(newLunchBlock);
+
+	userSchedule.classes = ordineSchedule(userSchedule.classes, portalSchedule);
 
 	return { hasURL: true, schedule: userSchedule };
 }
 
-function convertTimeStringToMoment(date: moment.Moment, time: moment.Moment | string) {
-	if (time instanceof String) {
+function convertTimeStringToMoment(
+	date: moment.Moment,
+	time: moment.Moment | string
+): moment.Moment {
+	if (typeof time === 'string') {
 		return date
 			.clone()
 			.hour(parseInt(time.split(':')[0], 10))
