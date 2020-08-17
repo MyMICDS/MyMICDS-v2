@@ -125,9 +125,10 @@ describe('Schedule', () => {
 					day: 'E',
 					special: false,
 					classes: [
-						{ class: { name: 'Test Class 4' } },
-						{ class: { name: 'Test Class 1' } },
-						{ class: { name: 'Test Class 2' } }
+						{ class: { name: 'class e' } },
+						{ class: { name: 'class g' } },
+						{ class: { name: 'class a' } },
+						{ class: { name: 'class c' } }
 					],
 					allDay: []
 				}
@@ -157,10 +158,10 @@ describe('Schedule', () => {
 				hasURL: true,
 				schedule: {
 					day: 'E',
-					special: true, // COVID TODO things are broken rn, just go with it
+					special: false,
 					classes: [
-						{ class: { name: 'Test Class 4' } },
-						{ class: { name: 'Test Class 2' } },
+						{ class: { name: 'class e' } },
+						{ class: { name: 'class g' } },
 						{ class: { name: 'alias class' } }
 					],
 					allDay: []

@@ -16,6 +16,8 @@ import prisma from 'prisma';
 
 import lateStarts from '../schedules/2020/late_starts.json';
 
+import * as sdc from './sdchedule';
+
 // Mappings for default blocks
 
 export const defaultSchoolBlock: ScheduleClass = {
@@ -161,6 +163,9 @@ async function getSchedule(
 	date: Date,
 	isPortalBroken = false
 ): Promise<{ hasURL: boolean; schedule: FullSchedule }> {
+	const thing = sdc.get(db, user, date, isPortalBroken);
+	console.log(await thing);
+	// return thing;
 	const scheduleDate = moment(date).startOf('day');
 	const scheduleNextDay = scheduleDate.clone().add(1, 'day');
 
@@ -172,14 +177,14 @@ async function getSchedule(
 	let lateStart = false;
 	let defaultStart: moment.Moment;
 
-	if (scheduleDate.day() !== 3 || portal.isLateStart(date) || isOnLateStartList(date)) {
-		// Not Wednesday, school starts at 8
-		// defaultStart = scheduleDate.clone().hour(8);
-		defaultStart = scheduleDate.clone().hour(8).minute(30); // covid class start
-	} else {
+	if (scheduleDate.day() === 3 || (await portal.isLateStart(date)) || isOnLateStartList(date)) {
 		// Wednesday, school starts at 9
 		defaultStart = scheduleDate.clone().hour(9);
 		lateStart = true;
+	} else {
+		// Not Wednesday, school starts at 8
+		// defaultStart = scheduleDate.clone().hour(8);
+		defaultStart = scheduleDate.clone().hour(8).minute(30); // COVID class start
 	}
 	const defaultEnd = scheduleDate.clone().hour(15).minute(15);
 
@@ -224,9 +229,8 @@ async function getSchedule(
 		// Assign each class to it's block
 		const blocks = JSON.parse(JSON.stringify(genericBlocks));
 		// const blockTypeMap = {};
-		for (const block of theClasses) {
-			blocks[block.block] = block; // Very descriptive
-			// blockTypeMap[block.block] = block.type;
+		for (const blockClass of theClasses) {
+			blocks[blockClass.block] = blockClass; // Very descriptive
 		}
 
 		const schedule: FullSchedule = {
@@ -528,6 +532,7 @@ async function getSchedule(
 			};
 		}
 	}
+	//schedule.classes = ordineSchedule([], schedule.classes);
 	return { hasURL: true, schedule };
 }
 
