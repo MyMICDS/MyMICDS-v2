@@ -140,6 +140,33 @@ function isOnLateStartList(date: Date) {
 	return false;
 }
 
+function removeCertainLunchBlocks(
+	daySchedule: blockSchedule.BlockFormats,
+	keepAemsh: boolean,
+	keepHswl: boolean,
+	keepDefault: boolean
+) {
+	for (let index = 0; index < daySchedule.blocks.length; index++) {
+		const val = daySchedule.blocks[index] as blockSchedule.LunchBlockFormat;
+		const isLunchBlock = val.aemsh || val.hswl;
+		if (!isLunchBlock) {
+			continue;
+		}
+
+		if (
+			(keepAemsh && (val.aemsh ?? false)) ||
+			(keepHswl && (val.hswl ?? false)) ||
+			(keepDefault && (val.default ?? false))
+		) {
+			continue;
+		}
+
+		daySchedule.blocks.splice(index, 1);
+		index -= 1;
+	}
+	return daySchedule;
+}
+
 /**
  * Retrieves a user's schedule for the given date.
  * @param db Database connection.
@@ -204,7 +231,7 @@ async function getSchedule(
 	}
 
 	// we now know that user is logged in
-	const dayBlockSchedule = blockSchedule.get(
+	let dayBlockSchedule = blockSchedule.get(
 		requestedDate,
 		users.gradYearToGrade(userDoc!.gradYear),
 		scheduleDay,
@@ -233,31 +260,33 @@ async function getSchedule(
 	// TODO add defaults for short days (wait for COVID classes to end)
 	if (isPortalBroken || typeof userDoc!.portalURLClasses !== 'string') {
 		if (lateStart) {
-			for (let index = 0; index < dayBlockSchedule.blocks.length; index++) {
-				const val = dayBlockSchedule.blocks[index];
-				if ((val as blockSchedule.LunchBlockFormat).hswl ?? false) {
-					dayBlockSchedule.blocks.splice(index, 1);
-					index -= 1;
-				}
-			}
+			dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, false, true, true);
+			// for (let index = 0; index < dayBlockSchedule.blocks.length; index++) {
+			// 	const val = dayBlockSchedule.blocks[index];
+			// 	if ((val as blockSchedule.LunchBlockFormat).hswl ?? false) {
+			// 		dayBlockSchedule.blocks.splice(index, 1);
+			// 		index -= 1;
+			// 	}
+			// }
 		} else {
-			for (let index = 0; index < dayBlockSchedule.blocks.length; index++) {
-				const val = dayBlockSchedule.blocks[index];
-				const isLunchBlock =
-					(val as blockSchedule.LunchBlockFormat).aemsh ||
-					(val as blockSchedule.LunchBlockFormat).hswl;
-				if (isLunchBlock && !((val as blockSchedule.LunchBlockFormat).default ?? false)) {
-					dayBlockSchedule.blocks.splice(index, 1);
-					index -= 1;
-				}
-			}
+			dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, false, false, true);
+			// for (let index = 0; index < dayBlockSchedule.blocks.length; index++) {
+			// 	const val = dayBlockSchedule.blocks[index];
+			// 	const isLunchBlock =
+			// 		(val as blockSchedule.LunchBlockFormat).aemsh ||
+			// 		(val as blockSchedule.LunchBlockFormat).hswl;
+			// 	if (isLunchBlock && !((val as blockSchedule.LunchBlockFormat).default ?? false)) {
+			// 		dayBlockSchedule.blocks.splice(index, 1);
+			// 		index -= 1;
+			// 	}
+			// }
 		}
 		userSchedule.classes = combineClassesSchedule(
 			requestedDate,
 			dayBlockSchedule.blocks,
 			blocks
 		);
-		return { hasURL: true, schedule: userSchedule };
+		return { hasURL: false, schedule: userSchedule };
 	}
 
 	// get aliases and portal stuff
@@ -410,15 +439,7 @@ async function getSchedule(
 		}
 	}
 
-	// if there is no portal calendar, we'll use the "default" lunch block as defined in json, for late starts, that's just hswl
-
-	//create lunch block (edited as needed)
-	const newLunchBlock: ScheduleBlock = {
-		class: genericBlocks['lunch'],
-		start: requestedDate.clone(),
-		end: requestedDate.clone()
-	};
-
+	// remove incorrect lunch blocks (loop through them, do some logic, and remove incorrect lunch blocks)
 	for (const block of dayBlockSchedule.blocks) {
 		if (block.block !== dayBlockSchedule.lunchBlock) {
 			continue;
@@ -429,17 +450,41 @@ async function getSchedule(
 			return portalBlock.class.block === block.block;
 		});
 
-		// check if late start
-		if (lateStart) {
-			console.log();
+		// I need to convert the strings to Moment Objects
+		lunchBlock.start = convertTimeStringToMoment(requestedDate, lunchBlock.start);
+		lunchBlock.end = convertTimeStringToMoment(requestedDate, lunchBlock.end);
+
+		// see which class the portal matches with
+		// TODO this could use some refactoring, but it works for now
+		if (lunchBlock.aemsh ?? false) {
+			const matches =
+				lunchBlock.start.isSame(portalLunchBlock?.start) &&
+				lunchBlock.end.isSame(portalLunchBlock?.end);
+			if (matches) {
+				dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, true, false, false);
+			}
+		} else if (lunchBlock.hswl ?? false) {
+			const matches =
+				lunchBlock.start.isSame(portalLunchBlock?.start) &&
+				lunchBlock.end.isSame(portalLunchBlock?.end);
+			if (matches) {
+				dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, false, true, false);
+			}
+		} else {
+			continue;
 		}
+		userSchedule.classes = combineClassesSchedule(
+			requestedDate,
+			dayBlockSchedule.blocks,
+			blocks
+		);
 	}
 
-	// userSchedule.classes.push(newLunchBlock);
+	// organize the block schedule just in case
+	userSchedule.classes = ordineSchedule([], userSchedule.classes);
 
-	// userSchedule.classes = ordineSchedule([], userSchedule.classes)
-
-	// userSchedule.classes = ordineSchedule(userSchedule.classes, portalSchedule);
+	// overlay portal now that we're ready
+	userSchedule.classes = ordineSchedule(userSchedule.classes, portalSchedule);
 
 	return { hasURL: true, schedule: userSchedule };
 }

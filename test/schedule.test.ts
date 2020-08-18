@@ -141,7 +141,7 @@ describe('Schedule', () => {
 			});
 			const jwt = await generateJWT(this.db);
 
-			const { _id } = await saveTestClass(this.db, { name: 'alias class' });
+			const { _id } = await saveTestClass(this.db, { name: 'alias class', block: Block.C });
 			await aliases.add(
 				this.db,
 				testUser.user,
@@ -162,6 +162,7 @@ describe('Schedule', () => {
 					classes: [
 						{ class: { name: 'class e' } },
 						{ class: { name: 'class g' } },
+						{ class: { name: 'class a' } },
 						{ class: { name: 'alias class' } }
 					],
 					allDay: []
