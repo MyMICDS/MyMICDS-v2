@@ -4,18 +4,16 @@ import moment from 'moment';
 
 type Days = 'Aday' | 'Bday' | 'Cday' | 'Dday' | 'Eday' | 'Fday' | 'Gday' | 'Hday';
 
+import grade5and7Schedule from '../schedules/2020/5and7.json';
+import grade6and8Schedule from '../schedules/2020/6and8.json';
 import hsSchedule from '../schedules/2020/regular_HS.json';
-import grade5Schedule from '../schedules/2020/5and7.json';
-import grade6Schedule from '../schedules/2020/6and8.json';
-import grade7Schedule from '../schedules/2020/5and7.json';
-import grade8Schedule from '../schedules/2020/6and8.json';
 
 const highschoolSchedule = hsSchedule as Record<Days, DaySchedule>;
 const middleschoolSchedule = {
-	8: grade8Schedule as Record<Days, DaySchedule>,
-	7: grade7Schedule as Record<Days, DaySchedule>,
-	6: grade6Schedule as Record<Days, DaySchedule>,
-	5: grade5Schedule as Record<Days, DaySchedule>
+	8: grade6and8Schedule as Record<Days, DaySchedule>,
+	7: grade5and7Schedule as Record<Days, DaySchedule>,
+	6: grade6and8Schedule as Record<Days, DaySchedule>,
+	5: grade5and7Schedule as Record<Days, DaySchedule>
 };
 
 /**
