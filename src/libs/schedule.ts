@@ -11,6 +11,7 @@ import moment, { Moment } from 'moment';
 import prisma from 'prisma';
 
 import lateStarts from '../schedules/2020/late_starts.json';
+import { schedule } from 'later';
 
 export const defaultSchoolBlock: ScheduleClass = {
 	name: 'School',
