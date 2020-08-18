@@ -307,64 +307,64 @@ async function getSchedule(
 		return getSchedule(db, user, date, true);
 	}
 
-	// const schoolScheduleEvents = []; I don't know what this block does and removing it didn't break anything; so...
+	const schoolScheduleEvents = []; //I don't know what this block does and removing it didn't break anything; so...
 
-	// if (portalCalendarResult.hasURL && portalCalendarResult.cal) {
-	// 	// Go through all the events in the Portal calendar
-	// 	for (const calEvent of Object.values(
-	// 		portalCalendarResult.cal as portal.PortalCacheEvent[]
-	// 	)) {
-	// 		const start = moment(calEvent.start);
-	// 		const end = moment(calEvent.end);
+	if (portalCalendarResult.hasURL && portalCalendarResult.cal) {
+		// Go through all the events in the Portal calendar
+		for (const calEvent of Object.values(
+			portalCalendarResult.cal as portal.PortalCacheEvent[]
+		)) {
+			const start = moment(calEvent.start);
+			const end = moment(calEvent.end);
 
-	// 		// It doesn't make any sense for end to come before start
-	// 		// But I guess it's theoretically possible so we should check for it
-	// 		if (end.isBefore(start)) {
-	// 			continue;
-	// 		}
+			// It doesn't make any sense for end to come before start
+			// But I guess it's theoretically possible so we should check for it
+			if (end.isBefore(start)) {
+				continue;
+			}
 
-	// 		// Check if event occurs on specified day
-	// 		if (requestedDate.isSame(start, 'day')) {
-	// 			// Check if special schedule
-	// 			const lowercaseSummary = calEvent.summary!.toLowerCase();
-	// 			if (
-	// 				lowercaseSummary.includes('special') ||
-	// 				lowercaseSummary.includes('ss') ||
-	// 				lowercaseSummary.includes('modified')
-	// 			) {
-	// 				userSchedule.special = true;
-	// 				continue;
-	// 			}
+			// Check if event occurs on specified day
+			if (requestedDate.isSame(start, 'day')) {
+				// Check if special schedule
+				const lowercaseSummary = calEvent.summary!.toLowerCase();
+				if (
+					lowercaseSummary.includes('special') ||
+					lowercaseSummary.includes('ss') ||
+					lowercaseSummary.includes('modified')
+				) {
+					userSchedule.special = true;
+					continue;
+				}
 
-	// 			// Check if event occurs throughout school day
-	// 			if (start.isSameOrAfter(defaultStart) && end.isSameOrBefore(defaultEnd)) {
-	// 				const color = prisma(calEvent.summary).hex;
-	// 				schoolScheduleEvents.push({
-	// 					start,
-	// 					end,
-	// 					class: {
-	// 						portal: true,
-	// 						name: calEvent.summary,
-	// 						teacher: {
-	// 							prefix: '',
-	// 							firstName: '',
-	// 							lastName: ''
-	// 						},
-	// 						block: 'other',
-	// 						type: 'other',
-	// 						color,
-	// 						textDark: prisma.shouldTextBeDark(color)
-	// 					}
-	// 				});
-	// 			}
-	// 		}
-	// 		// Check if it's an all-day event
-	// 		// @TODO Don't know if this works (if everything we'd consider "all-day" event actually matches this criteria)
-	// 		if (start.isSameOrBefore(requestedDate) && end.isSameOrAfter(requestedDateNextDay)) {
-	// 			userSchedule.allDay.push(portal.cleanUp(calEvent.summary!));
-	// 		}
-	// 	}
-	// }
+				// Check if event occurs throughout school day
+				if (start.isSameOrAfter(defaultStart) && end.isSameOrBefore(defaultEnd)) {
+					const color = prisma(calEvent.summary).hex;
+					schoolScheduleEvents.push({
+						start,
+						end,
+						class: {
+							portal: true,
+							name: calEvent.summary,
+							teacher: {
+								prefix: '',
+								firstName: '',
+								lastName: ''
+							},
+							block: 'other',
+							type: 'other',
+							color,
+							textDark: prisma.shouldTextBeDark(color)
+						}
+					});
+				}
+			}
+			// Check if it's an all-day event
+			// @TODO Don't know if this works (if everything we'd consider "all-day" event actually matches this criteria)
+			if (start.isSameOrBefore(requestedDate) && end.isSameOrAfter(requestedDateNextDay)) {
+				userSchedule.allDay.push(portal.cleanUp(calEvent.summary!));
+			}
+		}
+	}
 
 	const portalSchedule: ScheduleClasses = [];
 
