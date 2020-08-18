@@ -482,7 +482,7 @@ async function getSchedule(
 						(dayClass.end as moment.Moment).isSame(portalClass.end)
 					)
 				) {
-					userSchedule.special = true;
+					// userSchedule.special = true;
 					break;
 				}
 			}
