@@ -146,7 +146,7 @@ describe('Schedule', () => {
 				this.db,
 				testUser.user,
 				AliasType.PORTAL,
-				'Test Class 1',
+				'class c',
 				(_id as ObjectID).toHexString()
 			);
 
