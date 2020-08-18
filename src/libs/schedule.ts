@@ -1,9 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// TODO: This desperately needs a refactor. yes it does.
-// All the mutation and temporary fields makes TypeScript complain and my head hurt
 import { Block, ClassType, GetScheduleResponse, ScheduleClass } from '@mymicds/sdk';
 import { Db } from 'mongodb';
-import { StringDict } from './utils';
 import * as _ from 'lodash';
 import * as aliases from './aliases';
 import * as blockSchedule from './blockSchedule';
@@ -11,14 +7,10 @@ import * as classes from './classes';
 import * as feeds from './feeds';
 import * as portal from './portal';
 import * as users from './users';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import prisma from 'prisma';
 
 import lateStarts from '../schedules/2020/late_starts.json';
-
-import * as sdc from './sdchedule';
-
-// Mappings for default blocks
 
 export const defaultSchoolBlock: ScheduleClass = {
 	name: 'School',
@@ -147,6 +139,33 @@ function isOnLateStartList(date: Date) {
 	return false;
 }
 
+function removeCertainLunchBlocks(
+	daySchedule: blockSchedule.BlockFormats,
+	keepAemsh: boolean,
+	keepHswl: boolean,
+	keepDefault: boolean
+) {
+	for (let index = 0; index < daySchedule.blocks.length; index++) {
+		const val = daySchedule.blocks[index] as blockSchedule.LunchBlockFormat;
+		const isLunchBlock = val.aemsh || val.hswl;
+		if (!isLunchBlock) {
+			continue;
+		}
+
+		if (
+			(keepAemsh && (val.aemsh ?? false)) ||
+			(keepHswl && (val.hswl ?? false)) ||
+			(keepDefault && (val.default ?? false))
+		) {
+			continue;
+		}
+
+		daySchedule.blocks.splice(index, 1);
+		index -= 1;
+	}
+	return daySchedule;
+}
+
 /**
  * Retrieves a user's schedule for the given date.
  * @param db Database connection.
@@ -163,95 +182,97 @@ async function getSchedule(
 	date: Date,
 	isPortalBroken = false
 ): Promise<{ hasURL: boolean; schedule: FullSchedule }> {
-	const thing = sdc.get(db, user, date, isPortalBroken);
-	console.log(await thing);
-	// return thing;
-	const scheduleDate = moment(date).startOf('day');
-	const scheduleNextDay = scheduleDate.clone().add(1, 'day');
+	const requestedDate = moment(date).startOf('day');
+	const requestedDateNextDay = requestedDate.clone().add(1, 'day');
 
-	const scheduleDay = await portal.getDayRotation(scheduleDate.toDate());
+	const scheduleDay = await portal.getDayRotation(requestedDate.toDate());
 
 	const { isUser, userDoc } = await users.get(db, user || '');
 
 	// Determine when school should start and end for a default schedule
 	let lateStart = false;
 	let defaultStart: moment.Moment;
+	const defaultEnd = requestedDate.clone().hour(15).minute(15);
 
-	if (scheduleDate.day() === 3 || (await portal.isLateStart(date)) || isOnLateStartList(date)) {
-		// Wednesday, school starts at 9
-		defaultStart = scheduleDate.clone().hour(9);
+	if ((await portal.isLateStart(date)) || isOnLateStartList(date)) {
+		// school starts at 9 for late starts
+		defaultStart = requestedDate.clone().hour(9);
 		lateStart = true;
 	} else {
 		// Not Wednesday, school starts at 8
 		// defaultStart = scheduleDate.clone().hour(8);
-		defaultStart = scheduleDate.clone().hour(8).minute(30); // COVID class start
+		defaultStart = requestedDate.clone().hour(8).minute(30); // COVID class start
 	}
-	const defaultEnd = scheduleDate.clone().hour(15).minute(15);
 
-	const defaultClasses: ScheduleClasses = [
-		{
-			class: defaultSchoolBlock,
-			start: defaultStart,
-			end: defaultEnd
-		}
-	];
+	// create schedule (this function is a pancake, it adds data on top)
+	const userSchedule: FullSchedule = {
+		day: scheduleDay,
+		special: false,
+		classes: [],
+		allDay: []
+	};
 
-	// If it isn't a user OR it's a teacher with no Portal URL
+	// We already set up everything possible if the user is not valid, or a teacher with no portal URL set up.
 	if (!isUser || (userDoc!.gradYear === null && typeof userDoc!.portalURLClasses !== 'string')) {
-		// Fallback to default schedule if user is invalid
-		const schedule: FullSchedule = {
-			day: scheduleDay,
-			special: false,
-			classes: [],
-			allDay: []
-		};
+		// Fallback to default schedule
 
 		if (scheduleDay) {
-			schedule.classes = defaultClasses;
+			userSchedule.classes = [
+				{
+					class: defaultSchoolBlock,
+					start: defaultStart,
+					end: defaultEnd
+				}
+			];
 		}
 
-		return { hasURL: false, schedule };
+		return { hasURL: false, schedule: userSchedule };
 	}
 
-	// Get block schedule for user
-	const daySchedule = blockSchedule.get(
-		scheduleDate,
+	// we now know that user is logged in
+	let dayBlockSchedule = blockSchedule.get(
+		requestedDate,
 		users.gradYearToGrade(userDoc!.gradYear),
 		scheduleDay,
 		lateStart
 	);
 
-	if (isPortalBroken || typeof userDoc!.portalURLClasses !== 'string') {
-		// If user is logged in, but hasn't configured their Portal URL
-		// We would know their grade, and therefore their generic block schedule, as well as any classes they configured
-		const theClasses = await classes.get(db, user);
-
-		// Assign each class to it's block
-		const blocks = JSON.parse(JSON.stringify(genericBlocks));
-		// const blockTypeMap = {};
-		for (const blockClass of theClasses) {
-			blocks[blockClass.block] = blockClass; // Very descriptive
-		}
-
-		const schedule: FullSchedule = {
-			day: scheduleDay,
-			special: false,
-			classes: [],
-			allDay: []
-		};
-
-		// Only combine with block schedule if the block schedule exists
-		if (!daySchedule) {
-			return { hasURL: false, schedule };
-		}
-
-		// Insert any possible classes the user as configured in Settings
-		schedule.classes = combineClassesSchedule(scheduleDate, daySchedule, blocks);
-		return { hasURL: false, schedule };
+	if (!dayBlockSchedule) {
+		return { hasURL: true, schedule: userSchedule };
 	}
 
-	// The user is logged in and has configured their Portal URL
-	// We can therefore overlay their Portal classes on top of their default block schedule for 100% coverage.
+	// add configured classes
+	const configuredClasses = await classes.get(db, user);
+
+	// Assign each class to it's block
+	const blocks = JSON.parse(JSON.stringify(genericBlocks));
+
+	// This assigns the configured class to it's correct block letter.
+	for (const blockClass of configuredClasses) {
+		blocks[blockClass.block] = blockClass; // Very descriptive <- Comments like those are unhelpful. *cough*.
+	}
+
+	// combine everything
+	userSchedule.classes = combineClassesSchedule(requestedDate, dayBlockSchedule.blocks, blocks);
+
+	// if there is no portal URL, we have to remove weird lunch block stuff by using defaults and some guessing, and then we can return
+	// TODO add defaults for short days (wait for COVID classes to end)
+	// TODO refactor this later
+	if (isPortalBroken || typeof userDoc!.portalURLClasses !== 'string') {
+		if (lateStart) {
+			dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, false, true, true);
+		} else {
+			dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, false, false, true);
+		}
+		userSchedule.classes = combineClassesSchedule(
+			requestedDate,
+			dayBlockSchedule.blocks,
+			blocks
+		);
+		return { hasURL: false, schedule: userSchedule };
+	}
+
+	// get aliases and portal stuff
 	const [aliasesResult, portalClassesResult, portalCalendarResult] = await Promise.all([
 		// Get Portal aliases and their class objects
 		aliases.mapList(db, user),
@@ -286,72 +307,68 @@ async function getSchedule(
 		return getSchedule(db, user, date, true);
 	}
 
-	let portalSchedule: ScheduleClasses = [];
-	const schedule: FullSchedule = {
-		day: scheduleDay,
-		special: false,
-		classes: [],
-		allDay: []
-	};
+	// const schoolScheduleEvents = []; I don't know what this block does and removing it didn't break anything; so...
 
-	// Default events that occur for everyone throughout the school
-	// (In the non-personal calendar feed. Usually this is special schedule stuff or assembly)
-	const schoolScheduleEvents = [];
+	// if (portalCalendarResult.hasURL && portalCalendarResult.cal) {
+	// 	// Go through all the events in the Portal calendar
+	// 	for (const calEvent of Object.values(
+	// 		portalCalendarResult.cal as portal.PortalCacheEvent[]
+	// 	)) {
+	// 		const start = moment(calEvent.start);
+	// 		const end = moment(calEvent.end);
 
-	if (portalCalendarResult.hasURL) {
-		// Go through all the events in the Portal calendar
-		for (const calEvent of Object.values(
-			portalCalendarResult.cal as portal.PortalCacheEvent[]
-		)) {
-			const start = moment(calEvent.start);
-			const end = moment(calEvent.end);
+	// 		// It doesn't make any sense for end to come before start
+	// 		// But I guess it's theoretically possible so we should check for it
+	// 		if (end.isBefore(start)) {
+	// 			continue;
+	// 		}
 
-			// It doesn't make any sense for end to come before start
-			// But I guess it's theoretically possible so we should check for it
-			if (end.isBefore(start)) {
-				continue;
-			}
+	// 		// Check if event occurs on specified day
+	// 		if (requestedDate.isSame(start, 'day')) {
+	// 			// Check if special schedule
+	// 			const lowercaseSummary = calEvent.summary!.toLowerCase();
+	// 			if (
+	// 				lowercaseSummary.includes('special') ||
+	// 				lowercaseSummary.includes('ss') ||
+	// 				lowercaseSummary.includes('modified')
+	// 			) {
+	// 				userSchedule.special = true;
+	// 				continue;
+	// 			}
 
-			// Check if event occurs on specified day
-			if (scheduleDate.isSame(start, 'day')) {
-				// Check if special schedule
-				const lowercaseSummary = calEvent.summary!.toLowerCase();
-				if (lowercaseSummary.includes('special') && lowercaseSummary.includes('schedule')) {
-					schedule.special = true;
-					continue;
-				}
+	// 			// Check if event occurs throughout school day
+	// 			if (start.isSameOrAfter(defaultStart) && end.isSameOrBefore(defaultEnd)) {
+	// 				const color = prisma(calEvent.summary).hex;
+	// 				schoolScheduleEvents.push({
+	// 					start,
+	// 					end,
+	// 					class: {
+	// 						portal: true,
+	// 						name: calEvent.summary,
+	// 						teacher: {
+	// 							prefix: '',
+	// 							firstName: '',
+	// 							lastName: ''
+	// 						},
+	// 						block: 'other',
+	// 						type: 'other',
+	// 						color,
+	// 						textDark: prisma.shouldTextBeDark(color)
+	// 					}
+	// 				});
+	// 			}
+	// 		}
+	// 		// Check if it's an all-day event
+	// 		// @TODO Don't know if this works (if everything we'd consider "all-day" event actually matches this criteria)
+	// 		if (start.isSameOrBefore(requestedDate) && end.isSameOrAfter(requestedDateNextDay)) {
+	// 			userSchedule.allDay.push(portal.cleanUp(calEvent.summary!));
+	// 		}
+	// 	}
+	// }
 
-				// Check if event occurs throughout school day
-				if (start.isSameOrAfter(defaultStart) && end.isSameOrBefore(defaultEnd)) {
-					const color = prisma(calEvent.summary).hex;
-					schoolScheduleEvents.push({
-						start,
-						end,
-						class: {
-							portal: true,
-							name: calEvent.summary,
-							teacher: {
-								prefix: '',
-								firstName: '',
-								lastName: ''
-							},
-							block: 'other',
-							type: 'other',
-							color,
-							textDark: prisma.shouldTextBeDark(color)
-						}
-					});
-				}
-			}
-			// Check if it's an all-day event
-			// @TODO Don't know if this works (if everything we'd consider "all-day" event actually matches this criteria)
-			if (start.isSameOrBefore(scheduleDate) && end.isSameOrAfter(scheduleNextDay)) {
-				schedule.allDay.push(portal.cleanUp(calEvent.summary!));
-			}
-		}
-	}
+	const portalSchedule: ScheduleClasses = [];
 
-	// Go through all the events in the Portal classes
+	// Go through ALL the events in the Portal classes
 	for (const calEvent of Object.values(portalClassesResult.cal as portal.PortalCacheEvent[])) {
 		const start = moment(calEvent.start);
 		const end = moment(calEvent.end);
@@ -362,21 +379,19 @@ async function getSchedule(
 		}
 
 		// Check if it's an all-day event
-		if (start.isSameOrBefore(scheduleDate) && !end.isValid()) {
+		if (start.isSameOrBefore(requestedDate) && !end.isValid()) {
 			// Push event to all-day events
-			schedule.allDay.push(portal.cleanUp(calEvent.summary!));
-		} else if (start.isAfter(scheduleDate) && end.isBefore(scheduleNextDay)) {
-			// See if it's part of the schedule
-
+			userSchedule.allDay.push(portal.cleanUp(calEvent.summary!));
+		} else if (start.isAfter(requestedDate) && end.isBefore(requestedDateNextDay)) {
 			// We should use the Portal class's alias; otherwise, we should fallback to a default class object. [sp1a]
-			if (typeof aliasesResult.portal[calEvent.summary!] !== 'object') {
+			if (!(calEvent.summary! in aliasesResult.portal)) {
 				// Determine block
 				// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
 				const blockPart = _.last(calEvent.summary!.match(portal.portalSummaryBlock));
 				let block = Block.OTHER;
 
 				if (blockPart) {
-					block = _.last(blockPart.match(/[A-G]/g))!.toLowerCase() as Block;
+					block = _.last(blockPart.match(/[A-H]/g))!.toLowerCase() as Block;
 				}
 
 				// Generate random color
@@ -407,18 +422,56 @@ async function getSchedule(
 		}
 	}
 
-	portalSchedule = ordineSchedule([], portalSchedule) as ScheduleClasses;
+	// remove incorrect lunch blocks (loop through all blocks, do some logic, and remove incorrect lunch blocks)
+	for (const block of dayBlockSchedule.blocks) {
+		if (block.block !== dayBlockSchedule.lunchBlock) {
+			continue;
+		}
 
-	// Loop through portal schedule to check for inconsistencies with the block schedule
-	// If there's multiple periods that don't line up, just call it a special schedule
-	// If the portal says it's a special schedule in summary (it will have 'SS' in summary)
-	// (If there's no block schedule, just ignore it I guess?)
+		const lunchBlock = block as blockSchedule.LunchBlockFormat;
+		const portalLunchBlock = portalSchedule.find(portalBlock => {
+			return portalBlock.class.block === block.block;
+		});
 
-	if (daySchedule) {
+		// I need to convert the strings to Moment Objects
+		lunchBlock.start = convertTimeStringToMoment(requestedDate, lunchBlock.start);
+		lunchBlock.end = convertTimeStringToMoment(requestedDate, lunchBlock.end);
+
+		// see which class the portal matches with
+		// TODO this could use some refactoring, but it works for now
+		if (lunchBlock.aemsh ?? false) {
+			const matches =
+				lunchBlock.start.isSame(portalLunchBlock?.start) &&
+				lunchBlock.end.isSame(portalLunchBlock?.end);
+			if (matches) {
+				dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, true, false, false);
+			}
+		} else if (lunchBlock.hswl ?? false) {
+			const matches =
+				lunchBlock.start.isSame(portalLunchBlock?.start) &&
+				lunchBlock.end.isSame(portalLunchBlock?.end);
+			if (matches) {
+				dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, false, true, false);
+			}
+		} else {
+			continue;
+		}
+		userSchedule.classes = combineClassesSchedule(
+			requestedDate,
+			dayBlockSchedule.blocks,
+			blocks
+		);
+	}
+
+	// organize the block schedule just in case
+	userSchedule.classes = ordineSchedule([], userSchedule.classes);
+
+	// Now we check if the schedule is completely misaligned. If it is, call it a special schedule and simply return the portal schedule.
+	if (dayBlockSchedule ?? false) {
 		for (const portalClass of portalSchedule) {
 			const portalBlock = portalClass.class.block;
 			if (portalBlock !== Block.OTHER) {
-				const dayClass = daySchedule.find(d => d.block === portalBlock);
+				const dayClass = dayBlockSchedule.blocks.find(d => d.block === portalBlock);
 				if (
 					// If there's no matching day class with the same block, just skip
 					// Sometimes this happens because of lunch blocks
@@ -429,111 +482,35 @@ async function getSchedule(
 						(dayClass.end as moment.Moment).isSame(portalClass.end)
 					)
 				) {
-					schedule.special = true;
+					userSchedule.special = true;
 					break;
 				}
 			}
 		}
 	}
 
-	// If special schedule, just use default portal schedule
-	if (schedule.special) {
-		schedule.classes = portalSchedule;
-		return { hasURL: true, schedule };
+	if (userSchedule.special) {
+		userSchedule.classes = ordineSchedule([], portalSchedule);
+		return { hasURL: true, schedule: userSchedule };
 	}
 
-	// If schedule is null for some reason, default back to portal schedule
-	if (daySchedule === null) {
-		schedule.classes = portalSchedule;
-	} else {
-		// Keep track of original start and end of blocks detecting overlap
-		for (const block of daySchedule) {
-			if ((block as blockSchedule.LunchBlockFormat).aemsh) {
-				(block as any).originalStart = block.start;
-				(block as any).originalEnd = block.end;
-			}
-		}
+	// overlay portal now that we're ready, and we know the schedule isn't special
+	userSchedule.classes = ordineSchedule(userSchedule.classes, portalSchedule);
 
-		// Overlap Portal classes over default
-		schedule.classes = ordineSchedule(daySchedule, portalSchedule);
+	return { hasURL: true, schedule: userSchedule };
+}
 
-		// Loop through all the blocks. If a block has a `noOverlapAddBlocks` property
-		// and the current start and end times are the same as the original, add the
-		// block(s) specified. This is used for inserting the free period for people
-		// whose free period that determines their lunch.
-
-		// People with free period always have first lunch. Since free periods don't
-		// show up on the portal, there's no overlap from a portal class which
-		// determines if they have first or second lunch; therefore, we must add it
-		// ourselves.
-		for (const block of schedule.classes) {
-			if ((block as blockSchedule.LunchBlockFormat).aemsh) {
-				// If no overlap, add blocks
-				if (
-					(block as any).originalStart === block.start &&
-					(block as any).originalEnd === block.end
-				) {
-					// Before combining blocks to existing schedule, convert to moment objects
-					for (const addBlock of (block as any).noOverlapAddBlocks) {
-						const startTime = addBlock.start.split(':');
-						addBlock.start = scheduleDate
-							.clone()
-							.hour(startTime[0])
-							.minute(startTime[1]);
-
-						const endTime = addBlock.end.split(':');
-						addBlock.end = scheduleDate.clone().hour(endTime[0]).minute(endTime[1]);
-					}
-
-					schedule.classes = ordineSchedule(
-						schedule.classes,
-						(block as any).noOverlapAddBlocks
-					);
-				}
-				delete (block as any).originalStart;
-				delete (block as any).originalEnd;
-			}
-		}
-
-		// Check for any blocks in the schedule that have the `block` property. This means it's directly from the
-		// schedule JSON. See if there's any pre-configured classes we should insert instead, otherwise do our best
-		// to make a formatted MyMICDS class object.
-		for (let i = 0; i < schedule.classes.length; i++) {
-			const scheduleClass = schedule.classes[i];
-
-			if ((scheduleClass as blockSchedule.BlockFormat).block) {
-				const block = (scheduleClass as blockSchedule.BlockFormat).block;
-
-				// It's a class from the block schedule. Create a class object for it
-				if (typeof (genericBlocks as StringDict)[block] === 'object') {
-					(scheduleClass as any).class = (genericBlocks as StringDict)[block];
-				} else {
-					const blockName = 'Block ' + block[0].toUpperCase() + block.slice(1);
-					const color = prisma(block).hex;
-					(scheduleClass as any).class = {
-						name: blockName,
-						teacher: {
-							prefix: '',
-							firstName: '',
-							lastName: ''
-						},
-						type: 'other',
-						block,
-						color,
-						textDark: prisma.shouldTextBeDark(color)
-					};
-				}
-			}
-
-			schedule.classes[i] = {
-				class: (scheduleClass as any).class as ScheduleClass,
-				start: scheduleClass.start as moment.Moment,
-				end: scheduleClass.end as moment.Moment
-			};
-		}
+function convertTimeStringToMoment(
+	date: moment.Moment,
+	time: moment.Moment | string
+): moment.Moment {
+	if (typeof time === 'string') {
+		return date
+			.clone()
+			.hour(parseInt(time.split(':')[0], 10))
+			.minute(parseInt(time.split(':')[1], 10));
 	}
-	//schedule.classes = ordineSchedule([], schedule.classes);
-	return { hasURL: true, schedule };
+	return time;
 }
 
 /**
@@ -551,12 +528,6 @@ function combineClassesSchedule(
 	// TODO: Is this still needed? Looks like something left behind after a refactor.
 	// noinspection JSUnusedAssignment
 	date = moment(date);
-	if (!Array.isArray(schedule)) {
-		schedule = [];
-	}
-	if (typeof blocks !== 'object') {
-		blocks = {};
-	}
 
 	// Loop through schedule
 	const combinedSchedule: ScheduleClasses = [];
