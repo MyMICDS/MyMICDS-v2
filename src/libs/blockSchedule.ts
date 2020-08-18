@@ -4,13 +4,13 @@ import moment from 'moment';
 
 type Days = 'Aday' | 'Bday' | 'Cday' | 'Dday' | 'Eday' | 'Fday' | 'Gday' | 'Hday';
 
-import hsSchdule from '../schedules/2020/regular_HS.json';
+import hsSchedule from '../schedules/2020/regular_HS.json';
 import grade5Schedule from '../schedules/2020/5and7.json';
 import grade6Schedule from '../schedules/2020/6and8.json';
 import grade7Schedule from '../schedules/2020/5and7.json';
 import grade8Schedule from '../schedules/2020/6and8.json';
 
-const highschoolSchedule = hsSchdule as Record<Days, DaySchedule>;
+const highschoolSchedule = hsSchedule as Record<Days, DaySchedule>;
 const middleschoolSchedule = {
 	8: grade8Schedule as Record<Days, DaySchedule>,
 	7: grade7Schedule as Record<Days, DaySchedule>,
@@ -53,7 +53,10 @@ function getSchedule(
 	}
 
 	// User's final schedule
-	let userSchedule: BlockFormat[] = [];
+	let userSchedule: BlockFormats = {
+		blocks: [],
+		lunchBlock: null
+	};
 
 	// Use highschool schedule if upperschool
 	if (schoolName === 'upperschool') {
@@ -81,22 +84,30 @@ function getSchedule(
 			}
 
 			// Push to user schedule
-			userSchedule.push(jsonBlock);
+			userSchedule.blocks.push(jsonBlock);
 		}
+
+		userSchedule.lunchBlock = jsonSchedule?.lunchBlock;
 	} else if (schoolName === 'middleschool') {
 		// Directly return JSON from middleschool schedule
-		userSchedule =
+		userSchedule = middleschoolSchedule[grade as 8 | 7 | 6 | 5][ // TO DO Refactor this shit
+			`${day.toUpperCase()}day` as Days
+		][lateStart ? 'lateStart' : 'regular'] ?? {
+			blocks: [],
+			lunchBlock: null
+		};
+		userSchedule.lunchBlock =
 			middleschoolSchedule[grade as 8 | 7 | 6 | 5][`${day.toUpperCase()}day` as Days][
 				lateStart ? 'lateStart' : 'regular'
-			]?.blocks ?? [];
+			]?.lunchBlock;
 	}
 
 	// Copy the JSON so we don't modify the original reference
-	userSchedule = JSON.parse(JSON.stringify(userSchedule)) as BlockFormat[];
+	userSchedule = JSON.parse(JSON.stringify(userSchedule)) as BlockFormats;
 
 	// If date isn't null, set times relative to date object
 	if (date && userSchedule) {
-		for (const schedule of userSchedule) {
+		for (const schedule of userSchedule.blocks) {
 			// Get start and end moment objects
 			const startTime = (schedule.start as string).split(':').map(n => parseInt(n, 10));
 			schedule.start = date.clone().hour(startTime[0]).minute(startTime[1]);
@@ -105,6 +116,7 @@ function getSchedule(
 			schedule.end = date.clone().hour(endTime[0]).minute(endTime[1]);
 		}
 	}
+
 	return userSchedule;
 }
 
@@ -130,8 +142,9 @@ export interface AlternateBlockFormat extends BlockFormat {
 }
 
 export interface LunchBlockFormat extends BlockFormat {
-	aemsh: BlockFormat; // Arts, English, Math, Study Hall
-	hswl: BlockFormat; // History, Science, World Language
+	aemsh?: boolean; // Arts, English, Math, Study Hall
+	hswl?: boolean; // History, Science, World Language
+	default?: boolean;
 }
 
 export { getSchedule as get };

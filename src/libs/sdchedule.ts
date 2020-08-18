@@ -169,7 +169,7 @@ async function getSchedule(
 	const defaultEnd = requestedDate.clone().hour(15).minute(15);
 
 	if ((await portal.isLateStart(date)) || isOnLateStartList(date)) {
-		// Wednesday, school starts at 9
+		// school starts at 9 for late starts
 		defaultStart = requestedDate.clone().hour(9);
 		lateStart = true;
 	} else {
@@ -229,8 +229,34 @@ async function getSchedule(
 	// combine everything
 	userSchedule.classes = combineClassesSchedule(requestedDate, dayBlockSchedule.blocks, blocks);
 
-	// if there is no portal URL, we can stop here
+	// if there is no portal URL, we have to remove weird lunch block stuff by using defaults and some guessing, and then we can return
+	// TODO add defaults for short days (wait for COVID classes to end)
 	if (isPortalBroken || typeof userDoc!.portalURLClasses !== 'string') {
+		if (lateStart) {
+			for (let index = 0; index < dayBlockSchedule.blocks.length; index++) {
+				const val = dayBlockSchedule.blocks[index];
+				if ((val as blockSchedule.LunchBlockFormat).hswl ?? false) {
+					dayBlockSchedule.blocks.splice(index, 1);
+					index -= 1;
+				}
+			}
+		} else {
+			for (let index = 0; index < dayBlockSchedule.blocks.length; index++) {
+				const val = dayBlockSchedule.blocks[index];
+				const isLunchBlock =
+					(val as blockSchedule.LunchBlockFormat).aemsh ||
+					(val as blockSchedule.LunchBlockFormat).hswl;
+				if (isLunchBlock && !((val as blockSchedule.LunchBlockFormat).default ?? false)) {
+					dayBlockSchedule.blocks.splice(index, 1);
+					index -= 1;
+				}
+			}
+		}
+		userSchedule.classes = combineClassesSchedule(
+			requestedDate,
+			dayBlockSchedule.blocks,
+			blocks
+		);
 		return { hasURL: true, schedule: userSchedule };
 	}
 
@@ -269,66 +295,66 @@ async function getSchedule(
 		return getSchedule(db, user, date, true);
 	}
 
-	const schoolScheduleEvents = [];
+	// const schoolScheduleEvents = []; I don't know what this block does and removing it didn't break anything; so...
 
-	if (portalCalendarResult.hasURL && portalCalendarResult.cal) {
-		// Go through all the events in the Portal calendar
-		for (const calEvent of Object.values(
-			portalCalendarResult.cal as portal.PortalCacheEvent[]
-		)) {
-			const start = moment(calEvent.start);
-			const end = moment(calEvent.end);
+	// if (portalCalendarResult.hasURL && portalCalendarResult.cal) {
+	// 	// Go through all the events in the Portal calendar
+	// 	for (const calEvent of Object.values(
+	// 		portalCalendarResult.cal as portal.PortalCacheEvent[]
+	// 	)) {
+	// 		const start = moment(calEvent.start);
+	// 		const end = moment(calEvent.end);
 
-			// It doesn't make any sense for end to come before start
-			// But I guess it's theoretically possible so we should check for it
-			if (end.isBefore(start)) {
-				continue;
-			}
+	// 		// It doesn't make any sense for end to come before start
+	// 		// But I guess it's theoretically possible so we should check for it
+	// 		if (end.isBefore(start)) {
+	// 			continue;
+	// 		}
 
-			// Check if event occurs on specified day
-			if (requestedDate.isSame(start, 'day')) {
-				// Check if special schedule
-				const lowercaseSummary = calEvent.summary!.toLowerCase();
-				if (
-					lowercaseSummary.includes('special') ||
-					lowercaseSummary.includes('ss') ||
-					lowercaseSummary.includes('modified')
-				) {
-					userSchedule.special = true;
-					continue;
-				}
+	// 		// Check if event occurs on specified day
+	// 		if (requestedDate.isSame(start, 'day')) {
+	// 			// Check if special schedule
+	// 			const lowercaseSummary = calEvent.summary!.toLowerCase();
+	// 			if (
+	// 				lowercaseSummary.includes('special') ||
+	// 				lowercaseSummary.includes('ss') ||
+	// 				lowercaseSummary.includes('modified')
+	// 			) {
+	// 				userSchedule.special = true;
+	// 				continue;
+	// 			}
 
-				// Check if event occurs throughout school day
-				if (start.isSameOrAfter(defaultStart) && end.isSameOrBefore(defaultEnd)) {
-					const color = prisma(calEvent.summary).hex;
-					schoolScheduleEvents.push({
-						start,
-						end,
-						class: {
-							portal: true,
-							name: calEvent.summary,
-							teacher: {
-								prefix: '',
-								firstName: '',
-								lastName: ''
-							},
-							block: 'other',
-							type: 'other',
-							color,
-							textDark: prisma.shouldTextBeDark(color)
-						}
-					});
-				}
-			}
-			// Check if it's an all-day event
-			// @TODO Don't know if this works (if everything we'd consider "all-day" event actually matches this criteria)
-			if (start.isSameOrBefore(requestedDate) && end.isSameOrAfter(requestedDateNextDay)) {
-				userSchedule.allDay.push(portal.cleanUp(calEvent.summary!));
-			}
-		}
-	}
+	// 			// Check if event occurs throughout school day
+	// 			if (start.isSameOrAfter(defaultStart) && end.isSameOrBefore(defaultEnd)) {
+	// 				const color = prisma(calEvent.summary).hex;
+	// 				schoolScheduleEvents.push({
+	// 					start,
+	// 					end,
+	// 					class: {
+	// 						portal: true,
+	// 						name: calEvent.summary,
+	// 						teacher: {
+	// 							prefix: '',
+	// 							firstName: '',
+	// 							lastName: ''
+	// 						},
+	// 						block: 'other',
+	// 						type: 'other',
+	// 						color,
+	// 						textDark: prisma.shouldTextBeDark(color)
+	// 					}
+	// 				});
+	// 			}
+	// 		}
+	// 		// Check if it's an all-day event
+	// 		// @TODO Don't know if this works (if everything we'd consider "all-day" event actually matches this criteria)
+	// 		if (start.isSameOrBefore(requestedDate) && end.isSameOrAfter(requestedDateNextDay)) {
+	// 			userSchedule.allDay.push(portal.cleanUp(calEvent.summary!));
+	// 		}
+	// 	}
+	// }
 
-	const portalSchedule: ScheduleClasses = [];
+	let portalSchedule: ScheduleClasses = [];
 
 	// Go through ALL the events in the Portal classes
 	for (const calEvent of Object.values(portalClassesResult.cal as portal.PortalCacheEvent[])) {
@@ -384,7 +410,7 @@ async function getSchedule(
 		}
 	}
 
-	// before combining our block and portal schedules, we need to resize the lunch
+	// if there is no portal calendar, we'll use the "default" lunch block as defined in json, for late starts, that's just hswl
 
 	//create lunch block (edited as needed)
 	const newLunchBlock: ScheduleBlock = {
@@ -403,72 +429,17 @@ async function getSchedule(
 			return portalBlock.class.block === block.block;
 		});
 
-		const portalLunchBlockIndex = portalSchedule.findIndex(portalBlock => {
-			return portalBlock.class.block === block.block;
-		});
-
-		// a bit messy, but I have to convert everything to moment objects
-		lunchBlock.hswl.start = convertTimeStringToMoment(requestedDate, lunchBlock.hswl.start);
-		lunchBlock.hswl.end = convertTimeStringToMoment(requestedDate, lunchBlock.hswl.end);
-		lunchBlock.aemsh.start = convertTimeStringToMoment(requestedDate, lunchBlock.aemsh.start);
-		lunchBlock.aemsh.end = convertTimeStringToMoment(requestedDate, lunchBlock.aemsh.end);
-
-		// if portalLunchBlock is null, user has free, so insert first lunch.
-		if (portalLunchBlock === undefined) {
-			const ishswlEarlier = lunchBlock.hswl.start.isBefore(lunchBlock.hswl.end);
-
-			newLunchBlock.start = ishswlEarlier ? lunchBlock.hswl.start : lunchBlock.aemsh.start;
-			newLunchBlock.end = ishswlEarlier ? lunchBlock.hswl.end : lunchBlock.aemsh.end;
-			break;
-		}
-
-		// details on time overlapping here: https://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
-		// slightly modified so that it can end/start at same times, but not overlap
-
-		const hswlOverlaps =
-			portalLunchBlock?.start.isSameOrAfter(lunchBlock.hswl.end) &&
-			portalLunchBlock?.end.isSameOrBefore(lunchBlock.hswl.start);
-		const aemshOverlaps =
-			portalLunchBlock?.start.isSameOrAfter(lunchBlock.aemsh.end) &&
-			portalLunchBlock?.end.isSameOrBefore(lunchBlock.aemsh.start);
-
-		if (hswlOverlaps && aemshOverlaps) {
-			portalSchedule[portalLunchBlockIndex].class.name =
-				portalSchedule[portalLunchBlockIndex].class.name + ' + Lunch!';
-			break;
-		} else if (hswlOverlaps) {
-			newLunchBlock.start = lunchBlock.aemsh.start;
-			newLunchBlock.end = lunchBlock.aemsh.end;
-		} else if (aemshOverlaps) {
-			newLunchBlock.start = lunchBlock.hswl.start;
-			newLunchBlock.end = lunchBlock.hswl.end;
-		}
-
-		// something is broken (or just a late start), declare special schedule and break
+		// check if late start
 		if (lateStart) {
-			// late start is special since we see which lunch period the portal overlaps with, then pick the other one as the user's lunch
-			portalSchedule[portalLunchBlockIndex].class.name =
-				portalSchedule[portalLunchBlockIndex].class.name + ' + Lunch!';
-
-			const lunchBlockIndex = userSchedule.classes.findIndex(val => {
-				return (
-					val.class.name.toLowerCase().indexOf(dayBlockSchedule.lunchBlock ?? 'bazinga') >
-					-1
-				);
-			});
-			console.log(userSchedule.classes);
-			userSchedule.classes.splice(lunchBlockIndex, 1);
-			console.log(userSchedule.classes);
-		} else {
-			userSchedule.special = true;
-			userSchedule.classes = portalSchedule;
-			return { hasURL: true, schedule: userSchedule };
+			console.log();
 		}
 	}
 
-	userSchedule.classes.push(newLunchBlock);
+	// userSchedule.classes.push(newLunchBlock);
 
-	userSchedule.classes = ordineSchedule(userSchedule.classes, portalSchedule);
+	// userSchedule.classes = ordineSchedule([], userSchedule.classes)
+
+	// userSchedule.classes = ordineSchedule(userSchedule.classes, portalSchedule);
 
 	return { hasURL: true, schedule: userSchedule };
 }

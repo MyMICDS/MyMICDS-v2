@@ -14,24 +14,28 @@
                     "end": "11:25"
                 },
                 {
-                    "block": "e",
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10",
+                    "aemsh": true
+                },
+                {
+                    "block": "a",
+                    "start": "12:20",
+                    "end": "13:45",
+                    "aemsh": true
+                },
+                {
+                    "block": "a",
                     "start": "11:30",
                     "end": "13:45",
-                    "aemsh": {
-                        "block": "lunch",
-                        "start": "11:30",
-                        "end": "12:10"
-                    },
-                    "hswl": {
-                        "block": "lunch",
-                        "start": "12:15",
-                        "end": "12:55"
-                    }
+                    "hswl": true,
+                    "default": true
                 },
                 {
                     "block": "g",
-                    "start": "1:50",
-                    "end": "3:15"
+                    "start": "13:50",
+                    "end": "15:15"
                 }
             ]
         },
@@ -56,17 +60,26 @@
                 {
                     "block": "d",
                     "start": "11:30",
+                    "end": "12:10",
+                    "hswl": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "12:15",
                     "end": "12:55",
-                    "aemsh": {
-                        "block": "lunch",
-                        "start": "11:30",
-                        "end": "12:10"
-                    },
-                    "hswl": {
-                        "block": "lunch",
-                        "start": "12:15",
-                        "end": "12:55"
-                    }
+                    "hswl": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10",
+                    "aemsh": true
+                },
+                {
+                    "block": "d",
+                    "start": "12:15",
+                    "end": "12:55",
+                    "aemsh": true
                 },
                 {
                     "block": "e",
@@ -101,24 +114,28 @@
                     "end": "11:25"
                 },
                 {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10",
+                    "hswl": true
+                },
+                {
+                    "block": "f",
+                    "start": "12:20",
+                    "end": "13:45",
+                    "hswl": true
+                },
+                {
                     "block": "f",
                     "start": "11:30",
                     "end": "13:45",
-                    "aemsh": {
-                        "block": "lunch",
-                        "start": "12:15",
-                        "end": "12:55"
-                    },
-                    "hswl": {
-                        "block": "lunch",
-                        "start": "11:30",
-                        "end": "12:10"
-                    }
+                    "aemsh": true,
+                    "default": true
                 },
                 {
                     "block": "h",
-                    "start": "1:50",
-                    "end": "3:15"
+                    "start": "13:50",
+                    "end": "15:15"
                 }
             ]
         },
@@ -141,19 +158,28 @@
                     "end": "11:25"
                 },
                 {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10",
+                    "hswl": true
+                },
+                {
+                    "block": "e",
+                    "start": "12:15",
+                    "end": "12:55",
+                    "hswl": true
+                },
+                {
                     "block": "e",
                     "start": "11:30",
+                    "end": "12:10",
+                    "aemsh": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "12:15",
                     "end": "12:55",
-                    "hswl": {
-                        "block": "lunch",
-                        "start": "11:30",
-                        "end": "12:10"
-                    },
-                    "aemsh": {
-                        "block": "lunch",
-                        "start": "12:15",
-                        "end": "12:55"
-                    }
+                    "aemsh": true
                 },
                 {
                     "block": "f",
@@ -188,24 +214,28 @@
                     "end": "11:25"
                 },
                 {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10",
+                    "aemsh": true
+                },
+                {
+                    "block": "g",
+                    "start": "12:20",
+                    "end": "13:45",
+                    "aemsh": true
+                },
+                {
                     "block": "g",
                     "start": "11:30",
                     "end": "13:45",
-                    "aemsh": {
-                        "block": "lunch",
-                        "start": "11:30",
-                        "end": "12:10"
-                    },
-                    "hswl": {
-                        "block": "lunch",
-                        "start": "12:15",
-                        "end": "12:55"
-                    }
+                    "hswl": true,
+                    "default": true
                 },
                 {
                     "block": "a",
-                    "start": "1:50",
-                    "end": "3:15"
+                    "start": "13:50",
+                    "end": "15:15"
                 }
             ]
         },
@@ -230,17 +260,26 @@
                 {
                     "block": "f",
                     "start": "11:30",
+                    "end": "12:10",
+                    "hswl": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "12:15",
                     "end": "12:55",
-                    "aemsh": {
-                        "block": "lunch",
-                        "start": "11:30",
-                        "end": "12:10"
-                    },
-                    "hswl": {
-                        "block": "lunch",
-                        "start": "12:15",
-                        "end": "12:55"
-                    }
+                    "hswl": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10",
+                    "aemsh": true
+                },
+                {
+                    "block": "f",
+                    "start": "12:15",
+                    "end": "12:55",
+                    "aemsh": true
                 },
                 {
                     "block": "g",
@@ -336,19 +375,28 @@
                     "end": "11:25"
                 },
                 {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10",
+                    "hswl": true
+                },
+                {
+                    "block": "g",
+                    "start": "12:15",
+                    "end": "12:55",
+                    "hswl": true
+                },
+                {
                     "block": "g",
                     "start": "11:30",
+                    "end": "12:10",
+                    "aemsh": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "12:15",
                     "end": "12:55",
-                    "hswl": {
-                        "block": "lunch",
-                        "start": "11:30",
-                        "end": "12:10"
-                    },
-                    "aemsh": {
-                        "block": "lunch",
-                        "start": "12:15",
-                        "end": "12:55"
-                    }
+                    "aemsh": true
                 },
                 {
                     "block": "a",
@@ -383,19 +431,23 @@
                     "end": "11:25"
                 },
                 {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10",
+                    "hswl": true
+                },
+                {
+                    "block": "a",
+                    "start": "12:20",
+                    "end": "13:45",
+                    "hswl": true
+                },
+                {
                     "block": "a",
                     "start": "11:30",
                     "end": "13:45",
-                    "aemsh": {
-                        "block": "lunch",
-                        "start": "12:15",
-                        "end": "12:55"
-                    },
-                    "hswl": {
-                        "block": "lunch",
-                        "start": "11:30",
-                        "end": "12:10"
-                    }
+                    "aemsh": true,
+                    "default": true
                 },
                 {
                     "block": "c",
@@ -425,17 +477,26 @@
                 {
                     "block": "a",
                     "start": "11:30",
+                    "end": "12:10",
+                    "hswl": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "12:15",
                     "end": "12:55",
-                    "aemsh": {
-                        "block": "lunch",
-                        "start": "11:30",
-                        "end": "12:10"
-                    },
-                    "hswl": {
-                        "block": "lunch",
-                        "start": "12:15",
-                        "end": "12:55"
-                    }
+                    "hswl": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10",
+                    "aemsh": true
+                },
+                {
+                    "block": "a",
+                    "start": "12:15",
+                    "end": "12:55",
+                    "aemsh": true
                 },
                 {
                     "block": "b",
@@ -470,24 +531,28 @@
                     "end": "11:25"
                 },
                 {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10",
+                    "aemsh": true
+                },
+                {
+                    "block": "b",
+                    "start": "12:20",
+                    "end": "13:45",
+                    "aemsh": true
+                },
+                {
                     "block": "b",
                     "start": "11:30",
                     "end": "13:45",
-                    "aemsh": {
-                        "block": "lunch",
-                        "start": "11:30",
-                        "end": "12:10"
-                    },
-                    "hswl": {
-                        "block": "lunch",
-                        "start": "12:15",
-                        "end": "12:55"
-                    }
+                    "hswl": true,
+                    "default": true
                 },
                 {
                     "block": "d",
-                    "start": "1:50",
-                    "end": "3:15"
+                    "start": "13:50",
+                    "end": "15:15"
                 }
             ]
         },
@@ -510,19 +575,28 @@
                     "end": "11:25"
                 },
                 {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10",
+                    "hswl": true
+                },
+                {
+                    "block": "b",
+                    "start": "12:15",
+                    "end": "12:55",
+                    "hswl": true
+                },
+                {
                     "block": "b",
                     "start": "11:30",
+                    "end": "12:10",
+                    "aemsh": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "12:15",
                     "end": "12:55",
-                    "hswl": {
-                        "block": "lunch",
-                        "start": "11:30",
-                        "end": "12:10"
-                    },
-                    "aemsh": {
-                        "block": "lunch",
-                        "start": "12:15",
-                        "end": "12:55"
-                    }
+                    "aemsh": true
                 },
                 {
                     "block": "c",
@@ -557,19 +631,23 @@
                     "end": "11:25"
                 },
                 {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10",
+                    "hswl": true
+                },
+                {
+                    "block": "c",
+                    "start": "12:20",
+                    "end": "13:45",
+                    "hswl": true
+                },
+                {
                     "block": "c",
                     "start": "11:30",
                     "end": "13:45",
-                    "aemsh": {
-                        "block": "lunch",
-                        "start": "12:15",
-                        "end": "12:55"
-                    },
-                    "hswl": {
-                        "block": "lunch",
-                        "start": "11:30",
-                        "end": "12:10"
-                    }
+                    "aemsh": true,
+                    "default": true
                 },
                 {
                     "block": "e",
@@ -599,17 +677,26 @@
                 {
                     "block": "c",
                     "start": "11:30",
+                    "end": "12:10",
+                    "hswl": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "12:15",
                     "end": "12:55",
-                    "aemsh": {
-                        "block": "lunch",
-                        "start": "11:30",
-                        "end": "12:10"
-                    },
-                    "hswl": {
-                        "block": "lunch",
-                        "start": "12:15",
-                        "end": "12:55"
-                    }
+                    "hswl": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10",
+                    "aemsh": true
+                },
+                {
+                    "block": "c",
+                    "start": "12:15",
+                    "end": "12:55",
+                    "aemsh": true
                 },
                 {
                     "block": "d",
@@ -644,19 +731,23 @@
                     "end": "11:25"
                 },
                 {
+                    "block": "lunch",
+                    "start": "11:30",
+                    "end": "12:10",
+                    "aemsh": true
+                },
+                {
+                    "block": "d",
+                    "start": "12:20",
+                    "end": "13:45",
+                    "aemsh": true
+                },
+                {
                     "block": "d",
                     "start": "11:30",
                     "end": "13:45",
-                    "aemsh": {
-                        "block": "lunch",
-                        "start": "11:30",
-                        "end": "12:10"
-                    },
-                    "hswl": {
-                        "block": "lunch",
-                        "start": "12:15",
-                        "end": "12:55"
-                    }
+                    "hswl": true,
+                    "default": true
                 },
                 {
                     "block": "f",
