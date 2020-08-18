@@ -129,13 +129,12 @@ const genericBlocks: Record<
 
 function isOnLateStartList(date: Date) {
 	const lateStartList = lateStarts as DateList;
-	lateStartList.date.forEach(value => {
-		const lateStartMoment = moment(value, 'MM/DD/YYYY');
+	for (const lateStartDate of lateStartList.date) {
+		const lateStartMoment = moment(lateStartDate, 'MM/DD/YYYY');
 		if (moment(date).isSame(lateStartMoment)) {
 			return true;
 		}
-	});
-
+	}
 	return false;
 }
 
@@ -308,6 +307,8 @@ async function getSchedule(
 	}
 
 	const schoolScheduleEvents = []; //I don't know what this block does and removing it didn't break anything; so...
+	// ACTUALLY, this is useful for detecting special schedules, although
+	// TODO, rewrite code block to detect for massive misalignments and fallback to special schedule.
 
 	if (portalCalendarResult.hasURL && portalCalendarResult.cal) {
 		// Go through all the events in the Portal calendar
@@ -466,35 +467,12 @@ async function getSchedule(
 	// organize the block schedule just in case
 	userSchedule.classes = ordineSchedule([], userSchedule.classes);
 
-	// Now we check if the schedule is completely misaligned. If it is, call it a special schedule and simply return the portal schedule.
-	if (dayBlockSchedule ?? false) {
-		for (const portalClass of portalSchedule) {
-			const portalBlock = portalClass.class.block;
-			if (portalBlock !== Block.OTHER) {
-				const dayClass = dayBlockSchedule.blocks.find(d => d.block === portalBlock);
-				if (
-					// If there's no matching day class with the same block, just skip
-					// Sometimes this happens because of lunch blocks
-					// It's extremely ugly to workaround, but it works fine as is so I don't think it matters
-					dayClass &&
-					!(
-						(dayClass.start as moment.Moment).isSame(portalClass.start) &&
-						(dayClass.end as moment.Moment).isSame(portalClass.end)
-					)
-				) {
-					// userSchedule.special = true;
-					break;
-				}
-			}
-		}
-	}
-
 	if (userSchedule.special) {
 		userSchedule.classes = ordineSchedule([], portalSchedule);
 		return { hasURL: true, schedule: userSchedule };
 	}
 
-	// overlay portal now that we're ready, and we know the schedule isn't special
+	// overlay portal now that we're ready, and now we know the schedule isn't special
 	userSchedule.classes = ordineSchedule(userSchedule.classes, portalSchedule);
 
 	return { hasURL: true, schedule: userSchedule };

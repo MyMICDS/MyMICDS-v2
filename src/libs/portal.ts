@@ -392,12 +392,14 @@ export async function getDayRotation(date: Date) {
  * @returns boolean of whether it is a late start day
  */
 export async function isLateStart(date: Date) {
-	return (
+	// [A - G] because there 7 late start schedules (WHY???)
+
+	const lateStart =
 		(await withCalSummary(date, summary => {
-			// [A - G] because there 7 late start schedules (WHY???)
 			return (/[A-G]9 Day/.exec(summary) ?? []).length > 0;
-		})) ?? false
-	);
+		})) ?? false;
+
+	return lateStart;
 }
 
 /**
