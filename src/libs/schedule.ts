@@ -127,6 +127,11 @@ const genericBlocks: Record<
 	}
 };
 
+/**
+ * checks if date is on the official list of late starts for the school year
+ * @param date The date to check the list against
+ * @returns boolean of whether the date is on the list.
+ */
 function isOnLateStartList(date: Date) {
 	const lateStartList = lateStarts as DateList;
 	for (const lateStartDate of lateStartList.date) {
@@ -138,11 +143,18 @@ function isOnLateStartList(date: Date) {
 	return false;
 }
 
+/**
+ * removes lunch and lunch-related-class blocks with none of matching flags. That is even if it's Hswl, and keep Hswl is false, BUT it has the default
+ * flag and keepDefault is true, that block will NOT be removed.
+ * @param daySchedule the block schedule for the day
+ * @param keepAemsh boolean that says whether to keep lunch and lunch-related-class blocks with the Aemsh flag in the schedule
+ * @param keepHswl ditto for above but for Hswl
+ * @param keepDefault ditto but for default flags; this comes in handy when the user has no portal URL
+ * @returns daySchedule, but with all the
+ */
 function removeCertainLunchBlocks(
 	daySchedule: blockSchedule.BlockFormats,
-	keepAemsh: boolean,
-	keepHswl: boolean,
-	keepDefault: boolean
+	{ keepAemsh = true, keepHswl = true, keepDefault = true }
 ) {
 	for (let index = 0; index < daySchedule.blocks.length; index++) {
 		const val = daySchedule.blocks[index] as blockSchedule.LunchBlockFormat;
@@ -259,9 +271,15 @@ async function getSchedule(
 	// TODO refactor this later
 	if (isPortalBroken || typeof userDoc!.portalURLClasses !== 'string') {
 		if (lateStart) {
-			dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, false, true, true);
+			dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, {
+				keepAemsh: false,
+				keepHswl: true
+			});
 		} else {
-			dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, false, false, true);
+			dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, {
+				keepAemsh: false,
+				keepHswl: false
+			});
 		}
 		userSchedule.classes = combineClassesSchedule(
 			requestedDate,
@@ -445,14 +463,22 @@ async function getSchedule(
 				lunchBlock.start.isSame(portalLunchBlock?.start) &&
 				lunchBlock.end.isSame(portalLunchBlock?.end);
 			if (matches) {
-				dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, true, false, false);
+				dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, {
+					keepAemsh: true,
+					keepHswl: false,
+					keepDefault: false
+				});
 			}
 		} else if (lunchBlock.hswl ?? false) {
 			const matches =
 				lunchBlock.start.isSame(portalLunchBlock?.start) &&
 				lunchBlock.end.isSame(portalLunchBlock?.end);
 			if (matches) {
-				dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, false, true, false);
+				dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, {
+					keepAemsh: false,
+					keepHswl: true,
+					keepDefault: false
+				});
 			}
 		} else {
 			continue;
@@ -478,6 +504,12 @@ async function getSchedule(
 	return { hasURL: true, schedule: userSchedule };
 }
 
+/**
+ * converts a time string in the format hh:mm to a moment object, and append that time to the date Moment object
+ * @param date the day to append the time to.
+ * @param Moment or string; this is the time string in hh:mm, it will take a moment object to, but will result in no changes.
+ * @returns Moment object of the same date, but with the time set to the time string's value.
+ */
 function convertTimeStringToMoment(
 	date: moment.Moment,
 	time: moment.Moment | string

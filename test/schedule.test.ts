@@ -99,8 +99,8 @@ describe('Schedule', () => {
 					day: 'E',
 					special: false,
 					classes: [
-						{ class: { name: 'g block class' } },
 						{ class: { name: 'e block class' } },
+						{ class: { name: 'g block class' } },
 						{ class: { name: 'Block A' } },
 						{ class: { name: 'Block C' } }
 					],
