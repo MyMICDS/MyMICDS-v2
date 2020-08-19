@@ -2,20 +2,18 @@ import { Block } from '@mymicds/sdk';
 import * as users from './users';
 import moment from 'moment';
 
-type Days = 'day1' | 'day2' | 'day3' | 'day4' | 'day5' | 'day6';
+type Days = 'Aday' | 'Bday' | 'Cday' | 'Dday' | 'Eday' | 'Fday' | 'Gday' | 'Hday';
 
-import grade5Schedule from '../schedules/grade5.json';
-import grade6Schedule from '../schedules/grade6.json';
-import grade7Schedule from '../schedules/grade7.json';
-import grade8Schedule from '../schedules/grade8.json';
-import hsSchedule from '../schedules/highschool.json';
+import grade5and7Schedule from '../schedules/2020/5and7.json';
+import grade6and8Schedule from '../schedules/2020/6and8.json';
+import hsSchedule from '../schedules/2020/regular_HS.json';
 
 const highschoolSchedule = hsSchedule as Record<Days, DaySchedule>;
 const middleschoolSchedule = {
-	8: grade8Schedule as Record<Days, DaySchedule>,
-	7: grade7Schedule as Record<Days, DaySchedule>,
-	6: grade6Schedule as Record<Days, DaySchedule>,
-	5: grade5Schedule as Record<Days, DaySchedule>
+	8: grade6and8Schedule as Record<Days, DaySchedule>,
+	7: grade5and7Schedule as Record<Days, DaySchedule>,
+	6: grade6and8Schedule as Record<Days, DaySchedule>,
+	5: grade5and7Schedule as Record<Days, DaySchedule>
 };
 
 /**
@@ -29,7 +27,7 @@ const middleschoolSchedule = {
 function getSchedule(
 	date: Date | moment.Moment | null,
 	grade: number | null,
-	day: number | null,
+	day: string | null,
 	lateStart: boolean
 ) {
 	// Validate inputs
@@ -41,7 +39,7 @@ function getSchedule(
 	if (typeof grade !== 'number' || Number.isNaN(grade) || -1 > grade || grade > 12) {
 		return null;
 	}
-	if (typeof day !== 'number' || Number.isNaN(day) || 1 > day || day > 6) {
+	if (typeof day !== 'string' || (/([A-H])/.exec(day) ?? []).length < 1) {
 		return null;
 	}
 
@@ -53,7 +51,10 @@ function getSchedule(
 	}
 
 	// User's final schedule
-	let userSchedule: BlockFormat[] = [];
+	let userSchedule: BlockFormats = {
+		blocks: [],
+		lunchBlock: null
+	};
 
 	// Use highschool schedule if upperschool
 	if (schoolName === 'upperschool') {
@@ -63,9 +64,11 @@ function getSchedule(
 
 		// Loop through JSON and append classes to user schedule
 		const jsonSchedule =
-			highschoolSchedule[`day${day}` as Days][lateStart ? 'lateStart' : 'regular'];
+			highschoolSchedule[`${day.toUpperCase()}day` as Days][
+				lateStart ? 'lateStart' : 'regular'
+			];
 
-		for (const jsonBlock of jsonSchedule) {
+		for (const jsonBlock of jsonSchedule!.blocks) {
 			// Check for any restrictions on the block
 			if (typeof (jsonBlock as AlternateBlockFormat).lowerclass !== 'undefined') {
 				if ((jsonBlock as AlternateBlockFormat).lowerclass !== lowerclass) {
@@ -79,22 +82,30 @@ function getSchedule(
 			}
 
 			// Push to user schedule
-			userSchedule.push(jsonBlock);
+			userSchedule.blocks.push(jsonBlock);
 		}
+
+		userSchedule.lunchBlock = jsonSchedule?.lunchBlock;
 	} else if (schoolName === 'middleschool') {
 		// Directly return JSON from middleschool schedule
-		userSchedule =
-			middleschoolSchedule[grade as 8 | 7 | 6 | 5][`day${day}` as Days][
+		userSchedule = middleschoolSchedule[grade as 8 | 7 | 6 | 5][ // TO DO Refactor this shit
+			`${day.toUpperCase()}day` as Days
+		][lateStart ? 'lateStart' : 'regular'] ?? {
+			blocks: [],
+			lunchBlock: null
+		};
+		userSchedule.lunchBlock =
+			middleschoolSchedule[grade as 8 | 7 | 6 | 5][`${day.toUpperCase()}day` as Days][
 				lateStart ? 'lateStart' : 'regular'
-			];
+			]?.lunchBlock;
 	}
 
 	// Copy the JSON so we don't modify the original reference
-	userSchedule = JSON.parse(JSON.stringify(userSchedule)) as BlockFormat[];
+	userSchedule = JSON.parse(JSON.stringify(userSchedule)) as BlockFormats;
 
 	// If date isn't null, set times relative to date object
 	if (date && userSchedule) {
-		for (const schedule of userSchedule) {
+		for (const schedule of userSchedule.blocks) {
 			// Get start and end moment objects
 			const startTime = (schedule.start as string).split(':').map(n => parseInt(n, 10));
 			schedule.start = date.clone().hour(startTime[0]).minute(startTime[1]);
@@ -108,9 +119,13 @@ function getSchedule(
 }
 
 export interface DaySchedule {
+	regular: BlockFormats;
+	lateStart?: BlockFormats;
+}
+
+export interface BlockFormats {
 	lunchBlock?: Block | null;
-	regular: BlockFormat[];
-	lateStart: BlockFormat[];
+	blocks: BlockFormat[];
 }
 
 export interface BlockFormat {
@@ -125,9 +140,9 @@ export interface AlternateBlockFormat extends BlockFormat {
 }
 
 export interface LunchBlockFormat extends BlockFormat {
-	noOverlapAddBlocks: BlockFormat[];
-	sam: BlockFormat[];
-	wleh: BlockFormat[];
+	aemsh?: boolean; // Arts, English, Math, Study Hall
+	hswl?: boolean; // History, Science, World Language
+	default?: boolean;
 }
 
 export { getSchedule as get };

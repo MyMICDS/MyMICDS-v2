@@ -51,7 +51,8 @@ export async function getInfo(db: Db, user: string, privateInfo: boolean) {
 	// We don't want something accidentally being released to user.
 	const userInfo: Partial<GetUserInfoResponse> = {};
 	userInfo.user = userDoc!.user;
-	userInfo.password = 'Hunter2'; /** @TODO: Fix glitch? Shows up as ******* for me. */
+	userInfo.password =
+		'Hunter2'; /** @TODO: Fix glitch? Shows up as ******* for me. https://knowyourmeme.com/memes/hunter2*/
 	userInfo.firstName = userDoc!.firstName;
 	userInfo.lastName = userDoc!.lastName;
 	userInfo.gradYear = userDoc!.gradYear;

@@ -213,7 +213,7 @@ describe('Portal', () => {
 			expect(res.body.data).to.have.property('hasURL').that.is.true;
 			expect(res.body.data)
 				.to.have.property('classes')
-				.to.have.members(_.range(1, 6).map(n => `Test Class ${n}`));
+				.to.have.members(_.forEach(['a', 'c', 'd', 'e', 'g', 'h']).map(n => `class ${n}`));
 		});
 
 		requireLoggedIn();
@@ -238,7 +238,7 @@ describe('Portal', () => {
 
 					for (const [day, rotation] of Object.entries(days)) {
 						expect(parseInt(day, 10)).to.not.be.NaN;
-						expect(rotation).to.be.within(1, 6);
+						expect(rotation).to.be.oneOf(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']);
 					}
 				}
 			}

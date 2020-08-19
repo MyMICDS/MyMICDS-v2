@@ -20,10 +20,10 @@ const dayRotationURL = process.env.CI
 	: urlPrefix + config.portal.dayRotation;
 
 // RegEx to test if calendar summary contains a valid Day Rotation
-const validDayRotationPlain = /^US - Day [1-6]/;
+const validDayRotationPlain = /^US [A-H] Day/;
 
 const checkClassSummary = /.*:.?:[--9]*/;
-export const portalSummaryBlock = /:[A-G]:\d{2}$/g;
+export const portalSummaryBlock = /:[A-H]:\d{2}$/g;
 // Modified portal summary block to clean up everythiing for displaying
 const cleanUpBlockSuffix = / [A-Za-z]+ \d{3}:[A-G]:\d{2}$/g;
 
@@ -32,6 +32,48 @@ export const portalRange = {
 	previous: 2,
 	upcoming: 12
 };
+
+async function withCalSummary<T>(date: Date, summaryTest: (summary: string) => T) {
+	const scheduleDate = new Date(date);
+
+	let body;
+	try {
+		body = await request(dayRotationURL);
+	} catch (e) {
+		throw new Error('There was a problem fetching the day rotation!');
+	}
+
+	const data = ical.parseICS(body);
+
+	// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
+	// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
+	if (_.isEmpty(data)) {
+		throw new Error('There was a problem fetching the day rotation!');
+	}
+
+	for (const calEvent of Object.values(data)) {
+		if (typeof calEvent.summary !== 'string') {
+			continue;
+		}
+
+		const start = new Date(calEvent.start!);
+		const end = new Date(calEvent.end || '');
+
+		const startTime = start.getTime();
+		const endTime = end.getTime();
+
+		// Check if it's an all-day event
+		if (startTime === scheduleDate.getTime() && Number.isNaN(endTime)) {
+			// See if valid day
+			if (validDayRotationPlain.test(calEvent.summary)) {
+				// Run function
+				return summaryTest(calEvent.summary);
+			}
+		}
+	}
+
+	return null;
+}
 
 /**
  * Ensures that a URL points to a Portal calendar feed of some kind.
@@ -336,48 +378,26 @@ export async function getFromCalCalendar(db: Db, user: string) {
 /**
  * Retrieves the day rotation for a given date.
  * @param date The date to get the rotation for, defaults to today.
- * @returns The day rotation (integer in [1, 6]).
+ * @returns The day rotation (character A-H).
  */
 export async function getDayRotation(date: Date) {
-	const scheduleDate = new Date(date);
+	return withCalSummary(date, summary => {
+		return /([A-H]) Day/.exec(summary)![1];
+	});
+}
 
-	let body;
-	try {
-		body = await request(dayRotationURL);
-	} catch (e) {
-		throw new Error('There was a problem fetching the day rotation!');
-	}
+/**
+ * Return whether date is a late start
+ * @param Date the day to check
+ * @returns boolean of whether it is a late start day
+ */
+export async function isLateStart(date: Date) {
+	// [A - G] because there 7 late start schedules (WHY???)
+	const lateStart = await withCalSummary(date, summary => {
+		return (/[A-G]9 Day/.exec(summary) ?? []).length > 0;
+	});
 
-	const data = ical.parseICS(body);
-
-	// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
-	// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
-	if (_.isEmpty(data)) {
-		throw new Error('There was a problem fetching the day rotation!');
-	}
-
-	for (const calEvent of Object.values(data)) {
-		if (typeof calEvent.summary !== 'string') {
-			continue;
-		}
-
-		const start = new Date(calEvent.start!);
-		const end = new Date(calEvent.end || '');
-
-		const startTime = start.getTime();
-		const endTime = end.getTime();
-
-		// Check if it's an all-day event
-		if (startTime === scheduleDate.getTime() && Number.isNaN(endTime)) {
-			// See if valid day
-			if (validDayRotationPlain.test(calEvent.summary)) {
-				// Get actual day
-				return parseInt(/Day ([1-6])/.exec(calEvent.summary)![1], 10);
-			}
-		}
-	}
-
-	return null;
+	return lateStart ?? false;
 }
 
 /**
@@ -416,8 +436,7 @@ export async function getDayRotations() {
 		// See if valid day
 		if (validDayRotationPlain.test(calEvent.summary)) {
 			// Get actual day
-			const day = parseInt(/[1-6]/.exec(calEvent.summary)![0], 10);
-
+			const day = /[A-H]/.exec(calEvent.summary)![0];
 			if (typeof days[year] !== 'object') {
 				days[year] = {};
 			}

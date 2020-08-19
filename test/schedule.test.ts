@@ -34,8 +34,8 @@ describe('Schedule', () => {
 
 		const payload = {
 			year: 2020,
-			month: 2,
-			day: 7
+			month: 8,
+			day: 24
 		};
 
 		it('gets default schedule', async function () {
@@ -44,12 +44,12 @@ describe('Schedule', () => {
 			expect(res.body.data).to.deep.equal({
 				hasURL: false,
 				schedule: {
-					day: 6,
+					day: 'E',
 					special: false,
 					classes: [
 						{
 							class: defaultSchoolBlock,
-							start: momentDate.clone().hour(8).toISOString(),
+							start: momentDate.clone().hour(8).minute(30).toISOString(), // COVID this will need to be changed when covid classes end.
 							end: momentDate.clone().hour(15).minute(15).toISOString()
 						}
 					],
@@ -69,14 +69,13 @@ describe('Schedule', () => {
 			expect(res.body.data).to.containSubset({
 				hasURL: false,
 				schedule: {
-					day: 6,
+					day: 'E',
 					special: false,
 					classes: [
-						{ class: { name: 'Block B' } },
-						{ class: { name: 'Block F' } },
-						{ class: { name: 'Collaborative Work' } },
-						{ class: { name: 'Activities' } },
-						{ class: { name: 'Block D' } }
+						{ class: { name: 'Block E' } },
+						{ class: { name: 'Block G' } },
+						{ class: { name: 'Block A' } },
+						{ class: { name: 'Block C' } }
 					],
 					allDay: []
 				}
@@ -87,8 +86,8 @@ describe('Schedule', () => {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
-			await saveTestClass(this.db, { name: 'b block class', block: Block.B });
-			await saveTestClass(this.db, { name: 'f block class', block: Block.F });
+			await saveTestClass(this.db, { name: 'e block class', block: Block.E });
+			await saveTestClass(this.db, { name: 'g block class', block: Block.G });
 
 			const res = await buildRequest(this)
 				.set('Authorization', `Bearer ${jwt}`)
@@ -97,14 +96,13 @@ describe('Schedule', () => {
 			expect(res.body.data).to.containSubset({
 				hasURL: false,
 				schedule: {
-					day: 6,
+					day: 'E',
 					special: false,
 					classes: [
-						{ class: { name: 'b block class' } },
-						{ class: { name: 'f block class' } },
-						{ class: { name: 'Collaborative Work' } },
-						{ class: { name: 'Activities' } },
-						{ class: { name: 'Block D' } }
+						{ class: { name: 'e block class' } },
+						{ class: { name: 'g block class' } },
+						{ class: { name: 'Block A' } },
+						{ class: { name: 'Block C' } }
 					],
 					allDay: []
 				}
@@ -124,12 +122,13 @@ describe('Schedule', () => {
 			expect(res.body.data).to.containSubset({
 				hasURL: true,
 				schedule: {
-					day: 6,
+					day: 'E',
 					special: false,
 					classes: [
-						{ class: { name: 'Test Class 1' } },
-						{ class: { name: 'Test Class 5' } },
-						{ class: { name: 'Test Class 3' } }
+						{ class: { name: 'class e' } },
+						{ class: { name: 'class g' } },
+						{ class: { name: 'class a' } },
+						{ class: { name: 'class c' } }
 					],
 					allDay: []
 				}
@@ -142,12 +141,12 @@ describe('Schedule', () => {
 			});
 			const jwt = await generateJWT(this.db);
 
-			const { _id } = await saveTestClass(this.db, { name: 'alias class' });
+			const { _id } = await saveTestClass(this.db, { name: 'alias class', block: Block.C });
 			await aliases.add(
 				this.db,
 				testUser.user,
 				AliasType.PORTAL,
-				'Test Class 1',
+				'class c',
 				(_id as ObjectID).toHexString()
 			);
 
@@ -158,12 +157,13 @@ describe('Schedule', () => {
 			expect(res.body.data).to.containSubset({
 				hasURL: true,
 				schedule: {
-					day: 6,
+					day: 'E',
 					special: false,
 					classes: [
-						{ class: { name: 'alias class' } },
-						{ class: { name: 'Test Class 5' } },
-						{ class: { name: 'Test Class 3' } }
+						{ class: { name: 'class e' } },
+						{ class: { name: 'class g' } },
+						{ class: { name: 'class a' } },
+						{ class: { name: 'alias class' } }
 					],
 					allDay: []
 				}
