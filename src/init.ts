@@ -81,7 +81,6 @@ export async function initAPI(dbUri: string) {
 			'quotes',
 			'schedule',
 			'snowday',
-			'sports',
 			'stats',
 			'stickynotes',
 			'suggestion',
