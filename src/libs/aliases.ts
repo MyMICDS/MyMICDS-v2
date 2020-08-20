@@ -1,5 +1,5 @@
 import { AliasType, PortalClass } from '@mymicds/sdk';
-import { Db, InsertOneWriteOpResult, ObjectID } from 'mongodb';
+import { Db, ObjectID } from 'mongodb';
 import { InputError } from './errors';
 import * as classes from './classes';
 import * as users from './users';
@@ -57,16 +57,16 @@ async function addAlias(
 	};
 
 	// Insert into database
-	const aliasdata = db.collection('aliases');
+	const aliasdata = db.collection<AliasWithIDs>('aliases');
 
-	let results: InsertOneWriteOpResult;
+	let results;
 	try {
 		results = await aliasdata.insertOne(insertAlias);
 	} catch (e) {
 		throw new Error('There was a problem inserting the alias into the database!');
 	}
 
-	return results.ops[0]._id as ObjectID;
+	return results.ops[0]._id;
 }
 
 /**

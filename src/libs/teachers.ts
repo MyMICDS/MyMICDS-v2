@@ -43,7 +43,7 @@ async function getTeacher(db: Db, teacherId: ObjectID) {
 
 	try {
 		// Query database to find possible teacher
-		const docs = await teacherdata.find({ _id: teacherId }).toArray();
+		const docs = await teacherdata.find({ _id: teacherId.toHexString() }).toArray();
 
 		let isTeacher = false;
 		let teacher: Teacher | null = null;
