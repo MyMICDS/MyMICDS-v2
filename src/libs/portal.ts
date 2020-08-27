@@ -128,7 +128,11 @@ async function verifyURLGeneric(portalURL: string) {
  * @returns Whether the URL is valid and a formatted URL.
  */
 export async function verifyURLClasses(portalURL: string) {
-	const { url } = await verifyURLGeneric(portalURL);
+	const { isValid, url } = await verifyURLGeneric(portalURL);
+
+	if (typeof isValid === 'string') {
+		return { isValid, url: null };
+	}
 
 	// // Additional checks to make sure it is the correct portal feed type
 	// const events = Object.values(ical.parseICS(body));
@@ -154,7 +158,11 @@ export async function verifyURLClasses(portalURL: string) {
  * @returns Whether the URL is valid and a formatted URL.
  */
 export async function verifyURLCalendar(portalURL: string) {
-	const { url, body } = await verifyURLGeneric(portalURL);
+	const { isValid, url, body } = await verifyURLGeneric(portalURL);
+
+	if (typeof isValid === 'string') {
+		return { isValid, url: null };
+	}
 
 	// Additional checks to make sure it is the correct portal feed type
 	const events = Object.values(ical.parseICS(body));
