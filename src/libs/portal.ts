@@ -267,6 +267,8 @@ export async function getFromCacheClasses(db: Db, user: string) {
 
 	let events: PortalCacheEvent[];
 	try {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
 		events = await portaldata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
 		throw new Error('There was an error retrieving Portal events!');
@@ -295,6 +297,8 @@ export async function getFromCacheCalendar(db: Db, user: string) {
 
 	let events: PortalCacheEvent[];
 	try {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
 		events = await portaldata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
 		throw new Error('There was an error retrieving Portal events!');

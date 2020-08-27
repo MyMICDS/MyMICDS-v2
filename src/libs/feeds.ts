@@ -82,6 +82,8 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 	}
 
 	try {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
 		await portaldata.deleteMany({ user: userDoc!._id });
 	} catch (e) {
 		throw new Error('There was an error removing the old events from the database!');
@@ -146,6 +148,8 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 	}
 
 	try {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
 		await portaldata.deleteMany({ user: userDoc!._id });
 	} catch (e) {
 		throw new Error('There was an error removing the old events from the database!');

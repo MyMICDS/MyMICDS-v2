@@ -232,6 +232,8 @@ export async function getClasses(db: Db, user: string) {
 
 	let events;
 	try {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
 		events = await canvasdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
 		throw new Error('There was an error retrieving Canvas events!');
@@ -245,6 +247,8 @@ export async function getClasses(db: Db, user: string) {
 
 	let retryEvents;
 	try {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
 		retryEvents = await canvasdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
 		throw new Error('There was an error retrieving Canvas events!');
@@ -273,6 +277,8 @@ export async function getFromCache(db: Db, user: string) {
 
 	let events;
 	try {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
 		events = await canvasdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
 		throw new Error('There was an error retrieving Canvas events!');
