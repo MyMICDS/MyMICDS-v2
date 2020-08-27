@@ -339,7 +339,7 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 
 		await moduledata.updateOne(
 			{ _id: mod._id, user: userDoc!._id },
-			{ $set: mod },
+			{ $set: mod as MyMICDSModuleWithIDs },
 			{ upsert: true }
 		);
 	}
