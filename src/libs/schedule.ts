@@ -507,7 +507,7 @@ async function getSchedule(
 /**
  * converts a time string in the format hh:mm to a moment object, and append that time to the date Moment object
  * @param date the day to append the time to.
- * @param Moment or string; this is the time string in hh:mm, it will take a moment object to, but will result in no changes.
+ * @param time this is the time string in hh:mm, it will take a moment object to, but will result in no changes.
  * @returns Moment object of the same date, but with the time set to the time string's value.
  */
 function convertTimeStringToMoment(
