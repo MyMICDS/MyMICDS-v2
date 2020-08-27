@@ -680,7 +680,7 @@ function ordineSchedule(
 					// Also make sure end is a moment object because it goes through JSON.stringify
 					newBlock.end = moment(newBlock.end);
 
-					(baseSchedule as any[]).push(newBlock);
+					baseSchedule.push(newBlock);
 				}
 
 				if (endRelation === 'same end' || endRelation === 'after') {
@@ -706,13 +706,19 @@ function ordineSchedule(
 		}
 
 		// After all other classes are accounted for, add this new class
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(baseSchedule as any[]).push(addClass);
 	}
 
+	// TypeScript is being really fussy about baseSchedule
+	// Fixing the types is non-trivial though so just do some any stuff rn
+
 	// Delete all classes that start and end at the same time, or end is before start
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	baseSchedule = (baseSchedule as any[]).filter(value => value.start.unix() < value.end.unix());
 
 	// Reorder schedule because of deleted classes
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	(baseSchedule as any[]).sort((a, b) => a.start - b.start);
 
 	return baseSchedule;
