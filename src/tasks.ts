@@ -128,7 +128,7 @@ if (config.production) {
 
 				const users = await userdata.find({ confirmed: true }).toArray();
 
-				for (const { user } of users) {
+				for (const [i, { user }] of users.entries()) {
 					setTimeout(async () => {
 						try {
 							await feeds.updateCanvasCache(db, user);
@@ -141,7 +141,7 @@ if (config.production) {
 								})`
 							);
 						}
-					}, (6 * 60 * 60 * 1000) / users.length);
+					}, (i / users.length) * (6 * 60 * 60 * 1000));
 				}
 			}, later.parse.text('every 6 hours'));
 
@@ -154,7 +154,7 @@ if (config.production) {
 
 				const users = await userdata.find({ confirmed: true }).toArray();
 
-				for (const { user } of users) {
+				for (const [i, { user }] of users.entries()) {
 					setTimeout(async () => {
 						try {
 							await feeds.addPortalQueueClasses(db, user);
@@ -179,7 +179,7 @@ if (config.production) {
 								})`
 							);
 						}
-					}, (6 * 60 * 60 * 1000) / users.length);
+					}, (i / users.length) * (6 * 60 * 60 * 1000));
 				}
 			}, later.parse.text('every 24 hours'));
 		})
