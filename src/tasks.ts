@@ -1,5 +1,5 @@
+import { gradeToGradYear, UserDoc } from './libs/users';
 import { MongoClient } from 'mongodb';
-import { UserDoc } from './libs/users';
 import * as admins from './libs/admins';
 import * as dailyBulletin from './libs/dailyBulletin';
 import * as feeds from './libs/feeds';
@@ -19,6 +19,8 @@ if (config.production) {
 		.then(client => {
 			const db = client.db();
 			const fiveMinuteInterval = later.parse.text('every 5 min');
+
+			const userQuery = { confirmed: true, gradYear: { $gte: gradeToGradYear(12) } };
 
 			/*
 			 * Get Daily Bulletin every 5 minutes
@@ -126,9 +128,9 @@ if (config.production) {
 			later.setInterval(async () => {
 				const userdata = db.collection<UserDoc>('users');
 
-				const users = await userdata.find({ confirmed: true }).toArray();
+				const users = await userdata.find(userQuery).toArray();
 
-				for (const { user } of users) {
+				for (const [i, { user }] of users.entries()) {
 					setTimeout(async () => {
 						try {
 							await feeds.updateCanvasCache(db, user);
@@ -141,7 +143,7 @@ if (config.production) {
 								})`
 							);
 						}
-					}, (6 * 60 * 60 * 1000) / users.length);
+					}, (i / users.length) * (6 * 60 * 60 * 1000));
 				}
 			}, later.parse.text('every 6 hours'));
 
@@ -152,9 +154,9 @@ if (config.production) {
 			later.setInterval(async () => {
 				const userdata = db.collection<UserDoc>('users');
 
-				const users = await userdata.find({ confirmed: true }).toArray();
+				const users = await userdata.find(userQuery).toArray();
 
-				for (const { user } of users) {
+				for (const [i, { user }] of users.entries()) {
 					setTimeout(async () => {
 						try {
 							await feeds.addPortalQueueClasses(db, user);
@@ -179,7 +181,7 @@ if (config.production) {
 								})`
 							);
 						}
-					}, (6 * 60 * 60 * 1000) / users.length);
+					}, (i / users.length) * (6 * 60 * 60 * 1000));
 				}
 			}, later.parse.text('every 24 hours'));
 		})
