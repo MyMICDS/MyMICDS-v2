@@ -1,6 +1,6 @@
 import { Block, ClassType } from '@mymicds/sdk';
 import { Db, ObjectID } from 'mongodb';
-import { InputError } from './errors';
+import { InputError, InternalError } from './errors';
 import { Omit } from './utils';
 import { Teacher } from '@mymicds/sdk/dist/libs/teachers';
 import * as aliases from './aliases';
@@ -72,7 +72,7 @@ async function upsertClass(
 		// Check for duplicate classes first
 		classes = await classdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
-		throw new Error('There was a problem querying the database!');
+		throw new InternalError('There was a problem querying the database!', e);
 	}
 
 	// Lets see if any of the classes are the one we are supposed to edit
@@ -135,7 +135,7 @@ async function upsertClass(
 		// Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
 		await classdata.updateOne({ _id: id }, { $set: insertClass }, { upsert: true });
 	} catch (e) {
-		throw new Error('There was a problem upserting the class into the database!');
+		throw new InternalError('There was a problem upserting the class into the database!', e);
 	}
 
 	await teachers.deleteClasslessTeachers(db);
@@ -194,7 +194,7 @@ async function getClasses(db: Db, user: string) {
 			])
 			.toArray();
 	} catch (e) {
-		throw new Error('There was a problem querying the database!');
+		throw new InternalError('There was a problem querying the database!', e);
 	}
 
 	// Add 'textDark' to all of the classes based on color
@@ -231,7 +231,7 @@ async function deleteClass(db: Db, user: string, classId: string) {
 	try {
 		await classdata.deleteOne({ _id: id, user: userDoc!._id });
 	} catch (e) {
-		throw new Error('There was a problem deleting the class from the database!');
+		throw new InternalError('There was a problem deleting the class from the database!', e);
 	}
 
 	// @TODO: Error handling if these fail

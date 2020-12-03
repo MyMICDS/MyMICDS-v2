@@ -1,5 +1,6 @@
 import { Db } from 'mongodb';
 import { GetStatsResponse } from '@mymicds/sdk';
+import { InternalError } from './errors';
 import { UserDoc } from './users';
 import moment from 'moment';
 
@@ -27,7 +28,7 @@ async function getStats(db: Db) {
 	try {
 		userDocs = await userdata.find({ confirmed: true }).toArray();
 	} catch (e) {
-		throw new Error('There was a problem querying the users from the database!');
+		throw new InternalError('There was a problem querying the users from the database!', e);
 	}
 
 	// Get user registered count

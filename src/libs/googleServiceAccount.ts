@@ -4,6 +4,7 @@ import config from './config';
 const key = config.googleServiceAccount;
 
 import { google } from 'googleapis';
+import { InternalError } from './errors';
 
 // Any Google scopes the Service Account uses
 const scopes = ['https://www.googleapis.com/auth/gmail.readonly'];
@@ -26,7 +27,7 @@ async function createServiceAccount() {
 	try {
 		await jwtClient.authorize();
 	} catch (e) {
-		throw new Error('There was a problem authorizing the Google Service Account!');
+		throw new InternalError('There was a problem authorizing the Google Service Account!', e);
 	}
 
 	return jwtClient;

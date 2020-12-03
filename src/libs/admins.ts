@@ -1,6 +1,7 @@
 import * as mail from './mail';
 
 import { Db } from 'mongodb';
+import { InternalError } from './errors';
 import { UserDoc } from './users';
 
 /**
@@ -14,7 +15,7 @@ async function getAdmins(db: Db) {
 	try {
 		return await userdata.find({ scopes: ['admin'] }).toArray();
 	} catch (e) {
-		throw new Error('There was a problem querying the database!');
+		throw new InternalError('There was a problem querying the database!', e);
 	}
 }
 
@@ -29,7 +30,7 @@ async function sendAdminEmail(db: Db, message: mail.Message) {
 	try {
 		admins = await getAdmins(db);
 	} catch (e) {
-		throw new Error('Error getting list of admins!');
+		throw new InternalError('Error getting list of admins!', e);
 	}
 
 	if (admins.length < 1) {

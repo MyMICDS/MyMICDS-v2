@@ -1,6 +1,6 @@
 import { AliasType, PortalClass } from '@mymicds/sdk';
 import { Db, ObjectID } from 'mongodb';
-import { InputError } from './errors';
+import { InputError, InternalError } from './errors';
 import * as classes from './classes';
 import * as users from './users';
 
@@ -63,7 +63,7 @@ async function addAlias(
 	try {
 		results = await aliasdata.insertOne(insertAlias);
 	} catch (e) {
-		throw new Error('There was a problem inserting the alias into the database!');
+		throw new InternalError('There was a problem inserting the alias into the database!', e);
 	}
 
 	return results.ops[0]._id;
@@ -89,7 +89,7 @@ async function listAliases(db: Db, user: string) {
 	try {
 		aliases = await aliasdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
-		throw new Error('There was a problem querying the database!');
+		throw new InternalError('There was a problem querying the database!', e);
 	}
 
 	// Add array for all alias types
@@ -174,7 +174,7 @@ async function deleteAlias(db: Db, user: string, type: AliasType, aliasId: strin
 	try {
 		await aliasdata.deleteOne({ _id: validAliasId });
 	} catch (e) {
-		throw new Error('There was a problem deleting the alias from the database!');
+		throw new InternalError('There was a problem deleting the alias from the database!', e);
 	}
 }
 
@@ -202,7 +202,7 @@ async function getAliasClass(db: Db, user: string, type: AliasType, classInput: 
 			.find({ user: userDoc!._id, type, classRemote: classInput })
 			.toArray();
 	} catch (e) {
-		throw new Error('There was a problem querying the database!');
+		throw new InternalError('There was a problem querying the database!', e);
 	}
 
 	if (aliases.length === 0) {
@@ -257,7 +257,7 @@ export async function deleteClasslessAliases(db: Db) {
 			])
 			.toArray();
 	} catch (e) {
-		throw new Error('There was a problem querying the database!');
+		throw new InternalError('There was a problem querying the database!', e);
 	}
 
 	try {
@@ -265,7 +265,7 @@ export async function deleteClasslessAliases(db: Db) {
 			classless.map(alias => aliasdata.deleteOne({ _id: alias._id, user: alias.user }))
 		);
 	} catch (e) {
-		throw new Error('There was a problem deleting aliases in the database!');
+		throw new InternalError('There was a problem deleting aliases in the database!', e);
 	}
 }
 

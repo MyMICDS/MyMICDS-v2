@@ -18,6 +18,13 @@
 		}
 	],
 	"rules": {
-		"@typescript-eslint/ban-tslint-comment": "error"
+		"@typescript-eslint/ban-tslint-comment": "error",
+		"no-restricted-syntax": [
+			"error",
+			{
+				"selector": "CatchClause ThrowStatement NewExpression[callee.name='Error']",
+				"message": "use InternalError instead of throwing a plain Error object"
+			}
+		]
 	}
 }

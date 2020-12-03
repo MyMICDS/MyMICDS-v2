@@ -2,6 +2,7 @@ import * as fs from 'fs-extra';
 import * as nodemailer from 'nodemailer';
 import config from './config';
 
+import { InternalError } from './errors';
 import { StringDict } from './utils';
 
 /**
@@ -31,7 +32,10 @@ export async function send(
 			await transporter.sendMail(mailOptions);
 		}
 	} catch (e) {
-		throw new Error(`There was a problem sending the mail! (${(e as Error).message})`);
+		throw new InternalError(
+			`There was a problem sending the mail! (${(e as Error).message})`,
+			e
+		);
 	}
 }
 
@@ -54,7 +58,7 @@ export async function sendHTML(
 	try {
 		body = await fs.readFile(file, 'utf8');
 	} catch (e) {
-		throw new Error('There was a problem reading the HTML path for the mail!');
+		throw new InternalError('There was a problem reading the HTML path for the mail!', e);
 	}
 
 	// Replace JSON Key values with custom data
@@ -62,12 +66,12 @@ export async function sendHTML(
 		body = body.replace('{{' + key + '}}', data[key]);
 	}
 
-	const mesesage = {
+	const message = {
 		subject,
 		html: body
 	};
 
-	return send(users, mesesage, transporter);
+	return send(users, message, transporter);
 }
 
 export interface Message {

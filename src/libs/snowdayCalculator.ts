@@ -1,4 +1,5 @@
 import { GetSnowdayResponse, Snowday } from '@mymicds/sdk';
+import { InternalError } from './errors';
 import $ from 'cheerio';
 import moment from 'moment';
 import request from 'request-promise-native';
@@ -26,7 +27,7 @@ export async function calculate(): Promise<GetSnowdayResponse['data']> {
 			gzip: true
 		});
 	} catch (e) {
-		throw new Error('There was a problem querying the Snowday Calculator!');
+		throw new InternalError('There was a problem querying the Snowday Calculator!', e);
 	}
 
 	// Snowday Calculator is weird and transfers Javascript code, so we use RegEx to get the values

@@ -1,5 +1,6 @@
 import { Db } from 'mongodb';
 import { GetLunchResponse, School, SchoolLunch } from '@mymicds/sdk';
+import { InternalError } from './errors';
 import { Response } from 'request';
 import moment from 'moment';
 import objectAssignDeep from 'object-assign-deep';
@@ -41,7 +42,7 @@ async function getLunch(db: Db, date: Date) {
 			objectAssignDeep(fullLunchResponse, parseLunch(school, res.body));
 		}
 	} catch (e) {
-		throw new Error(`There was a problem fetching the lunch data! (${(e as Error).message})`);
+		throw new InternalError('There was a problem fetching the lunch data!', e);
 	}
 
 	// Alert admins if lunch page has moved

@@ -1,5 +1,5 @@
 import { Db, ObjectID } from 'mongodb';
-import { InputError } from './errors';
+import { InputError, InternalError } from './errors';
 import { Omit } from './utils';
 import { Teacher } from '@mymicds/sdk';
 
@@ -21,14 +21,14 @@ async function addTeacher(db: Db, teacher: Omit<Teacher, '_id'>) {
 		// Upsert teacher into collection
 		await teacherdata.updateOne(teacher, { $set: teacher }, { upsert: true });
 	} catch (e) {
-		throw new Error('There was a problem inserting the teacher into the database!');
+		throw new InternalError('There was a problem inserting the teacher into the database!', e);
 	}
 
 	try {
 		const docs = await teacherdata.find<TeacherWithID>(teacher).toArray();
 		return docs[0];
 	} catch (e) {
-		throw new Error('There was a problem querying the database!');
+		throw new InternalError('There was a problem querying the database!', e);
 	}
 }
 
@@ -55,7 +55,7 @@ async function getTeacher(db: Db, teacherId: ObjectID) {
 
 		return { isTeacher, teacher };
 	} catch (e) {
-		throw new Error('There was a problem querying the database!');
+		throw new InternalError('There was a problem querying the database!', e);
 	}
 }
 
@@ -70,7 +70,7 @@ async function listTeachers(db: Db) {
 	try {
 		return await teacherdata.find({}).toArray();
 	} catch (e) {
-		throw new Error('There was a problem querying the database!');
+		throw new InternalError('There was a problem querying the database!', e);
 	}
 }
 
@@ -107,13 +107,13 @@ export async function deleteClasslessTeachers(db: Db) {
 			])
 			.toArray();
 	} catch (e) {
-		throw new Error('There was a problem querying the database!');
+		throw new InternalError('There was a problem querying the database!', e);
 	}
 
 	try {
 		await Promise.all(docs.map(t => teacherdata.deleteOne({ _id: t._id })));
 	} catch (e) {
-		throw new Error('There was a problem deleting classless teachers!');
+		throw new InternalError('There was a problem deleting classless teachers!', e);
 	}
 }
 
