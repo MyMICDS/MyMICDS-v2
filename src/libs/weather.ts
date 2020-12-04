@@ -1,3 +1,4 @@
+import { InternalError } from './errors';
 import { Weather } from '@mymicds/sdk';
 import * as fs from 'fs-extra';
 import axios from 'axios';
@@ -41,8 +42,8 @@ async function updateWeather() {
 	try {
 		const response = await axios.get(openWeatherEndpoint);
 		rawWeather = response.data;
-	} catch (err) {
-		throw new Error('There was a problem fetching the weather data!');
+	} catch (e) {
+		throw new InternalError('There was a problem fetching the weather data!', e);
 	}
 
 	if (rawWeather === null) {
@@ -64,8 +65,8 @@ async function updateWeather() {
 	// save dat DATA
 	try {
 		await fs.outputJSON(JSON_PATH, weather, { spaces: '\t' });
-	} catch (err) {
-		throw new Error('There was a problem saving the weather data!');
+	} catch (e) {
+		throw new InternalError('There was a problem saving the weather data!', e);
 	}
 
 	return weather;

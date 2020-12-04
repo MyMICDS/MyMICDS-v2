@@ -1,5 +1,5 @@
 import { Db } from 'mongodb';
-import { InputError } from './errors';
+import { InputError, InternalError } from './errors';
 import { promisify } from 'util';
 import { UserDoc } from './users';
 import * as fs from 'fs-extra';
@@ -104,7 +104,7 @@ async function getCurrentFiles(user: string) {
 	try {
 		userDirs = await fs.readdir(userBackgroundsDir);
 	} catch (e) {
-		throw new Error('There was a problem reading the user backgrounds directory!');
+		throw new InternalError('There was a problem reading the user backgrounds directory!', e);
 	}
 
 	// Look through all the directories
@@ -161,7 +161,7 @@ async function deleteBackground(user: string) {
 	try {
 		await fs.rename(currentPath, deletedPath);
 	} catch (e) {
-		throw new Error('There was a problem deleting the directory!');
+		throw new InternalError('There was a problem deleting the directory!', e);
 	}
 }
 
@@ -201,7 +201,7 @@ async function getAllBackgrounds(db: Db) {
 	try {
 		userDirs = await fs.readdir(userBackgroundsDir);
 	} catch (e) {
-		throw new Error('There was a problem reading the user backgrounds directory!');
+		throw new InternalError('There was a problem reading the user backgrounds directory!', e);
 	}
 
 	const userdata = db.collection<UserDoc>('users');
@@ -210,7 +210,7 @@ async function getAllBackgrounds(db: Db) {
 	try {
 		users = await userdata.find({ confirmed: true }).toArray();
 	} catch (e) {
-		throw new Error('There was a problem querying the database!');
+		throw new InternalError('There was a problem querying the database!', e);
 	}
 
 	const remainingUsers = users.map(u => u.user);
@@ -267,7 +267,7 @@ async function getDirExtension(userDir: string) {
 	try {
 		userImages = await fs.readdir(userBackgroundsDir + '/' + userDir);
 	} catch (e) {
-		throw new Error("There was a problem reading the user's background directory!");
+		throw new InternalError("There was a problem reading the user's background directory!", e);
 	}
 
 	// Loop through all valid files until there's either a .png or .jpg extention
@@ -297,13 +297,13 @@ async function addBlur(fromPath: string, toPath: string, blurRadius: number) {
 	try {
 		image = await Jimp.read(fromPath);
 	} catch (e) {
-		throw new Error('There was a problem reading the image!');
+		throw new InternalError('There was a problem reading the image!', e);
 	}
 
 	try {
 		await promisify(image.blur(blurRadius).write.bind(image))(toPath);
 	} catch (e) {
-		throw new Error('There was a problem saving the image!');
+		throw new InternalError('There was a problem saving the image!', e);
 	}
 }
 

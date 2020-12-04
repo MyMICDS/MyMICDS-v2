@@ -1,3 +1,4 @@
+import { InternalError } from './errors';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
@@ -10,7 +11,7 @@ export async function hashPassword(password: string) {
 	try {
 		return await bcrypt.hash(password, 10);
 	} catch (e) {
-		throw new Error('There was a problem hashing the password!');
+		throw new InternalError('There was a problem hashing the password!', e);
 	}
 }
 

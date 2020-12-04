@@ -1,6 +1,6 @@
 import { Action } from '@mymicds/sdk';
 import { Db, ObjectID } from 'mongodb';
-import { InputError } from './errors';
+import { InputError, InternalError } from './errors';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { StringDict } from './utils';
 import * as api from './api';
@@ -221,7 +221,7 @@ export async function generate(db: Db, user: string, rememberMe: boolean, commen
 			}
 		);
 	} catch (e) {
-		throw new Error('There was a problem generating a JWT!');
+		throw new InternalError('There was a problem generating a JWT!', e);
 	}
 
 	const jwtData = db.collection('jwtWhitelist');
@@ -229,7 +229,7 @@ export async function generate(db: Db, user: string, rememberMe: boolean, commen
 	try {
 		await jwtData.insertOne({ user: userDoc!._id, jwt: token, comment });
 	} catch (e) {
-		throw new Error('There was a problem registering the JWT!');
+		throw new InternalError('There was a problem registering the JWT!', e);
 	}
 
 	return token;
@@ -249,7 +249,7 @@ export async function isBlacklisted(db: Db, checkJwt: string) {
 	try {
 		docs = await jwtData.find({ jwt: checkJwt }).toArray();
 	} catch (e) {
-		throw new Error('There was a problem querying the database!');
+		throw new InternalError('There was a problem querying the database!', e);
 	}
 
 	return docs.length < 1;
@@ -272,7 +272,7 @@ export async function revoke(db: Db, payload: UserPayload, revokeJwt: string) {
 	try {
 		await jwtData.deleteOne({ user: userDoc!._id, jwt: revokeJwt });
 	} catch (e) {
-		throw new Error('There was a problem revoking the JWT in the database!');
+		throw new InternalError('There was a problem revoking the JWT in the database!', e);
 	}
 }
 

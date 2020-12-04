@@ -1,4 +1,5 @@
 import { gmail_v1, google } from 'googleapis';
+import { InternalError } from './errors';
 import * as fs from 'fs-extra';
 import * as googleServiceAccount from './googleServiceAccount';
 import * as path from 'path';
@@ -40,7 +41,7 @@ export async function queryLatest() {
 			})
 			.then(r => r.data);
 	} catch (e) {
-		throw new Error('There was a problem listing the messages from Gmail!');
+		throw new InternalError('There was a problem listing the messages from Gmail!', e);
 	}
 
 	// Get the most recent email id
@@ -57,7 +58,7 @@ export async function queryLatest() {
 			})
 			.then(r => r.data);
 	} catch (e) {
-		throw new Error('There was a problem getting the most recent email!');
+		throw new InternalError('There was a problem getting the most recent email!', e);
 	}
 
 	// Search through the email for any PDF
@@ -89,7 +90,7 @@ export async function queryLatest() {
 			})
 			.then(r => r.data);
 	} catch (e) {
-		throw new Error('There was a problem getting the PDF attachment!');
+		throw new InternalError('There was a problem getting the PDF attachment!', e);
 	}
 
 	// PDF Contents
@@ -110,14 +111,14 @@ export async function queryLatest() {
 	try {
 		await fs.ensureDir(bulletinPDFDir);
 	} catch (e) {
-		throw new Error('There was a problem ensuring directory for Daily Bulletins!');
+		throw new InternalError('There was a problem ensuring directory for Daily Bulletins!', e);
 	}
 
 	// Write PDF to file
 	try {
 		await fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf);
 	} catch (e) {
-		throw new Error('There was a problem writing the PDF!');
+		throw new InternalError('There was a problem writing the PDF!', e);
 	}
 }
 
@@ -151,7 +152,7 @@ export async function queryAll() {
 		try {
 			messageList = await gmail.users.messages.list(listQuery).then(r => r.data);
 		} catch (e) {
-			throw new Error('There was a problem listing the messages from Gmail!');
+			throw new InternalError('There was a problem listing the messages from Gmail!', e);
 		}
 
 		// Add message ids to array
@@ -235,7 +236,7 @@ export async function queryAll() {
 	try {
 		await fs.ensureDir(bulletinPDFDir);
 	} catch (e) {
-		throw new Error('There was a problem ensuring directory for Daily Bulletins!');
+		throw new InternalError('There was a problem ensuring directory for Daily Bulletins!', e);
 	}
 
 	await Promise.all(
@@ -257,7 +258,7 @@ export async function queryAll() {
 			try {
 				await fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf);
 			} catch (e) {
-				throw new Error('There was a problem writing the PDF!');
+				throw new InternalError('There was a problem writing the PDF!', e);
 			}
 		})
 	);
@@ -274,14 +275,14 @@ export async function getList() {
 	try {
 		await fs.ensureDir(bulletinPDFDir);
 	} catch (e) {
-		throw new Error('There was a problem ensuring the bulletin directory exists!');
+		throw new InternalError('There was a problem ensuring the bulletin directory exists!', e);
 	}
 
 	let files: string[];
 	try {
 		files = await fs.readdir(bulletinPDFDir);
 	} catch (e) {
-		throw new Error('There was a problem reading the bulletin directory!');
+		throw new InternalError('There was a problem reading the bulletin directory!', e);
 	}
 
 	// Only return files that are a PDF

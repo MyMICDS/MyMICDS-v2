@@ -1,5 +1,6 @@
 import { AliasType, Block, CanvasEvent, ClassType, DefaultCanvasClass } from '@mymicds/sdk';
 import { Db, ObjectID } from 'mongodb';
+import { InternalError } from './errors';
 import { MyMICDSClassWithIDs } from './classes';
 import * as _ from 'lodash';
 import * as aliases from './aliases';
@@ -44,7 +45,7 @@ export async function verifyURL(canvasURL: string) {
 			simple: false
 		});
 	} catch (e) {
-		throw new Error('There was a problem fetching calendar data from the URL!');
+		throw new InternalError('There was a problem fetching calendar data from the URL!', e);
 	}
 
 	if (response.statusCode !== 200) {
@@ -81,7 +82,7 @@ export async function setURL(db: Db, user: string, calUrl: string) {
 			{ upsert: true }
 		);
 	} catch (e) {
-		throw new Error('There was a problem updating the URL to the database!');
+		throw new InternalError('There was a problem updating the URL to the database!', e);
 	}
 
 	await feeds.updateCanvasCache(db, user);
@@ -112,7 +113,7 @@ export async function getUserCal(db: Db, user: string) {
 			simple: false
 		});
 	} catch (e) {
-		throw new Error('There was a problem fetching canvas data from the URL!');
+		throw new InternalError('There was a problem fetching canvas data from the URL!', e);
 	}
 	if (response.statusCode !== 200) {
 		throw new Error('Invalid URL!');
@@ -236,7 +237,7 @@ export async function getClasses(db: Db, user: string) {
 		// @ts-ignore
 		events = await canvasdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
-		throw new Error('There was an error retrieving Canvas events!');
+		throw new InternalError('There was an error retrieving Canvas events!', e);
 	}
 
 	// If cache is empty, update it
@@ -251,7 +252,7 @@ export async function getClasses(db: Db, user: string) {
 		// @ts-ignore
 		retryEvents = await canvasdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
-		throw new Error('There was an error retrieving Canvas events!');
+		throw new InternalError('There was an error retrieving Canvas events!', e);
 	}
 
 	return parseEvents(retryEvents);
@@ -281,7 +282,7 @@ export async function getFromCache(db: Db, user: string) {
 		// @ts-ignore
 		events = await canvasdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
-		throw new Error('There was an error retrieving Canvas events!');
+		throw new InternalError('There was an error retrieving Canvas events!', e);
 	}
 
 	// Get which events are checked

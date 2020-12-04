@@ -1,5 +1,5 @@
 import { Db } from 'mongodb';
-import { InputError } from './errors';
+import { InputError, InternalError } from './errors';
 import { Omit } from './utils';
 import { promisify } from 'util';
 import { RegisterParameters } from '@mymicds/sdk';
@@ -90,7 +90,7 @@ export async function register(db: Db, user: NewUserData) {
 	try {
 		confirmationBuf = await promisify(crypto.randomBytes)(16);
 	} catch (e) {
-		throw new Error('There was a problem generating a random confirmation hash!');
+		throw new InternalError('There was a problem generating a random confirmation hash!', e);
 	}
 
 	const confirmationHash = confirmationBuf.toString('hex');
@@ -99,7 +99,7 @@ export async function register(db: Db, user: NewUserData) {
 	try {
 		unsubscribeBuf = await promisify(crypto.randomBytes)(16);
 	} catch (e) {
-		throw new Error('There was a problem generating a random email hash!');
+		throw new InternalError('There was a problem generating a random email hash!', e);
 	}
 
 	const unsubscribeHash = unsubscribeBuf.toString('hex');
@@ -123,7 +123,7 @@ export async function register(db: Db, user: NewUserData) {
 	try {
 		await userdata.updateOne({ user: newUser.user }, { $set: newUser }, { upsert: true });
 	} catch (e) {
-		throw new Error('There was a problem inserting the account into the database!');
+		throw new InternalError('There was a problem inserting the account into the database!', e);
 	}
 
 	const email = newUser.user + '@micds.org';
@@ -151,7 +151,7 @@ export async function register(db: Db, user: NewUserData) {
 		});
 	} catch (e) {
 		console.log(
-			`[${new Date().toString()}] Error occured when sending admin notification! (${
+			`[${new Date().toString()}] Error occurred when sending admin notification! (${
 				(e as Error).message
 			})`
 		);
@@ -179,7 +179,7 @@ export async function confirm(db: Db, user: string, hash: string) {
 		try {
 			await userdata.updateOne({ user }, { $set: { confirmed: true } });
 		} catch (e) {
-			throw new Error('There was a problem updating the database!');
+			throw new InternalError('There was a problem updating the database!', e);
 		}
 	} else {
 		// Hash does not match

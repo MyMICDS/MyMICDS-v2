@@ -1,4 +1,5 @@
 import { Db } from 'mongodb';
+import { InternalError } from './errors';
 import { Quote } from '@mymicds/sdk';
 
 /**
@@ -12,7 +13,7 @@ async function getQuotes(db: Db) {
 	try {
 		return await quotesData.find({}).toArray();
 	} catch (e) {
-		throw new Error('There was a problem getting all the quotes from the database!');
+		throw new InternalError('There was a problem getting all the quotes from the database!', e);
 	}
 }
 
@@ -31,7 +32,7 @@ async function insertQuote(db: Db, author: string, quote: string) {
 			quote
 		});
 	} catch (e) {
-		throw new Error('There was a problem inserting the quote into the database!');
+		throw new InternalError('There was a problem inserting the quote into the database!', e);
 	}
 }
 

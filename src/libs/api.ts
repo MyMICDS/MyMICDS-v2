@@ -1,5 +1,5 @@
 import { Action } from '@mymicds/sdk';
-import { InputError } from './errors';
+import { InputError, InternalError } from './errors';
 import { NextFunction, Request, Response } from 'express';
 import { TypeGuardError } from 'typescript-is';
 import * as Sentry from '@sentry/node';
@@ -83,6 +83,10 @@ function respondError(res: Response, error: Error | string | null, action: Actio
 	} else if (error instanceof TypeGuardError || error instanceof InputError) {
 		res.status(400);
 	} else {
+		if (error instanceof InternalError) {
+			err = error.message;
+			error = error.source;
+		}
 		res.status(500);
 		if (!process.env.CI) {
 			Sentry.captureException(error);

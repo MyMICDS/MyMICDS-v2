@@ -1,4 +1,5 @@
 import { Db } from 'mongodb';
+import { InternalError } from './errors';
 import { Scope } from '@mymicds/sdk';
 import * as cryptoUtils from './cryptoUtils';
 import * as users from './users';
@@ -35,7 +36,7 @@ export async function unsubscribe(
 		try {
 			await userdata.updateOne({ user }, { $addToSet: { unsubscribed: { $each: scopes } } });
 		} catch (e) {
-			throw new Error('There was a problem updating the database!');
+			throw new InternalError('There was a problem updating the database!', e);
 		}
 	} else {
 		// Hash does not match
