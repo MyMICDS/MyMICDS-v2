@@ -1,16 +1,14 @@
 import { Db } from 'mongodb';
 import { GetLunchResponse, School, SchoolLunch } from '@mymicds/sdk';
 import { InternalError } from './errors';
-import { Response } from 'request';
+import axios from 'axios';
 import moment from 'moment';
 import objectAssignDeep from 'object-assign-deep';
-import request from 'request-promise-native';
 
-const lunchBaseURL =
-	'https://micds.flikisdining.com/menu/api/weeks/school/mary-institute-country-day-school-micds/menu-type';
+const lunchBaseURL = 'https://micds.flikisdining.com/menu/api/weeks/school';
 const schools: Record<School, string> = {
-	lowerschool: 'middle-school-menu',
-	middleschool: 'middle-school-menu',
+	lowerschool: 'lower-and-middle-school-menu',
+	middleschool: 'lower-and-middle-school-menu',
 	upperschool: 'upper-school-menu'
 };
 
@@ -23,39 +21,21 @@ async function getLunch(db: Db, date: Date) {
 	const currentDay = moment(date).day('Wednesday');
 	const fullLunchResponse: GetLunchResponse['lunch'] = {};
 
-	let res: Response;
 	try {
 		for (const school of Object.keys(schools) as School[]) {
 			const schoolUrl = schools[school];
-			const lunchUrl = `${lunchBaseURL}/${schoolUrl}/${currentDay.year()}/${
+			const lunchUrl = `${lunchBaseURL}/${schoolUrl}/menu-type/lunch/${currentDay.year()}/${
 				currentDay.month() + 1
-			}/${currentDay.date()}`;
-			// Send POST request to lunch website
-			res = await request.get(lunchUrl, {
-				resolveWithFullResponse: true,
-				simple: false,
-				json: true
-			});
+			}/${currentDay.date()}/`;
 
-			// if (res.statusCode !== 200) { throw new Error('It appears the lunch site is down. Check again later!'); }
+			// Send request to lunch website
+			const res = await axios.get(lunchUrl);
 
-			objectAssignDeep(fullLunchResponse, parseLunch(school, res.body));
+			objectAssignDeep(fullLunchResponse, parseLunch(school, res.data));
 		}
 	} catch (e) {
 		throw new InternalError('There was a problem fetching the lunch data!', e);
 	}
-
-	// Alert admins if lunch page has moved
-	// admins.sendEmail(db, {
-	// 	subject: 'Error Notification - Lunch Retrieval',
-	// 	html: 'There was a problem with the lunch URL.<br>Error message: ' + err
-	// }, err => {
-	// 	if (err) {
-	// 		console.log('[' + new Date() + '] Error occured when sending admin error notifications! (' + err + ')');
-	// 		return;
-	// 	}
-	// 	console.log('[' + new Date() + '] Alerted admins of error! (' + err + ')');
-	// });
 
 	return fullLunchResponse;
 }
