@@ -12,7 +12,7 @@ import * as prisma from 'prisma';
 import * as querystring from 'querystring';
 import * as url from 'url';
 import * as users from './users';
-import request from 'request-promise-native';
+import axios from 'axios';
 
 // URL Calendars come from
 const urlPrefix = 'https://micds.instructure.com/feeds/calendars/';
@@ -40,15 +40,12 @@ export async function verifyURL(canvasURL: string) {
 	// Not lets see if we can actually get any data from here
 	let response;
 	try {
-		response = await request(validURL, {
-			resolveWithFullResponse: true,
-			simple: false
-		});
+		response = await axios.get(validURL);
 	} catch (e) {
 		throw new InternalError('There was a problem fetching calendar data from the URL!', e);
 	}
 
-	if (response.statusCode !== 200) {
+	if (response.status !== 200) {
 		return { isValid: 'Invalid URL!', url: null };
 	}
 
@@ -108,18 +105,15 @@ export async function getUserCal(db: Db, user: string) {
 
 	let response;
 	try {
-		response = await request(userDoc!.canvasURL, {
-			resolveWithFullResponse: true,
-			simple: false
-		});
+		response = await axios.get(userDoc!.canvasURL);
 	} catch (e) {
 		throw new InternalError('There was a problem fetching canvas data from the URL!', e);
 	}
-	if (response.statusCode !== 200) {
+	if (response.status !== 200) {
 		throw new Error('Invalid URL!');
 	}
 
-	return { hasURL: true, events: Object.values(ical.parseICS(response.body)) };
+	return { hasURL: true, events: Object.values(ical.parseICS(response.data)) };
 }
 
 /**

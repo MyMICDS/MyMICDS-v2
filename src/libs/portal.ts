@@ -7,9 +7,9 @@ import * as calServer from '../../test/calendars/server';
 import * as feeds from './feeds';
 import * as ical from 'ical';
 import * as users from './users';
+import axios, { AxiosResponse } from 'axios';
 import config from './config';
 import moment from 'moment';
-import request, { FullResponse } from 'request-promise-native';
 
 // URL Calendars come from
 const urlPrefix = 'https://api.veracross.com/micds/subscribe/';
@@ -35,14 +35,14 @@ export const portalRange = {
 async function withCalSummary<T>(date: Date, summaryTest: (summary: string) => T) {
 	const scheduleDate = new Date(date);
 
-	let body;
+	let res;
 	try {
-		body = await request(dayRotationURL);
+		res = await axios.get(dayRotationURL);
 	} catch (e) {
 		throw new InternalError('There was a problem fetching the day rotation!', e);
 	}
 
-	const data = ical.parseICS(body);
+	const data = ical.parseICS(res.data);
 
 	// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
 	// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.
@@ -105,20 +105,17 @@ async function verifyURLGeneric(portalURL: string) {
 	const validURL = `${urlPrefix}${pathID}?uid=${uid}`;
 
 	// Now let's actually check if we can get any data from here
-	let response: FullResponse;
+	let response: AxiosResponse;
 	try {
-		response = await request(validURL, {
-			resolveWithFullResponse: true,
-			simple: false
-		});
+		response = await axios.get(validURL);
 	} catch (e) {
 		throw new InternalError('There was a problem fetching portal data from the URL!', e);
 	}
-	if (response.statusCode !== 200) {
+	if (response.status !== 200) {
 		throw new InputError('Invalid URL!');
 	}
 
-	return { isValid: true, url: validURL, body: response.body };
+	return { isValid: true, url: validURL, body: response.data };
 }
 
 /**
@@ -330,23 +327,20 @@ export async function getFromCalClasses(db: Db, user: string) {
 		return { hasURL: false, cal: null };
 	}
 
-	let response: FullResponse;
+	let response: AxiosResponse;
 	try {
-		response = await request(userDoc!.portalURLClasses, {
-			resolveWithFullResponse: true,
-			simple: false
-		});
+		response = await axios.get(userDoc!.portalURLClasses);
 	} catch (e) {
 		throw new InternalError('There was a problem fetching the day rotation!', e);
 	}
 
-	if (response.statusCode !== 200) {
+	if (response.status !== 200) {
 		throw new InputError('Invalid URL!');
 	}
 
 	return {
 		hasURL: true,
-		cal: Object.values(ical.parseICS(response.body)).filter(e => typeof e.summary === 'string')
+		cal: Object.values(ical.parseICS(response.data)).filter(e => typeof e.summary === 'string')
 	};
 }
 
@@ -366,23 +360,20 @@ export async function getFromCalCalendar(db: Db, user: string) {
 		return { hasURL: false, cal: null };
 	}
 
-	let response: FullResponse;
+	let response: AxiosResponse;
 	try {
-		response = await request(userDoc!.portalURLCalendar, {
-			resolveWithFullResponse: true,
-			simple: false
-		});
+		response = await axios.get(userDoc!.portalURLCalendar);
 	} catch (e) {
 		throw new InternalError('There was a problem fetching the day rotation!', e);
 	}
 
-	if (response.statusCode !== 200) {
+	if (response.status !== 200) {
 		throw new InputError('Invalid URL!');
 	}
 
 	return {
 		hasURL: true,
-		cal: Object.values(ical.parseICS(response.body)).filter(e => typeof e.summary === 'string')
+		cal: Object.values(ical.parseICS(response.data)).filter(e => typeof e.summary === 'string')
 	};
 }
 
@@ -420,12 +411,12 @@ export async function getDayRotations() {
 
 	let body;
 	try {
-		body = await request(dayRotationURL);
+		body = await axios.get(dayRotationURL);
 	} catch (e) {
 		throw new InternalError('There was a problem fetching the day rotation!', e);
 	}
 
-	const data = ical.parseICS(body);
+	const data = ical.parseICS(body.data);
 
 	// School Portal does not give a 404 if calendar is invalid. Instead, it gives an empty calendar.
 	// Unlike Canvas, the portal is guaranteed to contain some sort of data within a span of a year.

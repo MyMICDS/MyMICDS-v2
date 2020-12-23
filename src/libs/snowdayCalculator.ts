@@ -1,8 +1,8 @@
 import { GetSnowdayResponse, Snowday } from '@mymicds/sdk';
 import { InternalError } from './errors';
 import $ from 'cheerio';
+import axios from 'axios';
 import moment from 'moment';
-import request from 'request-promise-native';
 
 const zipcode = 63124;
 // PHP back-end was throwing an error sometimes if school id was inputted
@@ -17,15 +17,18 @@ const snowdays = 0;
 export async function calculate(): Promise<GetSnowdayResponse['data']> {
 	let body: string;
 	try {
-		body = await request.get({
-			url: 'http://www.snowdaycalculator.com/Apps/jsPred.php',
-			qs: {
+		const response = await axios.get('http://www.snowdaycalculator.com/Apps/jsPred.php', {
+			params: {
 				zipcode,
-				snowdays,
-				school: schoolId
+				snowdays
+				//   school: schoolId
 			},
-			gzip: true
+			headers: {
+				'Content-Encoding': 'gzip'
+			}
 		});
+
+		body = response.data;
 	} catch (e) {
 		throw new InternalError('There was a problem querying the Snowday Calculator!', e);
 	}
