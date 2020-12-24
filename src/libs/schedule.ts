@@ -267,20 +267,12 @@ async function getSchedule(
 	userSchedule.classes = combineClassesSchedule(requestedDate, dayBlockSchedule.blocks, blocks);
 
 	// if there is no portal URL, we have to remove weird lunch block stuff by using defaults and some guessing, and then we can return
-	// TODO add defaults for short days (wait for COVID classes to end)
-	// TODO refactor this later
+	// TODO add defaults for short days (wait for COVID classes to end... if they ever end)
 	if (isPortalBroken || typeof userDoc!.portalURLClasses !== 'string') {
-		if (lateStart) {
-			dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, {
-				keepAemsh: false,
-				keepHswl: true
-			});
-		} else {
-			dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, {
-				keepAemsh: false,
-				keepHswl: false
-			});
-		}
+		dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, {
+			keepAemsh: false,
+			keepHswl: lateStart
+		});
 		userSchedule.classes = combineClassesSchedule(
 			requestedDate,
 			dayBlockSchedule.blocks,
@@ -457,26 +449,16 @@ async function getSchedule(
 		lunchBlock.end = convertTimeStringToMoment(requestedDate, lunchBlock.end);
 
 		// see which class the portal matches with
-		// TODO this could use some refactoring, but it works for now
-		if (lunchBlock.aemsh ?? false) {
+		const isHswl = lunchBlock.hswl ?? false;
+		const isAemsh = lunchBlock.aemsh ?? false;
+		if (isAemsh || isHswl) {
 			const matches =
 				lunchBlock.start.isSame(portalLunchBlock?.start) &&
 				lunchBlock.end.isSame(portalLunchBlock?.end);
 			if (matches) {
 				dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, {
-					keepAemsh: true,
-					keepHswl: false,
-					keepDefault: false
-				});
-			}
-		} else if (lunchBlock.hswl ?? false) {
-			const matches =
-				lunchBlock.start.isSame(portalLunchBlock?.start) &&
-				lunchBlock.end.isSame(portalLunchBlock?.end);
-			if (matches) {
-				dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, {
-					keepAemsh: false,
-					keepHswl: true,
+					keepAemsh: isAemsh,
+					keepHswl: isHswl,
 					keepDefault: false
 				});
 			}
