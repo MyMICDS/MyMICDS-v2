@@ -384,8 +384,13 @@ async function getSchedule(
 		const start = moment(calEvent.start);
 		const end = moment(calEvent.end);
 
-		// make sure event doesn't violate the 4th dimension and end before it starts
+		// make sure event doesn't break the 4th dimension and end before it starts
 		if (end.isBefore(start)) {
+			continue;
+		}
+
+		// since portal study halls break things, We're gonna remove them for now until COVID ends.
+		if (calEvent.summary?.includes('Study Hall')) {
 			continue;
 		}
 
