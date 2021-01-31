@@ -1,3 +1,4 @@
+import { execSync } from 'child_process';
 import { initAPI } from './init';
 import * as Sentry from '@sentry/node';
 import config from './libs/config';
@@ -6,7 +7,9 @@ const port = process.env.PORT || config.port;
 
 Sentry.init({
 	dsn: 'https://7b1ca7e5c35043b3a79c69e83d4fd709@sentry.io/2721831',
-	enabled: config.production
+	enabled: config.production,
+	// NOTE: Will need to be changed if we ever stop using git for production deploys.
+	release: config.production ? execSync('git rev-parse HEAD').toString().trim() : 'DEV'
 });
 
 initAPI(config.mongodb.uri)
