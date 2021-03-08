@@ -45,7 +45,7 @@ export async function queryLatest() {
 	}
 
 	// Get the most recent email id
-	const recentMsgId = messageList.messages![0].id;
+	const recentMsgId = messageList.messages![0].id!;
 
 	// Now get details on most recent email
 	let recentMessage;
@@ -136,7 +136,7 @@ export async function queryAll() {
 	console.log('Getting Daily Bulletin message ids...');
 	const messageIds: string[] = [];
 
-	let nextPageToken: string | undefined;
+	let nextPageToken: string | null | undefined;
 	do {
 		const listQuery: gmail_v1.Params$Resource$Users$Messages$List = {
 			auth: jwtClient,
