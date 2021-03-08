@@ -1,7 +1,7 @@
 {
 	"ignorePatterns": ["src/public", "dist"],
 	"root": true,
-	"extends": ["@mymicds/eslint-config", "prettier", "prettier/@typescript-eslint"],
+	"extends": ["@mymicds", "prettier", "prettier/@typescript-eslint"],
 	"parserOptions": {
 		"project": "tsconfig.json"
 	},
@@ -23,7 +23,11 @@
 			"error",
 			{
 				"selector": "CatchClause ThrowStatement NewExpression[callee.name='Error']",
-				"message": "use InternalError instead of throwing a plain Error object"
+				"message": "Use InternalError instead of throwing a plain Error object."
+			},
+			{
+				"selector": "ForInStatement",
+				"message": "Do not use for..in statements, iterate over Object.keys() instead."
 			}
 		]
 	}
