@@ -9,10 +9,10 @@ app.use(express.static(__dirname));
 
 const server = new http.Server(app);
 
-export async function start() {
-	return promisify(server.listen.bind(server))(port);
+export function start() {
+	return new Promise<void>(resolve => server.listen(port, resolve));
 }
 
-export async function stop() {
+export function stop() {
 	return promisify(server.close.bind(server))();
 }

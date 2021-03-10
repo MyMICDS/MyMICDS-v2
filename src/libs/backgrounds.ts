@@ -293,7 +293,7 @@ async function getDirExtension(userDir: string) {
  * @param blurRadius Gaussian blur radius to use.
  */
 async function addBlur(fromPath: string, toPath: string, blurRadius: number) {
-	let image: Jimp.Jimp;
+	let image: Jimp;
 	try {
 		image = await Jimp.read(fromPath);
 	} catch (e) {
