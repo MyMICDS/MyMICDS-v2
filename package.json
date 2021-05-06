@@ -88,7 +88,7 @@
     "jsdoc": "^3.6.3",
     "jsonwebtoken": "^8.5.1",
     "later": "^1.2.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "mjml": "^4.7.1",
     "moment": "^2.27.0",
     "mongodb": "^3.6.0",
