@@ -4,7 +4,7 @@ import { InputError, InternalError } from './errors';
 import { Omit } from './utils';
 import { Teacher } from '@mymicds/sdk/dist/libs/teachers';
 import * as aliases from './aliases';
-import * as prisma from 'prisma';
+import * as prisma from '@rapid7/prisma';
 import * as Random from 'random-js';
 import * as teachers from './teachers';
 import * as users from './users';

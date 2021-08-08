@@ -8,7 +8,7 @@ import * as feeds from './feeds';
 import * as portal from './portal';
 import * as users from './users';
 import moment, { Moment } from 'moment';
-import prisma from 'prisma';
+import prisma from '@rapid7/prisma';
 
 import lateStarts from '../schedules/2020/late_starts.json';
 
