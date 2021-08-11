@@ -211,8 +211,7 @@ async function getSchedule(
 		lateStart = true;
 	} else {
 		// Not Wednesday, school starts at 8
-		// defaultStart = scheduleDate.clone().hour(8);
-		defaultStart = requestedDate.clone().hour(8).minute(30); // COVID class start
+		defaultStart = requestedDate.clone().hour(8);
 	}
 
 	// create schedule (this function is a pancake, it adds data on top)
