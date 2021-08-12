@@ -88,7 +88,7 @@ function getSchedule(
 		userSchedule.lunchBlock = jsonSchedule?.lunchBlock;
 	} else if (schoolName === 'middleschool') {
 		// Directly return JSON from middleschool schedule
-		userSchedule = middleschoolSchedule[grade as 8 | 7 | 6 | 5][ // TO DO Refactor this shit
+		userSchedule = middleschoolSchedule[grade as 8 | 7 | 6 | 5][
 			`${day.toUpperCase()}day` as Days
 		][lateStart ? 'lateStart' : 'regular'] ?? {
 			blocks: [],

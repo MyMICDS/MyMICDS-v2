@@ -259,7 +259,7 @@ async function getSchedule(
 
 	// This assigns the configured class to it's correct block letter.
 	for (const blockClass of configuredClasses) {
-		blocks[blockClass.block] = blockClass; // Very descriptive <- Comments like those are unhelpful. *cough*.
+		blocks[blockClass.block] = blockClass;
 	}
 
 	// combine everything
@@ -385,11 +385,6 @@ async function getSchedule(
 
 		// make sure event doesn't break the 4th dimension and end before it starts
 		if (end.isBefore(start)) {
-			continue;
-		}
-
-		// since portal study halls break things, We're gonna remove them for now until COVID ends.
-		if (calEvent.summary?.includes('Study Hall')) {
 			continue;
 		}
 
