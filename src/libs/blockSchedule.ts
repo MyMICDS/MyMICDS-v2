@@ -140,8 +140,9 @@ export interface AlternateBlockFormat extends BlockFormat {
 }
 
 export interface LunchBlockFormat extends BlockFormat {
-	aemsh?: boolean; // Arts, English, Math, Study Hall
-	hswl?: boolean; // History, Science, World Language
+	mash?: boolean; // Math, Arts, Study Hall
+	hiswl?: boolean; // History, World Language
+	ensci?: boolean; // English, Science
 	default?: boolean;
 }
 

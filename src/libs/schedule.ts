@@ -147,25 +147,27 @@ function isOnLateStartList(date: Date) {
  * removes lunch and lunch-related-class blocks with none of matching flags. That is even if it's Hswl, and keep Hswl is false, BUT it has the default
  * flag and keepDefault is true, that block will NOT be removed.
  * @param daySchedule the block schedule for the day
- * @param keepAemsh boolean that says whether to keep lunch and lunch-related-class blocks with the Aemsh flag in the schedule
- * @param keepHswl ditto for above but for Hswl
+ * @param keepMash whether to keep lunch and lunch-related-class blocks with the Aemsh flag in the schedule
+ * @param keepHiswl ditto for above but for Hswl
+ * @param keepEnsci ditto for above but for Ensci
  * @param keepDefault ditto but for default flags; this comes in handy when the user has no portal URL
  * @returns daySchedule, but with all the
  */
 function removeCertainLunchBlocks(
 	daySchedule: blockSchedule.BlockFormats,
-	{ keepAemsh = true, keepHswl = true, keepDefault = true }
+	{ keepMash = true, keepHiswl = true, keepEnsci = true, keepDefault = true }
 ) {
 	for (let index = 0; index < daySchedule.blocks.length; index++) {
 		const val = daySchedule.blocks[index] as blockSchedule.LunchBlockFormat;
-		const isLunchBlock = val.aemsh || val.hswl;
+		const isLunchBlock = val.ensci || val.hiswl || val.mash;
 		if (!isLunchBlock) {
 			continue;
 		}
 
 		if (
-			(keepAemsh && (val.aemsh ?? false)) ||
-			(keepHswl && (val.hswl ?? false)) ||
+			(keepMash && (val.mash ?? false)) ||
+			(keepHiswl && (val.hiswl ?? false)) ||
+			(keepEnsci && (val.ensci ?? false)) ||
 			(keepDefault && (val.default ?? false))
 		) {
 			continue;
@@ -269,8 +271,9 @@ async function getSchedule(
 	// TODO add defaults for short days (wait for COVID classes to end... if they ever end)
 	if (isPortalBroken || typeof userDoc!.portalURLClasses !== 'string') {
 		dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, {
-			keepAemsh: false,
-			keepHswl: lateStart
+			keepEnsci: false,
+			keepHiswl: false,
+			keepMash: lateStart
 		});
 		userSchedule.classes = combineClassesSchedule(
 			requestedDate,
@@ -315,8 +318,8 @@ async function getSchedule(
 		return getSchedule(db, user, date, true);
 	}
 
-	const schoolScheduleEvents = []; //I don't know what this block does and removing it didn't break anything; so...
-	// ACTUALLY, this is useful for detecting special schedules, although
+	const schoolScheduleEvents = [];
+	// This is useful for detecting special schedules
 	// TODO, rewrite code block to detect for massive misalignments and fallback to special schedule.
 
 	if (portalCalendarResult.hasURL && portalCalendarResult.cal) {
@@ -329,7 +332,9 @@ async function getSchedule(
 
 			// It doesn't make any sense for end to come before start
 			// But I guess it's theoretically possible so we should check for it
-			if (end.isBefore(start)) {
+			// Additionally, if `calevent.end` is undefined, moment will fallback to the current time/day
+			// Therefore, we must also check that `calEvent.end` is not undefined.
+			if (end.isBefore(start) && calEvent.end) {
 				continue;
 			}
 
@@ -339,7 +344,7 @@ async function getSchedule(
 				const lowercaseSummary = calEvent.summary!.toLowerCase();
 				if (
 					lowercaseSummary.includes('special') ||
-					lowercaseSummary.includes('ss') ||
+					lowercaseSummary.includes('us ss') ||
 					lowercaseSummary.includes('modified')
 				) {
 					userSchedule.special = true;
@@ -448,16 +453,18 @@ async function getSchedule(
 		lunchBlock.end = convertTimeStringToMoment(requestedDate, lunchBlock.end);
 
 		// see which class the portal matches with
-		const isHswl = lunchBlock.hswl ?? false;
-		const isAemsh = lunchBlock.aemsh ?? false;
-		if (isAemsh || isHswl) {
+		const isEnsci = lunchBlock.ensci ?? false;
+		const isHiswl = lunchBlock.hiswl ?? false;
+		const isMash = lunchBlock.mash ?? false;
+		if (isEnsci || isHiswl || isMash) {
 			const matches =
 				lunchBlock.start.isSame(portalLunchBlock?.start) &&
 				lunchBlock.end.isSame(portalLunchBlock?.end);
 			if (matches) {
 				dayBlockSchedule = removeCertainLunchBlocks(dayBlockSchedule, {
-					keepAemsh: isAemsh,
-					keepHswl: isHswl,
+					keepMash: isMash,
+					keepHiswl: isHiswl,
+					keepEnsci: isEnsci,
 					keepDefault: false
 				});
 			}
