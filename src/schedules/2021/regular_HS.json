@@ -5,36 +5,53 @@
             "blocks": [
                 {
                     "block": "a",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "c",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "aemsh": true
+                    "start": "11:00",
+                    "end": "11:45",
+                    "mash": true
                 },
                 {
                     "block": "e",
-                    "start": "12:20",
-                    "end": "13:45",
-                    "aemsh": true
+                    "start": "11:45",
+                    "end": "13:15",
+                    "mash": true
                 },
                 {
                     "block": "e",
-                    "start": "11:30",
-                    "end": "13:45",
-                    "hswl": true,
+                    "start": "11:00",
+                    "end": "13:15",
+                    "ensci": true,
                     "default": true
                 },
                 {
+                    "block": "e",
+                    "start": "11:00",
+                    "end": "12:30",
+                    "hiswl": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "12:30",
+                    "end": "13:15",
+                    "hiswl": true
+                },
+                {
+                    "block": "community",
+                    "start": "13:15",
+                    "end": "13:45"
+                },
+                {
                     "block": "g",
-                    "start": "13:50",
+                    "start": "13:45",
                     "end": "15:15"
                 }
             ]
@@ -54,42 +71,67 @@
                 },
                 {
                     "block": "c",
-                    "start": "10:45",
-                    "end": "11:25"
+                    "start": "10:30",
+                    "end": "11:10"
                 },
-                {
+                {    
                     "block": "d",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "hswl": true
+                    "start": "11:15",
+                    "end": "11:55",
+                    "hiswl": true
                 },
-                {
+                {    
+                    "block": "collaborative",
+                    "start": "11:55",
+                    "end": "12:30",
+                    "hiswl": true
+                },
+                {    
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "hswl": true
+                    "start": "12:30",
+                    "end": "13:05",
+                    "hiswl": true
                 },
-                {
+                {    
+                    "block": "collaborative",
+                    "start": "11:10",
+                    "end": "11:45",
+                    "ensci": true
+                },
+                {    
                     "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "aemsh": true
+                    "start": "11:45",
+                    "end": "12:20",
+                    "ensci": true
                 },
-                {
+                {    
                     "block": "d",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "aemsh": true
+                    "start": "12:20",
+                    "end": "13:00",
+                    "ensci": true,
+                    "mash": true
+                },
+                {    
+                    "block": "lunch",
+                    "start": "11:10",
+                    "end": "11:45",
+                    "mash": true
+                },
+                {    
+                    "block": "collaborative",
+                    "start": "11:45",
+                    "end": "12:20",
+                    "mash": true
                 },
                 {
                     "block": "e",
-                    "start": "13:00",
-                    "end": "13:40"
+                    "start": "13:05",
+                    "end": "13:45"
                 },
                 {
                     "block": "f",
-                    "start": "13:45",
-                    "end": "14:25"
+                    "start": "13:50",
+                    "end": "14:30"
                 },
                 {
                     "block": "g",
@@ -105,36 +147,53 @@
             "blocks": [
                 {
                     "block": "b",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "d",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "hswl": true
+                    "start": "11:00",
+                    "end": "11:45",
+                    "hiswl": true
                 },
                 {
                     "block": "f",
-                    "start": "12:20",
-                    "end": "13:45",
-                    "hswl": true
+                    "start": "11:45",
+                    "end": "13:15",
+                    "hiswl": true
                 },
                 {
                     "block": "f",
-                    "start": "11:30",
-                    "end": "13:45",
-                    "aemsh": true,
+                    "start": "11:00",
+                    "end": "13:15",
+                    "mash": true,
                     "default": true
                 },
                 {
+                    "block": "f",
+                    "start": "11:00",
+                    "end": "12:30",
+                    "ensci": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "12:30",
+                    "end": "13:15",
+                    "ensci": true
+                },
+                {
+                    "block": "community",
+                    "start": "13:15",
+                    "end": "13:45"
+                },
+                {
                     "block": "h",
-                    "start": "13:50",
+                    "start": "13:45",
                     "end": "15:15"
                 }
             ]
@@ -154,42 +213,67 @@
                 },
                 {
                     "block": "d",
-                    "start": "10:45",
-                    "end": "11:25"
+                    "start": "10:30",
+                    "end": "11:10"
                 },
-                {
-                    "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "hswl": true
-                },
-                {
+                {    
                     "block": "e",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "hswl": true
+                    "start": "11:15",
+                    "end": "11:55",
+                    "ensci": true
                 },
-                {
-                    "block": "e",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "aemsh": true
+                {    
+                    "block": "collaborative",
+                    "start": "11:55",
+                    "end": "12:30",
+                    "ensci": true
                 },
-                {
+                {    
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "aemsh": true
+                    "start": "12:30",
+                    "end": "13:05",
+                    "ensci": true
+                },
+                {    
+                    "block": "collaborative",
+                    "start": "11:10",
+                    "end": "11:45",
+                    "mash": true
+                },
+                {    
+                    "block": "lunch",
+                    "start": "11:45",
+                    "end": "12:20",
+                    "mash": true
+                },
+                {    
+                    "block": "e",
+                    "start": "12:20",
+                    "end": "13:00",
+                    "hiswl": true,
+                    "mash": true
+                },
+                {    
+                    "block": "lunch",
+                    "start": "11:10",
+                    "end": "11:45",
+                    "hiswl": true
+                },
+                {    
+                    "block": "collaborative",
+                    "start": "11:45",
+                    "end": "12:20",
+                    "hiswl": true
                 },
                 {
                     "block": "f",
-                    "start": "13:00",
-                    "end": "13:40"
+                    "start": "13:05",
+                    "end": "13:45"
                 },
                 {
                     "block": "g",
-                    "start": "13:45",
-                    "end": "14:25"
+                    "start": "13:50",
+                    "end": "14:30"
                 },
                 {
                     "block": "a",
@@ -205,36 +289,53 @@
             "blocks": [
                 {
                     "block": "c",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "e",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "aemsh": true
+                    "start": "11:00",
+                    "end": "11:45",
+                    "ensci": true
                 },
                 {
                     "block": "g",
-                    "start": "12:20",
-                    "end": "13:45",
-                    "aemsh": true
+                    "start": "11:45",
+                    "end": "13:15",
+                    "ensci": true
                 },
                 {
                     "block": "g",
-                    "start": "11:30",
-                    "end": "13:45",
-                    "hswl": true,
+                    "start": "11:00",
+                    "end": "13:15",
+                    "hiswl": true,
                     "default": true
                 },
                 {
+                    "block": "g",
+                    "start": "11:00",
+                    "end": "12:30",
+                    "mash": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "12:30",
+                    "end": "13:15",
+                    "mash": true
+                },
+                {
+                    "block": "community",
+                    "start": "13:15",
+                    "end": "13:45"
+                },
+                {
                     "block": "a",
-                    "start": "13:50",
+                    "start": "13:45",
                     "end": "15:15"
                 }
             ]
@@ -254,42 +355,67 @@
                 },
                 {
                     "block": "e",
-                    "start": "10:45",
-                    "end": "11:25"
+                    "start": "10:30",
+                    "end": "11:10"
                 },
-                {
+                {    
                     "block": "f",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "hswl": true
+                    "start": "11:15",
+                    "end": "11:55",
+                    "mash": true
                 },
-                {
+                {    
+                    "block": "collaborative",
+                    "start": "11:55",
+                    "end": "12:30",
+                    "mash": true
+                },
+                {    
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "hswl": true
+                    "start": "12:30",
+                    "end": "13:05",
+                    "mash": true
                 },
-                {
+                {    
+                    "block": "collaborative",
+                    "start": "11:10",
+                    "end": "11:45",
+                    "hiswl": true
+                },
+                {    
                     "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "aemsh": true
+                    "start": "11:45",
+                    "end": "12:20",
+                    "hiswl": true
                 },
-                {
+                {    
                     "block": "f",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "aemsh": true
+                    "start": "12:20",
+                    "end": "13:00",
+                    "hiswl": true,
+                    "ensci": true
+                },
+                {    
+                    "block": "lunch",
+                    "start": "11:10",
+                    "end": "11:45",
+                    "ensci": true
+                },
+                {    
+                    "block": "collaborative",
+                    "start": "11:45",
+                    "end": "12:20",
+                    "ensci": true
                 },
                 {
                     "block": "g",
-                    "start": "13:00",
-                    "end": "13:40"
+                    "start": "13:05",
+                    "end": "13:45"
                 },
                 {
                     "block": "a",
-                    "start": "13:45",
-                    "end": "14:25"
+                    "start": "13:50",
+                    "end": "14:30"
                 },
                 {
                     "block": "b",
@@ -305,53 +431,27 @@
             "blocks": [
                 {
                     "block": "d",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "f",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
-                    "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "lowerclass": true
+                    "block": "h",
+                    "start": "11:00",
+                    "end": "13:15"
                 },
                 {
-                    "block": "collaborative",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "lowerclass": true
-                },
-                {
-                    "block": "advisory",
-                    "start": "13:00",
-                    "end": "13:45",
-                    "lowerclass": true
-                },
-                {
-                    "block": "advisory",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "upperclass": true
-                },
-                {
-                    "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "upperclass": true
-                },
-                {
-                    "block": "collaborative",
-                    "start": "13:00",
-                    "end": "13:45",
-                    "upperclass": true
+                    "block": "community",
+                    "start": "13:15",
+                    "end": "13:45"
                 },
                 {
                     "block": "b",
-                    "start": "13:50",
+                    "start": "13:45",
                     "end": "15:15"
                 }
             ]
@@ -371,42 +471,67 @@
                 },
                 {
                     "block": "f",
-                    "start": "10:45",
-                    "end": "11:25"
+                    "start": "10:30",
+                    "end": "11:10"
                 },
-                {
-                    "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "hswl": true
-                },
-                {
+                {    
                     "block": "g",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "hswl": true
+                    "start": "11:15",
+                    "end": "11:55",
+                    "hiswl": true
                 },
-                {
-                    "block": "g",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "aemsh": true
+                {    
+                    "block": "collaborative",
+                    "start": "11:55",
+                    "end": "12:30",
+                    "hiswl": true
                 },
-                {
+                {    
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "aemsh": true
+                    "start": "12:30",
+                    "end": "13:05",
+                    "hiswl": true
+                },
+                {    
+                    "block": "collaborative",
+                    "start": "11:10",
+                    "end": "11:45",
+                    "ensci": true
+                },
+                {    
+                    "block": "lunch",
+                    "start": "11:45",
+                    "end": "12:20",
+                    "ensci": true
+                },
+                {    
+                    "block": "g",
+                    "start": "12:20",
+                    "end": "13:00",
+                    "ensci": true,
+                    "mash": true
+                },
+                {    
+                    "block": "lunch",
+                    "start": "11:10",
+                    "end": "11:45",
+                    "mash": true
+                },
+                {    
+                    "block": "collaborative",
+                    "start": "11:45",
+                    "end": "12:20",
+                    "mash": true
                 },
                 {
                     "block": "a",
-                    "start": "13:00",
-                    "end": "13:40"
+                    "start": "13:05",
+                    "end": "13:45"
                 },
                 {
                     "block": "b",
-                    "start": "13:45",
-                    "end": "14:25"
+                    "start": "13:50",
+                    "end": "14:30"
                 },
                 {
                     "block": "c",
@@ -422,36 +547,53 @@
             "blocks": [
                 {
                     "block": "e",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "g",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "hswl": true
+                    "start": "11:00",
+                    "end": "11:45",
+                    "mash": true
                 },
                 {
                     "block": "a",
-                    "start": "12:20",
-                    "end": "13:45",
-                    "hswl": true
+                    "start": "11:45",
+                    "end": "13:15",
+                    "mash": true
                 },
                 {
                     "block": "a",
-                    "start": "11:30",
-                    "end": "13:45",
-                    "aemsh": true,
+                    "start": "11:00",
+                    "end": "13:15",
+                    "ensci": true,
                     "default": true
                 },
                 {
+                    "block": "a",
+                    "start": "11:00",
+                    "end": "12:30",
+                    "hiswl": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "12:30",
+                    "end": "13:15",
+                    "hiswl": true
+                },
+                {
+                    "block": "community",
+                    "start": "13:15",
+                    "end": "13:45"
+                },
+                {
                     "block": "c",
-                    "start": "13:50",
+                    "start": "13:45",
                     "end": "15:15"
                 }
             ]
@@ -471,42 +613,67 @@
                 },
                 {
                     "block": "g",
-                    "start": "10:45",
-                    "end": "11:25"
+                    "start": "10:30",
+                    "end": "11:10"
                 },
-                {
+                {    
                     "block": "a",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "hswl": true
+                    "start": "11:15",
+                    "end": "11:55",
+                    "ensci": true
                 },
-                {
+                {    
+                    "block": "collaborative",
+                    "start": "11:55",
+                    "end": "12:30",
+                    "ensci": true
+                },
+                {    
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "hswl": true
+                    "start": "12:30",
+                    "end": "13:05",
+                    "ensci": true
                 },
-                {
+                {    
+                    "block": "collaborative",
+                    "start": "11:10",
+                    "end": "11:45",
+                    "mash": true
+                },
+                {    
                     "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "aemsh": true
+                    "start": "11:45",
+                    "end": "12:20",
+                    "mash": true
                 },
-                {
+                {    
                     "block": "a",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "aemsh": true
+                    "start": "12:20",
+                    "end": "13:00",
+                    "hiswl": true,
+                    "mash": true
+                },
+                {    
+                    "block": "lunch",
+                    "start": "11:10",
+                    "end": "11:45",
+                    "hiswl": true
+                },
+                {    
+                    "block": "collaborative",
+                    "start": "11:45",
+                    "end": "12:20",
+                    "hiswl": true
                 },
                 {
                     "block": "b",
-                    "start": "13:00",
-                    "end": "13:40"
+                    "start": "13:05",
+                    "end": "13:45"
                 },
                 {
                     "block": "c",
-                    "start": "13:45",
-                    "end": "14:25"
+                    "start": "13:50",
+                    "end": "14:30"
                 },
                 {
                     "block": "d",
@@ -522,36 +689,53 @@
             "blocks": [
                 {
                     "block": "f",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "h",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "aemsh": true
+                    "start": "11:00",
+                    "end": "11:45",
+                    "hiswl": true
                 },
                 {
                     "block": "b",
-                    "start": "12:20",
-                    "end": "13:45",
-                    "aemsh": true
+                    "start": "11:45",
+                    "end": "13:15",
+                    "hiswl": true
                 },
                 {
                     "block": "b",
-                    "start": "11:30",
-                    "end": "13:45",
-                    "hswl": true,
+                    "start": "11:00",
+                    "end": "13:15",
+                    "mash": true,
                     "default": true
                 },
                 {
+                    "block": "b",
+                    "start": "11:00",
+                    "end": "12:30",
+                    "ensci": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "12:30",
+                    "end": "13:15",
+                    "ensci": true
+                },
+                {
+                    "block": "community",
+                    "start": "13:15",
+                    "end": "13:45"
+                },
+                {
                     "block": "d",
-                    "start": "13:50",
+                    "start": "13:45",
                     "end": "15:15"
                 }
             ]
@@ -571,42 +755,67 @@
                 },
                 {
                     "block": "a",
-                    "start": "10:45",
-                    "end": "11:25"
+                    "start": "10:30",
+                    "end": "11:10"
                 },
-                {
-                    "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "hswl": true
-                },
-                {
+                {    
                     "block": "b",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "hswl": true
+                    "start": "11:15",
+                    "end": "11:55",
+                    "mash": true
                 },
-                {
-                    "block": "b",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "aemsh": true
+                {    
+                    "block": "collaborative",
+                    "start": "11:55",
+                    "end": "12:30",
+                    "mash": true
                 },
-                {
+                {    
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "aemsh": true
+                    "start": "12:30",
+                    "end": "13:05",
+                    "mash": true
+                },
+                {    
+                    "block": "collaborative",
+                    "start": "11:10",
+                    "end": "11:45",
+                    "hiswl": true
+                },
+                {    
+                    "block": "lunch",
+                    "start": "11:45",
+                    "end": "12:20",
+                    "hiswl": true
+                },
+                {    
+                    "block": "b",
+                    "start": "12:20",
+                    "end": "13:00",
+                    "hiswl": true,
+                    "ensci": true
+                },
+                {    
+                    "block": "lunch",
+                    "start": "11:10",
+                    "end": "11:45",
+                    "ensci": true
+                },
+                {    
+                    "block": "collaborative",
+                    "start": "11:45",
+                    "end": "12:20",
+                    "ensci": true
                 },
                 {
                     "block": "c",
-                    "start": "13:00",
-                    "end": "13:40"
+                    "start": "13:05",
+                    "end": "13:45"
                 },
                 {
                     "block": "d",
-                    "start": "13:45",
-                    "end": "14:25"
+                    "start": "13:50",
+                    "end": "14:30"
                 },
                 {
                     "block": "e",
@@ -622,36 +831,53 @@
             "blocks": [
                 {
                     "block": "g",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "a",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "hswl": true
+                    "start": "11:00",
+                    "end": "11:45",
+                    "ensci": true
                 },
                 {
                     "block": "c",
-                    "start": "12:20",
-                    "end": "13:45",
-                    "hswl": true
+                    "start": "11:45",
+                    "end": "13:15",
+                    "ensci": true
                 },
                 {
                     "block": "c",
-                    "start": "11:30",
-                    "end": "13:45",
-                    "aemsh": true,
+                    "start": "11:00",
+                    "end": "13:15",
+                    "hiswl": true,
                     "default": true
                 },
                 {
+                    "block": "c",
+                    "start": "11:00",
+                    "end": "12:30",
+                    "mash": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "12:30",
+                    "end": "13:15",
+                    "mash": true
+                },
+                {
+                    "block": "community",
+                    "start": "13:15",
+                    "end": "13:45"
+                },
+                {
                     "block": "e",
-                    "start": "14:50",
+                    "start": "13:45",
                     "end": "15:15"
                 }
             ]
@@ -671,42 +897,67 @@
                 },
                 {
                     "block": "b",
-                    "start": "10:45",
-                    "end": "11:25"
+                    "start": "10:30",
+                    "end": "11:10"
                 },
-                {
+                {    
                     "block": "c",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "hswl": true
+                    "start": "11:15",
+                    "end": "11:55",
+                    "hiswl": true
                 },
-                {
+                {    
+                    "block": "collaborative",
+                    "start": "11:55",
+                    "end": "12:30",
+                    "hiswl": true
+                },
+                {    
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "hswl": true
+                    "start": "12:30",
+                    "end": "13:05",
+                    "hiswl": true
                 },
-                {
+                {    
+                    "block": "collaborative",
+                    "start": "11:10",
+                    "end": "11:45",
+                    "ensci": true
+                },
+                {    
                     "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "aemsh": true
+                    "start": "11:45",
+                    "end": "12:20",
+                    "ensci": true
                 },
-                {
+                {    
                     "block": "c",
-                    "start": "12:15",
-                    "end": "12:55",
-                    "aemsh": true
+                    "start": "12:20",
+                    "end": "13:00",
+                    "ensci": true,
+                    "mash": true
+                },
+                {    
+                    "block": "lunch",
+                    "start": "11:10",
+                    "end": "11:45",
+                    "mash": true
+                },
+                {    
+                    "block": "collaborative",
+                    "start": "11:45",
+                    "end": "12:20",
+                    "mash": true
                 },
                 {
                     "block": "d",
-                    "start": "13:00",
-                    "end": "13:40"
+                    "start": "13:05",
+                    "end": "13:45"
                 },
                 {
                     "block": "e",
-                    "start": "13:45",
-                    "end": "14:25"
+                    "start": "13:50",
+                    "end": "14:30"
                 },
                 {
                     "block": "f",
@@ -722,36 +973,53 @@
             "blocks": [
                 {
                     "block": "h",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "b",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "lunch",
-                    "start": "11:30",
-                    "end": "12:10",
-                    "aemsh": true
+                    "start": "11:00",
+                    "end": "11:45",
+                    "mash": true
                 },
                 {
                     "block": "d",
-                    "start": "12:20",
-                    "end": "13:45",
-                    "aemsh": true
+                    "start": "11:45",
+                    "end": "13:15",
+                    "mash": true
                 },
                 {
                     "block": "d",
-                    "start": "11:30",
-                    "end": "13:45",
-                    "hswl": true,
+                    "start": "11:00",
+                    "end": "13:15",
+                    "ensci": true,
                     "default": true
                 },
                 {
+                    "block": "d",
+                    "start": "11:00",
+                    "end": "12:30",
+                    "hiswl": true
+                },
+                {
+                    "block": "lunch",
+                    "start": "12:30",
+                    "end": "13:15",
+                    "hiswl": true
+                },
+                {
+                    "block": "community",
+                    "start": "13:15",
+                    "end": "13:45"
+                },
+                {
                     "block": "f",
-                    "start": "13:50",
+                    "start": "13:45",
                     "end": "15:15"
                 }
             ]

@@ -6,7 +6,7 @@ type Days = 'Aday' | 'Bday' | 'Cday' | 'Dday' | 'Eday' | 'Fday' | 'Gday' | 'Hday
 
 import grade5and7Schedule from '../schedules/2020/5and7.json';
 import grade6and8Schedule from '../schedules/2020/6and8.json';
-import hsSchedule from '../schedules/2020/regular_HS.json';
+import hsSchedule from '../schedules/2021/regular_HS.json';
 
 const highschoolSchedule = hsSchedule as Record<Days, DaySchedule>;
 const middleschoolSchedule = {
