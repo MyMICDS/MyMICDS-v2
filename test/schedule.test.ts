@@ -33,9 +33,9 @@ describe('Schedule', () => {
 		this.ctx.route = '/schedule';
 
 		const payload = {
-			year: 2020,
+			year: 2021,
 			month: 8,
-			day: 24
+			day: 23
 		};
 
 		it('gets default schedule', async function () {
@@ -49,7 +49,7 @@ describe('Schedule', () => {
 					classes: [
 						{
 							class: defaultSchoolBlock,
-							start: momentDate.clone().hour(8).minute(30).toISOString(), // COVID this will need to be changed when covid classes end.
+							start: momentDate.clone().hour(8).toISOString(),
 							end: momentDate.clone().hour(15).minute(15).toISOString()
 						}
 					],

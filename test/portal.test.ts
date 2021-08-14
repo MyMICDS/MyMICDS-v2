@@ -213,7 +213,16 @@ describe('Portal', () => {
 			expect(res.body.data).to.have.property('hasURL').that.is.true;
 			expect(res.body.data)
 				.to.have.property('classes')
-				.to.have.members(_.forEach(['a', 'c', 'd', 'e', 'g', 'h']).map(n => `class ${n}`));
+				.to.have.members([
+					'class h',
+					'class a',
+					'class b',
+					'class c',
+					'class e',
+					'class f',
+					'class g',
+					'community'
+				]);
 		});
 
 		requireLoggedIn();
