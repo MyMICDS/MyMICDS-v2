@@ -1,8 +1,7 @@
-
 {
     "Aday": {
         "regular": {
-            "lunchBlock": null,
+            "lunchBlock": "e",
             "blocks": [
                 {
                     "block": "a",
@@ -15,13 +14,8 @@
                     "end": "11:00"
                 },
                 {
-                    "block": "lunch",
-                    "start": "11:00",
-                    "end": "11:45"
-                },
-                {
                     "block": "e",
-                    "start": "11:45",
+                    "start": "11:00",
                     "end": "13:15"
                 },
                 {
@@ -55,12 +49,12 @@
                     "end": "11:10"
                 },
                 {
-                    "block": "lunch",
+                    "block": "flex",
                     "start": "11:10",
                     "end": "11:45"
                 },
                 {
-                    "block": "flex",
+                    "block": "lunch",
                     "start": "11:45",
                     "end": "12:20"
                 },
@@ -89,7 +83,7 @@
     },
     "Bday": {
         "regular": {
-            "lunchBlock": null,
+            "lunchBlock": "f",
             "blocks": [
                 {
                     "block": "b",
@@ -102,13 +96,8 @@
                     "end": "11:00"
                 },
                 {
-                    "block": "lunch",
-                    "start": "11:00",
-                    "end": "11:45"
-                },
-                {
                     "block": "f",
-                    "start": "11:45",
+                    "start": "11:00",
                     "end": "13:15"
                 },
                 {
@@ -142,12 +131,12 @@
                     "end": "11:10"
                 },
                 {
-                    "block": "lunch",
+                    "block": "flex",
                     "start": "11:10",
                     "end": "11:45"
                 },
                 {
-                    "block": "flex",
+                    "block": "lunch",
                     "start": "11:45",
                     "end": "12:20"
                 },
@@ -176,7 +165,7 @@
     },
     "Cday": {
         "regular": {
-            "lunchBlock": null,
+            "lunchBlock": "g",
             "blocks": [
                 {
                     "block": "c",
@@ -189,13 +178,8 @@
                     "end": "11:00"
                 },
                 {
-                    "block": "lunch",
-                    "start": "11:00",
-                    "end": "11:45"
-                },
-                {
                     "block": "g",
-                    "start": "11:45",
+                    "start": "11:00",
                     "end": "13:15"
                 },
                 {
@@ -229,12 +213,12 @@
                     "end": "11:10"
                 },
                 {
-                    "block": "lunch",
+                    "block": "flex",
                     "start": "11:10",
                     "end": "11:45"
                 },
                 {
-                    "block": "flex",
+                    "block": "lunch",
                     "start": "11:45",
                     "end": "12:20"
                 },
@@ -263,7 +247,7 @@
     },
     "Dday": {
         "regular": {
-            "lunchBlock": null,
+            "lunchBlock": "h",
             "blocks": [
                 {
                     "block": "d",
@@ -276,13 +260,8 @@
                     "end": "11:00"
                 },
                 {
-                    "block": "lunch",
-                    "start": "11:00",
-                    "end": "11:45"
-                },
-                {
                     "block": "h",
-                    "start": "11:45",
+                    "start": "11:00",
                     "end": "13:15"
                 },
                 {
@@ -316,12 +295,12 @@
                     "end": "11:10"
                 },
                 {
-                    "block": "lunch",
+                    "block": "flex",
                     "start": "11:10",
                     "end": "11:45"
                 },
                 {
-                    "block": "flex",
+                    "block": "lunch",
                     "start": "11:45",
                     "end": "12:20"
                 },
@@ -350,7 +329,7 @@
     },
     "Eday": {
         "regular": {
-            "lunchBlock": null,
+            "lunchBlock": "a",
             "blocks": [
                 {
                     "block": "e",
@@ -363,13 +342,8 @@
                     "end": "11:00"
                 },
                 {
-                    "block": "lunch",
-                    "start": "11:00",
-                    "end": "11:45"
-                },
-                {
                     "block": "a",
-                    "start": "11:45",
+                    "start": "11:00",
                     "end": "13:15"
                 },
                 {
@@ -403,12 +377,12 @@
                     "end": "11:10"
                 },
                 {
-                    "block": "lunch",
+                    "block": "flex",
                     "start": "11:10",
                     "end": "11:45"
                 },
                 {
-                    "block": "flex",
+                    "block": "lunch",
                     "start": "11:45",
                     "end": "12:20"
                 },
@@ -437,7 +411,7 @@
     },
     "Fday": {
         "regular": {
-            "lunchBlock": null,
+            "lunchBlock": "b",
             "blocks": [
                 {
                     "block": "f",
@@ -450,13 +424,8 @@
                     "end": "11:00"
                 },
                 {
-                    "block": "lunch",
-                    "start": "11:00",
-                    "end": "11:45"
-                },
-                {
                     "block": "b",
-                    "start": "11:45",
+                    "start": "11:00",
                     "end": "13:15"
                 },
                 {
@@ -490,12 +459,12 @@
                     "end": "11:10"
                 },
                 {
-                    "block": "lunch",
+                    "block": "flex",
                     "start": "11:10",
                     "end": "11:45"
                 },
                 {
-                    "block": "flex",
+                    "block": "lunch",
                     "start": "11:45",
                     "end": "12:20"
                 },
@@ -524,7 +493,7 @@
     },
     "Gday": {
         "regular": {
-            "lunchBlock": null,
+            "lunchBlock": "c",
             "blocks": [
                 {
                     "block": "g",
@@ -537,13 +506,8 @@
                     "end": "11:00"
                 },
                 {
-                    "block": "lunch",
-                    "start": "11:00",
-                    "end": "11:45"
-                },
-                {
                     "block": "c",
-                    "start": "11:45",
+                    "start": "11:00",
                     "end": "13:15"
                 },
                 {
@@ -577,12 +541,12 @@
                     "end": "11:10"
                 },
                 {
-                    "block": "lunch",
+                    "block": "flex",
                     "start": "11:10",
                     "end": "11:45"
                 },
                 {
-                    "block": "flex",
+                    "block": "lunch",
                     "start": "11:45",
                     "end": "12:20"
                 },
@@ -611,7 +575,7 @@
     },
     "Hday": {
         "regular": {
-            "lunchBlock": null,
+            "lunchBlock": "d",
             "blocks": [
                 {
                     "block": "h",
@@ -624,13 +588,8 @@
                     "end": "11:00"
                 },
                 {
-                    "block": "lunch",
-                    "start": "11:00",
-                    "end": "11:45"
-                },
-                {
                     "block": "d",
-                    "start": "11:45",
+                    "start": "11:00",
                     "end": "13:15"
                 },
                 {

@@ -5,33 +5,33 @@
             "blocks": [
                 {
                     "block": "a",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "c",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "e",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "start": "11:00",
+                    "end": "12:30"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "12:30",
+                    "end": "13:15"
                 },
                 {
-                    "block": "e",
-                    "start": "13:00",
-                    "end": "13:45"
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
                 },
                 {
                     "block": "g",
-                    "start": "1:50",
-                    "end": "3:15"
+                    "start": "13:45",
+                    "end": "15:15"
                 }
             ]
         },
@@ -50,28 +50,33 @@
                 },
                 {
                     "block": "c",
-                    "start": "10:45",
-                    "end": "11:25"
+                    "start": "10:30",
+                    "end": "11:10"
                 },
                 {
                     "block": "d",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "start": "11:10",
+                    "end": "11:45"
+                },
+                {
+                    "block": "flex",
+                    "start": "11:45",
+                    "end": "12:20"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "12:20",
+                    "end": "13:00"
                 },
                 {
                     "block": "e",
-                    "start": "13:00",
-                    "end": "13:40"
+                    "start": "13:05",
+                    "end": "13:45"
                 },
                 {
                     "block": "f",
-                    "start": "13:45",
-                    "end": "14:25"
+                    "start": "13:50",
+                    "end": "14:30"
                 },
                 {
                     "block": "g",
@@ -87,38 +92,38 @@
             "blocks": [
                 {
                     "block": "b",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "d",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "f",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "start": "11:00",
+                    "end": "12:30"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "12:30",
+                    "end": "13:15"
                 },
                 {
-                    "block": "f",
-                    "start": "13:00",
-                    "end": "13:45"
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
                 },
                 {
                     "block": "h",
-                    "start": "1:50",
-                    "end": "3:15"
+                    "start": "13:45",
+                    "end": "15:15"
                 }
             ]
         },
         "lateStart": {
-            "lunchBlock": "e",
+            "lunchBlock": null,
             "blocks": [
                 {
                     "block": "b",
@@ -132,28 +137,33 @@
                 },
                 {
                     "block": "d",
-                    "start": "10:45",
-                    "end": "11:25"
+                    "start": "10:30",
+                    "end": "11:10"
                 },
                 {
-                    "block": "e",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "block": "flex",
+                    "start": "11:10",
+                    "end": "11:45"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "11:45",
+                    "end": "12:20"
+                },
+                {
+                    "block": "e",
+                    "start": "12:20",
+                    "end": "13:00"
                 },
                 {
                     "block": "f",
-                    "start": "13:00",
-                    "end": "13:40"
+                    "start": "13:05",
+                    "end": "13:45"
                 },
                 {
                     "block": "g",
-                    "start": "13:45",
-                    "end": "14:25"
+                    "start": "13:50",
+                    "end": "14:30"
                 },
                 {
                     "block": "a",
@@ -165,42 +175,42 @@
     },
     "Cday": {
         "regular": {
-            "lunchBlock": "g",
+            "lunchBlock": null,
             "blocks": [
                 {
                     "block": "c",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "e",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "g",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "start": "11:00",
+                    "end": "12:30"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "12:30",
+                    "end": "13:15"
                 },
                 {
-                    "block": "g",
-                    "start": "13:00",
-                    "end": "13:45"
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
                 },
                 {
                     "block": "a",
-                    "start": "1:50",
-                    "end": "3:15"
+                    "start": "13:45",
+                    "end": "15:15"
                 }
             ]
         },
         "lateStart": {
-            "lunchBlock": "f",
+            "lunchBlock": null,
             "blocks": [
                 {
                     "block": "c",
@@ -214,28 +224,33 @@
                 },
                 {
                     "block": "e",
-                    "start": "10:45",
-                    "end": "11:25"
+                    "start": "10:30",
+                    "end": "11:10"
                 },
                 {
-                    "block": "f",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "block": "flex",
+                    "start": "11:10",
+                    "end": "11:45"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "11:45",
+                    "end": "12:20"
+                },
+                {
+                    "block": "f",
+                    "start": "12:20",
+                    "end": "13:00"
                 },
                 {
                     "block": "g",
-                    "start": "13:00",
-                    "end": "13:40"
+                    "start": "13:05",
+                    "end": "13:45"
                 },
                 {
                     "block": "a",
-                    "start": "13:45",
-                    "end": "14:25"
+                    "start": "13:50",
+                    "end": "14:30"
                 },
                 {
                     "block": "b",
@@ -247,42 +262,42 @@
     },
     "Dday": {
         "regular": {
-            "lunchBlock": "h",
+            "lunchBlock": null,
             "blocks": [
                 {
                     "block": "d",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "f",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "h",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "start": "11:00",
+                    "end": "12:30"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "12:30",
+                    "end": "13:15"
                 },
                 {
-                    "block": "h",
-                    "start": "13:00",
-                    "end": "13:45"
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
                 },
                 {
                     "block": "b",
-                    "start": "1:50",
-                    "end": "3:15"
+                    "start": "13:45",
+                    "end": "15:15"
                 }
             ]
         },
         "lateStart": {
-            "lunchBlock": "g",
+            "lunchBlock": null,
             "blocks": [
                 {
                     "block": "d",
@@ -296,28 +311,33 @@
                 },
                 {
                     "block": "f",
-                    "start": "10:45",
-                    "end": "11:25"
+                    "start": "10:30",
+                    "end": "11:10"
                 },
                 {
-                    "block": "g",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "block": "flex",
+                    "start": "11:10",
+                    "end": "11:45"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "11:45",
+                    "end": "12:20"
+                },
+                {
+                    "block": "g",
+                    "start": "12:20",
+                    "end": "13:00"
                 },
                 {
                     "block": "a",
-                    "start": "13:00",
-                    "end": "13:40"
+                    "start": "13:05",
+                    "end": "13:45"
                 },
                 {
                     "block": "b",
-                    "start": "13:45",
-                    "end": "14:25"
+                    "start": "13:50",
+                    "end": "14:30"
                 },
                 {
                     "block": "c",
@@ -329,42 +349,42 @@
     },
     "Eday": {
         "regular": {
-            "lunchBlock": "a",
+            "lunchBlock": null,
             "blocks": [
                 {
                     "block": "e",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "g",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "a",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "start": "11:00",
+                    "end": "12:30"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "12:30",
+                    "end": "13:15"
                 },
                 {
-                    "block": "a",
-                    "start": "13:00",
-                    "end": "13:45"
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
                 },
                 {
                     "block": "c",
-                    "start": "1:50",
-                    "end": "3:15"
+                    "start": "13:45",
+                    "end": "15:15"
                 }
             ]
         },
         "lateStart": {
-            "lunchBlock": "a",
+            "lunchBlock": null,
             "blocks": [
                 {
                     "block": "e",
@@ -378,28 +398,33 @@
                 },
                 {
                     "block": "g",
-                    "start": "10:45",
-                    "end": "11:25"
+                    "start": "10:30",
+                    "end": "11:10"
                 },
                 {
-                    "block": "a",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "block": "flex",
+                    "start": "11:10",
+                    "end": "11:45"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "11:45",
+                    "end": "12:20"
+                },
+                {
+                    "block": "a",
+                    "start": "12:20",
+                    "end": "13:00"
                 },
                 {
                     "block": "b",
-                    "start": "13:00",
-                    "end": "13:40"
+                    "start": "13:05",
+                    "end": "13:45"
                 },
                 {
                     "block": "c",
-                    "start": "13:45",
-                    "end": "14:25"
+                    "start": "13:50",
+                    "end": "14:30"
                 },
                 {
                     "block": "d",
@@ -411,42 +436,42 @@
     },
     "Fday": {
         "regular": {
-            "lunchBlock": "b",
+            "lunchBlock": null,
             "blocks": [
                 {
                     "block": "f",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "h",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "b",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "start": "11:00",
+                    "end": "12:30"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "12:30",
+                    "end": "13:15"
                 },
                 {
-                    "block": "b",
-                    "start": "13:00",
-                    "end": "13:45"
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
                 },
                 {
                     "block": "d",
-                    "start": "1:50",
-                    "end": "3:15"
+                    "start": "13:45",
+                    "end": "15:15"
                 }
             ]
         },
         "lateStart": {
-            "lunchBlock": "b",
+            "lunchBlock": null,
             "blocks": [
                 {
                     "block": "f",
@@ -460,28 +485,33 @@
                 },
                 {
                     "block": "a",
-                    "start": "10:45",
-                    "end": "11:25"
+                    "start": "10:30",
+                    "end": "11:10"
                 },
                 {
-                    "block": "b",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "block": "flex",
+                    "start": "11:10",
+                    "end": "11:45"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "11:45",
+                    "end": "12:20"
+                },
+                {
+                    "block": "b",
+                    "start": "12:20",
+                    "end": "13:00"
                 },
                 {
                     "block": "c",
-                    "start": "13:00",
-                    "end": "13:40"
+                    "start": "13:05",
+                    "end": "13:45"
                 },
                 {
                     "block": "d",
-                    "start": "13:45",
-                    "end": "14:25"
+                    "start": "13:50",
+                    "end": "14:30"
                 },
                 {
                     "block": "e",
@@ -493,42 +523,42 @@
     },
     "Gday": {
         "regular": {
-            "lunchBlock": "c",
+            "lunchBlock": null,
             "blocks": [
                 {
                     "block": "g",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "a",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "c",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "start": "11:00",
+                    "end": "12:30"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "12:30",
+                    "end": "13:15"
                 },
                 {
-                    "block": "c",
-                    "start": "13:00",
-                    "end": "13:45"
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
                 },
                 {
                     "block": "e",
-                    "start": "1:50",
-                    "end": "3:15"
+                    "start": "13:45",
+                    "end": "15:15"
                 }
             ]
         },
         "lateStart": {
-            "lunchBlock": "c",
+            "lunchBlock": null,
             "blocks": [
                 {
                     "block": "g",
@@ -542,28 +572,33 @@
                 },
                 {
                     "block": "b",
-                    "start": "10:45",
-                    "end": "11:25"
+                    "start": "10:30",
+                    "end": "11:10"
                 },
                 {
-                    "block": "c",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "block": "flex",
+                    "start": "11:10",
+                    "end": "11:45"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "11:45",
+                    "end": "12:20"
+                },
+                {
+                    "block": "c",
+                    "start": "12:20",
+                    "end": "13:00"
                 },
                 {
                     "block": "d",
-                    "start": "13:00",
-                    "end": "13:40"
+                    "start": "13:05",
+                    "end": "13:45"
                 },
                 {
                     "block": "e",
-                    "start": "13:45",
-                    "end": "14:25"
+                    "start": "13:50",
+                    "end": "14:30"
                 },
                 {
                     "block": "f",
@@ -575,37 +610,37 @@
     },
     "Hday": {
         "regular": {
-            "lunchBlock": "d",
+            "lunchBlock": null,
             "blocks": [
                 {
                     "block": "h",
-                    "start": "8:30",
-                    "end": "9:55"
+                    "start": "8:00",
+                    "end": "9:30"
                 },
                 {
                     "block": "b",
-                    "start": "10:00",
-                    "end": "11:25"
+                    "start": "9:30",
+                    "end": "11:00"
                 },
                 {
                     "block": "d",
-                    "start": "11:30",
-                    "end": "12:10"
+                    "start": "11:00",
+                    "end": "12:30"
                 },
                 {
                     "block": "lunch",
-                    "start": "12:15",
-                    "end": "12:55"
+                    "start": "12:30",
+                    "end": "13:15"
                 },
                 {
-                    "block": "d",
-                    "start": "13:00",
-                    "end": "13:45"
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
                 },
                 {
                     "block": "f",
-                    "start": "1:50",
-                    "end": "3:15"
+                    "start": "13:45",
+                    "end": "15:15"
                 }
             ]
         }
