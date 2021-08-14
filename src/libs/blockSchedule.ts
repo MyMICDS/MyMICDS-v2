@@ -4,16 +4,17 @@ import moment from 'moment';
 
 type Days = 'Aday' | 'Bday' | 'Cday' | 'Dday' | 'Eday' | 'Fday' | 'Gday' | 'Hday';
 
-import grade5and7Schedule from '../schedules/2020/5and7.json';
-import grade6and8Schedule from '../schedules/2020/6and8.json';
-import hsSchedule from '../schedules/2020/regular_HS.json';
+import grade5and6Schedule from '../schedules/2021/5and6.json';
+import grade7Schedule from '../schedules/2021/grade7.json';
+import grade8schedule from '../schedules/2021/grade8.json';
+import hsSchedule from '../schedules/2021/regular_HS.json';
 
 const highschoolSchedule = hsSchedule as Record<Days, DaySchedule>;
 const middleschoolSchedule = {
-	8: grade6and8Schedule as Record<Days, DaySchedule>,
-	7: grade5and7Schedule as Record<Days, DaySchedule>,
-	6: grade6and8Schedule as Record<Days, DaySchedule>,
-	5: grade5and7Schedule as Record<Days, DaySchedule>
+	8: grade8schedule as Record<Days, DaySchedule>,
+	7: grade7Schedule as Record<Days, DaySchedule>,
+	6: grade5and6Schedule as Record<Days, DaySchedule>,
+	5: grade5and6Schedule as Record<Days, DaySchedule>
 };
 
 /**
@@ -88,7 +89,7 @@ function getSchedule(
 		userSchedule.lunchBlock = jsonSchedule?.lunchBlock;
 	} else if (schoolName === 'middleschool') {
 		// Directly return JSON from middleschool schedule
-		userSchedule = middleschoolSchedule[grade as 8 | 7 | 6 | 5][ // TO DO Refactor this shit
+		userSchedule = middleschoolSchedule[grade as 8 | 7 | 6 | 5][
 			`${day.toUpperCase()}day` as Days
 		][lateStart ? 'lateStart' : 'regular'] ?? {
 			blocks: [],
@@ -140,8 +141,9 @@ export interface AlternateBlockFormat extends BlockFormat {
 }
 
 export interface LunchBlockFormat extends BlockFormat {
-	aemsh?: boolean; // Arts, English, Math, Study Hall
-	hswl?: boolean; // History, Science, World Language
+	mash?: boolean; // Math, Arts, Study Hall
+	hiswl?: boolean; // History, World Language
+	ensci?: boolean; // English, Science
 	default?: boolean;
 }
 

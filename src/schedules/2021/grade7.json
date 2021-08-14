@@ -1,0 +1,608 @@
+{
+    "Aday": {
+        "regular": {
+            "lunchBlock": "e",
+            "blocks": [
+                {
+                    "block": "a",
+                    "start": "8:00",
+                    "end": "9:30"
+                },
+                {
+                    "block": "c",
+                    "start": "9:30",
+                    "end": "11:00"
+                },
+                {
+                    "block": "e",
+                    "start": "11:00",
+                    "end": "13:15"
+                },
+                {
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
+                },
+                {
+                    "block": "g",
+                    "start": "13:45",
+                    "end": "15:15"
+                }
+            ]
+        },
+        "lateStart": {
+            "lunchBlock": null,
+            "blocks": [
+                {
+                    "block": "a",
+                    "start": "9:00",
+                    "end": "9:40"
+                },
+                {
+                    "block": "b",
+                    "start": "9:45",
+                    "end": "10:25"
+                },
+                {
+                    "block": "c",
+                    "start": "10:30",
+                    "end": "11:10"
+                },
+                {
+                    "block": "flex",
+                    "start": "11:10",
+                    "end": "11:45"
+                },
+                {
+                    "block": "lunch",
+                    "start": "11:45",
+                    "end": "12:20"
+                },
+                {
+                    "block": "d",
+                    "start": "12:20",
+                    "end": "13:00"
+                },
+                {
+                    "block": "e",
+                    "start": "13:05",
+                    "end": "13:45"
+                },
+                {
+                    "block": "f",
+                    "start": "13:50",
+                    "end": "14:30"
+                },
+                {
+                    "block": "g",
+                    "start": "14:35",
+                    "end": "15:15"
+                }
+            ]
+        }
+    },
+    "Bday": {
+        "regular": {
+            "lunchBlock": "f",
+            "blocks": [
+                {
+                    "block": "b",
+                    "start": "8:00",
+                    "end": "9:30"
+                },
+                {
+                    "block": "d",
+                    "start": "9:30",
+                    "end": "11:00"
+                },
+                {
+                    "block": "f",
+                    "start": "11:00",
+                    "end": "13:15"
+                },
+                {
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
+                },
+                {
+                    "block": "h",
+                    "start": "13:45",
+                    "end": "15:15"
+                }
+            ]
+        },
+        "lateStart": {
+            "lunchBlock": null,
+            "blocks": [
+                {
+                    "block": "b",
+                    "start": "9:00",
+                    "end": "9:40"
+                },
+                {
+                    "block": "c",
+                    "start": "9:45",
+                    "end": "10:25"
+                },
+                {
+                    "block": "d",
+                    "start": "10:30",
+                    "end": "11:10"
+                },
+                {
+                    "block": "flex",
+                    "start": "11:10",
+                    "end": "11:45"
+                },
+                {
+                    "block": "lunch",
+                    "start": "11:45",
+                    "end": "12:20"
+                },
+                {
+                    "block": "e",
+                    "start": "12:20",
+                    "end": "13:00"
+                },
+                {
+                    "block": "f",
+                    "start": "13:05",
+                    "end": "13:45"
+                },
+                {
+                    "block": "g",
+                    "start": "13:50",
+                    "end": "14:30"
+                },
+                {
+                    "block": "a",
+                    "start": "14:35",
+                    "end": "15:15"
+                }
+            ]
+        }
+    },
+    "Cday": {
+        "regular": {
+            "lunchBlock": "g",
+            "blocks": [
+                {
+                    "block": "c",
+                    "start": "8:00",
+                    "end": "9:30"
+                },
+                {
+                    "block": "e",
+                    "start": "9:30",
+                    "end": "11:00"
+                },
+                {
+                    "block": "g",
+                    "start": "11:00",
+                    "end": "13:15"
+                },
+                {
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
+                },
+                {
+                    "block": "a",
+                    "start": "13:45",
+                    "end": "15:15"
+                }
+            ]
+        },
+        "lateStart": {
+            "lunchBlock": null,
+            "blocks": [
+                {
+                    "block": "c",
+                    "start": "9:00",
+                    "end": "9:40"
+                },
+                {
+                    "block": "d",
+                    "start": "9:45",
+                    "end": "10:25"
+                },
+                {
+                    "block": "e",
+                    "start": "10:30",
+                    "end": "11:10"
+                },
+                {
+                    "block": "flex",
+                    "start": "11:10",
+                    "end": "11:45"
+                },
+                {
+                    "block": "lunch",
+                    "start": "11:45",
+                    "end": "12:20"
+                },
+                {
+                    "block": "f",
+                    "start": "12:20",
+                    "end": "13:00"
+                },
+                {
+                    "block": "g",
+                    "start": "13:05",
+                    "end": "13:45"
+                },
+                {
+                    "block": "a",
+                    "start": "13:50",
+                    "end": "14:30"
+                },
+                {
+                    "block": "b",
+                    "start": "14:35",
+                    "end": "15:15"
+                }
+            ]
+        }
+    },
+    "Dday": {
+        "regular": {
+            "lunchBlock": "h",
+            "blocks": [
+                {
+                    "block": "d",
+                    "start": "8:00",
+                    "end": "9:30"
+                },
+                {
+                    "block": "f",
+                    "start": "9:30",
+                    "end": "11:00"
+                },
+                {
+                    "block": "h",
+                    "start": "11:00",
+                    "end": "13:15"
+                },
+                {
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
+                },
+                {
+                    "block": "b",
+                    "start": "13:45",
+                    "end": "15:15"
+                }
+            ]
+        },
+        "lateStart": {
+            "lunchBlock": null,
+            "blocks": [
+                {
+                    "block": "d",
+                    "start": "9:00",
+                    "end": "9:40"
+                },
+                {
+                    "block": "e",
+                    "start": "9:45",
+                    "end": "10:25"
+                },
+                {
+                    "block": "f",
+                    "start": "10:30",
+                    "end": "11:10"
+                },
+                {
+                    "block": "flex",
+                    "start": "11:10",
+                    "end": "11:45"
+                },
+                {
+                    "block": "lunch",
+                    "start": "11:45",
+                    "end": "12:20"
+                },
+                {
+                    "block": "g",
+                    "start": "12:20",
+                    "end": "13:00"
+                },
+                {
+                    "block": "a",
+                    "start": "13:05",
+                    "end": "13:45"
+                },
+                {
+                    "block": "b",
+                    "start": "13:50",
+                    "end": "14:30"
+                },
+                {
+                    "block": "c",
+                    "start": "14:35",
+                    "end": "15:15"
+                }
+            ]
+        }
+    },
+    "Eday": {
+        "regular": {
+            "lunchBlock": "a",
+            "blocks": [
+                {
+                    "block": "e",
+                    "start": "8:00",
+                    "end": "9:30"
+                },
+                {
+                    "block": "g",
+                    "start": "9:30",
+                    "end": "11:00"
+                },
+                {
+                    "block": "a",
+                    "start": "11:00",
+                    "end": "13:15"
+                },
+                {
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
+                },
+                {
+                    "block": "c",
+                    "start": "13:45",
+                    "end": "15:15"
+                }
+            ]
+        },
+        "lateStart": {
+            "lunchBlock": null,
+            "blocks": [
+                {
+                    "block": "e",
+                    "start": "9:00",
+                    "end": "9:40"
+                },
+                {
+                    "block": "f",
+                    "start": "9:45",
+                    "end": "10:25"
+                },
+                {
+                    "block": "g",
+                    "start": "10:30",
+                    "end": "11:10"
+                },
+                {
+                    "block": "flex",
+                    "start": "11:10",
+                    "end": "11:45"
+                },
+                {
+                    "block": "lunch",
+                    "start": "11:45",
+                    "end": "12:20"
+                },
+                {
+                    "block": "a",
+                    "start": "12:20",
+                    "end": "13:00"
+                },
+                {
+                    "block": "b",
+                    "start": "13:05",
+                    "end": "13:45"
+                },
+                {
+                    "block": "c",
+                    "start": "13:50",
+                    "end": "14:30"
+                },
+                {
+                    "block": "d",
+                    "start": "14:35",
+                    "end": "15:15"
+                }
+            ]
+        }
+    },
+    "Fday": {
+        "regular": {
+            "lunchBlock": "b",
+            "blocks": [
+                {
+                    "block": "f",
+                    "start": "8:00",
+                    "end": "9:30"
+                },
+                {
+                    "block": "h",
+                    "start": "9:30",
+                    "end": "11:00"
+                },
+                {
+                    "block": "b",
+                    "start": "11:00",
+                    "end": "13:15"
+                },
+                {
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
+                },
+                {
+                    "block": "d",
+                    "start": "13:45",
+                    "end": "15:15"
+                }
+            ]
+        },
+        "lateStart": {
+            "lunchBlock": null,
+            "blocks": [
+                {
+                    "block": "f",
+                    "start": "9:00",
+                    "end": "9:40"
+                },
+                {
+                    "block": "g",
+                    "start": "9:45",
+                    "end": "10:25"
+                },
+                {
+                    "block": "a",
+                    "start": "10:30",
+                    "end": "11:10"
+                },
+                {
+                    "block": "flex",
+                    "start": "11:10",
+                    "end": "11:45"
+                },
+                {
+                    "block": "lunch",
+                    "start": "11:45",
+                    "end": "12:20"
+                },
+                {
+                    "block": "b",
+                    "start": "12:20",
+                    "end": "13:00"
+                },
+                {
+                    "block": "c",
+                    "start": "13:05",
+                    "end": "13:45"
+                },
+                {
+                    "block": "d",
+                    "start": "13:50",
+                    "end": "14:30"
+                },
+                {
+                    "block": "e",
+                    "start": "14:35",
+                    "end": "15:15"
+                }
+            ]
+        }
+    },
+    "Gday": {
+        "regular": {
+            "lunchBlock": "c",
+            "blocks": [
+                {
+                    "block": "g",
+                    "start": "8:00",
+                    "end": "9:30"
+                },
+                {
+                    "block": "a",
+                    "start": "9:30",
+                    "end": "11:00"
+                },
+                {
+                    "block": "c",
+                    "start": "11:00",
+                    "end": "13:15"
+                },
+                {
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
+                },
+                {
+                    "block": "e",
+                    "start": "13:45",
+                    "end": "15:15"
+                }
+            ]
+        },
+        "lateStart": {
+            "lunchBlock": null,
+            "blocks": [
+                {
+                    "block": "g",
+                    "start": "9:00",
+                    "end": "9:40"
+                },
+                {
+                    "block": "a",
+                    "start": "9:45",
+                    "end": "10:25"
+                },
+                {
+                    "block": "b",
+                    "start": "10:30",
+                    "end": "11:10"
+                },
+                {
+                    "block": "flex",
+                    "start": "11:10",
+                    "end": "11:45"
+                },
+                {
+                    "block": "lunch",
+                    "start": "11:45",
+                    "end": "12:20"
+                },
+                {
+                    "block": "c",
+                    "start": "12:20",
+                    "end": "13:00"
+                },
+                {
+                    "block": "d",
+                    "start": "13:05",
+                    "end": "13:45"
+                },
+                {
+                    "block": "e",
+                    "start": "13:50",
+                    "end": "14:30"
+                },
+                {
+                    "block": "f",
+                    "start": "14:35",
+                    "end": "15:15"
+                }
+            ]
+        }
+    },
+    "Hday": {
+        "regular": {
+            "lunchBlock": "d",
+            "blocks": [
+                {
+                    "block": "h",
+                    "start": "8:00",
+                    "end": "9:30"
+                },
+                {
+                    "block": "b",
+                    "start": "9:30",
+                    "end": "11:00"
+                },
+                {
+                    "block": "d",
+                    "start": "11:00",
+                    "end": "13:15"
+                },
+                {
+                    "block": "community", 
+                    "start": "13:15",
+                    "end" : "13:45"
+                },
+                {
+                    "block": "f",
+                    "start": "13:45",
+                    "end": "15:15"
+                }
+            ]
+        }
+    }
+}

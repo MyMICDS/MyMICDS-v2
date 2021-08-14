@@ -24,7 +24,7 @@ const validDayRotationPlain = /^US [A-H] Day/;
 const checkClassSummary = /.*:.?:[--9]*/;
 export const portalSummaryBlock = /:[A-H]:\d{2}$/g;
 // Modified portal summary block to clean up everythiing for displaying
-const cleanUpBlockSuffix = / [A-Za-z]+ \d{3}:[A-G]:\d{2}$/g;
+const cleanUpBlockSuffix = / [A-Za-z]+ \d{3}(WC)?:[A-G]:\d{2}$/g;
 
 // Range of Portal calendars in months
 export const portalRange = {
@@ -546,7 +546,9 @@ function parsePortalClasses(events: PortalCacheEvent[]) {
  * @returns A more-readable event title.
  */
 export function cleanUp(str: string) {
-	return str.replace(cleanUpBlockSuffix, '');
+	// "Social Science" is two words and the regex will leave "Social"
+	// by combining it, we can handle it properly
+	return str.replace('Social Science', 'SocialScience').replace(cleanUpBlockSuffix, '');
 }
 
 export type PortalCacheEvent = ical.CalendarComponent & { _id: ObjectID; user: ObjectID };
