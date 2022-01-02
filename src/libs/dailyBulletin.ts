@@ -7,6 +7,7 @@ import * as utils from './utils';
 import config from './config';
 import moment from 'moment';
 import pAll from 'p-all';
+import { string } from 'random-js';
 
 const gmail = google.gmail('v1');
 
@@ -16,6 +17,9 @@ export const baseURL = config.hostedOn + '/daily-bulletin';
 export const bulletinPDFDir = __dirname + '/../public/daily-bulletin';
 // Query to retrieve emails from Gmail
 const query = 'label:us-daily-bulletin';
+
+// Regex for finding the google doc link
+const gDocRegex = /https:\/\/docs\.google\.com\/document\/d\/e\/2PACX-1v.+\/pub/;
 
 // Options passed into pAll.
 const pAllOptions = {
@@ -61,50 +65,28 @@ export async function queryLatest() {
 		throw new InternalError('There was a problem getting the most recent email!', e);
 	}
 
-	// Search through the email for any PDF
+	// Search through the email for email text
 	const parts = recentMessage.payload!.parts!;
-	let attachmentId: string | null = null;
-	let originalFilename: path.ParsedPath | null = null;
+	let emailText: string | null = null;
 	for (const part of parts) {
-		// If part contains PDF attachment, we're done boys.
-		if (part.mimeType === 'application/pdf' || part.mimeType === 'application/octet-stream') {
-			attachmentId = part.body!.attachmentId!;
-			originalFilename = path.parse(part.filename!);
+		// Take the plaintext of the email and base64 decode
+		if (part.mimeType === 'text/plain' || part.mimeType === 'text/html') {
+			emailText = Buffer.from(part.body?.data ?? '', 'base64').toString('binary');
 			break;
 		}
 	}
 
-	if (attachmentId === null) {
-		throw new Error('The most recent Daily Bulletin email did not contain any PDF attachment!');
-	}
-
-	// Get PDF attachment with attachment id
-	let attachment;
-	try {
-		attachment = await gmail.users.messages.attachments
-			.get({
-				auth: jwtClient,
-				userId: 'me',
-				messageId: recentMsgId,
-				id: attachmentId
-			})
-			.then(r => r.data);
-	} catch (e) {
-		throw new InternalError('There was a problem getting the PDF attachment!', e);
-	}
-
-	// PDF Contents
-	const pdf = Buffer.from(attachment.data!, 'base64');
-	// Get PDF name
-	const bulletinName = generateFilename(
-		originalFilename!.name,
-		new Date(parseInt(recentMessage.internalDate!, 10))
-	);
-
-	// If bulletinName is null, we are unable to parse bulletin and should skip
-	// This probably means it's not a bulletin
-	if (!bulletinName) {
-		return;
+	// see if there is a published Gdoc link in the email
+	const gDocLinkSearchResults: string[] | undefined | null = emailText?.match(gDocRegex);
+	let gDocLink: string | null = null;
+	if (!emailText) {
+		throw new Error('There was a problem decoding the most recent email from base64!');
+	} else if (gDocLinkSearchResults?.length ?? 0 > 0) {
+		gDocLink = gDocLinkSearchResults![0];
+	} else {
+		throw new Error(
+			'The most recent Daily Bulletin email did not contain any Google doc links!'
+		);
 	}
 
 	// Make sure directory for Daily Bulletin exists
@@ -114,9 +96,9 @@ export async function queryLatest() {
 		throw new InternalError('There was a problem ensuring directory for Daily Bulletins!', e);
 	}
 
-	// Write PDF to file
+	// Write link to designated link file
 	try {
-		await fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf);
+		await fs.writeFile(bulletinPDFDir + '/Glink.txt', gDocLink);
 	} catch (e) {
 		throw new InternalError('There was a problem writing the PDF!', e);
 	}
