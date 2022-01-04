@@ -116,6 +116,7 @@ export async function queryLatest() {
 
 /**
  * Gets every single PDF Daily Bulletin and writes them to disk.
+ * Only PDF bulletins because the old Gdoc bulletin links expire.
  */
 export async function queryAll() {
 	console.log(
@@ -262,7 +263,7 @@ export async function queryAll() {
  * Gets the locations of all the Daily Bulletin PDFs on disk.
  * @returns A list of bulletin filenames from newest to oldest.
  */
-export async function getPdfList() {
+export async function getPdfBulletinList() {
 	// Read directory
 	try {
 		await fs.ensureDir(bulletinPDFDir);
@@ -293,7 +294,11 @@ export async function getPdfList() {
 	return bulletins;
 }
 
-export async function getTxtList() {
+/**
+ * finds the most recent Txt file containing a Gdoc link and returns the link in the file.
+ * @returns GDoc URL as a string
+ */
+export async function getGDocBulletin() {
 	// Read directory
 	try {
 		await fs.ensureDir(bulletinPDFDir);
@@ -321,7 +326,17 @@ export async function getTxtList() {
 	bulletins.sort();
 	bulletins.reverse();
 
-	return bulletins;
+	let link: string;
+	try {
+		link = fs.readFileSync(bulletinPDFDir + '/' + bulletins[0] + '.txt', 'utf-8');
+	} catch (e) {
+		throw new InternalError(
+			'There was a problem reading the text file for the GDoc Bulletin!',
+			e
+		);
+	}
+
+	return { bulletin: link, bulletinDate: bulletins[0] };
 }
 
 /**

@@ -6,10 +6,11 @@ import RoutesFunction from './routesFunction';
 export default (app => {
 	app.get('/daily-bulletin', async (req, res) => {
 		try {
-			const bulletins = await dailyBulletin.getTxtList();
+			const { bulletin, bulletinDate } = await dailyBulletin.getGDocBulletin();
 			api.success(res, {
 				baseURL: dailyBulletin.baseURL,
-				bulletins
+				bulletin,
+				bulletinDate
 			});
 		} catch (err) {
 			api.error(res, err);
@@ -18,7 +19,7 @@ export default (app => {
 
 	app.get('/daily-bulletin/pdf', async (req, res) => {
 		try {
-			const bulletins = await dailyBulletin.getPdfList();
+			const bulletins = await dailyBulletin.getPdfBulletinList();
 			api.success(res, {
 				baseURL: dailyBulletin.baseURL,
 				bulletins
