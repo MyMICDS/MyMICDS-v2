@@ -7,7 +7,6 @@ import * as utils from './utils';
 import config from './config';
 import moment from 'moment';
 import pAll from 'p-all';
-import { string } from 'random-js';
 
 const gmail = google.gmail('v1');
 
@@ -65,6 +64,17 @@ export async function queryLatest() {
 		throw new InternalError('There was a problem getting the most recent email!', e);
 	}
 
+	// Get email subject for the date; generate filename from subject
+	const subject = recentMessage.payload?.headers?.filter(h => h.name === 'Subject')[0].value;
+	const filename = generateFilename(
+		subject ?? '',
+		new Date(parseInt(recentMessage.internalDate!, 10))
+	);
+
+	if (!filename) {
+		throw new Error('There was a problem finding the date for the daily bulletin!');
+	}
+
 	// Search through the email for email text
 	const parts = recentMessage.payload!.parts!;
 	let emailText: string | null = null;
@@ -98,14 +108,14 @@ export async function queryLatest() {
 
 	// Write link to designated link file
 	try {
-		await fs.writeFile(bulletinPDFDir + '/Glink.txt', gDocLink);
+		await fs.writeFile(bulletinPDFDir + '/' + filename, gDocLink);
 	} catch (e) {
 		throw new InternalError('There was a problem writing the PDF!', e);
 	}
 }
 
 /**
- * Gets every single Daily Bulletin and writes them to disk.
+ * Gets every single PDF Daily Bulletin and writes them to disk.
  */
 export async function queryAll() {
 	console.log(
@@ -249,10 +259,10 @@ export async function queryAll() {
 }
 
 /**
- * Gets the locations of all the Daily Bulletins on disk.
+ * Gets the locations of all the Daily Bulletin PDFs on disk.
  * @returns A list of bulletin filenames from newest to oldest.
  */
-export async function getList() {
+export async function getPdfList() {
 	// Read directory
 	try {
 		await fs.ensureDir(bulletinPDFDir);
@@ -272,6 +282,37 @@ export async function getList() {
 	for (const _file of files) {
 		const file = path.parse(_file);
 		if (file.ext === '.pdf') {
+			bulletins.push(file.name);
+		}
+	}
+
+	// Sort bulletins to get most recent
+	bulletins.sort();
+	bulletins.reverse();
+
+	return bulletins;
+}
+
+export async function getTxtList() {
+	// Read directory
+	try {
+		await fs.ensureDir(bulletinPDFDir);
+	} catch (e) {
+		throw new InternalError('There was a problem ensuring the bulletin directory exists!', e);
+	}
+
+	let files: string[];
+	try {
+		files = await fs.readdir(bulletinPDFDir);
+	} catch (e) {
+		throw new InternalError('There was a problem reading the bulletin directory!', e);
+	}
+
+	// Only return files that are a Txt file
+	const bulletins: string[] = [];
+	for (const _file of files) {
+		const file = path.parse(_file);
+		if (file.ext === '.txt') {
 			bulletins.push(file.name);
 		}
 	}
@@ -316,5 +357,5 @@ function generateFilename(filename: string, sentDate: Date): string | null {
 		utils.leadingZeros
 	);
 
-	return `${year}-${month}-${day}.pdf`;
+	return `${year}-${month}-${day}.txt`;
 }
