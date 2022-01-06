@@ -29,7 +29,8 @@ describe('Daily Bulletin', () => {
 			const res = await buildRequest(this).expect(200);
 
 			assertType<GetBulletinsResponse>(res.body.data);
-			expect(res.body.data.bulletins).to.have.lengthOf(1);
+			expect(res.body.data.bulletin.length).to.be.above(1);
+			expect(res.body.data.bulletinDate.length).to.be.above(1);
 		});
 	});
 

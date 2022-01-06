@@ -65,7 +65,7 @@ export async function queryLatest() {
 	}
 
 	// Get email subject for the date; generate filename from subject
-	const subject = recentMessage.payload?.headers?.filter(h => h.name === 'Subject')[0].value;
+	const subject = recentMessage.payload!.headers!.filter(h => h.name === 'Subject')[0].value;
 	const filename = generateFilename(
 		subject ?? '',
 		new Date(parseInt(recentMessage.internalDate!, 10))
@@ -89,7 +89,7 @@ export async function queryLatest() {
 	// see if there is a published Gdoc link in the email
 	const gDocLinkSearchResults: string[] | undefined | null = emailText?.match(gDocRegex);
 	let gDocLink: string | null = null;
-	if (!emailText) {
+	if (!emailText || emailText.length === 0) {
 		throw new Error('There was a problem decoding the most recent email from base64!');
 	} else if (gDocLinkSearchResults?.length ?? 0 > 0) {
 		gDocLink = gDocLinkSearchResults![0];
