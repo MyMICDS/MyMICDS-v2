@@ -74,7 +74,7 @@
     "@types/random-js": "^1.0.30",
     "@types/request-promise-native": "^1.0.15",
     "@types/socket.io": "^1.4.36",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.15.2",
     "cheerio": "^0.22.0",
