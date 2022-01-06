@@ -27,34 +27,34 @@ if (config.production) {
 			 * Bulletins are broken, so I'm disabling this.
 			 */
 
-			// later.setInterval(async () => {
-			// 	log('Check for latest Daily Bulletin');
+			later.setInterval(async () => {
+				log('Check for latest Daily Bulletin');
 
-			// 	try {
-			// 		await dailyBulletin.queryLatest();
+				try {
+					await dailyBulletin.queryLatest();
 
-			// 		log('Successfully got latest Daily Bulletin!');
-			// 	} catch (e) {
-			// 		const err = (e as Error).message;
-			// 		log(`Error occurred for Daily Bulletin! (${err})`);
+					log('Successfully got latest Daily Bulletin!');
+				} catch (e) {
+					const err = (e as Error).message;
+					log(`Error occurred for Daily Bulletin! (${err})`);
 
-			// 		// Alert admins if there's an error querying the Daily Bulletin
-			// 		try {
-			// 			await admins.sendEmail(db, {
-			// 				subject: 'Error Notification - Daily Bulletin Retrieval',
-			// 				html: `There was an error when retrieving the daily bulletin.<br>Error message: ${err}`
-			// 			});
+					// Alert admins if there's an error querying the Daily Bulletin
+					try {
+						await admins.sendEmail(db, {
+							subject: 'Error Notification - Daily Bulletin Retrieval',
+							html: `There was an error when retrieving the daily bulletin.<br>Error message: ${err}`
+						});
 
-			// 			log(`Alerted admins of error! (${err})`);
-			// 		} catch (mailErr) {
-			// 			log(
-			// 				`Error occured when sending admin error notifications! (${
-			// 					(mailErr as Error).message
-			// 				})`
-			// 			);
-			// 		}
-			// 	}
-			// }, fiveMinuteInterval);
+						log(`Alerted admins of error! (${err})`);
+					} catch (mailErr) {
+						log(
+							`Error occured when sending admin error notifications! (${
+								(mailErr as Error).message
+							})`
+						);
+					}
+				}
+			}, fiveMinuteInterval);
 
 			/*
 			 * Get new weather info every 5 minutes
@@ -122,9 +122,9 @@ if (config.production) {
 				}
 			}, later.parse.text('every 15 min'));
 
-			/*
-			 * Update everyone's Canvas cache over the course of 6 hours
-			 */
+			// /*
+			//  * Update everyone's Canvas cache over the course of 6 hours
+			//  */
 
 			later.setInterval(async () => {
 				const userdata = db.collection<UserDoc>('users');

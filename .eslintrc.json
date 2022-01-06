@@ -1,5 +1,5 @@
 {
-	"ignorePatterns": ["src/public", "dist"],
+	"ignorePatterns": ["src/public", "dist", "types"],
 	"root": true,
 	"extends": ["@mymicds", "prettier", "prettier/@typescript-eslint"],
 	"parserOptions": {

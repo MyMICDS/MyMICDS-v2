@@ -6,7 +6,20 @@ import RoutesFunction from './routesFunction';
 export default (app => {
 	app.get('/daily-bulletin', async (req, res) => {
 		try {
-			const bulletins = await dailyBulletin.getList();
+			const { bulletin, bulletinDate } = await dailyBulletin.getGDocBulletin();
+			api.success(res, {
+				baseURL: dailyBulletin.baseURL,
+				bulletin,
+				bulletinDate
+			});
+		} catch (err) {
+			api.error(res, err);
+		}
+	});
+
+	app.get('/daily-bulletin/pdf', async (req, res) => {
+		try {
+			const bulletins = await dailyBulletin.getPdfBulletinList();
 			api.success(res, {
 				baseURL: dailyBulletin.baseURL,
 				bulletins
@@ -25,7 +38,7 @@ export default (app => {
 		}
 	});
 
-	app.post('/daily-bulletin/query-all', jwt.requireScope('admin'), async (req, res) => {
+	app.post('/daily-bulletin/pdf/query-all', jwt.requireScope('admin'), async (req, res) => {
 		try {
 			await dailyBulletin.queryAll();
 			api.success(res);

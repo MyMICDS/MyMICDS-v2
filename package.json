@@ -53,7 +53,8 @@
   },
   "homepage": "https://mymicds.net",
   "dependencies": {
-    "@mymicds/sdk": "^1.12.0",
+    "@mymicds/sdk": "^1.13.1",
+    "@rapid7/prisma": "^4.0.2",
     "@sentry/node": "^6.2.1",
     "@types/bcrypt": "^3.0.0",
     "@types/cheerio": "^0.22.13",
@@ -102,8 +103,7 @@
     "ts-node": "^9.1.1",
     "ttypescript": "^1.5.12",
     "typescript": "^4.2.3",
-    "typescript-is": "^0.17.1",
-    "@rapid7/prisma": "^4.0.2"
+    "typescript-is": "^0.17.1"
   },
   "devDependencies": {
     "@mymicds/eslint-config": "^1.0.0",
