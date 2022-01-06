@@ -2,7 +2,7 @@ import { assertType } from 'typescript-is';
 import { buildRequest, requireLoggedIn } from './helpers/shared';
 import { expect } from 'chai';
 import { generateJWT, saveTestUser } from './helpers/user';
-import { GetBulletinsResponse } from '@mymicds/sdk';
+import { GetBulletinsResponse, GetGDocBulletinResponse } from '@mymicds/sdk';
 import { initAPI } from '../src/init';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import * as dailyBulletin from '../src/libs/dailyBulletin';
@@ -24,11 +24,11 @@ describe('Daily Bulletin', () => {
 		this.ctx.method = 'get';
 		this.ctx.route = '/daily-bulletin/';
 
-		it('retrieves the list of daily bulletins', async function () {
+		it('retrieves the latest bulletin link', async function () {
 			await dailyBulletin.queryLatest();
 			const res = await buildRequest(this).expect(200);
 
-			assertType<GetBulletinsResponse>(res.body.data);
+			assertType<GetGDocBulletinResponse>(res.body.data);
 			expect(res.body.data.bulletin.length).to.be.above(1);
 			expect(res.body.data.bulletinDate.length).to.be.above(1);
 		});
