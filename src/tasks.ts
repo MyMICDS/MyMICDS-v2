@@ -19,6 +19,7 @@ if (config.production) {
 		.then(client => {
 			const db = client.db();
 			const fiveMinuteInterval = later.parse.text('every 5 min');
+			const thirtyMinuteInterval = later.parse.text('every 30 min');
 
 			const userQuery = { confirmed: true, gradYear: { $gte: gradeToGradYear(12) } };
 
@@ -54,7 +55,7 @@ if (config.production) {
 						);
 					}
 				}
-			}, fiveMinuteInterval);
+			}, thirtyMinuteInterval);
 
 			/*
 			 * Get new weather info every 5 minutes

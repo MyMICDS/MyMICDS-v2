@@ -16,8 +16,8 @@ describe('Daily Bulletin', () => {
 		this.db = db;
 		this.request = supertest(app);
 
-		await fs.ensureDir(dailyBulletin.bulletinPDFDir);
-		await fs.move(dailyBulletin.bulletinPDFDir, dailyBulletin.bulletinPDFDir + '_old');
+		await fs.ensureDir(dailyBulletin.bulletinDir);
+		await fs.move(dailyBulletin.bulletinDir, dailyBulletin.bulletinDir + '_old');
 	});
 
 	describe('GET /daily-bulletin', function () {
@@ -44,7 +44,7 @@ describe('Daily Bulletin', () => {
 
 			await buildRequest(this).set('Authorization', `Bearer ${jwt}`).expect(200);
 
-			const bulletins = await fs.readdir(dailyBulletin.bulletinPDFDir);
+			const bulletins = await fs.readdir(dailyBulletin.bulletinDir);
 			expect(bulletins).to.have.lengthOf(1);
 		});
 
@@ -60,12 +60,12 @@ describe('Daily Bulletin', () => {
 
 	afterEach(async function () {
 		await this.db.dropDatabase();
-		await fs.emptyDir(dailyBulletin.bulletinPDFDir);
+		await fs.emptyDir(dailyBulletin.bulletinDir);
 	});
 
 	after(async function () {
 		await this.mongo.stop();
-		await fs.rmdir(dailyBulletin.bulletinPDFDir);
-		await fs.move(dailyBulletin.bulletinPDFDir + '_old', dailyBulletin.bulletinPDFDir);
+		await fs.rmdir(dailyBulletin.bulletinDir);
+		await fs.move(dailyBulletin.bulletinDir + '_old', dailyBulletin.bulletinDir);
 	});
 });
