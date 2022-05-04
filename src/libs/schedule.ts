@@ -1,5 +1,6 @@
 import { Block, ClassType, GetScheduleResponse, ScheduleClass } from '@mymicds/sdk';
 import { Db } from 'mongodb';
+import { shouldTextBeDark, stringToColor } from './utils';
 import * as _ from 'lodash';
 import * as aliases from './aliases';
 import * as blockSchedule from './blockSchedule';
@@ -8,7 +9,6 @@ import * as feeds from './feeds';
 import * as portal from './portal';
 import * as users from './users';
 import moment from 'moment';
-import prisma from '@rapid7/prisma';
 
 import lateStarts from '../schedules/2020/late_starts.json';
 
@@ -22,7 +22,7 @@ export const defaultSchoolBlock: ScheduleClass = {
 	block: Block.OTHER,
 	type: ClassType.OTHER,
 	color: '#A5001E',
-	textDark: prisma.shouldTextBeDark('#A5001E')
+	textDark: shouldTextBeDark('#A5001E')
 };
 
 const genericBlocks: Record<
@@ -39,7 +39,7 @@ const genericBlocks: Record<
 		type: ClassType.OTHER,
 		block: Block.OTHER,
 		color: '#FF6347',
-		textDark: prisma.shouldTextBeDark('#FF6347')
+		textDark: shouldTextBeDark('#FF6347')
 	},
 	advisory: {
 		name: 'Advisory',
@@ -51,7 +51,7 @@ const genericBlocks: Record<
 		type: ClassType.OTHER,
 		block: Block.OTHER,
 		color: '#5a98ec',
-		textDark: prisma.shouldTextBeDark('#5a98ec')
+		textDark: shouldTextBeDark('#5a98ec')
 	},
 	collaborative: {
 		name: 'Collaborative Work',
@@ -63,7 +63,7 @@ const genericBlocks: Record<
 		type: ClassType.OTHER,
 		block: Block.OTHER,
 		color: '#29ABE2',
-		textDark: prisma.shouldTextBeDark('#29ABE2')
+		textDark: shouldTextBeDark('#29ABE2')
 	},
 	community: {
 		name: 'Community',
@@ -75,7 +75,7 @@ const genericBlocks: Record<
 		type: ClassType.OTHER,
 		block: Block.OTHER,
 		color: '#AA0031',
-		textDark: prisma.shouldTextBeDark('#AA0031')
+		textDark: shouldTextBeDark('#AA0031')
 	},
 	flex: {
 		name: 'Flex',
@@ -87,7 +87,7 @@ const genericBlocks: Record<
 		type: ClassType.OTHER,
 		block: Block.OTHER,
 		color: '#CC33FF',
-		textDark: prisma.shouldTextBeDark('#CC33FF')
+		textDark: shouldTextBeDark('#CC33FF')
 	},
 	lunch: {
 		name: 'Lunch!',
@@ -99,7 +99,7 @@ const genericBlocks: Record<
 		type: ClassType.OTHER,
 		block: Block.OTHER,
 		color: '#116C53',
-		textDark: prisma.shouldTextBeDark('#116C53')
+		textDark: shouldTextBeDark('#116C53')
 	},
 	recess: {
 		name: 'Recess',
@@ -111,7 +111,7 @@ const genericBlocks: Record<
 		type: ClassType.OTHER,
 		block: Block.OTHER,
 		color: '#FFFF00',
-		textDark: prisma.shouldTextBeDark('#FFFF00')
+		textDark: shouldTextBeDark('#FFFF00')
 	},
 	pe: {
 		name: 'Physical Education',
@@ -123,7 +123,7 @@ const genericBlocks: Record<
 		type: ClassType.OTHER,
 		block: Block.OTHER,
 		color: '#91E11D',
-		textDark: prisma.shouldTextBeDark('#91E11D')
+		textDark: shouldTextBeDark('#91E11D')
 	}
 };
 
@@ -353,7 +353,7 @@ async function getSchedule(
 
 				// Check if event occurs throughout school day
 				if (start.isSameOrAfter(defaultStart) && end.isSameOrBefore(defaultEnd)) {
-					const color = prisma(calEvent.summary).hex;
+					const color = stringToColor(calEvent.summary ?? '');
 					schoolScheduleEvents.push({
 						start,
 						end,
@@ -368,7 +368,7 @@ async function getSchedule(
 							block: 'other',
 							type: 'other',
 							color,
-							textDark: prisma.shouldTextBeDark(color)
+							textDark: shouldTextBeDark(color)
 						}
 					});
 				}
@@ -410,7 +410,7 @@ async function getSchedule(
 				}
 
 				// Generate random color
-				const color = prisma(calEvent.summary).hex;
+				const color = stringToColor(calEvent.summary ?? '');
 
 				// RegEx for determining block and stuff is a bit intense; therefore, we should cache it. [sp1a]
 				aliasesResult.portal[calEvent.summary!] = {
@@ -424,7 +424,7 @@ async function getSchedule(
 					block,
 					type: ClassType.OTHER,
 					color,
-					textDark: prisma.shouldTextBeDark(color)
+					textDark: shouldTextBeDark(color)
 				};
 			}
 
@@ -537,7 +537,7 @@ function combineClassesSchedule(
 
 		if (typeof scheduleClass !== 'object') {
 			const blockName = 'Block ' + block[0].toUpperCase() + block.slice(1);
-			const color = prisma(block).hex;
+			const color = stringToColor(block);
 			scheduleClass = {
 				name: blockName,
 				teacher: {
@@ -548,7 +548,7 @@ function combineClassesSchedule(
 				type: ClassType.OTHER,
 				block: Block.OTHER,
 				color,
-				textDark: prisma.shouldTextBeDark(color)
+				textDark: shouldTextBeDark(color)
 			};
 		}
 

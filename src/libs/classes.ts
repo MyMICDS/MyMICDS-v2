@@ -1,10 +1,9 @@
 import { Block, ClassType } from '@mymicds/sdk';
 import { Db, ObjectID } from 'mongodb';
 import { InputError, InternalError } from './errors';
-import { Omit } from './utils';
+import { Omit, shouldTextBeDark } from './utils';
 import { Teacher } from '@mymicds/sdk/dist/libs/teachers';
 import * as aliases from './aliases';
-import * as prisma from '@rapid7/prisma';
 import * as Random from 'random-js';
 import * as teachers from './teachers';
 import * as users from './users';
@@ -199,7 +198,7 @@ async function getClasses(db: Db, user: string) {
 
 	// Add 'textDark' to all of the classes based on color
 	for (const theClass of classes) {
-		theClass.textDark = prisma.shouldTextBeDark(theClass.color);
+		theClass.textDark = shouldTextBeDark(theClass.color);
 	}
 
 	return classes;

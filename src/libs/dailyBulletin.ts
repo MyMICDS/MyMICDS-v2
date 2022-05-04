@@ -13,7 +13,7 @@ const gmail = google.gmail('v1');
 // Where public accesses backgrounds
 export const baseURL = config.hostedOn + '/daily-bulletin';
 // Where to save Daily Bulletin PDFs
-export const bulletinPDFDir = __dirname + '/../public/daily-bulletin';
+export const bulletinDir = __dirname + '/../public/daily-bulletin';
 // Query to retrieve emails from Gmail
 const query = 'label:us-daily-bulletin';
 
@@ -76,7 +76,11 @@ export async function queryLatest() {
 	}
 
 	// Search through the email for email text
-	const parts = recentMessage.payload!.parts!;
+
+	let parts = recentMessage.payload!.parts!;
+	if (parts[0].mimeType === 'multipart/alternative') {
+		parts = parts[0].parts!;
+	}
 	let emailText: string | null = null;
 	for (const part of parts) {
 		// Take the plaintext of the email and base64 decode
@@ -101,14 +105,14 @@ export async function queryLatest() {
 
 	// Make sure directory for Daily Bulletin exists
 	try {
-		await fs.ensureDir(bulletinPDFDir);
+		await fs.ensureDir(bulletinDir);
 	} catch (e) {
 		throw new InternalError('There was a problem ensuring directory for Daily Bulletins!', e);
 	}
 
 	// Write link to designated link file
 	try {
-		await fs.writeFile(bulletinPDFDir + '/' + filename, gDocLink);
+		await fs.writeFile(bulletinDir + '/' + filename, gDocLink);
 	} catch (e) {
 		throw new InternalError('There was a problem writing the PDF!', e);
 	}
@@ -227,7 +231,7 @@ export async function queryAll() {
 
 	// Make sure directory for Daily Bulletin exists
 	try {
-		await fs.ensureDir(bulletinPDFDir);
+		await fs.ensureDir(bulletinDir);
 	} catch (e) {
 		throw new InternalError('There was a problem ensuring directory for Daily Bulletins!', e);
 	}
@@ -249,7 +253,7 @@ export async function queryAll() {
 
 			// Write PDF to file
 			try {
-				await fs.writeFile(bulletinPDFDir + '/' + bulletinName, pdf);
+				await fs.writeFile(bulletinDir + '/' + bulletinName, pdf);
 			} catch (e) {
 				throw new InternalError('There was a problem writing the PDF!', e);
 			}
@@ -266,14 +270,14 @@ export async function queryAll() {
 export async function getPdfBulletinList() {
 	// Read directory
 	try {
-		await fs.ensureDir(bulletinPDFDir);
+		await fs.ensureDir(bulletinDir);
 	} catch (e) {
 		throw new InternalError('There was a problem ensuring the bulletin directory exists!', e);
 	}
 
 	let files: string[];
 	try {
-		files = await fs.readdir(bulletinPDFDir);
+		files = await fs.readdir(bulletinDir);
 	} catch (e) {
 		throw new InternalError('There was a problem reading the bulletin directory!', e);
 	}
@@ -301,14 +305,14 @@ export async function getPdfBulletinList() {
 export async function getGDocBulletin() {
 	// Read directory
 	try {
-		await fs.ensureDir(bulletinPDFDir);
+		await fs.ensureDir(bulletinDir);
 	} catch (e) {
 		throw new InternalError('There was a problem ensuring the bulletin directory exists!', e);
 	}
 
 	let files: string[];
 	try {
-		files = await fs.readdir(bulletinPDFDir);
+		files = await fs.readdir(bulletinDir);
 	} catch (e) {
 		throw new InternalError('There was a problem reading the bulletin directory!', e);
 	}
@@ -328,7 +332,7 @@ export async function getGDocBulletin() {
 
 	let link: string;
 	try {
-		link = fs.readFileSync(bulletinPDFDir + '/' + bulletins[0] + '.txt', 'utf-8');
+		link = fs.readFileSync(bulletinDir + '/' + bulletins[0] + '.txt', 'utf-8');
 	} catch (e) {
 		throw new InternalError(
 			'There was a problem reading the text file for the GDoc Bulletin!',
