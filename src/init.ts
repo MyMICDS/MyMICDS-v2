@@ -78,7 +78,6 @@ export async function initAPI(dbUri: string) {
 			'notifications',
 			'planner',
 			'portal',
-			'quotes',
 			'schedule',
 			'snowday',
 			'stats',

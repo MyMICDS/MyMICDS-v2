@@ -8,7 +8,6 @@ import * as checkedEvents from './checkedEvents';
 import * as feeds from './feeds';
 import * as htmlParser from './htmlParser';
 import * as ical from 'ical';
-import * as prisma from '@rapid7/prisma';
 import * as querystring from 'querystring';
 import * as url from 'url';
 import * as users from './users';
@@ -320,7 +319,7 @@ export async function getFromCache(db: Db, user: string) {
 			type: ClassType.OTHER,
 			block: Block.OTHER,
 			color: defaultColor,
-			textDark: prisma.shouldTextBeDark(defaultColor)
+			textDark: false
 		};
 
 		if (hasAlias) {
