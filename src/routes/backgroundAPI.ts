@@ -13,7 +13,7 @@ export default ((app, db, socketIO) => {
 		}
 	});
 
-	app.get('/background/all', async (req, res) => {
+	app.get('/background/all', jwt.requireScope('admin'), async (req, res) => {
 		try {
 			const responseObj = await backgrounds.getAll(db);
 			api.success(res, responseObj);
