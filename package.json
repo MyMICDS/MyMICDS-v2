@@ -86,7 +86,7 @@
     "jimp": "^0.16.1",
     "jquery": "^3.5.0",
     "jsdoc": "^3.6.10",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "later": "^1.2.0",
     "lodash": "^4.17.21",
     "mjml": "^4.11.0",
