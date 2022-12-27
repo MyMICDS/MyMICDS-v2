@@ -9,7 +9,7 @@ export class InputError extends Error {
 }
 
 export class InternalError extends Error {
-	constructor(message: string, readonly source: Error) {
+	constructor(message: string, readonly source: Error | unknown) {
 		super(message);
 	}
 }

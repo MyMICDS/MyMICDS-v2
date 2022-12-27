@@ -59,13 +59,20 @@ function respondSuccess(res: Response, data: unknown = {}, action: Action | null
  * @param error Error that the API should respond with.
  * @param action An action for the front-end client to perform.
  */
-function respondError(res: Response, error: Error | string | null, action: Action | null = null) {
+function respondError(
+	res: Response,
+	error: Error | string | null | unknown,
+	action: Action | null = null
+) {
 	// Check for different types of errors
 	let err = null;
 
-	if (typeof error === 'object') {
-		// ignore if error is null
-		err = error?.message;
+	if (error !== null && typeof error === 'object') {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const message = (error as any).message;
+		if (typeof message === 'string') {
+			err = message;
+		}
 	}
 
 	if (typeof error === 'string') {
