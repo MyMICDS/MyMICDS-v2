@@ -4,7 +4,7 @@ import {
 	DeletePlannerEventParameters,
 	UncheckPlannerEventParameters
 } from '@mymicds/sdk';
-import { assertType } from 'typescript-is';
+import { assertEquals } from 'typia';
 import * as api from '../libs/api';
 import * as checkedEvents from '../libs/checkedEvents';
 import * as jwt from '../libs/jwt';
@@ -25,7 +25,7 @@ export default ((app, db, socketIO) => {
 		try {
 			type AddEventBody = Omit<AddPlannerEventParameters, 'start' | 'end'> &
 				Partial<Record<'start' | 'end', string>>;
-			assertType<AddEventBody>(req.body);
+			assertEquals<AddEventBody>(req.body);
 		} catch (err) {
 			api.error(res, err);
 			return;
@@ -68,7 +68,7 @@ export default ((app, db, socketIO) => {
 
 	app.delete('/planner', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertType<DeletePlannerEventParameters>(req.body);
+			assertEquals<DeletePlannerEventParameters>(req.body);
 			await planner.delete(db, req.apiUser!, req.body.id);
 			socketIO.user(req.apiUser!, 'planner', 'delete', req.body.id);
 			api.success(res);
@@ -79,7 +79,7 @@ export default ((app, db, socketIO) => {
 
 	app.patch('/planner/check', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertType<CheckPlannerEventParameters>(req.body);
+			assertEquals<CheckPlannerEventParameters>(req.body);
 			await checkedEvents.check(db, req.apiUser!, req.body.id);
 			socketIO.user(req.apiUser!, 'planner', 'check', req.body.id);
 			api.success(res);
@@ -90,7 +90,7 @@ export default ((app, db, socketIO) => {
 
 	app.patch('/planner/uncheck', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertType<UncheckPlannerEventParameters>(req.body);
+			assertEquals<UncheckPlannerEventParameters>(req.body);
 			await checkedEvents.uncheck(db, req.apiUser!, req.body.id);
 			socketIO.user(req.apiUser!, 'planner', 'uncheck', req.body.id);
 			api.success(res);

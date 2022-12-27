@@ -1,4 +1,4 @@
-import { assertType } from 'typescript-is';
+import { assertEquals } from 'typia';
 import {
 	ChangePasswordParameters,
 	ConfirmParameters,
@@ -27,7 +27,7 @@ export default ((app, db) => {
 		const rememberMe = typeof req.body.remember !== 'undefined';
 
 		try {
-			assertType<LoginParameters>(req.body);
+			assertEquals<LoginParameters>(req.body);
 
 			const responseObj = await auth.login(
 				db,
@@ -56,7 +56,7 @@ export default ((app, db) => {
 
 	app.post('/auth/register', async (req, res) => {
 		try {
-			assertType<RegisterParameters>(req.body);
+			assertEquals<RegisterParameters>(req.body);
 		} catch (err) {
 			api.error(res, err);
 			return;
@@ -84,7 +84,7 @@ export default ((app, db) => {
 
 	app.post('/auth/confirm', async (req, res) => {
 		try {
-			assertType<ConfirmParameters>(req.body);
+			assertEquals<ConfirmParameters>(req.body);
 			await auth.confirm(db, req.body.user, req.body.hash);
 			api.success(res);
 		} catch (err) {
@@ -94,7 +94,7 @@ export default ((app, db) => {
 
 	app.put('/auth/change-password', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertType<ChangePasswordParameters>(req.body);
+			assertEquals<ChangePasswordParameters>(req.body);
 			await passwords.changePassword(
 				db,
 				req.apiUser!,
@@ -113,7 +113,7 @@ export default ((app, db) => {
 			return;
 		}
 		try {
-			assertType<ForgotPasswordParameters>(req.body);
+			assertEquals<ForgotPasswordParameters>(req.body);
 			await passwords.resetPasswordEmail(db, req.body.user);
 			api.success(res);
 		} catch (err) {
@@ -127,7 +127,7 @@ export default ((app, db) => {
 			return;
 		}
 		try {
-			assertType<ResetPasswordParameters>(req.body);
+			assertEquals<ResetPasswordParameters>(req.body);
 			await passwords.resetPassword(db, req.body.user, req.body.password, req.body.hash);
 			api.success(res);
 		} catch (err) {

@@ -39,7 +39,7 @@ export default ((app, db, socketIO) => {
 
 	app.patch('/user/info', jwt.requireLoggedIn, async (req, res) => {
 		// All the validation is being done manually to add defaults
-		// No reason to add an assertType
+		// No reason to add an assertEquals
 
 		const info: ChangeUserInfoParameters = {};
 

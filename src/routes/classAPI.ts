@@ -1,5 +1,5 @@
 import { AddClassParameters, DeleteClassParameters } from '@mymicds/sdk';
-import { assertType } from 'typescript-is';
+import { assertEquals } from 'typia';
 import * as api from '../libs/api';
 import * as classes from '../libs/classes';
 import * as jwt from '../libs/jwt';
@@ -17,7 +17,7 @@ export default ((app, db, socketIO) => {
 
 	app.post('/classes', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertType<AddClassParameters>(req.body);
+			assertEquals<AddClassParameters>(req.body);
 		} catch (err) {
 			api.error(res, err);
 			return;
@@ -48,7 +48,7 @@ export default ((app, db, socketIO) => {
 
 	app.delete('/classes', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertType<DeleteClassParameters>(req.body);
+			assertEquals<DeleteClassParameters>(req.body);
 			await classes.delete(db, req.apiUser!, req.body.id);
 			socketIO.user(req.apiUser!, 'classes', 'delete', req.body.id);
 			api.success(res);

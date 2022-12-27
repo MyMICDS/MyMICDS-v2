@@ -16,7 +16,7 @@ export default {
 		fromName: 'MyMICDS Support'
 	},
 
-	forecast: {
+	openWeather: {
 		APIKey: ''
 	},
 

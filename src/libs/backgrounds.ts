@@ -49,7 +49,7 @@ function uploadBackground() {
 			try {
 				await deleteBackground(req.apiUser!);
 			} catch (err) {
-				cb(err, '');
+				cb(err as InternalError, '');
 				return;
 			}
 

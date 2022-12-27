@@ -1,7 +1,7 @@
 import { Action } from '@mymicds/sdk';
 import { InputError, InternalError } from './errors';
 import { NextFunction, Request, Response } from 'express';
-import { TypeGuardError } from 'typescript-is';
+import { TypeGuardError } from 'typia';
 import * as Sentry from '@sentry/node';
 
 declare global {
