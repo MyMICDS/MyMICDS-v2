@@ -1,3 +1,5 @@
+import { TypeGuardError } from 'typia';
+
 /**
  * Pads a number to two digits with a leading zero.
  * @param n An input number.
@@ -56,4 +58,12 @@ export function stringToColor(str: string) {
 		colour += ('00' + value.toString(16)).substr(-2);
 	}
 	return colour;
+}
+
+export function humanizeTypiaErrorMessage(error: TypeGuardError) {
+	if (error.path) {
+		const parts = error.path.split('.');
+		return `Expected ${parts[parts.length - 1]} to be ${error.expected}!`;
+	}
+	return `Expected to be ${error.expected}!`;
 }

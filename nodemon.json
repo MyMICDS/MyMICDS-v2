@@ -1,5 +1,6 @@
 {
 	"watch": "src/**/*.ts",
 	"ext": "ts",
-	"exec": "ts-node -C ttypescript --files src/index.ts"
+	"exec": "ts-node -C ttypescript --files src/index.ts",
+	"legacyWatch": true
 }

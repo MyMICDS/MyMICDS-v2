@@ -1,4 +1,4 @@
-import { assertEquals } from 'typia';
+import { assert } from 'typia';
 import { SetPortalURLParameters, TestPortalURLParameters } from '@mymicds/sdk';
 import * as api from '../libs/api';
 import * as jwt from '../libs/jwt';
@@ -8,7 +8,7 @@ import RoutesFunction from './routesFunction';
 export default ((app, db, socketIO) => {
 	app.post('/portal/url/test-classes', async (req, res) => {
 		try {
-			assertEquals<TestPortalURLParameters>(req.body);
+			assert<TestPortalURLParameters>(req.body);
 			const { isValid, url } = await portal.verifyURLClasses(req.body.url);
 			api.success(res, { valid: isValid, url });
 		} catch (err) {
@@ -18,7 +18,7 @@ export default ((app, db, socketIO) => {
 
 	app.post('/portal/url/test-calendar', async (req, res) => {
 		try {
-			assertEquals<TestPortalURLParameters>(req.body);
+			assert<TestPortalURLParameters>(req.body);
 			const { isValid, url } = await portal.verifyURLCalendar(req.body.url);
 			api.success(res, { valid: isValid, url });
 		} catch (err) {
@@ -28,7 +28,7 @@ export default ((app, db, socketIO) => {
 
 	app.put('/portal/url/classes', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertEquals<SetPortalURLParameters>(req.body);
+			assert<SetPortalURLParameters>(req.body);
 			const { isValid, validURL } = await portal.setURLClasses(
 				db,
 				req.apiUser!,
@@ -43,7 +43,7 @@ export default ((app, db, socketIO) => {
 
 	app.put('/portal/url/calendar', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertEquals<SetPortalURLParameters>(req.body);
+			assert<SetPortalURLParameters>(req.body);
 			const { isValid, validURL } = await portal.setURLCalendar(
 				db,
 				req.apiUser!,

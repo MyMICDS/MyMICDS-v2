@@ -1,4 +1,5 @@
 import { Action } from '@mymicds/sdk';
+import { humanizeTypiaErrorMessage } from './utils';
 import { InputError, InternalError } from './errors';
 import { NextFunction, Request, Response } from 'express';
 import { TypeGuardError } from 'typia';
@@ -68,10 +69,15 @@ function respondError(
 	let err = null;
 
 	if (error !== null && typeof error === 'object') {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const message = (error as any).message;
-		if (typeof message === 'string') {
-			err = message;
+		if (error instanceof TypeGuardError) {
+			// Special case for Typia errors. Format error messages for human-readable format.
+			err = humanizeTypiaErrorMessage(error);
+		} else {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const message = (error as any).message;
+			if (typeof message === 'string') {
+				err = message;
+			}
 		}
 	}
 

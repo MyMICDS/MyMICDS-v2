@@ -1,4 +1,4 @@
-import { assertEquals } from 'typia';
+import { assert } from 'typia';
 import { SetCanvasURLParameters, TestCanvasURLParameters } from '@mymicds/sdk';
 import * as api from '../libs/api';
 import * as canvas from '../libs/canvas';
@@ -9,7 +9,7 @@ import RoutesFunction from './routesFunction';
 export default ((app, db, socketIO) => {
 	app.post('/canvas/test', async (req, res) => {
 		try {
-			assertEquals<TestCanvasURLParameters>(req.body);
+			assert<TestCanvasURLParameters>(req.body);
 			const { isValid, url } = await canvas.verifyURL(req.body.url);
 			api.success(res, { valid: isValid, url });
 		} catch (err) {
@@ -19,7 +19,7 @@ export default ((app, db, socketIO) => {
 
 	app.put('/canvas/url', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertEquals<SetCanvasURLParameters>(req.body);
+			assert<SetCanvasURLParameters>(req.body);
 			const { isValid, validURL } = await canvas.setURL(db, req.apiUser!, req.body.url);
 			socketIO.user(req.apiUser!, 'canvas', 'set-url', validURL);
 			api.success(res, { valid: isValid, url: validURL });

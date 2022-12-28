@@ -9,5 +9,9 @@ WORKDIR /app
 # Install npm dependencies
 RUN npm install --legacy-peer-deps
 
-ENTRYPOINT [ "npm", "start" ]
+RUN npm run build
+
+ENTRYPOINT [ "npm", "run", "start:watch" ]
+# ENTRYPOINT [ "nodemon" ]
+# ENTRYPOINT [ "npm", "start" ]
 # ENTRYPOINT ["/bin/bash"]

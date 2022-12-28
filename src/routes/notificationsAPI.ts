@@ -1,4 +1,4 @@
-import { assertEquals } from 'typia';
+import { assert } from 'typia';
 import { Scope } from '@mymicds/sdk';
 import * as api from '../libs/api';
 import * as notifications from '../libs/notifications';
@@ -8,7 +8,7 @@ export default ((app, db) => {
 	app.post('/notifications/unsubscribe', async (req, res) => {
 		// Union type is being difficult so we need to split this up
 		try {
-			assertEquals<{ scopes: Scope | Scope[] }>(req.body);
+			assert<{ scopes: Scope | Scope[] }>(req.body);
 		} catch (err) {
 			api.error(res, err);
 			return;
@@ -19,7 +19,7 @@ export default ((app, db) => {
 
 		if (!user) {
 			try {
-				assertEquals<{ user: string; hash: string }>(req.body);
+				assert<{ user: string; hash: string }>(req.body);
 			} catch (err) {
 				api.error(res, err);
 				return;

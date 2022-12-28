@@ -1,4 +1,4 @@
-import { assertEquals } from 'typia';
+import { assert } from 'typia';
 import { UpdateModulesParameters } from '@mymicds/sdk';
 import * as api from '../libs/api';
 import * as jwt from '../libs/jwt';
@@ -26,7 +26,7 @@ export default ((app, db) => {
 
 	app.put('/modules', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertEquals<UpdateModulesParameters>(req.body);
+			assert<UpdateModulesParameters>(req.body);
 			await modules.upsert(db, req.apiUser!, req.body.modules);
 		} catch (err) {
 			api.error(res, err);

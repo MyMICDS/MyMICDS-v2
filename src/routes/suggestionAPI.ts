@@ -1,4 +1,4 @@
-import { assertEquals } from 'typia';
+import { assert } from 'typia';
 import { SubmitSuggestionParameters } from '@mymicds/sdk';
 import * as admins from '../libs/admins';
 import * as api from '../libs/api';
@@ -8,7 +8,7 @@ import RoutesFunction from './routesFunction';
 export default ((app, db) => {
 	app.post('/suggestion', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertEquals<SubmitSuggestionParameters>(req.body);
+			assert<SubmitSuggestionParameters>(req.body);
 			await admins.sendEmail(db, {
 				subject: `Suggestion From: ${req.apiUser!}`,
 				html: `Suggestion From: ${req.apiUser!}\nType: ${
