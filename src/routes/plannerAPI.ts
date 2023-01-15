@@ -4,7 +4,8 @@ import {
 	DeletePlannerEventParameters,
 	UncheckPlannerEventParameters
 } from '@mymicds/sdk';
-import { assertType } from 'typescript-is';
+import { assertEquals } from 'typia';
+
 import * as api from '../libs/api';
 import * as checkedEvents from '../libs/checkedEvents';
 import * as jwt from '../libs/jwt';
@@ -17,7 +18,7 @@ export default ((app, db, socketIO) => {
 			const events = await planner.get(db, req.apiUser!);
 			api.success(res, { events });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
@@ -25,9 +26,9 @@ export default ((app, db, socketIO) => {
 		try {
 			type AddEventBody = Omit<AddPlannerEventParameters, 'start' | 'end'> &
 				Partial<Record<'start' | 'end', string>>;
-			assertType<AddEventBody>(req.body);
+			assertEquals<AddEventBody>(req.body);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 			return;
 		}
 
@@ -54,7 +55,7 @@ export default ((app, db, socketIO) => {
 			const plannerEvent = await planner.upsert(db, req.apiUser!, insertEvent);
 			socketIO.user(req.apiUser!, 'planner', 'add', plannerEvent);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 			return;
 		}
 
@@ -62,40 +63,40 @@ export default ((app, db, socketIO) => {
 			const events = await planner.get(db, req.apiUser!);
 			api.success(res, { events });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
 	app.delete('/planner', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertType<DeletePlannerEventParameters>(req.body);
+			assertEquals<DeletePlannerEventParameters>(req.body);
 			await planner.delete(db, req.apiUser!, req.body.id);
 			socketIO.user(req.apiUser!, 'planner', 'delete', req.body.id);
 			api.success(res);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
 	app.patch('/planner/check', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertType<CheckPlannerEventParameters>(req.body);
+			assertEquals<CheckPlannerEventParameters>(req.body);
 			await checkedEvents.check(db, req.apiUser!, req.body.id);
 			socketIO.user(req.apiUser!, 'planner', 'check', req.body.id);
 			api.success(res);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
 	app.patch('/planner/uncheck', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertType<UncheckPlannerEventParameters>(req.body);
+			assertEquals<UncheckPlannerEventParameters>(req.body);
 			await checkedEvents.uncheck(db, req.apiUser!, req.body.id);
 			socketIO.user(req.apiUser!, 'planner', 'uncheck', req.body.id);
 			api.success(res);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 }) as RoutesFunction;

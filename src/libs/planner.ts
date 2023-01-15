@@ -57,7 +57,7 @@ async function upsertEvent(db: Db, user: string, plannerEvent: NewEventData) {
 		try {
 			events = await plannerdata.find({ user: userDoc!._id }).toArray();
 		} catch (e) {
-			throw new InternalError('There was a problem querying the database!', e);
+			throw new InternalError('There was a problem querying the database!', e as Error);
 		}
 
 		// Look through all events if id is valid
@@ -88,7 +88,10 @@ async function upsertEvent(db: Db, user: string, plannerEvent: NewEventData) {
 	try {
 		await plannerdata.updateOne({ _id: id }, { $set: insertEvent }, { upsert: true });
 	} catch (e) {
-		throw new InternalError('There was a problem inserting the event into the database!', e);
+		throw new InternalError(
+			'There was a problem inserting the event into the database!',
+			e as Error
+		);
 	}
 
 	return insertEvent;
@@ -121,7 +124,10 @@ async function deleteEvent(db: Db, user: string, eventId: string) {
 	try {
 		await plannerdata.deleteMany({ _id: id, user: userDoc!._id });
 	} catch (e) {
-		throw new InternalError('There was a problem deleting the event from the database!', e);
+		throw new InternalError(
+			'There was a problem deleting the event from the database!',
+			e as Error
+		);
 	}
 }
 
@@ -202,7 +208,7 @@ async function getEvents(db: Db, user: string) {
 			])
 			.toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 
 	// Format all events

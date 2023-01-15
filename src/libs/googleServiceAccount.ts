@@ -27,7 +27,10 @@ async function createServiceAccount() {
 	try {
 		await jwtClient.authorize();
 	} catch (e) {
-		throw new InternalError('There was a problem authorizing the Google Service Account!', e);
+		throw new InternalError(
+			'There was a problem authorizing the Google Service Account!',
+			e as Error
+		);
 	}
 
 	return jwtClient;

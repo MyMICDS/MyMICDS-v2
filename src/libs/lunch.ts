@@ -34,7 +34,7 @@ async function getLunch(db: Db, date: Date) {
 			objectAssignDeep(fullLunchResponse, parseLunch(school, res.data));
 		}
 	} catch (e) {
-		throw new InternalError('There was a problem fetching the lunch data!', e);
+		throw new InternalError('There was a problem fetching the lunch data!', e as Error);
 	}
 
 	return fullLunchResponse;

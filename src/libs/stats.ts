@@ -28,7 +28,10 @@ async function getStats(db: Db) {
 	try {
 		userDocs = await userdata.find({ confirmed: true }).toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the users from the database!', e);
+		throw new InternalError(
+			'There was a problem querying the users from the database!',
+			e as Error
+		);
 	}
 
 	// Get user registered count

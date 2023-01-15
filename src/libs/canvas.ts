@@ -41,7 +41,10 @@ export async function verifyURL(canvasURL: string) {
 	try {
 		response = await axios.get(validURL);
 	} catch (e) {
-		throw new InternalError('There was a problem fetching calendar data from the URL!', e);
+		throw new InternalError(
+			'There was a problem fetching calendar data from the URL!',
+			e as Error
+		);
 	}
 
 	if (response.status !== 200) {
@@ -78,7 +81,10 @@ export async function setURL(db: Db, user: string, calUrl: string) {
 			{ upsert: true }
 		);
 	} catch (e) {
-		throw new InternalError('There was a problem updating the URL to the database!', e);
+		throw new InternalError(
+			'There was a problem updating the URL to the database!',
+			e as Error
+		);
 	}
 
 	await feeds.updateCanvasCache(db, user);
@@ -106,7 +112,10 @@ export async function getUserCal(db: Db, user: string) {
 	try {
 		response = await axios.get(userDoc!.canvasURL);
 	} catch (e) {
-		throw new InternalError('There was a problem fetching canvas data from the URL!', e);
+		throw new InternalError(
+			'There was a problem fetching canvas data from the URL!',
+			e as Error
+		);
 	}
 	if (response.status !== 200) {
 		throw new Error('Invalid URL!');
@@ -230,7 +239,7 @@ export async function getClasses(db: Db, user: string) {
 		// @ts-ignore
 		events = await canvasdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
-		throw new InternalError('There was an error retrieving Canvas events!', e);
+		throw new InternalError('There was an error retrieving Canvas events!', e as Error);
 	}
 
 	// If cache is empty, update it
@@ -245,7 +254,7 @@ export async function getClasses(db: Db, user: string) {
 		// @ts-ignore
 		retryEvents = await canvasdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
-		throw new InternalError('There was an error retrieving Canvas events!', e);
+		throw new InternalError('There was an error retrieving Canvas events!', e as Error);
 	}
 
 	return parseEvents(retryEvents);
@@ -275,7 +284,7 @@ export async function getFromCache(db: Db, user: string) {
 		// @ts-ignore
 		events = await canvasdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
-		throw new InternalError('There was an error retrieving Canvas events!', e);
+		throw new InternalError('There was an error retrieving Canvas events!', e as Error);
 	}
 
 	// Get which events are checked

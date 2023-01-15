@@ -9,7 +9,7 @@ export default ((app, db, socketIO) => {
 			const responseObj = await backgrounds.get(req.apiUser);
 			api.success(res, responseObj);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
@@ -18,7 +18,7 @@ export default ((app, db, socketIO) => {
 			const responseObj = await backgrounds.getAll(db);
 			api.success(res, responseObj);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
@@ -34,7 +34,7 @@ export default ((app, db, socketIO) => {
 			try {
 				await backgrounds.blurUser(req.apiUser!);
 			} catch (err) {
-				api.error(res, err);
+				api.error(res, err as Error);
 				return;
 			}
 
@@ -44,7 +44,7 @@ export default ((app, db, socketIO) => {
 				const responseObj = await backgrounds.get(req.apiUser);
 				api.success(res, responseObj);
 			} catch (err) {
-				api.error(res, err);
+				api.error(res, err as Error);
 			}
 		});
 	});
@@ -53,7 +53,7 @@ export default ((app, db, socketIO) => {
 		try {
 			await backgrounds.delete(req.apiUser!);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 			return;
 		}
 
@@ -61,7 +61,7 @@ export default ((app, db, socketIO) => {
 			const responseObj = await backgrounds.get(req.apiUser);
 			api.success(res, responseObj);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 }) as RoutesFunction;

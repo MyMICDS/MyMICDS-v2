@@ -1,4 +1,3 @@
-import { assertType } from 'typescript-is';
 import { buildRequest } from './helpers/shared';
 import { expect } from 'chai';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
@@ -26,7 +25,7 @@ describe('Stats', () => {
 
 		it('gets empty usage statistics', async function () {
 			const res = await buildRequest(this).expect(200);
-			assertType<GetStatsResponse>(res.body.data);
+			assertEquals<GetStatsResponse>(res.body.data);
 			expect(res.body.data.stats.registered.total).to.equal(0);
 		});
 

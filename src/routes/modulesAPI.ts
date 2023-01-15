@@ -1,5 +1,5 @@
-import { assertType } from 'typescript-is';
 import { UpdateModulesParameters } from '@mymicds/sdk';
+import { assertEquals } from 'typia';
 import * as api from '../libs/api';
 import * as jwt from '../libs/jwt';
 import * as modules from '../libs/modules';
@@ -11,7 +11,7 @@ export default ((app, db) => {
 			const modulesResult = await modules.get(db, req.apiUser || '');
 			api.success(res, { modules: modulesResult });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
@@ -20,16 +20,16 @@ export default ((app, db) => {
 	// 		const modulesResult = await modules.getAll(db);
 	// 		api.success(res, { modules: modulesResult });
 	// 	} catch (err) {
-	// 		api.error(res, err);
+	// 		api.error(res, err as Error);
 	// 	}
 	// });
 
 	app.put('/modules', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertType<UpdateModulesParameters>(req.body);
+			assertEquals<UpdateModulesParameters>(req.body);
 			await modules.upsert(db, req.apiUser!, req.body.modules);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 			return;
 		}
 
@@ -37,7 +37,7 @@ export default ((app, db) => {
 			const modulesResult = await modules.get(db, req.apiUser!);
 			api.success(res, { modules: modulesResult });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 }) as RoutesFunction;

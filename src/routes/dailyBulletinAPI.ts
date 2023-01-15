@@ -13,7 +13,7 @@ export default (app => {
 				bulletinDate
 			});
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
@@ -25,7 +25,7 @@ export default (app => {
 				bulletins
 			});
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
@@ -34,7 +34,7 @@ export default (app => {
 			await dailyBulletin.queryLatest();
 			api.success(res);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
@@ -43,7 +43,7 @@ export default (app => {
 			await dailyBulletin.queryAll();
 			api.success(res);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 }) as RoutesFunction;

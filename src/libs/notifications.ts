@@ -36,7 +36,7 @@ export async function unsubscribe(
 		try {
 			await userdata.updateOne({ user }, { $addToSet: { unsubscribed: { $each: scopes } } });
 		} catch (e) {
-			throw new InternalError('There was a problem updating the database!', e);
+			throw new InternalError('There was a problem updating the database!', e as Error);
 		}
 	} else {
 		// Hash does not match

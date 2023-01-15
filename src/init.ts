@@ -98,7 +98,7 @@ export async function initAPI(dbUri: string) {
 		if (res.headersSent) {
 			return next(err);
 		}
-		api.error(res, err);
+		api.error(res, err as Error);
 	}) as express.ErrorRequestHandler);
 
 	return [app, db, server] as const;

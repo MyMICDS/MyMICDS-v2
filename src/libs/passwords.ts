@@ -33,7 +33,7 @@ export async function passwordMatches(db: Db, user: string, password: string) {
 	try {
 		res = await bcrypt.compare(password, hash);
 	} catch (e) {
-		throw new InternalError('There was a problem comparing the passwords!', e);
+		throw new InternalError('There was a problem comparing the passwords!', e as Error);
 	}
 
 	return { matches: res, confirmed: userDoc!.confirmed };
@@ -78,7 +78,10 @@ export async function changePassword(
 			{ $set: { password: hash }, $currentDate: { lastPasswordChange: true } }
 		);
 	} catch (e) {
-		throw new InternalError('There was a problem updating the password in the database!', e);
+		throw new InternalError(
+			'There was a problem updating the password in the database!',
+			e as Error
+		);
 	}
 }
 
@@ -98,7 +101,10 @@ export async function resetPasswordEmail(db: Db, user: string) {
 	try {
 		buf = await promisify(crypto.randomBytes)(16);
 	} catch (e) {
-		throw new InternalError('There was a problem generating a random confirmation hash!', e);
+		throw new InternalError(
+			'There was a problem generating a random confirmation hash!',
+			e as Error
+		);
 	}
 
 	const hash = buf.toString('hex');
@@ -118,7 +124,7 @@ export async function resetPasswordEmail(db: Db, user: string) {
 	} catch (e) {
 		throw new InternalError(
 			'There was a problem inserting the confirmation hash into the database!',
-			e
+			e as Error
 		);
 	}
 
@@ -184,6 +190,9 @@ export async function resetPassword(db: Db, user: string, password: string, hash
 			}
 		);
 	} catch (e) {
-		throw new InternalError('There was a problem updating the password in the database!', e);
+		throw new InternalError(
+			'There was a problem updating the password in the database!',
+			e as Error
+		);
 	}
 }

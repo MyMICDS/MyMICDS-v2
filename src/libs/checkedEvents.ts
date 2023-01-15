@@ -32,7 +32,10 @@ async function checkEvent(db: Db, user: string, eventId: string) {
 	try {
 		await checkedEventsData.insertOne(insertChecked);
 	} catch (e) {
-		throw new InternalError('There was a problem crossing out the event in the database!', e);
+		throw new InternalError(
+			'There was a problem crossing out the event in the database!',
+			e as Error
+		);
 	}
 }
 
@@ -54,7 +57,7 @@ async function getChecked(db: Db, user: string, eventId: string) {
 	try {
 		checkedEvents = await checkedEventsData.find({ user: userDoc!._id, eventId }).toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 
 	return checkedEvents.length !== 0;
@@ -78,7 +81,7 @@ async function listChecked(db: Db, user: string) {
 	try {
 		checkedEvents = await checkedEventsData.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 
 	// Append all event ids to array and return
@@ -102,7 +105,10 @@ async function uncheckEvent(db: Db, user: string, eventId: string) {
 	try {
 		await checkedEventsData.deleteMany({ user: userDoc!._id, eventId });
 	} catch (e) {
-		throw new InternalError('There was a problem uncrossing the event in the database!', e);
+		throw new InternalError(
+			'There was a problem uncrossing the event in the database!',
+			e as Error
+		);
 	}
 }
 

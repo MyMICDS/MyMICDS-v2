@@ -30,7 +30,7 @@ export async function calculate(): Promise<GetSnowdayResponse['data']> {
 
 		body = response.data;
 	} catch (e) {
-		throw new InternalError('There was a problem querying the Snowday Calculator!', e);
+		throw new InternalError('There was a problem querying the Snowday Calculator!', e as Error);
 	}
 
 	// Snowday Calculator is weird and transfers Javascript code, so we use RegEx to get the values

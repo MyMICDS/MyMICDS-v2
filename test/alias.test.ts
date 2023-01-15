@@ -1,5 +1,5 @@
 import { AliasType, ListAliasesResponse } from '@mymicds/sdk';
-import { assertType } from 'typescript-is';
+
 import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
 import { expect, use } from 'chai';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
@@ -87,7 +87,7 @@ describe('Alias', () => {
 			);
 
 			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).expect(200);
-			assertType<ListAliasesResponse>(res.body.data);
+			assertEquals<ListAliasesResponse>(res.body.data);
 
 			expect(res.body.data.aliases.canvas).to.have.lengthOf(1);
 			expect(res.body.data.aliases.canvas[0]).to.containSubset({

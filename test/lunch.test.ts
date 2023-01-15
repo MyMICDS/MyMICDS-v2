@@ -1,4 +1,3 @@
-import { assertType } from 'typescript-is';
 import { buildRequest } from './helpers/shared';
 import { GetLunchResponse } from '@mymicds/sdk';
 import { initAPI } from '../src/init';
@@ -19,7 +18,7 @@ describe('Lunch', () => {
 
 		it('gets lunch data', async function () {
 			const res = await buildRequest(this).expect(200);
-			assertType<GetLunchResponse>(res.body.data);
+			assertEquals<GetLunchResponse>(res.body.data);
 		});
 	});
 

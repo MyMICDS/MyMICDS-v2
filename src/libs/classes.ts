@@ -71,7 +71,7 @@ async function upsertClass(
 		// Check for duplicate classes first
 		classes = await classdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 
 	// Lets see if any of the classes are the one we are supposed to edit
@@ -134,7 +134,10 @@ async function upsertClass(
 		// Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
 		await classdata.updateOne({ _id: id }, { $set: insertClass }, { upsert: true });
 	} catch (e) {
-		throw new InternalError('There was a problem upserting the class into the database!', e);
+		throw new InternalError(
+			'There was a problem upserting the class into the database!',
+			e as Error
+		);
 	}
 
 	await teachers.deleteClasslessTeachers(db);
@@ -193,7 +196,7 @@ async function getClasses(db: Db, user: string) {
 			])
 			.toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 
 	// Add 'textDark' to all of the classes based on color
@@ -230,7 +233,10 @@ async function deleteClass(db: Db, user: string, classId: string) {
 	try {
 		await classdata.deleteOne({ _id: id, user: userDoc!._id });
 	} catch (e) {
-		throw new InternalError('There was a problem deleting the class from the database!', e);
+		throw new InternalError(
+			'There was a problem deleting the class from the database!',
+			e as Error
+		);
 	}
 
 	// @TODO: Error handling if these fail

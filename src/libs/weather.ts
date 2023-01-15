@@ -43,7 +43,7 @@ async function updateWeather() {
 		const response = await axios.get(openWeatherEndpoint);
 		rawWeather = response.data;
 	} catch (e) {
-		throw new InternalError('There was a problem fetching the weather data!', e);
+		throw new InternalError('There was a problem fetching the weather data!', e as Error);
 	}
 
 	if (rawWeather === null) {
@@ -66,7 +66,7 @@ async function updateWeather() {
 	try {
 		await fs.outputJSON(JSON_PATH, weather, { spaces: '\t' });
 	} catch (e) {
-		throw new InternalError('There was a problem saving the weather data!', e);
+		throw new InternalError('There was a problem saving the weather data!', e as Error);
 	}
 
 	return weather;

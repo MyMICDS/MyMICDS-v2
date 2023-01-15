@@ -21,14 +21,17 @@ async function addTeacher(db: Db, teacher: Omit<Teacher, '_id'>) {
 		// Upsert teacher into collection
 		await teacherdata.updateOne(teacher, { $set: teacher }, { upsert: true });
 	} catch (e) {
-		throw new InternalError('There was a problem inserting the teacher into the database!', e);
+		throw new InternalError(
+			'There was a problem inserting the teacher into the database!',
+			e as Error
+		);
 	}
 
 	try {
 		const docs = await teacherdata.find<TeacherWithID>(teacher).toArray();
 		return docs[0];
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 }
 
@@ -55,7 +58,7 @@ async function getTeacher(db: Db, teacherId: ObjectID) {
 
 		return { isTeacher, teacher };
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 }
 
@@ -70,7 +73,7 @@ async function listTeachers(db: Db) {
 	try {
 		return await teacherdata.find({}).toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 }
 
@@ -107,13 +110,13 @@ export async function deleteClasslessTeachers(db: Db) {
 			])
 			.toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 
 	try {
 		await Promise.all(docs.map(t => teacherdata.deleteOne({ _id: t._id })));
 	} catch (e) {
-		throw new InternalError('There was a problem deleting classless teachers!', e);
+		throw new InternalError('There was a problem deleting classless teachers!', e as Error);
 	}
 }
 

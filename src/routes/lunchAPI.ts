@@ -16,7 +16,7 @@ export default ((app, db) => {
 			const lunchJSON = await lunch.get(db, date);
 			api.success(res, { lunch: lunchJSON });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 }) as RoutesFunction;

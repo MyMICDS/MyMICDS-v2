@@ -1,4 +1,3 @@
-import { assertType } from 'typescript-is';
 import { buildRequest, requireLoggedIn } from './helpers/shared';
 import { expect } from 'chai';
 import { generateJWT, saveTestUser } from './helpers/user';
@@ -26,7 +25,7 @@ describe('Weather', () => {
 
 			// Can't assert on the whole type because of moment.Moment again
 			expect(res.body.data).to.have.property('weather').that.is.an('object');
-			assertType<Omit<Weather, 'currently' | 'minutely' | 'hourly' | 'daily'>>(
+			assertEquals<Omit<Weather, 'currently' | 'minutely' | 'hourly' | 'daily'>>(
 				res.body.data.weather
 			);
 		});

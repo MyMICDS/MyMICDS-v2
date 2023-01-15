@@ -1,4 +1,3 @@
-import { assertType } from 'typescript-is';
 import { buildRequest, requireLoggedIn } from './helpers/shared';
 import { expect } from 'chai';
 import { generateJWT, saveTestUser } from './helpers/user';
@@ -28,7 +27,7 @@ describe('Daily Bulletin', () => {
 			await dailyBulletin.queryLatest();
 			const res = await buildRequest(this).expect(200);
 
-			assertType<GetGDocBulletinResponse>(res.body.data);
+			assertEquals<GetGDocBulletinResponse>(res.body.data);
 			expect(res.body.data.bulletin.length).to.be.above(1);
 			expect(res.body.data.bulletinDate.length).to.be.above(1);
 		});
