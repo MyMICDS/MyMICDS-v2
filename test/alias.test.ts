@@ -1,5 +1,6 @@
 import { AliasType, ListAliasesResponse } from '@mymicds/sdk';
 
+import { assertEquals } from 'typia';
 import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
 import { expect, use } from 'chai';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';

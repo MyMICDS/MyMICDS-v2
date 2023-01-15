@@ -1,3 +1,4 @@
+import { assertEquals } from 'typia';
 import { buildRequest } from './helpers/shared';
 import { GetLunchResponse } from '@mymicds/sdk';
 import { initAPI } from '../src/init';

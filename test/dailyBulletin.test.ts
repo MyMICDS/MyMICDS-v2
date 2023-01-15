@@ -1,3 +1,4 @@
+import { assertEquals } from 'typia';
 import { buildRequest, requireLoggedIn } from './helpers/shared';
 import { expect } from 'chai';
 import { generateJWT, saveTestUser } from './helpers/user';
