@@ -1,4 +1,4 @@
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InputError, InternalError } from './errors';
 import { Omit } from './utils';
 import { Teacher } from '@mymicds/sdk';
@@ -41,7 +41,7 @@ async function addTeacher(db: Db, teacher: Omit<Teacher, '_id'>) {
  * @param teacherId Teacher ID to find.
  * @returns Whether the object ID points to a valid teacher and the corresponding teacher document.
  */
-async function getTeacher(db: Db, teacherId: ObjectID) {
+async function getTeacher(db: Db, teacherId: ObjectId) {
 	const teacherdata = db.collection<Teacher>('teachers');
 
 	try {
@@ -88,27 +88,29 @@ export async function deleteClasslessTeachers(db: Db) {
 
 	try {
 		// Find all teachers with 0 classes
-		docs = await teacherdata
-			.aggregate([
-				// Stage 1
-				{
-					$lookup: {
-						from: 'classes',
-						localField: '_id',
-						foreignField: 'teacher',
-						as: 'classes'
-					}
-				},
-				// Stage 2
-				{
-					$match: {
-						classes: {
-							$size: 0
+		docs = (
+			await teacherdata
+				.aggregate([
+					// Stage 1
+					{
+						$lookup: {
+							from: 'classes',
+							localField: '_id',
+							foreignField: 'teacher',
+							as: 'classes'
+						}
+					},
+					// Stage 2
+					{
+						$match: {
+							classes: {
+								$size: 0
+							}
 						}
 					}
-				}
-			])
-			.toArray();
+				])
+				.toArray()
+		).map((value: Document) => value as Teacher);
 	} catch (e) {
 		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
@@ -123,12 +125,12 @@ export async function deleteClasslessTeachers(db: Db) {
 export { addTeacher as add, getTeacher as get, listTeachers as list };
 
 export interface TeacherWithIDOptional {
-	_id?: ObjectID;
+	_id?: ObjectId;
 	prefix: string;
 	firstName: string;
 	lastName: string;
 }
 
 export interface TeacherWithID extends TeacherWithIDOptional {
-	_id: ObjectID;
+	_id: ObjectId;
 }

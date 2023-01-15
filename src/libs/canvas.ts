@@ -1,5 +1,5 @@
 import { AliasType, Block, CanvasEvent, ClassType, DefaultCanvasClass } from '@mymicds/sdk';
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InternalError } from './errors';
 import { MyMICDSClassWithIDs } from './classes';
 import * as _ from 'lodash';
@@ -349,7 +349,7 @@ export async function getFromCache(db: Db, user: string) {
 		const end = new Date(canvasEvent.end!);
 
 		// class will be null if error in getting class name.
-		// Just type it as any cause it doesn't like things like ObjectID vs string and Date vs moment
+		// Just type it as any cause it doesn't like things like ObjectId vs string and Date vs moment
 		// But I don't really think it actually matters, maybe come back and take a look at this
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const insertEvent: any = {
@@ -428,8 +428,8 @@ export async function getUniqueEvents(db: Db) {
 }
 
 export type CanvasCacheEvent = ical.CalendarComponent & {
-	_id: string | ObjectID;
-	user: ObjectID;
+	_id: ObjectId;
+	user: ObjectId;
 	createdAt: Date;
 };
 

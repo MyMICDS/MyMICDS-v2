@@ -1,5 +1,5 @@
 import { Block, ClassType } from '@mymicds/sdk';
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InputError, InternalError } from './errors';
 import { Omit, shouldTextBeDark } from './utils';
 import { Teacher } from '@mymicds/sdk/dist/libs/teachers';
@@ -75,7 +75,7 @@ async function upsertClass(
 	}
 
 	// Lets see if any of the classes are the one we are supposed to edit
-	let validEditId: ObjectID | null = null;
+	let validEditId: ObjectId | null = null;
 	if (scheduleClass._id !== '') {
 		for (const theClass of classes) {
 			const classId = theClass._id;
@@ -117,7 +117,7 @@ async function upsertClass(
 	if (validEditId) {
 		id = validEditId;
 	} else {
-		id = new ObjectID();
+		id = new ObjectId();
 	}
 
 	const insertClass: Omit<MyMICDSClassWithIDs, 'textDark'> = {
@@ -162,39 +162,41 @@ async function getClasses(db: Db, user: string) {
 
 	let classes: MyMICDSClassWithIDs[];
 	try {
-		classes = await classdata
-			.aggregate([
-				// Stage 1
-				// Get all classes under the specified user id
-				{
-					$match: {
-						user: userDoc!._id
+		classes = (
+			await classdata
+				.aggregate([
+					// Stage 1
+					// Get all classes under the specified user id
+					{
+						$match: {
+							user: userDoc!._id
+						}
+					},
+					// Stage 2
+					// Replace teacher id with array of teacher object
+					{
+						$lookup: {
+							from: 'teachers',
+							localField: 'teacher',
+							foreignField: '_id',
+							as: 'teacher'
+						}
+					},
+					// Stage 3
+					// Flatten the teacher object array
+					{
+						$unwind: {
+							path: '$teacher'
+						}
+					},
+					// Stage 4
+					// Replace user ObjectId with actual username
+					{
+						$addFields: { user }
 					}
-				},
-				// Stage 2
-				// Replace teacher id with array of teacher object
-				{
-					$lookup: {
-						from: 'teachers',
-						localField: 'teacher',
-						foreignField: '_id',
-						as: 'teacher'
-					}
-				},
-				// Stage 3
-				// Flatten the teacher object array
-				{
-					$unwind: {
-						path: '$teacher'
-					}
-				},
-				// Stage 4
-				// Replace user ObjectID with actual username
-				{
-					$addFields: { user }
-				}
-			])
-			.toArray();
+				])
+				.toArray()
+		).map((value: Document) => value as MyMICDSClassWithIDs);
 	} catch (e) {
 		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
@@ -217,7 +219,7 @@ async function deleteClass(db: Db, user: string, classId: string) {
 	// Try to create object id
 	let id;
 	try {
-		id = new ObjectID(classId);
+		id = new ObjectId(classId);
 	} catch (e) {
 		throw new InputError('Invalid event id!');
 	}
@@ -245,10 +247,10 @@ async function deleteClass(db: Db, user: string, classId: string) {
 }
 
 export interface MyMICDSClassWithIDs {
-	_id: ObjectID;
-	user: ObjectID;
+	_id: ObjectId;
+	user: ObjectId;
 	name: string;
-	teacher: ObjectID;
+	teacher: ObjectId;
 	type: ClassType;
 	block: Block;
 	color: string;

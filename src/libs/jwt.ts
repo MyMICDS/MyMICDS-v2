@@ -1,5 +1,5 @@
 import { Action } from '@mymicds/sdk';
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InputError, InternalError } from './errors';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { StringDict } from './utils';
@@ -280,8 +280,8 @@ export async function revoke(db: Db, payload: UserPayload, revokeJwt: string) {
 }
 
 export interface JWTDoc {
-	_id: ObjectID;
-	user: ObjectID;
+	_id: ObjectId;
+	user: ObjectId;
 	jwt: string;
 	comment: string;
 	lastUsed: Date;

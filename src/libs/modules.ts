@@ -1,5 +1,5 @@
 import { Constructor, StringDict } from './utils';
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InputError } from './errors';
 import { MyMICDSModule, MyMICDSModuleType } from '@mymicds/sdk';
 import * as _ from 'lodash';
@@ -316,7 +316,7 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 
 	// Delete all modules not included in new upsert request
 	await moduledata.deleteMany({
-		_id: { $nin: (modules as MyMICDSModuleWithIDs[]).map(m => new ObjectID(m._id)) },
+		_id: { $nin: (modules as MyMICDSModuleWithIDs[]).map(m => new ObjectId(m._id)) },
 		user: userDoc!._id
 	});
 
@@ -325,16 +325,16 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 
 	const dbModuleIds = dbModules.map(m => m._id.toHexString());
 
-	for (const mod of modules as Array<MyMICDSModule & { _id: ObjectID | string }>) {
+	for (const mod of modules as Array<MyMICDSModule & { _id: ObjectId | string }>) {
 		// If _id doesn't exist or is invalid, create a new one
 		if (!mod._id || !dbModuleIds.includes(mod._id as string)) {
-			mod._id = new ObjectID();
+			mod._id = new ObjectId();
 		} else {
 			// Current id is valid. All we need to do is convert it to a Mongo id object
-			mod._id = new ObjectID(mod._id);
+			mod._id = new ObjectId(mod._id);
 		}
 
-		// Make sure user is an ObjectID and not a string
+		// Make sure user is an ObjectId and not a string
 		(mod as MyMICDSModuleWithIDs).user = userDoc!._id;
 
 		await moduledata.updateOne(
@@ -346,8 +346,8 @@ async function upsertModules(db: Db, user: string, modules: MyMICDSModule[]) {
 }
 
 export interface MyMICDSModuleWithIDs extends MyMICDSModule {
-	_id: ObjectID;
-	user: ObjectID;
+	_id: ObjectId;
+	user: ObjectId;
 }
 
 export { getModules as get, upsertModules as upsert };

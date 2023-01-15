@@ -1,4 +1,4 @@
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InputError, InternalError } from './errors';
 import * as users from './users';
 
@@ -113,8 +113,8 @@ async function uncheckEvent(db: Db, user: string, eventId: string) {
 }
 
 export interface CheckedEvent {
-	_id: ObjectID;
-	user: ObjectID;
+	_id: ObjectId;
+	user: ObjectId;
 	eventId: string;
 	checkedTime: Date;
 }

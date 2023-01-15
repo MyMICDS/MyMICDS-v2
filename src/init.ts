@@ -51,7 +51,7 @@ export async function initAPI(dbUri: string) {
 	});
 
 	// Connect to database
-	const client = await MongoClient.connect(dbUri, { useUnifiedTopology: true });
+	const client = await MongoClient.connect(dbUri);
 	const db = client.db();
 
 	// Enable JWT authentication middleware

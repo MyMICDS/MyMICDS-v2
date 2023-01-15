@@ -1,5 +1,5 @@
 import { AliasType, PortalClass } from '@mymicds/sdk';
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InputError, InternalError } from './errors';
 import * as classes from './classes';
 import * as users from './users';
@@ -53,7 +53,8 @@ async function addAlias(
 		user: userDoc!._id,
 		type,
 		classNative: validClassObject._id,
-		classRemote: classString
+		classRemote: classString,
+		_id: new ObjectId()
 	};
 
 	// Insert into database
@@ -69,7 +70,7 @@ async function addAlias(
 		);
 	}
 
-	return results.ops[0]._id;
+	return results.insertedId;
 }
 
 /**
@@ -160,7 +161,7 @@ async function deleteAlias(db: Db, user: string, type: AliasType, aliasId: strin
 	// Make sure valid alias
 	const aliases = await listAliases(db, user);
 
-	let validAliasId: ObjectID | null = null;
+	let validAliasId: ObjectId | null = null;
 	for (const alias of aliases[type]) {
 		if (aliasId === alias._id.toHexString()) {
 			validAliasId = alias._id;
@@ -241,27 +242,29 @@ export async function deleteClasslessAliases(db: Db) {
 	let classless: AliasWithIDs[];
 
 	try {
-		classless = await aliasdata
-			.aggregate([
-				// Stage 1
-				{
-					$lookup: {
-						from: 'classes',
-						localField: 'classNative',
-						foreignField: '_id',
-						as: 'classes'
-					}
-				},
-				// Stage 2
-				{
-					$match: {
-						classes: {
-							$size: 0
+		classless = (
+			await aliasdata
+				.aggregate([
+					// Stage 1
+					{
+						$lookup: {
+							from: 'classes',
+							localField: 'classNative',
+							foreignField: '_id',
+							as: 'classes'
+						}
+					},
+					// Stage 2
+					{
+						$match: {
+							classes: {
+								$size: 0
+							}
 						}
 					}
-				}
-			])
-			.toArray();
+				])
+				.toArray()
+		).map((val: Document) => val as AliasWithIDs);
 	} catch (e) {
 		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
@@ -279,10 +282,10 @@ export async function deleteClasslessAliases(db: Db) {
 }
 
 export interface AliasWithIDs {
-	_id: ObjectID;
-	user: ObjectID;
+	_id: ObjectId;
+	user: ObjectId;
 	type: AliasType;
-	classNative: ObjectID;
+	classNative: ObjectId;
 	classRemote: string;
 }
 

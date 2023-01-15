@@ -1,5 +1,5 @@
 import { ChangeUserInfoParameters, GetUserInfoResponse, School } from '@mymicds/sdk';
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InternalError } from './errors';
 import * as _ from 'lodash';
 import * as dates from './dates';
@@ -205,7 +205,7 @@ export function gradeToSchool(grade: number | null): School {
 }
 
 export interface UserDoc {
-	_id: ObjectID;
+	_id: ObjectId;
 	user: string;
 	password: string;
 	firstName: string;

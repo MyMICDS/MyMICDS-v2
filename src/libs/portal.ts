@@ -1,4 +1,4 @@
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { GetPortalDayRotationResponse } from '@mymicds/sdk';
 import { InputError, InternalError } from './errors';
 import { URL } from 'url';
@@ -560,4 +560,4 @@ export function cleanUp(str: string) {
 	return str.replace('Social Science', 'SocialScience').replace(cleanUpBlockSuffix, '');
 }
 
-export type PortalCacheEvent = ical.CalendarComponent & { _id: ObjectID; user: ObjectID };
+export type PortalCacheEvent = ical.CalendarComponent & { _id: ObjectId; user: ObjectId };

@@ -1,4 +1,4 @@
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InternalError } from './errors';
 import * as _ from 'lodash';
 import * as canvas from './canvas';
@@ -41,6 +41,9 @@ export async function updateCanvasCache(db: Db, user: string) {
 		ev.user = userDoc!._id;
 		// Mongo operators don't work for insertMany so set creation time manually
 		ev.createdAt = creationDate;
+
+		// fixing type errors around _id
+		ev._id = new ObjectId();
 	}
 
 	try {

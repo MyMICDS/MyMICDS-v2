@@ -4,7 +4,7 @@ import { expect, use } from 'chai';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
 import { initAPI } from '../src/init';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { saveTestClass } from './helpers/class';
 import * as aliases from '../src/libs/aliases';
 import * as calServer from './calendars/server';
@@ -140,7 +140,7 @@ describe('Canvas', () => {
 				testUser.user,
 				AliasType.CANVAS,
 				'TS002:BB',
-				(_id as ObjectID).toHexString()
+				(_id as ObjectId).toHexString()
 			);
 
 			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).expect(200);
@@ -185,7 +185,7 @@ describe('Canvas', () => {
 				testUser.user,
 				AliasType.CANVAS,
 				'TS002:BB',
-				(_id as ObjectID).toHexString()
+				(_id as ObjectId).toHexString()
 			);
 
 			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).expect(200);
