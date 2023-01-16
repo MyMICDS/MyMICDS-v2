@@ -16,7 +16,7 @@ export default (app => {
 			const breaks = await dates.getBreaks();
 			api.success(res, { breaks });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 }) as RoutesFunction;

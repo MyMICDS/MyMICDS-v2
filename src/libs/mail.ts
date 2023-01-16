@@ -34,7 +34,7 @@ export async function send(
 	} catch (e) {
 		throw new InternalError(
 			`There was a problem sending the mail! (${(e as Error).message})`,
-			e
+			e as Error
 		);
 	}
 }
@@ -58,7 +58,10 @@ export async function sendHTML(
 	try {
 		body = await fs.readFile(file, 'utf8');
 	} catch (e) {
-		throw new InternalError('There was a problem reading the HTML path for the mail!', e);
+		throw new InternalError(
+			'There was a problem reading the HTML path for the mail!',
+			e as Error
+		);
 	}
 
 	// Replace JSON Key values with custom data

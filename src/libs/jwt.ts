@@ -1,5 +1,5 @@
 import { Action } from '@mymicds/sdk';
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InputError, InternalError } from './errors';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { StringDict } from './utils';
@@ -54,7 +54,7 @@ export function authorize(db: Db): RequestHandler {
 				api.error(res, err, Action.LOGIN_EXPIRED);
 				return;
 			}
-			api.error(res, err, Action.UNAUTHORIZED);
+			api.error(res, err as Error, Action.UNAUTHORIZED);
 			return;
 		}
 
@@ -221,7 +221,7 @@ export async function generate(db: Db, user: string, rememberMe: boolean, commen
 			}
 		);
 	} catch (e) {
-		throw new InternalError('There was a problem generating a JWT!', e);
+		throw new InternalError('There was a problem generating a JWT!', e as Error);
 	}
 
 	const jwtData = db.collection('jwtWhitelist');
@@ -229,7 +229,7 @@ export async function generate(db: Db, user: string, rememberMe: boolean, commen
 	try {
 		await jwtData.insertOne({ user: userDoc!._id, jwt: token, comment });
 	} catch (e) {
-		throw new InternalError('There was a problem registering the JWT!', e);
+		throw new InternalError('There was a problem registering the JWT!', e as Error);
 	}
 
 	return token;
@@ -249,7 +249,7 @@ export async function isBlacklisted(db: Db, checkJwt: string) {
 	try {
 		docs = await jwtData.find({ jwt: checkJwt }).toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 
 	return docs.length < 1;
@@ -272,13 +272,16 @@ export async function revoke(db: Db, payload: UserPayload, revokeJwt: string) {
 	try {
 		await jwtData.deleteOne({ user: userDoc!._id, jwt: revokeJwt });
 	} catch (e) {
-		throw new InternalError('There was a problem revoking the JWT in the database!', e);
+		throw new InternalError(
+			'There was a problem revoking the JWT in the database!',
+			e as Error
+		);
 	}
 }
 
 export interface JWTDoc {
-	_id: ObjectID;
-	user: ObjectID;
+	_id: ObjectId;
+	user: ObjectId;
 	jwt: string;
 	comment: string;
 	lastUsed: Date;

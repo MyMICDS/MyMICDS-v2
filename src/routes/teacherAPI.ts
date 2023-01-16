@@ -9,7 +9,7 @@ export default ((app, db) => {
 			const teachersResult = await teachers.list(db);
 			api.success(res, { teachers: teachersResult });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 }) as RoutesFunction;

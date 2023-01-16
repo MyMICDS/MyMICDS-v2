@@ -8,7 +8,7 @@ export default ((app, db) => {
 			const statsObj = await stats.get(db);
 			api.success(res, { stats: statsObj });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 }) as RoutesFunction;

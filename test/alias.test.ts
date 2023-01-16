@@ -1,11 +1,12 @@
 import { AliasType, ListAliasesResponse } from '@mymicds/sdk';
-import { assertType } from 'typescript-is';
+
+import { assertEquals } from 'typia';
 import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
 import { expect, use } from 'chai';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
 import { initAPI } from '../src/init';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { saveTestClass } from './helpers/class';
 import * as aliases from '../src/libs/aliases';
 import * as calServer from './calendars/server';
@@ -42,7 +43,7 @@ describe('Alias', () => {
 			const jwt = await generateJWT(this.db);
 
 			const { _id } = await saveTestClass(this.db);
-			const idString = (_id as ObjectID).toHexString();
+			const idString = (_id as ObjectId).toHexString();
 			payload.classId = idString;
 
 			for (const type of Object.values(AliasType)) {
@@ -61,7 +62,7 @@ describe('Alias', () => {
 				expect(hasAlias).to.be.true;
 				expect(classObject)
 					.to.have.property('_id')
-					.that.satisfies((i: ObjectID) => i.toHexString() === idString);
+					.that.satisfies((i: ObjectId) => i.toHexString() === idString);
 			}
 		});
 
@@ -83,11 +84,11 @@ describe('Alias', () => {
 				testUser.user,
 				AliasType.CANVAS,
 				'remote class',
-				(classId as ObjectID).toHexString()
+				(classId as ObjectId).toHexString()
 			);
 
 			const res = await buildRequest(this).set('Authorization', `Bearer ${jwt}`).expect(200);
-			assertType<ListAliasesResponse>(res.body.data);
+			assertEquals<ListAliasesResponse>(res.body.data);
 
 			expect(res.body.data.aliases.canvas).to.have.lengthOf(1);
 			expect(res.body.data.aliases.canvas[0]).to.containSubset({
@@ -117,7 +118,7 @@ describe('Alias', () => {
 				testUser.user,
 				AliasType.CANVAS,
 				'remote class',
-				(classId as ObjectID).toHexString()
+				(classId as ObjectId).toHexString()
 			);
 
 			payload.id = aliasId.toHexString();

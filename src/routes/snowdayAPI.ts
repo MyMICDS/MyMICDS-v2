@@ -8,7 +8,7 @@ export default (app => {
 			const data = await snowdayCalculator.calculate();
 			api.success(res, { data });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 }) as RoutesFunction;

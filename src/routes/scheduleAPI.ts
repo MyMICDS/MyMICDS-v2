@@ -16,7 +16,7 @@ export default ((app, db) => {
 			const responseObj = await schedule.get(db, req.apiUser!, date);
 			api.success(res, responseObj);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
@@ -25,7 +25,7 @@ export default ((app, db) => {
 	// 		const data = await fs.readFile(__dirname + '/../schedules/' + req.query.grade, 'utf8');
 	// 		api.success(res, data);
 	// 	} catch (err) {
-	// 		api.error(res, err);
+	// 		api.error(res, err as Error);
 	// 	}
 	// });
 }) as RoutesFunction;

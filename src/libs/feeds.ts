@@ -1,4 +1,4 @@
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InternalError } from './errors';
 import * as _ from 'lodash';
 import * as canvas from './canvas';
@@ -23,7 +23,10 @@ export async function updateCanvasCache(db: Db, user: string) {
 	try {
 		await canvasdata.deleteMany({ user: userDoc!._id });
 	} catch (e) {
-		throw new InternalError('There was an error removing the old events from the database!', e);
+		throw new InternalError(
+			'There was an error removing the old events from the database!',
+			e as Error
+		);
 	}
 
 	if (events === null || events.length === 0) {
@@ -38,12 +41,18 @@ export async function updateCanvasCache(db: Db, user: string) {
 		ev.user = userDoc!._id;
 		// Mongo operators don't work for insertMany so set creation time manually
 		ev.createdAt = creationDate;
+
+		// fixing type errors around _id
+		ev._id = new ObjectId();
 	}
 
 	try {
 		await canvasdata.insertMany(newEvents);
 	} catch (e) {
-		throw new InternalError('There was an error inserting events into the database!', e);
+		throw new InternalError(
+			'There was an error inserting events into the database!',
+			e as Error
+		);
 	}
 }
 
@@ -68,7 +77,10 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 		try {
 			await userdata.updateOne({ user }, { $set: { inPortalQueueClasses: false } });
 		} catch (e) {
-			throw new InternalError('There was an error removing the user from the queue!', e);
+			throw new InternalError(
+				'There was an error removing the user from the queue!',
+				e as Error
+			);
 		}
 
 		return events;
@@ -76,7 +88,7 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 		try {
 			await userdata.updateOne({ user }, { $set: { inPortalQueueClasses: true } });
 		} catch (e) {
-			throw new InternalError('There was an error adding the user to the queue!', e);
+			throw new InternalError('There was an error adding the user to the queue!', e as Error);
 		}
 
 		return events;
@@ -87,7 +99,10 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 		// @ts-ignore
 		await portaldata.deleteMany({ user: userDoc!._id });
 	} catch (e) {
-		throw new InternalError('There was an error removing the old events from the database!', e);
+		throw new InternalError(
+			'There was an error removing the old events from the database!',
+			e as Error
+		);
 	}
 
 	const newEvents = events as portal.PortalCacheEvent[];
@@ -99,13 +114,16 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 	try {
 		await portaldata.insertMany(newEvents);
 	} catch (e) {
-		throw new InternalError('There was an error inserting events into the database!', e);
+		throw new InternalError(
+			'There was an error inserting events into the database!',
+			e as Error
+		);
 	}
 
 	try {
 		await userdata.updateOne({ user }, { $set: { inPortalQueueClasses: false } });
 	} catch (e) {
-		throw new InternalError('There was an error removing the user from the queue!', e);
+		throw new InternalError('There was an error removing the user from the queue!', e as Error);
 	}
 
 	return newEvents;
@@ -132,7 +150,10 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 		try {
 			await userdata.updateOne({ user }, { $set: { inPortalQueueCalendar: false } });
 		} catch (e) {
-			throw new InternalError('There was an error removing the user from the queue!', e);
+			throw new InternalError(
+				'There was an error removing the user from the queue!',
+				e as Error
+			);
 		}
 
 		return events;
@@ -140,7 +161,7 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 		try {
 			await userdata.updateOne({ user }, { $set: { inPortalQueueCalendar: true } });
 		} catch (e) {
-			throw new InternalError('There was an error adding the user to the queue!', e);
+			throw new InternalError('There was an error adding the user to the queue!', e as Error);
 		}
 
 		return events;
@@ -151,7 +172,10 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 		// @ts-ignore
 		await portaldata.deleteMany({ user: userDoc!._id });
 	} catch (e) {
-		throw new InternalError('There was an error removing the old events from the database!', e);
+		throw new InternalError(
+			'There was an error removing the old events from the database!',
+			e as Error
+		);
 	}
 
 	const newEvents = events as portal.PortalCacheEvent[];
@@ -163,13 +187,16 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 	try {
 		await portaldata.insertMany(newEvents);
 	} catch (e) {
-		throw new InternalError('There was an error inserting events into the database!', e);
+		throw new InternalError(
+			'There was an error inserting events into the database!',
+			e as Error
+		);
 	}
 
 	try {
 		await userdata.updateOne({ user }, { $set: { inPortalQueueCalendar: false } });
 	} catch (e) {
-		throw new InternalError('There was an error removing the user from the queue!', e);
+		throw new InternalError('There was an error removing the user from the queue!', e as Error);
 	}
 
 	return newEvents;
@@ -188,7 +215,7 @@ export async function processPortalQueue(db: Db) {
 			.find({ $or: [{ inPortalQueueClasses: true }, { inPortalQueueCalendar: true }] })
 			.toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 
 	for (const queueObj of queue) {

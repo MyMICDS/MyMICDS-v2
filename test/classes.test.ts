@@ -4,7 +4,7 @@ import { expect, use } from 'chai';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
 import { initAPI } from '../src/init';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { saveTestClass, testClass } from './helpers/class';
 import * as classes from '../src/libs/classes';
 import _ from 'lodash';
@@ -71,7 +71,7 @@ describe('Classes', () => {
 			const jwt = await generateJWT(this.db);
 
 			const { _id } = await saveTestClass(this.db);
-			const idString = (_id as ObjectID).toHexString();
+			const idString = (_id as ObjectId).toHexString();
 
 			const updatePayload = {
 				...payload,
@@ -125,7 +125,7 @@ describe('Classes', () => {
 			const { _id } = await saveTestClass(this.db);
 			const deletePayload = {
 				...payload,
-				id: (_id as ObjectID).toHexString()
+				id: (_id as ObjectId).toHexString()
 			};
 
 			await buildRequest(this)

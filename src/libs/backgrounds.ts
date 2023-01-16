@@ -49,7 +49,7 @@ function uploadBackground() {
 			try {
 				await deleteBackground(req.apiUser!);
 			} catch (err) {
-				cb(err, '');
+				cb(err as Error, '');
 				return;
 			}
 
@@ -104,7 +104,10 @@ async function getCurrentFiles(user: string) {
 	try {
 		userDirs = await fs.readdir(userBackgroundsDir);
 	} catch (e) {
-		throw new InternalError('There was a problem reading the user backgrounds directory!', e);
+		throw new InternalError(
+			'There was a problem reading the user backgrounds directory!',
+			e as Error
+		);
 	}
 
 	// Look through all the directories
@@ -161,7 +164,7 @@ async function deleteBackground(user: string) {
 	try {
 		await fs.rename(currentPath, deletedPath);
 	} catch (e) {
-		throw new InternalError('There was a problem deleting the directory!', e);
+		throw new InternalError('There was a problem deleting the directory!', e as Error);
 	}
 }
 
@@ -201,7 +204,10 @@ async function getAllBackgrounds(db: Db) {
 	try {
 		userDirs = await fs.readdir(userBackgroundsDir);
 	} catch (e) {
-		throw new InternalError('There was a problem reading the user backgrounds directory!', e);
+		throw new InternalError(
+			'There was a problem reading the user backgrounds directory!',
+			e as Error
+		);
 	}
 
 	const userdata = db.collection<UserDoc>('users');
@@ -210,7 +216,7 @@ async function getAllBackgrounds(db: Db) {
 	try {
 		users = await userdata.find({ confirmed: true }).toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 
 	const remainingUsers = users.map(u => u.user);
@@ -267,7 +273,10 @@ async function getDirExtension(userDir: string) {
 	try {
 		userImages = await fs.readdir(userBackgroundsDir + '/' + userDir);
 	} catch (e) {
-		throw new InternalError("There was a problem reading the user's background directory!", e);
+		throw new InternalError(
+			"There was a problem reading the user's background directory!",
+			e as Error
+		);
 	}
 
 	// Loop through all valid files until there's either a .png or .jpg extention
@@ -297,13 +306,13 @@ async function addBlur(fromPath: string, toPath: string, blurRadius: number) {
 	try {
 		image = await Jimp.read(fromPath);
 	} catch (e) {
-		throw new InternalError('There was a problem reading the image!', e);
+		throw new InternalError('There was a problem reading the image!', e as Error);
 	}
 
 	try {
 		await promisify(image.blur(blurRadius).write.bind(image))(toPath);
 	} catch (e) {
-		throw new InternalError('There was a problem saving the image!', e);
+		throw new InternalError('There was a problem saving the image!', e as Error);
 	}
 }
 

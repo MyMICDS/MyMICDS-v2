@@ -1,5 +1,5 @@
 import { AddAliasParameters, DeleteAliasParameters } from '@mymicds/sdk';
-import { assertType } from 'typescript-is';
+import { assertEquals } from 'typia';
 import * as aliases from '../libs/aliases';
 import * as api from '../libs/api';
 import * as jwt from '../libs/jwt';
@@ -8,7 +8,7 @@ import RoutesFunction from './routesFunction';
 export default ((app, db, socketIO) => {
 	app.post('/alias', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertType<AddAliasParameters>(req.body);
+			assertEquals<AddAliasParameters>(req.body);
 			const aliasId = await aliases.add(
 				db,
 				req.apiUser!,
@@ -24,7 +24,7 @@ export default ((app, db, socketIO) => {
 			});
 			api.success(res, { id: aliasId });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
@@ -33,18 +33,18 @@ export default ((app, db, socketIO) => {
 			const aliasList = await aliases.list(db, req.apiUser!);
 			api.success(res, { aliases: aliasList });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
 	app.delete('/alias', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertType<DeleteAliasParameters>(req.body);
+			assertEquals<DeleteAliasParameters>(req.body);
 			await aliases.delete(db, req.apiUser!, req.body.type, req.body.id);
 			socketIO.user(req.apiUser!, 'alias', 'delete', req.body.id);
 			api.success(res);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 }) as RoutesFunction;

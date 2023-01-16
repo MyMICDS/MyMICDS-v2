@@ -1,5 +1,5 @@
 import { ChangeUserInfoParameters, GetUserInfoResponse, School } from '@mymicds/sdk';
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InternalError } from './errors';
 import * as _ from 'lodash';
 import * as dates from './dates';
@@ -19,7 +19,7 @@ async function getUser(db: Db, user: string) {
 		// Query database to find possible user
 		docs = await userdata.find({ user }).toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 
 	let isUser = false;
@@ -139,7 +139,7 @@ export async function changeInfo(db: Db, user: string, info: ChangeUserInfoParam
 	try {
 		await userdata.updateOne({ _id: userDoc!._id, user }, { $set: set }, { upsert: true });
 	} catch (e) {
-		throw new InternalError('There was a problem updating the databse!', e);
+		throw new InternalError('There was a problem updating the databse!', e as Error);
 	}
 }
 
@@ -205,7 +205,7 @@ export function gradeToSchool(grade: number | null): School {
 }
 
 export interface UserDoc {
-	_id: ObjectID;
+	_id: ObjectId;
 	user: string;
 	password: string;
 	firstName: string;

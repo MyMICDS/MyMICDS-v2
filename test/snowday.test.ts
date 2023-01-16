@@ -1,4 +1,4 @@
-import { assertType } from 'typescript-is';
+import { assertEquals } from 'typia';
 import { buildRequest } from './helpers/shared';
 import { GetSnowdayResponse } from '@mymicds/sdk';
 import { initAPI } from '../src/init';
@@ -19,7 +19,7 @@ describe('Snowday', () => {
 
 		it('gets snowday data', async function () {
 			const res = await buildRequest(this).expect(200);
-			assertType<GetSnowdayResponse>(res.body.data);
+			assertEquals<GetSnowdayResponse>(res.body.data);
 		});
 	});
 

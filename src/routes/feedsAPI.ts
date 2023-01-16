@@ -9,7 +9,7 @@ export default ((app, db) => {
 			await feeds.updateCanvasCache(db, req.apiUser!);
 			api.success(res);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
@@ -19,7 +19,7 @@ export default ((app, db) => {
 			await feeds.addPortalQueueCalendar(db, req.apiUser!);
 			api.success(res);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 }) as RoutesFunction;

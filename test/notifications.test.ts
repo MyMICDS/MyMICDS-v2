@@ -76,6 +76,8 @@ describe('Notifications', () => {
 
 			await buildRequest(this).send(anonPayload).expect(200);
 
+			console.log(await buildRequest(this).send(anonPayload));
+
 			const { userDoc } = await users.get(this.db, testUser.user);
 			expect(userDoc).to.have.property('unsubscribed').that.deep.equals([anonPayload.scopes]);
 		});
@@ -84,6 +86,8 @@ describe('Notifications', () => {
 			await saveTestUser(this.db);
 
 			await buildRequest(this).send(anonMultiplePayload).expect(200);
+
+			console.log(await buildRequest(this).send(anonMultiplePayload));
 
 			const { userDoc } = await users.get(this.db, testUser.user);
 			expect(userDoc)

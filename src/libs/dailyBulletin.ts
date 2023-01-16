@@ -44,7 +44,7 @@ export async function queryLatest() {
 			})
 			.then(r => r.data);
 	} catch (e) {
-		throw new InternalError('There was a problem listing the messages from Gmail!', e);
+		throw new InternalError('There was a problem listing the messages from Gmail!', e as Error);
 	}
 
 	// Get the most recent email id
@@ -61,7 +61,7 @@ export async function queryLatest() {
 			})
 			.then(r => r.data);
 	} catch (e) {
-		throw new InternalError('There was a problem getting the most recent email!', e);
+		throw new InternalError('There was a problem getting the most recent email!', e as Error);
 	}
 
 	// Get email subject for the date; generate filename from subject
@@ -107,14 +107,17 @@ export async function queryLatest() {
 	try {
 		await fs.ensureDir(bulletinDir);
 	} catch (e) {
-		throw new InternalError('There was a problem ensuring directory for Daily Bulletins!', e);
+		throw new InternalError(
+			'There was a problem ensuring directory for Daily Bulletins!',
+			e as Error
+		);
 	}
 
 	// Write link to designated link file
 	try {
 		await fs.writeFile(bulletinDir + '/' + filename, gDocLink);
 	} catch (e) {
-		throw new InternalError('There was a problem writing the PDF!', e);
+		throw new InternalError('There was a problem writing the PDF!', e as Error);
 	}
 }
 
@@ -149,7 +152,10 @@ export async function queryAll() {
 		try {
 			messageList = await gmail.users.messages.list(listQuery).then(r => r.data);
 		} catch (e) {
-			throw new InternalError('There was a problem listing the messages from Gmail!', e);
+			throw new InternalError(
+				'There was a problem listing the messages from Gmail!',
+				e as Error
+			);
 		}
 
 		// Add message ids to array
@@ -233,7 +239,10 @@ export async function queryAll() {
 	try {
 		await fs.ensureDir(bulletinDir);
 	} catch (e) {
-		throw new InternalError('There was a problem ensuring directory for Daily Bulletins!', e);
+		throw new InternalError(
+			'There was a problem ensuring directory for Daily Bulletins!',
+			e as Error
+		);
 	}
 
 	await Promise.all(
@@ -255,7 +264,7 @@ export async function queryAll() {
 			try {
 				await fs.writeFile(bulletinDir + '/' + bulletinName, pdf);
 			} catch (e) {
-				throw new InternalError('There was a problem writing the PDF!', e);
+				throw new InternalError('There was a problem writing the PDF!', e as Error);
 			}
 		})
 	);
@@ -272,14 +281,17 @@ export async function getPdfBulletinList() {
 	try {
 		await fs.ensureDir(bulletinDir);
 	} catch (e) {
-		throw new InternalError('There was a problem ensuring the bulletin directory exists!', e);
+		throw new InternalError(
+			'There was a problem ensuring the bulletin directory exists!',
+			e as Error
+		);
 	}
 
 	let files: string[];
 	try {
 		files = await fs.readdir(bulletinDir);
 	} catch (e) {
-		throw new InternalError('There was a problem reading the bulletin directory!', e);
+		throw new InternalError('There was a problem reading the bulletin directory!', e as Error);
 	}
 
 	// Only return files that are a PDF
@@ -307,14 +319,17 @@ export async function getGDocBulletin() {
 	try {
 		await fs.ensureDir(bulletinDir);
 	} catch (e) {
-		throw new InternalError('There was a problem ensuring the bulletin directory exists!', e);
+		throw new InternalError(
+			'There was a problem ensuring the bulletin directory exists!',
+			e as Error
+		);
 	}
 
 	let files: string[];
 	try {
 		files = await fs.readdir(bulletinDir);
 	} catch (e) {
-		throw new InternalError('There was a problem reading the bulletin directory!', e);
+		throw new InternalError('There was a problem reading the bulletin directory!', e as Error);
 	}
 
 	// Only return files that are a Txt file
@@ -336,7 +351,7 @@ export async function getGDocBulletin() {
 	} catch (e) {
 		throw new InternalError(
 			'There was a problem reading the text file for the GDoc Bulletin!',
-			e
+			e as Error
 		);
 	}
 

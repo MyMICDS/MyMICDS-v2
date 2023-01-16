@@ -9,7 +9,7 @@ export default ((app, db, socketIO) => {
 			const weatherJSON = await weather.get();
 			api.success(res, { weather: weatherJSON });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
@@ -19,7 +19,7 @@ export default ((app, db, socketIO) => {
 			socketIO.global('weather', weatherJSON);
 			api.success(res);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 }) as RoutesFunction;

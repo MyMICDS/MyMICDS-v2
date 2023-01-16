@@ -1,4 +1,4 @@
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InputError, InternalError } from './errors';
 import { Omit } from './utils';
 import { PlannerEvent } from '@mymicds/sdk';
@@ -37,7 +37,7 @@ async function upsertEvent(db: Db, user: string, plannerEvent: NewEventData) {
 	const theClasses = await classes.get(db, user);
 
 	// Check if class id is valid if it isn't null already
-	let validClassId: ObjectID | null = null;
+	let validClassId: ObjectId | null = null;
 	if (plannerEvent.classId !== null) {
 		for (const theClass of theClasses) {
 			const classId = theClass._id;
@@ -50,14 +50,14 @@ async function upsertEvent(db: Db, user: string, plannerEvent: NewEventData) {
 
 	const plannerdata = db.collection<PlannerDBEvent>('planner');
 
-	let validEditId: ObjectID | null = null;
+	let validEditId: ObjectId | null = null;
 	if (plannerEvent._id !== '') {
 		// Check if edit id is valid
 		let events: PlannerDBEvent[];
 		try {
 			events = await plannerdata.find({ user: userDoc!._id }).toArray();
 		} catch (e) {
-			throw new InternalError('There was a problem querying the database!', e);
+			throw new InternalError('There was a problem querying the database!', e as Error);
 		}
 
 		// Look through all events if id is valid
@@ -71,7 +71,7 @@ async function upsertEvent(db: Db, user: string, plannerEvent: NewEventData) {
 	}
 
 	// Generate an Object ID, or use the id that we are editting
-	const id = validEditId ? validEditId : new ObjectID();
+	const id = validEditId ? validEditId : new ObjectId();
 
 	const insertEvent: PlannerDBEvent = {
 		_id: id,
@@ -88,7 +88,10 @@ async function upsertEvent(db: Db, user: string, plannerEvent: NewEventData) {
 	try {
 		await plannerdata.updateOne({ _id: id }, { $set: insertEvent }, { upsert: true });
 	} catch (e) {
-		throw new InternalError('There was a problem inserting the event into the database!', e);
+		throw new InternalError(
+			'There was a problem inserting the event into the database!',
+			e as Error
+		);
 	}
 
 	return insertEvent;
@@ -102,9 +105,9 @@ async function upsertEvent(db: Db, user: string, plannerEvent: NewEventData) {
  */
 async function deleteEvent(db: Db, user: string, eventId: string) {
 	// Try to create object id
-	let id: ObjectID;
+	let id: ObjectId;
 	try {
-		id = new ObjectID(eventId);
+		id = new ObjectId(eventId);
 	} catch (e) {
 		throw new InputError('Invalid event id!');
 	}
@@ -121,7 +124,10 @@ async function deleteEvent(db: Db, user: string, eventId: string) {
 	try {
 		await plannerdata.deleteMany({ _id: id, user: userDoc!._id });
 	} catch (e) {
-		throw new InternalError('There was a problem deleting the event from the database!', e);
+		throw new InternalError(
+			'There was a problem deleting the event from the database!',
+			e as Error
+		);
 	}
 }
 
@@ -202,7 +208,7 @@ async function getEvents(db: Db, user: string) {
 			])
 			.toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 
 	// Format all events
@@ -215,7 +221,7 @@ async function getEvents(db: Db, user: string) {
 }
 
 export interface BasePlannerEvent {
-	user: ObjectID;
+	user: ObjectId;
 	title: string;
 	desc: string;
 	start: Date;
@@ -229,8 +235,8 @@ export interface PlannerInputEvent extends BasePlannerEvent {
 }
 
 export interface PlannerDBEvent extends BasePlannerEvent {
-	_id: ObjectID;
-	class: ObjectID;
+	_id: ObjectId;
+	class: ObjectId;
 }
 
 export type NewEventData = Omit<PlannerInputEvent, 'user' | 'link'> & { link?: string };

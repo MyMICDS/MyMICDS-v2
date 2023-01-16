@@ -1,5 +1,5 @@
 import { Block, ClassType } from '@mymicds/sdk';
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InputError, InternalError } from './errors';
 import { Omit, shouldTextBeDark } from './utils';
 import { Teacher } from '@mymicds/sdk/dist/libs/teachers';
@@ -71,11 +71,11 @@ async function upsertClass(
 		// Check for duplicate classes first
 		classes = await classdata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 
 	// Lets see if any of the classes are the one we are supposed to edit
-	let validEditId: ObjectID | null = null;
+	let validEditId: ObjectId | null = null;
 	if (scheduleClass._id !== '') {
 		for (const theClass of classes) {
 			const classId = theClass._id;
@@ -117,7 +117,7 @@ async function upsertClass(
 	if (validEditId) {
 		id = validEditId;
 	} else {
-		id = new ObjectID();
+		id = new ObjectId();
 	}
 
 	const insertClass: Omit<MyMICDSClassWithIDs, 'textDark'> = {
@@ -134,7 +134,10 @@ async function upsertClass(
 		// Finally, if class isn't a duplicate and everything's valid, let's insert it into the database
 		await classdata.updateOne({ _id: id }, { $set: insertClass }, { upsert: true });
 	} catch (e) {
-		throw new InternalError('There was a problem upserting the class into the database!', e);
+		throw new InternalError(
+			'There was a problem upserting the class into the database!',
+			e as Error
+		);
 	}
 
 	await teachers.deleteClasslessTeachers(db);
@@ -160,7 +163,7 @@ async function getClasses(db: Db, user: string) {
 	let classes: MyMICDSClassWithIDs[];
 	try {
 		classes = await classdata
-			.aggregate([
+			.aggregate<MyMICDSClassWithIDs>([
 				// Stage 1
 				// Get all classes under the specified user id
 				{
@@ -186,14 +189,14 @@ async function getClasses(db: Db, user: string) {
 					}
 				},
 				// Stage 4
-				// Replace user ObjectID with actual username
+				// Replace user ObjectId with actual username
 				{
 					$addFields: { user }
 				}
 			])
 			.toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 
 	// Add 'textDark' to all of the classes based on color
@@ -214,7 +217,7 @@ async function deleteClass(db: Db, user: string, classId: string) {
 	// Try to create object id
 	let id;
 	try {
-		id = new ObjectID(classId);
+		id = new ObjectId(classId);
 	} catch (e) {
 		throw new InputError('Invalid event id!');
 	}
@@ -230,7 +233,10 @@ async function deleteClass(db: Db, user: string, classId: string) {
 	try {
 		await classdata.deleteOne({ _id: id, user: userDoc!._id });
 	} catch (e) {
-		throw new InternalError('There was a problem deleting the class from the database!', e);
+		throw new InternalError(
+			'There was a problem deleting the class from the database!',
+			e as Error
+		);
 	}
 
 	// @TODO: Error handling if these fail
@@ -239,10 +245,10 @@ async function deleteClass(db: Db, user: string, classId: string) {
 }
 
 export interface MyMICDSClassWithIDs {
-	_id: ObjectID;
-	user: ObjectID;
+	_id: ObjectId;
+	user: ObjectId;
 	name: string;
-	teacher: ObjectID;
+	teacher: ObjectId;
 	type: ClassType;
 	block: Block;
 	color: string;

@@ -33,13 +33,13 @@ export default ((app, db, socketIO) => {
 			const userInfo = await users.getInfo(db, req.apiUser!, true);
 			api.success(res, userInfo);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
 	app.patch('/user/info', jwt.requireLoggedIn, async (req, res) => {
 		// All the validation is being done manually to add defaults
-		// No reason to add an assertType
+		// No reason to add an assertEquals
 
 		const info: ChangeUserInfoParameters = {};
 
@@ -62,7 +62,7 @@ export default ((app, db, socketIO) => {
 			socketIO.user(req.apiUser!, 'user', 'change-info', newInfo);
 			api.success(res, newInfo);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 }) as RoutesFunction;

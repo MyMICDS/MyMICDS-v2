@@ -90,7 +90,10 @@ export async function register(db: Db, user: NewUserData) {
 	try {
 		confirmationBuf = await promisify(crypto.randomBytes)(16);
 	} catch (e) {
-		throw new InternalError('There was a problem generating a random confirmation hash!', e);
+		throw new InternalError(
+			'There was a problem generating a random confirmation hash!',
+			e as Error
+		);
 	}
 
 	const confirmationHash = confirmationBuf.toString('hex');
@@ -99,7 +102,7 @@ export async function register(db: Db, user: NewUserData) {
 	try {
 		unsubscribeBuf = await promisify(crypto.randomBytes)(16);
 	} catch (e) {
-		throw new InternalError('There was a problem generating a random email hash!', e);
+		throw new InternalError('There was a problem generating a random email hash!', e as Error);
 	}
 
 	const unsubscribeHash = unsubscribeBuf.toString('hex');
@@ -123,7 +126,10 @@ export async function register(db: Db, user: NewUserData) {
 	try {
 		await userdata.updateOne({ user: newUser.user }, { $set: newUser }, { upsert: true });
 	} catch (e) {
-		throw new InternalError('There was a problem inserting the account into the database!', e);
+		throw new InternalError(
+			'There was a problem inserting the account into the database!',
+			e as Error
+		);
 	}
 
 	const email = newUser.user + '@micds.org';
@@ -179,7 +185,7 @@ export async function confirm(db: Db, user: string, hash: string) {
 		try {
 			await userdata.updateOne({ user }, { $set: { confirmed: true } });
 		} catch (e) {
-			throw new InternalError('There was a problem updating the database!', e);
+			throw new InternalError('There was a problem updating the database!', e as Error);
 		}
 	} else {
 		// Hash does not match

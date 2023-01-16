@@ -1,5 +1,5 @@
-import { assertType } from 'typescript-is';
 import { SetCanvasURLParameters, TestCanvasURLParameters } from '@mymicds/sdk';
+import { assertEquals } from 'typia';
 import * as api from '../libs/api';
 import * as canvas from '../libs/canvas';
 import * as feeds from '../libs/feeds';
@@ -9,22 +9,22 @@ import RoutesFunction from './routesFunction';
 export default ((app, db, socketIO) => {
 	app.post('/canvas/test', async (req, res) => {
 		try {
-			assertType<TestCanvasURLParameters>(req.body);
+			assertEquals<TestCanvasURLParameters>(req.body);
 			const { isValid, url } = await canvas.verifyURL(req.body.url);
 			api.success(res, { valid: isValid, url });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
 	app.put('/canvas/url', jwt.requireLoggedIn, async (req, res) => {
 		try {
-			assertType<SetCanvasURLParameters>(req.body);
+			assertEquals<SetCanvasURLParameters>(req.body);
 			const { isValid, validURL } = await canvas.setURL(db, req.apiUser!, req.body.url);
 			socketIO.user(req.apiUser!, 'canvas', 'set-url', validURL);
 			api.success(res, { valid: isValid, url: validURL });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
@@ -33,7 +33,7 @@ export default ((app, db, socketIO) => {
 			const responseObj = await feeds.canvasCacheRetry(db, req.apiUser!);
 			api.success(res, responseObj);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
@@ -42,7 +42,7 @@ export default ((app, db, socketIO) => {
 			const responseObj = await canvas.getClasses(db, req.apiUser!);
 			api.success(res, responseObj);
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 
@@ -51,7 +51,7 @@ export default ((app, db, socketIO) => {
 			const events = await canvas.getUniqueEvents(db);
 			api.success(res, { events });
 		} catch (err) {
-			api.error(res, err);
+			api.error(res, err as Error);
 		}
 	});
 }) as RoutesFunction;

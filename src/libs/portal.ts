@@ -1,4 +1,4 @@
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { GetPortalDayRotationResponse } from '@mymicds/sdk';
 import { InputError, InternalError } from './errors';
 import { URL } from 'url';
@@ -39,7 +39,7 @@ async function withCalSummary<T>(date: Date, summaryTest: (summary: string) => T
 	try {
 		res = await axios.get(dayRotationURL);
 	} catch (e) {
-		throw new InternalError('There was a problem fetching the day rotation!', e);
+		throw new InternalError('There was a problem fetching the day rotation!', e as Error);
 	}
 
 	const data = ical.parseICS(res.data);
@@ -109,7 +109,10 @@ async function verifyURLGeneric(portalURL: string) {
 	try {
 		response = await axios.get(validURL);
 	} catch (e) {
-		throw new InternalError('There was a problem fetching portal data from the URL!', e);
+		throw new InternalError(
+			'There was a problem fetching portal data from the URL!',
+			e as Error
+		);
 	}
 	if (response.status !== 200) {
 		throw new InputError('Invalid URL!');
@@ -208,7 +211,10 @@ export async function setURLClasses(db: Db, user: string, calUrl: string) {
 			{ upsert: true }
 		);
 	} catch (e) {
-		throw new InternalError('There was a problem updating the URL to the database!', e);
+		throw new InternalError(
+			'There was a problem updating the URL to the database!',
+			e as Error
+		);
 	}
 
 	await feeds.addPortalQueueClasses(db, user);
@@ -243,7 +249,10 @@ export async function setURLCalendar(db: Db, user: string, calUrl: string) {
 			{ upsert: true }
 		);
 	} catch (e) {
-		throw new InternalError('There was a problem updating the URL to the database!', e);
+		throw new InternalError(
+			'There was a problem updating the URL to the database!',
+			e as Error
+		);
 	}
 
 	await feeds.addPortalQueueCalendar(db, user);
@@ -275,7 +284,7 @@ export async function getFromCacheClasses(db: Db, user: string) {
 		// @ts-ignore
 		events = await portaldata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
-		throw new InternalError('There was an error retrieving Portal events!', e);
+		throw new InternalError('There was an error retrieving Portal events!', e as Error);
 	}
 
 	return { hasURL: true, events };
@@ -305,7 +314,7 @@ export async function getFromCacheCalendar(db: Db, user: string) {
 		// @ts-ignore
 		events = await portaldata.find({ user: userDoc!._id }).toArray();
 	} catch (e) {
-		throw new InternalError('There was an error retrieving Portal events!', e);
+		throw new InternalError('There was an error retrieving Portal events!', e as Error);
 	}
 
 	return { hasURL: true, events };
@@ -331,7 +340,7 @@ export async function getFromCalClasses(db: Db, user: string) {
 	try {
 		response = await axios.get(userDoc!.portalURLClasses);
 	} catch (e) {
-		throw new InternalError('There was a problem fetching the day rotation!', e);
+		throw new InternalError('There was a problem fetching the day rotation!', e as Error);
 	}
 
 	if (response.status !== 200) {
@@ -364,7 +373,7 @@ export async function getFromCalCalendar(db: Db, user: string) {
 	try {
 		response = await axios.get(userDoc!.portalURLCalendar);
 	} catch (e) {
-		throw new InternalError('There was a problem fetching the day rotation!', e);
+		throw new InternalError('There was a problem fetching the day rotation!', e as Error);
 	}
 
 	if (response.status !== 200) {
@@ -413,7 +422,7 @@ export async function getDayRotations() {
 	try {
 		body = await axios.get(dayRotationURL);
 	} catch (e) {
-		throw new InternalError('There was a problem fetching the day rotation!', e);
+		throw new InternalError('There was a problem fetching the day rotation!', e as Error);
 	}
 
 	const data = ical.parseICS(body.data);
@@ -551,4 +560,4 @@ export function cleanUp(str: string) {
 	return str.replace('Social Science', 'SocialScience').replace(cleanUpBlockSuffix, '');
 }
 
-export type PortalCacheEvent = ical.CalendarComponent & { _id: ObjectID; user: ObjectID };
+export type PortalCacheEvent = ical.CalendarComponent & { _id: ObjectId; user: ObjectId };

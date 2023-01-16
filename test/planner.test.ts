@@ -3,7 +3,7 @@ import { expect, use } from 'chai';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
 import { initAPI } from '../src/init';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { saveTestClass } from './helpers/class';
 import * as checkedEvents from '../src/libs/checkedEvents';
 import * as planner from '../src/libs/planner';
@@ -88,7 +88,7 @@ describe('Planner', () => {
 
 			const classPayload = {
 				...payload,
-				classId: (_id as ObjectID).toHexString()
+				classId: (_id as ObjectId).toHexString()
 			};
 
 			const res = await buildRequest(this)

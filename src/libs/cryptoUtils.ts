@@ -11,7 +11,7 @@ export async function hashPassword(password: string) {
 	try {
 		return await bcrypt.hash(password, 10);
 	} catch (e) {
-		throw new InternalError('There was a problem hashing the password!', e);
+		throw new InternalError('There was a problem hashing the password!', e as Error);
 	}
 }
 

@@ -1,4 +1,4 @@
-import { Db, ObjectID } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { InputError } from './errors';
 import * as users from './users';
 
@@ -50,9 +50,9 @@ async function postNote(db: Db, user: string, moduleId: string, text: string) {
 }
 
 export interface StickyNoteDoc {
-	_id: ObjectID;
+	_id: ObjectId;
 	moduleId: string;
-	user: ObjectID;
+	user: ObjectId;
 	text: string;
 }
 

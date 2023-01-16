@@ -21,7 +21,10 @@ export async function saveTestUser(db: Db, params: Partial<UserDoc> = {}) {
 	saveUser.password = await cryptoUtils.hashPassword(saveUser.password);
 
 	const res = await db.collection('users').insertOne(saveUser);
-	return res.ops[0] as UserDoc;
+
+	saveUser._id = res.insertedId;
+
+	return saveUser;
 }
 
 export async function generateJWT(db: Db) {

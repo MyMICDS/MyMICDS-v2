@@ -15,7 +15,7 @@ async function getAdmins(db: Db) {
 	try {
 		return await userdata.find({ scopes: ['admin'] }).toArray();
 	} catch (e) {
-		throw new InternalError('There was a problem querying the database!', e);
+		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
 }
 
@@ -30,7 +30,7 @@ async function sendAdminEmail(db: Db, message: mail.Message) {
 	try {
 		admins = await getAdmins(db);
 	} catch (e) {
-		throw new InternalError('Error getting list of admins!', e);
+		throw new InternalError('Error getting list of admins!', e as Error);
 	}
 
 	if (admins.length < 1) {
