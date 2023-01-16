@@ -162,41 +162,39 @@ async function getClasses(db: Db, user: string) {
 
 	let classes: MyMICDSClassWithIDs[];
 	try {
-		classes = (
-			await classdata
-				.aggregate([
-					// Stage 1
-					// Get all classes under the specified user id
-					{
-						$match: {
-							user: userDoc!._id
-						}
-					},
-					// Stage 2
-					// Replace teacher id with array of teacher object
-					{
-						$lookup: {
-							from: 'teachers',
-							localField: 'teacher',
-							foreignField: '_id',
-							as: 'teacher'
-						}
-					},
-					// Stage 3
-					// Flatten the teacher object array
-					{
-						$unwind: {
-							path: '$teacher'
-						}
-					},
-					// Stage 4
-					// Replace user ObjectId with actual username
-					{
-						$addFields: { user }
+		classes = await classdata
+			.aggregate<MyMICDSClassWithIDs>([
+				// Stage 1
+				// Get all classes under the specified user id
+				{
+					$match: {
+						user: userDoc!._id
 					}
-				])
-				.toArray()
-		).map((value: Document) => value as MyMICDSClassWithIDs);
+				},
+				// Stage 2
+				// Replace teacher id with array of teacher object
+				{
+					$lookup: {
+						from: 'teachers',
+						localField: 'teacher',
+						foreignField: '_id',
+						as: 'teacher'
+					}
+				},
+				// Stage 3
+				// Flatten the teacher object array
+				{
+					$unwind: {
+						path: '$teacher'
+					}
+				},
+				// Stage 4
+				// Replace user ObjectId with actual username
+				{
+					$addFields: { user }
+				}
+			])
+			.toArray();
 	} catch (e) {
 		throw new InternalError('There was a problem querying the database!', e as Error);
 	}

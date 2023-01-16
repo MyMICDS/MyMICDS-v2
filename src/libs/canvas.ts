@@ -402,15 +402,15 @@ export async function getUniqueEvents(db: Db) {
 	const assignments: { [className: string]: UniqueEvent[] } = {};
 
 	for (const doc of docs) {
-		const parsedEvent = parseCanvasTitle(doc.summary!);
+		const parsedEvent = parseCanvasTitle(doc.summary);
 		const className = parsedEvent.class.name;
 		const assignment = {
 			_id: doc._id as string,
 			name: parsedEvent.assignment,
 			className,
-			raw: doc.summary!,
-			start: new Date(doc.start!),
-			end: new Date(doc.end!)
+			raw: doc.summary,
+			start: new Date(doc.start),
+			end: new Date(doc.end)
 		};
 
 		if (!assignments[className]) {

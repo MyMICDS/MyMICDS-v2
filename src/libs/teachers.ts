@@ -88,29 +88,27 @@ export async function deleteClasslessTeachers(db: Db) {
 
 	try {
 		// Find all teachers with 0 classes
-		docs = (
-			await teacherdata
-				.aggregate([
-					// Stage 1
-					{
-						$lookup: {
-							from: 'classes',
-							localField: '_id',
-							foreignField: 'teacher',
-							as: 'classes'
-						}
-					},
-					// Stage 2
-					{
-						$match: {
-							classes: {
-								$size: 0
-							}
+		docs = await teacherdata
+			.aggregate<Teacher>([
+				// Stage 1
+				{
+					$lookup: {
+						from: 'classes',
+						localField: '_id',
+						foreignField: 'teacher',
+						as: 'classes'
+					}
+				},
+				// Stage 2
+				{
+					$match: {
+						classes: {
+							$size: 0
 						}
 					}
-				])
-				.toArray()
-		).map((value: Document) => value as Teacher);
+				}
+			])
+			.toArray();
 	} catch (e) {
 		throw new InternalError('There was a problem querying the database!', e as Error);
 	}

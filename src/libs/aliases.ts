@@ -242,29 +242,27 @@ export async function deleteClasslessAliases(db: Db) {
 	let classless: AliasWithIDs[];
 
 	try {
-		classless = (
-			await aliasdata
-				.aggregate([
-					// Stage 1
-					{
-						$lookup: {
-							from: 'classes',
-							localField: 'classNative',
-							foreignField: '_id',
-							as: 'classes'
-						}
-					},
-					// Stage 2
-					{
-						$match: {
-							classes: {
-								$size: 0
-							}
+		classless = await aliasdata
+			.aggregate<AliasWithIDs>([
+				// Stage 1
+				{
+					$lookup: {
+						from: 'classes',
+						localField: 'classNative',
+						foreignField: '_id',
+						as: 'classes'
+					}
+				},
+				// Stage 2
+				{
+					$match: {
+						classes: {
+							$size: 0
 						}
 					}
-				])
-				.toArray()
-		).map((val: Document) => val as AliasWithIDs);
+				}
+			])
+			.toArray();
 	} catch (e) {
 		throw new InternalError('There was a problem querying the database!', e as Error);
 	}
