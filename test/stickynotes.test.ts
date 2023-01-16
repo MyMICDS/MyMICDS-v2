@@ -33,9 +33,7 @@ describe('Quotes', () => {
 			await saveTestUser(this.db);
 			const jwt = await generateJWT(this.db);
 
-			const {
-				upsertedId: { _id }
-			} = await stickynotes.post(
+			const { upsertedId } = await stickynotes.post(
 				this.db,
 				testUser.user,
 				testStickynote.moduleId,
@@ -46,7 +44,7 @@ describe('Quotes', () => {
 				.set('Authorization', `Bearer ${jwt}`)
 				.query(payload)
 				.expect(200);
-			expect(res.body.data).to.have.property('_id').that.equals(_id.toHexString());
+			expect(res.body.data).to.have.property('_id').that.equals(upsertedId.toHexString());
 		});
 
 		it('returns a new stickynote', async function () {
