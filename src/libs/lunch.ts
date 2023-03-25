@@ -5,12 +5,16 @@ import axios from 'axios';
 import moment from 'moment';
 import objectAssignDeep from 'object-assign-deep';
 
-const lunchBaseURL = 'https://micds.flikisdining.com/menu/api/weeks/school';
 const schools: Record<School, string> = {
-	lowerschool: 'lower-and-middle-school-menu',
+	lowerschool: 'lower-school',
 	middleschool: 'lower-and-middle-school-menu',
 	upperschool: 'upper-school-menu'
 };
+
+function generateLunchUrl(school: string, date: Date) {
+	const dateStr = moment(date).day('Wednesday').format('YYYY/MM/DD');
+	return `https://micds.api.flikisdining.com/menu/api/weeks/school/${school}/menu-type/lunch/${dateStr}/`;
+}
 
 /**
  * Gets the lunch from Flik's website.
@@ -18,15 +22,12 @@ const schools: Record<School, string> = {
  * @param date Date to get the lunch for.
  */
 async function getLunch(db: Db, date: Date) {
-	const currentDay = moment(date).day('Wednesday');
 	const fullLunchResponse: GetLunchResponse['lunch'] = {};
 
 	try {
 		for (const school of Object.keys(schools) as School[]) {
 			const schoolUrl = schools[school];
-			const lunchUrl = `${lunchBaseURL}/${schoolUrl}/menu-type/lunch/${currentDay.year()}/${
-				currentDay.month() + 1
-			}/${currentDay.date()}/`;
+			const lunchUrl = generateLunchUrl(schoolUrl, date);
 
 			// Send request to lunch website
 			const res = await axios.get(lunchUrl);
@@ -56,7 +57,6 @@ function parseLunch(school: School, body: any) {
 
 		json[date] = {
 			[school]: {
-				title: 'Yummy Lunch',
 				categories: {}
 			}
 		};

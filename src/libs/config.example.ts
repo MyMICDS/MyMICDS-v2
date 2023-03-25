@@ -29,6 +29,10 @@ export default {
 		dbName: ''
 	},
 
+	openWeather: {
+		APIKey: ''
+	},
+
 	portal: {
 		dayRotation: '' // School Calendars > All School Events on Veracross
 	},
