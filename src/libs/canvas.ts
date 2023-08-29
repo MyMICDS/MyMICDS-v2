@@ -121,6 +121,7 @@ export async function getUserCal(db: Db, user: string) {
  * @returns Parsed class and teacher data.
  */
 function parseCanvasTitle(title: string) {
+	title = title || '';
 	const classTeacherRegex = /\[[^[]+]$/g;
 	const teacherRegex = /:[A-Z]{5}$/g;
 	const firstLastBrackets = /(^\[)|(]$)/g;
