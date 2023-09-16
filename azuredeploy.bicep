@@ -1,5 +1,5 @@
 // param location string = resourceGroup().location
-param location string = 'westus'
+param location string = 'westus3'
 
 @description('Resource name prefix')
 param resourceNamePrefix string
@@ -62,7 +62,7 @@ resource database 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@2022-0
 		}
 		options: {
 			autoscaleSettings: {
-				maxThroughput: 1000
+				maxThroughput: 100
 			}
 		}
 	}

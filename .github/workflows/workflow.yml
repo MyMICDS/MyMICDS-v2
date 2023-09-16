@@ -112,6 +112,6 @@ jobs:
           scope: resourcegroup
           resourceGroupName: ${{ env.ResourceGroupName }}
           template: ./azuredeploy.bicep
-          parameters: resourceNamePrefix=mymicdsprodwestt
+          parameters: resourceNamePrefix=mymicdstwest3
           # Because warnings will make this part fail otherwise
           failOnStdErr: false
