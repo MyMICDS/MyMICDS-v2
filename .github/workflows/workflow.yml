@@ -89,7 +89,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      ResourceGroupName: mymicds-v2-prod
+      ResourceGroupName: mymicds-v2-west
       ResourceGroupLocation: 'centralus'
     steps:
       - name: Checkout repository
