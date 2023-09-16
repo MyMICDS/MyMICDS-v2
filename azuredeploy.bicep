@@ -8,11 +8,12 @@ var envResourceNamePrefix = toLower(resourceNamePrefix)
  * Create database
  */
 
-var dbName = '${envResourceNamePrefix}mongodb'
+var dbAccountName = '${envResourceNamePrefix}mongodb'
+var dbName = 'mymicds-prod'
 
-resource name_resource 'Microsoft.DocumentDb/databaseAccounts@2023-03-15-preview' = {
+resource dbAccount 'Microsoft.DocumentDb/databaseAccounts@2023-03-15-preview' = {
 	kind: 'MongoDB'
-	name: dbName
+	name: dbAccountName
 	location: location
 	properties: {
 		databaseAccountOfferType: 'Standard'
@@ -47,6 +48,109 @@ resource name_resource 'Microsoft.DocumentDb/databaseAccounts@2023-03-15-preview
 		enableFreeTier: true
 		capacity: {
 			totalThroughputLimit: 1000
+		}
+	}
+}
+
+resource database 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@2022-05-15' = {
+	parent: dbAccount
+	name: dbName
+	properties: {
+		resource: {
+			id: dbName
+		}
+		options: {
+			autoscaleSettings: {
+				maxThroughput: 10
+			}
+		}
+	}
+}
+
+resource aliasesCollection 'Microsoft.DocumentDb/databaseAccounts/mongodbDatabases/collections@2022-05-15' = {
+	parent: database
+	name: 'aliases'
+	properties: {
+		resource: {
+			id: 'aliases'
+			shardKey: {
+				user_id: 'Hash'
+			}
+			indexes: [
+				{
+					key: {
+						keys: [
+							'_id'
+						]
+					}
+				}
+				{
+					key: {
+						keys: [
+							'$**'
+						]
+					}
+				}
+				{
+					key: {
+						keys: [
+							'user'
+						]
+					}
+				}
+				{
+					key: {
+						keys: [
+							'user'
+							'type'
+							'classRemote'
+						]
+					}
+				}
+			]
+		}
+	}
+}
+
+resource usersCollection 'Microsoft.DocumentDb/databaseAccounts/mongodbDatabases/collections@2022-05-15' = {
+	parent: database
+	name: 'users'
+	properties: {
+		resource: {
+			id: 'users'
+			shardKey: {
+				user_id: 'Hash'
+			}
+			indexes: [
+				{
+					key: {
+						keys: [
+							'_id'
+						]
+					}
+				}
+				{
+					key: {
+						keys: [
+							'$**'
+						]
+					}
+				}
+				{
+					key: {
+						keys: [
+							'user'
+						]
+					}
+				}
+				{
+					key: {
+						keys: [
+							'confirmed'
+						]
+					}
+				}
+			]
 		}
 	}
 }
