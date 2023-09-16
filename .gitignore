@@ -8,7 +8,6 @@ dist
 
 src/api
 src/html/messages/*.html
-src/libs/config.ts
 src/public/daily-bulletin
 src/public/user-backgrounds/*
 !src/public/user-backgrounds/default

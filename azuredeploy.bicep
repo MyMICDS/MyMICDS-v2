@@ -4,6 +4,57 @@ param location string = resourceGroup().location
 param resourceNamePrefix string
 var envResourceNamePrefix = toLower(resourceNamePrefix)
 
+/**
+ * Create database
+ */
+
+var dbName = '${envResourceNamePrefix}mongodb'
+
+resource name_resource 'Microsoft.DocumentDb/databaseAccounts@2023-03-15-preview' = {
+	kind: 'MongoDB'
+	name: dbName
+	location: location
+	properties: {
+		databaseAccountOfferType: 'Standard'
+		locations: [
+			{
+				failoverPriority: 0
+				locationName: location
+			}
+		]
+		backupPolicy: {
+			type: 'Continuous'
+			continuousModeProperties: {
+				tier: 'Continuous7Days'
+			}
+		}
+		isVirtualNetworkFilterEnabled: false
+		virtualNetworkRules: []
+		ipRules: []
+		minimalTlsVersion: 'Tls12'
+		enableMultipleWriteLocations: false
+		capabilities: [
+			{
+				name: 'EnableMongo'
+			}
+			{
+				name: 'DisableRateLimitingResponses'
+			}
+		]
+		apiProperties: {
+			serverVersion: '3.6'
+		}
+		enableFreeTier: true
+		capacity: {
+			totalThroughputLimit: 1000
+		}
+	}
+}
+
+/**
+ * Create backend
+ */
+
 /* ###################################################################### */
 // Create storage account for function app prereq
 /* ###################################################################### */
@@ -18,7 +69,7 @@ resource azStorageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' = {
 var azStorageConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${azStorageAccount.name};EndpointSuffix=${az.environment().suffixes.storage};AccountKey=${azStorageAccount.listKeys().keys[0].value}'
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
-	name: '${envResourceNamePrefix}-la'
+	name: '${envResourceNamePrefix}-loganalytics'
 	location: location
 	properties: any({
 		retentionInDays: 30
@@ -61,7 +112,6 @@ resource azfunctionapp 'Microsoft.Web/sites@2022-09-01' = {
 	location: location
 	kind: 'functionapp'
 	properties: {
-		name: '${envResourceNamePrefix}-funcapp'
 		managedEnvironmentId: environment.id
 		siteConfig: {
 			linuxFxVersion: 'Docker|mcr.microsoft.com/azure-functions/dotnet7-quickstart-demo:1.0'
