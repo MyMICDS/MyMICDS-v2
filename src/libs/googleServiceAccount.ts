@@ -1,7 +1,6 @@
 'use strict';
 
 import config from './config';
-const key = config.googleServiceAccount;
 
 import { google } from 'googleapis';
 import { InternalError } from './errors';
@@ -16,21 +15,20 @@ const impersonate = 'support@mymicds.net';
  * @returns An authenticated account client.
  */
 async function createServiceAccount() {
-	const jwtClient = new google.auth.JWT(
-		key.client_email,
-		undefined,
-		key.private_key,
-		scopes,
-		impersonate
-	);
-
 	try {
+		const key = await config.googleServiceAccount;
+		const jwtClient = new google.auth.JWT(
+			key.client_email,
+			undefined,
+			key.private_key,
+			scopes,
+			impersonate
+		);
 		await jwtClient.authorize();
+		return jwtClient;
 	} catch (e) {
 		throw new InternalError('There was a problem authorizing the Google Service Account!', e);
 	}
-
-	return jwtClient;
 }
 
 export { createServiceAccount as create };

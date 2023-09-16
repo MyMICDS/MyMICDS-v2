@@ -1,5 +1,6 @@
 import { execSync } from 'child_process';
 import { initAPI } from './init';
+import { InternalError } from './libs/errors';
 import * as Sentry from '@sentry/node';
 import config from './libs/config';
 
@@ -12,7 +13,11 @@ Sentry.init({
 	release: config.production ? execSync('git rev-parse HEAD').toString().trim() : 'DEV'
 });
 
-initAPI(config.mongodb.uri)
+config.mongodb.uri
+	.then(uri => {
+		if (typeof uri !== 'string') throw new InternalError('Invalid database URI!');
+		return initAPI(uri);
+	})
 	.then(([app, , server]) => {
 		app.get('/', (req, res) => {
 			res.sendFile(__dirname + '/html/admin.html');

@@ -14,9 +14,16 @@ import moment from 'moment';
 // URL Calendars come from
 const urlPrefix = 'https://api.veracross.com/micds/subscribe/';
 
-const dayRotationURL = process.env.CI
-	? `http://localhost:${calServer.port}/dayRotation.ics`
-	: urlPrefix + config.portal.dayRotation;
+async function getDayRotationURL() {
+	if (process.env.CI) {
+		return `http://localhost:${calServer.port}/dayRotation.ics`;
+	}
+
+	const dayRotation = await config.portal.dayRotation;
+	if (typeof dayRotation !== 'string') throw new InternalError('Invalid day rotation URL!');
+
+	return urlPrefix + dayRotation;
+}
 
 // RegEx to test if calendar summary contains a valid Day Rotation
 const validDayRotationPlain = /^US [A-H] Day/;
@@ -37,7 +44,7 @@ async function withCalSummary<T>(date: Date, summaryTest: (summary: string) => T
 
 	let res;
 	try {
-		res = await axios.get(dayRotationURL);
+		res = await axios.get(await getDayRotationURL());
 	} catch (e) {
 		throw new InternalError('There was a problem fetching the day rotation!', e);
 	}
@@ -411,7 +418,7 @@ export async function getDayRotations() {
 
 	let body;
 	try {
-		body = await axios.get(dayRotationURL);
+		body = await axios.get(await getDayRotationURL());
 	} catch (e) {
 		throw new InternalError('There was a problem fetching the day rotation!', e);
 	}

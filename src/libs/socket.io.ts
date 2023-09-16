@@ -1,3 +1,4 @@
+import { InternalError } from './errors';
 import { Server } from 'socket.io';
 import { UserPayload } from './jwt';
 import * as jwt from 'jsonwebtoken';
@@ -19,11 +20,13 @@ export default (io: Server) => {
 		 * like if the user changed their background.
 		 */
 
-		socket.on('authenticate', token => {
+		socket.on('authenticate', async token => {
 			let decoded;
 
 			try {
-				decoded = jwt.verify(token, config.jwt.secret, {
+				const jwtSecret = await config.jwt.secret;
+				if (typeof jwtSecret !== 'string') throw new InternalError('Invalid JWT secret!');
+				decoded = jwt.verify(token, jwtSecret, {
 					algorithms: ['HS256'],
 					audience: config.hostedOn,
 					issuer: config.hostedOn,

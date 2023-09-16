@@ -1,5 +1,6 @@
 // USE WITH CAUTION
 
+import { InternalError } from '../libs/errors';
 import { MongoClient } from 'mongodb';
 import { Scope } from '@mymicds/sdk';
 import { UserDoc } from '../libs/users';
@@ -41,11 +42,17 @@ if (!DEBUG && !I_REALLY_WANT_TO_DO_THIS) {
 // See who we've already sent email to
 getBlacklist()
 	.then(async blacklist => {
+		const emailUri = await config.email.URI;
+		if (typeof emailUri !== 'string') throw new InternalError('Invalid email URI!');
+
+		const mongodbUri = await config.mongodb.uri;
+		if (typeof mongodbUri !== 'string') throw new InternalError('Invalid database URI!');
+
 		// Log into email
-		const transporter = nodemailer.createTransport(config.email.URI + '/?pool=true');
+		const transporter = nodemailer.createTransport(emailUri + '/?pool=true');
 
 		// Connect to database
-		const client: MongoClient = await MongoClient.connect(config.mongodb.uri);
+		const client: MongoClient = await MongoClient.connect(mongodbUri);
 		const db = client.db();
 		const userdata = db.collection<UserDoc>('users');
 

@@ -1,3 +1,4 @@
+import { InternalError } from '../libs/errors';
 import { MongoClient } from 'mongodb';
 import { promisify } from 'util';
 import { UserDoc } from '../libs/users';
@@ -5,7 +6,11 @@ import * as crypto from 'crypto';
 import config from '../libs/config';
 
 // Connect to database
-MongoClient.connect(config.mongodb.uri)
+config.mongodb.uri
+	.then(uri => {
+		if (typeof uri !== 'string') throw new InternalError('Invalid database URI!');
+		return MongoClient.connect(uri);
+	})
 	.then(async (client: MongoClient) => {
 		const db = client.db();
 		const userdata = db.collection<UserDoc>('users');

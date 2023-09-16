@@ -10,10 +10,13 @@ export const JSON_PATH = __dirname + '/../api/weather.json';
 const latitude = 38.658241;
 const longitude = -90.3974471;
 
-const openWeatherKey: string = config.openWeather.APIKey;
-
-// endpoint for current weather and couple day's forecast for MICDS, in imperial units, without the by-minute data
-const openWeatherEndpoint = `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&appid=${openWeatherKey}&units=imperial&exclude=minutely`;
+async function getOpenWeatherEndpoint() {
+	const openWeatherKey = await config.openWeather.APIKey;
+	if (typeof openWeatherKey !== 'string')
+		throw new InternalError('Invalid Open Weather API key!');
+	// endpoint for current weather and couple day's forecast for MICDS, in imperial units, without the by-minute data
+	return `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&appid=${openWeatherKey}&units=imperial&exclude=minutely`;
+}
 
 /**
  * Retrieves the weather. Checks the local file cache first, else updates the weather.
@@ -40,7 +43,7 @@ async function updateWeather() {
 
 	// grab dat DATA
 	try {
-		const response = await axios.get(openWeatherEndpoint);
+		const response = await axios.get(await getOpenWeatherEndpoint());
 		rawWeather = response.data;
 	} catch (e) {
 		throw new InternalError('There was a problem fetching the weather data!', e);

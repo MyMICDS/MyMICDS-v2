@@ -59,7 +59,11 @@ function respondSuccess(res: Response, data: unknown = {}, action: Action | null
  * @param error Error that the API should respond with.
  * @param action An action for the front-end client to perform.
  */
-function respondError(res: Response, error: Error | string | null, action: Action | null = null) {
+function respondError(
+	res: Response,
+	error: Error | string | null | undefined,
+	action: Action | null = null
+) {
 	// Check for different types of errors
 	let err = null;
 
@@ -85,7 +89,11 @@ function respondError(res: Response, error: Error | string | null, action: Actio
 	} else {
 		if (error instanceof InternalError) {
 			err = error.message;
-			error = error.source;
+			if (typeof error.source === 'object') {
+				error = error.source as InternalError;
+			} else {
+				error = String(error.source);
+			}
 		}
 		res.status(500);
 		if (!process.env.CI) {

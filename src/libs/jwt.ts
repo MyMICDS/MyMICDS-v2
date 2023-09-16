@@ -43,23 +43,19 @@ export function authorize(db: Db): RequestHandler {
 			return;
 		}
 
-		// Verification
-
 		let payload: string | StringDict;
 
-		try {
-			payload = jwt.verify(header.substring(7), config.jwt.secret);
-		} catch (err) {
-			if (err instanceof jwt.TokenExpiredError) {
-				api.error(res, err, Action.LOGIN_EXPIRED);
-				return;
-			}
-			api.error(res, err, Action.UNAUTHORIZED);
-			return;
-		}
-
 		// Express doesn't like async/await so we need promise chains
-		isRevoked(db, req, payload)
+		config.jwt.secret
+			.then(jwtSecret => {
+				if (typeof jwtSecret !== 'string') {
+					api.error(res, new InternalError('Invalid JWT secret!'), Action.UNAUTHORIZED);
+					return;
+				}
+				// Verification
+				payload = jwt.verify(header.substring(7), jwtSecret);
+				return isRevoked(db, req, payload);
+			})
 			.then(revoked => {
 				if (revoked) {
 					api.error(res, 'Invalid token.', Action.UNAUTHORIZED);
@@ -71,7 +67,12 @@ export function authorize(db: Db): RequestHandler {
 				}
 			})
 			.catch(err => {
+				if (err instanceof jwt.TokenExpiredError) {
+					api.error(res, err, Action.LOGIN_EXPIRED);
+					return;
+				}
 				api.error(res, err, Action.UNAUTHORIZED);
+				return;
 			});
 	};
 }
@@ -182,6 +183,11 @@ export function requireScope(
  * @returns A valid JWT.
  */
 export async function generate(db: Db, user: string, rememberMe: boolean, comment?: string) {
+	const jwtSecret = await config.jwt.secret;
+	if (typeof jwtSecret !== 'string') {
+		throw new InternalError('Invalid JWT secret!');
+	}
+
 	const expiration = rememberMe ? '30 days' : '12 hours';
 
 	const { isUser, userDoc } = await users.get(db, user);
@@ -211,7 +217,7 @@ export async function generate(db: Db, user: string, rememberMe: boolean, commen
 				user,
 				scopes
 			},
-			config.jwt.secret,
+			jwtSecret,
 			{
 				subject: 'MyMICDS API',
 				algorithm: 'HS256',

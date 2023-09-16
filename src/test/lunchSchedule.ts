@@ -7,7 +7,11 @@ const times = 7;
 const user = 'alhuber';
 const date = moment().add(5, 'days');
 
-MongoClient.connect(config.mongodb.uri)
+config.mongodb.uri
+	.then(uri => {
+		if (typeof uri !== 'string') throw new Error('Invalid database URI!');
+		return MongoClient.connect(uri);
+	})
 	.then(async (client: MongoClient) => {
 		const db = client.db();
 		for (let i = 0; i < times; i++) {

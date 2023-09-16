@@ -1,4 +1,5 @@
 import { gradeToGradYear, UserDoc } from './libs/users';
+import { InternalError } from './libs/errors';
 import { MongoClient } from 'mongodb';
 import * as admins from './libs/admins';
 import * as dailyBulletin from './libs/dailyBulletin';
@@ -15,7 +16,11 @@ function log(message: string) {
 if (config.production) {
 	console.log('Starting tasks server!');
 
-	MongoClient.connect(config.mongodb.uri)
+	config.mongodb.uri
+		.then(uri => {
+			if (typeof uri !== 'string') throw new InternalError('Invalid database URI!');
+			return MongoClient.connect(uri);
+		})
 		.then(client => {
 			const db = client.db();
 			const fiveMinuteInterval = later.parse.text('every 5 min');

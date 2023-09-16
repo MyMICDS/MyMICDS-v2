@@ -17,7 +17,7 @@ export async function send(
 	transporter?: nodemailer.Transporter
 ) {
 	if (typeof transporter !== 'object') {
-		transporter = nodemailer.createTransport(config.email.URI);
+		transporter = nodemailer.createTransport(await config.email.URI);
 	}
 
 	const mailOptions = {

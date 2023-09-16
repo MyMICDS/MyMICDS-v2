@@ -116,7 +116,9 @@ describe('Auth', () => {
 			expect(res.body.data).to.have.property('success').that.is.true;
 			expect(res.body.data).to.have.property('jwt').that.is.a('string');
 
-			const jwtPayload = jwtLib.verify(res.body.data.jwt, config.jwt.secret);
+			const jwtSecret = await config.jwt.secret;
+			if (typeof jwtSecret !== 'string') throw new Error('Invalid JWT secret!');
+			const jwtPayload = jwtLib.verify(res.body.data.jwt, jwtSecret);
 
 			expect(jwtPayload).to.have.property('user').that.equals(testUser.user);
 			expect(jwtPayload).to.have.property('scopes').that.deep.equals({ pleb: true });

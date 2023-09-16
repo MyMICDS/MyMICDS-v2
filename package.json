@@ -52,6 +52,8 @@
   },
   "homepage": "https://mymicds.net",
   "dependencies": {
+    "@azure/identity": "^3.1.4",
+    "@azure/keyvault-secrets": "^4.7.0",
     "@mymicds/sdk": "^1.13.1",
     "@sentry/node": "^6.2.1",
     "@types/bcrypt": "^3.0.0",
