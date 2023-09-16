@@ -62,7 +62,7 @@ resource database 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@2022-0
 		}
 		options: {
 			autoscaleSettings: {
-				maxThroughput: 100
+				maxThroughput: 1000
 			}
 		}
 	}
