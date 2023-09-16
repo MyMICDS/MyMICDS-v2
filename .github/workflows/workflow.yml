@@ -89,8 +89,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      ResourceGroupName: mymicds-v2-westerino
-      ResourceGroupLocation: 'westus2'
+      ResourceGroupName: mymicds-v2-prod
+      ResourceGroupLocation: 'centralus'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -100,12 +100,12 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       # Ensure the resource group exists
-      - uses: Azure/CLI@v1
-        with:
-          inlineScript: |
-            #!/bin/bash
-            az group create --name ${{ env.ResourceGroupName }} --location ${{ env.ResourceGroupLocation }}
-            echo "Azure resource group created"
+      #   - uses: Azure/CLI@v1
+      #     with:
+      #       inlineScript: |
+      #         #!/bin/bash
+      #         az group create --name ${{ env.ResourceGroupName }} --location ${{ env.ResourceGroupLocation }}
+      #         echo "Azure resource group created"
 
       - uses: azure/arm-deploy@v1
         with:

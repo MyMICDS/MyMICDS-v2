@@ -1,4 +1,5 @@
-param location string = resourceGroup().location
+// param location string = resourceGroup().location
+param location string = 'westus2'
 
 @description('Resource name prefix')
 param resourceNamePrefix string
