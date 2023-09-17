@@ -5,6 +5,21 @@ param location string = 'westus3'
 param resourceNamePrefix string
 var envResourceNamePrefix = toLower(resourceNamePrefix)
 
+@secure()
+param emailUri string
+
+@secure()
+param jwtSecret string
+
+@secure()
+param openWeatherApiKey string
+
+@secure()
+param portalDayRotation string
+
+@secure()
+param googleServiceAccount string
+
 /**
  * Create database
  */
@@ -157,6 +172,72 @@ resource usersCollection 'Microsoft.DocumentDb/databaseAccounts/mongodbDatabases
 }
 
 /**
+ * Create Key Vault. This is where we store our secrets.
+ */
+
+resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
+	name: '${envResourceNamePrefix}keyvault'
+	location: location
+	properties: {
+		enabledForTemplateDeployment: true
+		tenantId: tenant().tenantId
+		accessPolicies: []
+		sku: {
+			name: 'standard'
+			family: 'A'
+		}
+	}
+}
+
+resource keyVaultSecretEmailUri 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+	parent: keyVault
+	name: 'EMAIL_URI'
+	properties: {
+		value: emailUri
+	}
+}
+
+resource keyVaultSecretMongodbUri 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+	parent: keyVault
+	name: 'MONGODB_URI'
+	properties: {
+		value: dbAccount.listConnectionStrings().connectionStrings[0].connectionString
+	}
+}
+
+resource keyVaultSecretJwtSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+	parent: keyVault
+	name: 'JWT_SECRET'
+	properties: {
+		value: jwtSecret
+	}
+}
+
+resource keyVaultSecretOpenWeatherApiKey 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+	parent: keyVault
+	name: 'OPEN_WEATHER_API_KEY'
+	properties: {
+		value: openWeatherApiKey
+	}
+}
+
+resource keyVaultSecretPortalDayRotation 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+	parent: keyVault
+	name: 'PORTAL_DAY_ROTATION'
+	properties: {
+		value: portalDayRotation
+	}
+}
+
+resource keyVaultSecretGoogleServiceAccount 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+	parent: keyVault
+	name: 'GOOGLE_SERVICE_ACCOUNT'
+	properties: {
+		value: googleServiceAccount
+	}
+}
+
+/**
  * Create backend
  */
 
@@ -228,6 +309,14 @@ resource azfunctionapp 'Microsoft.Web/sites@2022-09-01' = {
 				{
 					name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
 					value: appInsights.properties.ConnectionString
+				}
+				{
+					name: 'HOSTED_ON'
+					value: 'https://api.mymicds.net/v3'
+				}
+				{
+					name: 'IS_PRODUCTION'
+					value: 'true'
 				}
 			]
 

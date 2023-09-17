@@ -112,6 +112,7 @@ jobs:
           scope: resourcegroup
           resourceGroupName: ${{ env.ResourceGroupName }}
           template: ./azuredeploy.bicep
-          parameters: resourceNamePrefix=mymicdstwest3
+          parameters: resourceNamePrefix=mymicdstwest3 emailUri=${{ secrets.TEST }} jwtSecret=${{ secrets.TEST }} openWeatherApiKey=${{ secrets.TEST }} portalDayRotation=${{ secrets.TEST }} googleServiceAccount=${{ secrets.TEST }}
+          #   parameters: resourceNamePrefix=mymicdstwest3 emailUri=${{ secrets.EMAIL_URI }} jwtSecret=${{ secrets.JWT_SECRET }} openWeatherApiKey=${{ secrets.OPEN_WEATHER_API_KEY }} portalDayRotation=${{ secrets.PORTAL_DAY_ROTATION }} googleServiceAccount=${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
           # Because warnings will make this part fail otherwise
           failOnStdErr: false

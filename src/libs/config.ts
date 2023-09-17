@@ -57,10 +57,6 @@ export default {
 		fromName: resolveConfig('EMAIL_NAME', 'MyMICDS Support')
 	},
 
-	forecast: {
-		APIKey: resolveConfigWithKeyvault('FORECAST_API_KEY', '')
-	},
-
 	jwt: {
 		secret: resolveConfigWithKeyvault('JWT_SECRET', 'flexvimsans')
 	},
