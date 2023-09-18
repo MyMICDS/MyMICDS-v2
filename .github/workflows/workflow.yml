@@ -86,6 +86,10 @@ jobs:
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
 
+      # Output Docker image URL
+      - name: Output Docker image URL
+        run: echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tags }}"
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
