@@ -89,9 +89,10 @@ jobs:
       # Output Docker image URL
       - name: Output Docker image URL
         run: |
-          echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.build-and-push.outputs.digest }}"
+          DIGEST="${${{ steps.build-and-push.outputs.digest }}//:/-}"
+          echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$DIGEST"
           echo "${{ steps.build-and-push.outputs.imageid }}"
-          echo "${{ steps.build-and-push.outputs.metadata }}"
+          echo "${{ steps.build-and-push.outputs.metadata.image }}"
 
   deploy:
     needs: build
