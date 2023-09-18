@@ -191,7 +191,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
 
 resource keyVaultSecretEmailUri 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
 	parent: keyVault
-	name: 'EMAIL_URI'
+	name: 'emailUri'
 	properties: {
 		value: emailUri
 	}
@@ -199,7 +199,7 @@ resource keyVaultSecretEmailUri 'Microsoft.KeyVault/vaults/secrets@2019-09-01' =
 
 resource keyVaultSecretMongodbUri 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
 	parent: keyVault
-	name: 'MONGODB_URI'
+	name: 'mongodbUri'
 	properties: {
 		value: dbAccount.listConnectionStrings().connectionStrings[0].connectionString
 	}
@@ -207,7 +207,7 @@ resource keyVaultSecretMongodbUri 'Microsoft.KeyVault/vaults/secrets@2019-09-01'
 
 resource keyVaultSecretJwtSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
 	parent: keyVault
-	name: 'JWT_SECRET'
+	name: 'jwtSecret'
 	properties: {
 		value: jwtSecret
 	}
@@ -215,7 +215,7 @@ resource keyVaultSecretJwtSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' 
 
 resource keyVaultSecretOpenWeatherApiKey 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
 	parent: keyVault
-	name: 'OPEN_WEATHER_API_KEY'
+	name: 'openWeatherApiKey'
 	properties: {
 		value: openWeatherApiKey
 	}
@@ -223,7 +223,7 @@ resource keyVaultSecretOpenWeatherApiKey 'Microsoft.KeyVault/vaults/secrets@2019
 
 resource keyVaultSecretPortalDayRotation 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
 	parent: keyVault
-	name: 'PORTAL_DAY_ROTATION'
+	name: 'portalDayRotation'
 	properties: {
 		value: portalDayRotation
 	}
@@ -231,7 +231,7 @@ resource keyVaultSecretPortalDayRotation 'Microsoft.KeyVault/vaults/secrets@2019
 
 resource keyVaultSecretGoogleServiceAccount 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
 	parent: keyVault
-	name: 'GOOGLE_SERVICE_ACCOUNT'
+	name: 'googleServiceAccount'
 	properties: {
 		value: googleServiceAccount
 	}

@@ -24,20 +24,21 @@ function resolveConfig<T>(name: string, defaultValue: T) {
  * Get the proper value for a config variable.
  * Will first try Azure Keyvault, then environment variables, then the default value.
  *
- * @param name Name of environment variable/keyvault secret
+ * @param envName Name of environment to check (if key vault isn't available)
+ * @param vaultName Name of secret in Azure Key Vault (production only)
  * @param defaultValue Local default value if nothing's available
  *
  * @returns Resolved config value
  */
-async function resolveConfigWithKeyvault<T>(name: string, defaultValue: T) {
+async function resolveConfigWithKeyvault<T>(envName: string, vaultName: string, defaultValue: T) {
 	// First, check if we should use Azure Keyvault
 	if (client) {
-		return (await client.getSecret(name)).value;
+		return (await client.getSecret(vaultName)).value;
 	}
 
 	// Next, check if the environment variable is set
-	if (process.env[name]) {
-		return process.env[name];
+	if (process.env[envName]) {
+		return process.env[envName];
 	}
 
 	// Finally, return the default value
@@ -52,31 +53,36 @@ export default {
 	forceError: [] as string[], // List of routes to force error responses on. Used for testing.
 
 	email: {
-		URI: resolveConfigWithKeyvault('EMAIL_URI', ''),
+		URI: resolveConfigWithKeyvault('EMAIL_URI', 'emailUri', ''),
 		fromEmail: resolveConfig('EMAIL_FROM', 'support@mymicds.net'),
 		fromName: resolveConfig('EMAIL_NAME', 'MyMICDS Support')
 	},
 
 	jwt: {
-		secret: resolveConfigWithKeyvault('JWT_SECRET', 'flexvimsans')
+		secret: resolveConfigWithKeyvault('JWT_SECRET', 'jwtSecret', 'flexvimsans')
 	},
 
 	mongodb: {
 		uri: resolveConfigWithKeyvault(
 			'MONGODB_URI',
+			'mongodbUri',
 			'mongodb://mymicds-stager:passtheword@mongo:27017/mymicds-staging'
 		)
 	},
 
 	openWeather: {
-		APIKey: resolveConfigWithKeyvault('OPEN_WEATHER_API_KEY', '')
+		APIKey: resolveConfigWithKeyvault('OPEN_WEATHER_API_KEY', 'openWeatherApiKey', '')
 	},
 
 	portal: {
-		dayRotation: resolveConfigWithKeyvault('PORTAL_DAY_ROTATION', '') // School Calendars > All School Events on Veracross
+		dayRotation: resolveConfigWithKeyvault('PORTAL_DAY_ROTATION', 'portalDayRotation', '') // School Calendars > All School Events on Veracross
 	},
 
-	googleServiceAccount: resolveConfigWithKeyvault('GOOGLE_SERVICE_ACCOUNT', '{}').then(v =>
+	googleServiceAccount: resolveConfigWithKeyvault(
+		'GOOGLE_SERVICE_ACCOUNT',
+		'googleServiceAccount',
+		'{}'
+	).then(v =>
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		JSON.parse(v as string)
 	)
