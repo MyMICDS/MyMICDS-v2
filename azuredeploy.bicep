@@ -314,6 +314,10 @@ resource azfunctionapp 'Microsoft.Web/sites@2022-09-01' = {
 					value: appInsights.properties.ConnectionString
 				}
 				{
+					name: 'PORT'
+					value: '80'
+				}
+				{
 					name: 'HOSTED_ON'
 					value: 'https://api.mymicds.net/v3'
 				}
