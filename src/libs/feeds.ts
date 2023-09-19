@@ -39,8 +39,11 @@ export async function updateCanvasCache(db: Db, user: string) {
 		// Mongo operators don't work for insertMany so set creation time manually
 		ev.createdAt = creationDate;
 
-		if (typeof ev.description === 'string') {
-			ev.description = ev.description.replace(/\./g, '&period;');
+		// Iterate through all keys and remove any that contain periods
+		for (const key of Object.keys(ev)) {
+			if (key.includes('.')) {
+				delete ev[key];
+			}
 		}
 	}
 
