@@ -38,6 +38,10 @@ export async function updateCanvasCache(db: Db, user: string) {
 		ev.user = userDoc!._id;
 		// Mongo operators don't work for insertMany so set creation time manually
 		ev.createdAt = creationDate;
+
+		if (typeof ev.description === 'string') {
+			ev.description = ev.description.replace(/\./g, '&period;');
+		}
 	}
 
 	try {
