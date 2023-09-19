@@ -58,12 +58,12 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=sha,format=long
-            type=sha
             type=schedule
             type=ref,event=branch
             type=ref,event=tag
             type=ref,event=pr
+            type=sha,format=long,order=2000
+            type=sha,order=1500
             type=raw,value=latest,enable={{is_default_branch}}
 
       # Build and push Docker image with Buildx (don't push on PR)
@@ -99,7 +99,9 @@ jobs:
         run: |
           echo "${{ steps.build-and-push.outputs.metadata }}"
           echo "${{ fromJSON(steps.build-and-push.outputs.metadata)['image.name'] }}"
-          echo "${{ fromJSON(steps.build-and-push.outputs.metadata)['image.name'][0] }}"
+          echo "${{ steps.meta.outputs.tags }}"
+          echo "${{ steps.meta.outputs.tags[0] }}"
+          echo "${{ fromJSON(env.DOCKER_METADATA_OUTPUT_JSON)['image.name'][0] }}"
 
   deploy:
     needs: build
