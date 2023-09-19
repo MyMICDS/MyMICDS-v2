@@ -17,6 +17,8 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      backend-docker: ${{ steps.output-image.outputs.image }}
     permissions:
       contents: read
       packages: write
@@ -96,12 +98,11 @@ jobs:
 
       # Output Docker image URL
       - name: Output Docker image URL
+        id: output-image
         run: |
-          echo "${{ steps.build-and-push.outputs.metadata }}"
-          echo "${{ fromJSON(steps.build-and-push.outputs.metadata)['image.name'] }}"
-          echo "${{ steps.meta.outputs.tags }}"
-          echo "Just get first tag"
-          echo "${{ steps.meta.outputs.tags }}" | head -n 1
+          # Get the first image tag (which should correspond with the exact full Git commit hash)
+          USE_IMAGE=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1 )
+          echo "image=$USE_IMAGE" >> "$GITHUB_OUTPUT"
 
   deploy:
     needs: build
@@ -130,6 +131,6 @@ jobs:
           scope: resourcegroup
           resourceGroupName: ${{ env.ResourceGroupName }}
           template: ./azuredeploy.bicep
-          parameters: resourceNamePrefix=mymicdstwest3 emailUri=${{ secrets.EMAIL_URI }} jwtSecret=${{ secrets.JWT_SECRET }} openWeatherApiKey=${{ secrets.OPEN_WEATHER_API_KEY }} portalDayRotation=${{ secrets.PORTAL_DAY_ROTATION }} googleServiceAccount=${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+          parameters: resourceNamePrefix=mymicdstwest3 backendImage=${{ needs.build.outputs.backend-docker }} emailUri=${{ secrets.EMAIL_URI }} jwtSecret=${{ secrets.JWT_SECRET }} openWeatherApiKey=${{ secrets.OPEN_WEATHER_API_KEY }} portalDayRotation=${{ secrets.PORTAL_DAY_ROTATION }} googleServiceAccount=${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
           # Because warnings will make this part fail otherwise
           failOnStdErr: false

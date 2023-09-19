@@ -5,6 +5,9 @@ param location string = 'westus3'
 param resourceNamePrefix string
 var envResourceNamePrefix = toLower(resourceNamePrefix)
 
+@description('Docker image for API backend')
+param backendImage string = 'ghcr.io/mymicds/mymicds-v2:latest'
+
 @secure()
 param emailUri string
 
@@ -300,7 +303,7 @@ resource azfunctionapp 'Microsoft.Web/sites@2022-09-01' = {
 	properties: {
 		managedEnvironmentId: environment.id
 		siteConfig: {
-			linuxFxVersion: 'Docker|mcr.microsoft.com/azure-functions/dotnet7-quickstart-demo:1.0'
+			linuxFxVersion: 'Docker|${backendImage}'
 			appSettings: [
 				{
 					name: 'AzureWebJobsStorage'
