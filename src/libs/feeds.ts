@@ -1,5 +1,6 @@
 import { Db } from 'mongodb';
 import { InternalError } from './errors';
+import { recursivelyRemovePeriodKeys } from './utils';
 import * as _ from 'lodash';
 import * as canvas from './canvas';
 import * as portal from './portal';
@@ -40,11 +41,8 @@ export async function updateCanvasCache(db: Db, user: string) {
 		ev.createdAt = creationDate;
 
 		// Iterate through all keys and remove any that contain periods
-		for (const key of Object.keys(ev)) {
-			if (key.includes('.')) {
-				delete ev[key];
-			}
-		}
+		// This is really a temporary fix and we should really address the wrong the ical parsing.
+		recursivelyRemovePeriodKeys(ev);
 	}
 
 	try {
@@ -101,13 +99,6 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 
 	for (const ev of newEvents) {
 		ev.user = userDoc!._id;
-
-		// Iterate through all keys and remove any that contain periods
-		for (const key of Object.keys(ev)) {
-			if (key.includes('.')) {
-				delete ev[key];
-			}
-		}
 	}
 
 	try {
@@ -172,13 +163,6 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 
 	for (const ev of newEvents) {
 		ev.user = userDoc!._id;
-
-		// Iterate through all keys and remove any that contain periods
-		for (const key of Object.keys(ev)) {
-			if (key.includes('.')) {
-				delete ev[key];
-			}
-		}
 	}
 
 	try {

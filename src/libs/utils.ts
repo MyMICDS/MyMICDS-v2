@@ -1,3 +1,5 @@
+import { CanvasCacheEvent } from './canvas';
+
 /**
  * Pads a number to two digits with a leading zero.
  * @param n An input number.
@@ -56,4 +58,43 @@ export function stringToColor(str: string) {
 		colour += ('00' + value.toString(16)).substr(-2);
 	}
 	return colour;
+}
+
+/**
+ * Because our ical library parsees the description field incorrectly, we need to fix it.
+ * It currently will split the last colon in the description into the key, but we want the first colon.
+ * It changes something like:
+ * "description:This is a description: with a colon http": "//example.com"
+ * into
+ * "description": "This is a description: with a colon http://example.com"
+ *
+ * NOTE: This actually isn't being used anymore (in favor for the below function recursivelyRemovePeriodKeys())
+ * but I will keep in case we want to try doing things properly.
+ * Without using this function, the problematic description will just be deleted.
+ */
+
+export function icalDescriptionFix(event: CanvasCacheEvent): CanvasCacheEvent {
+	for (const key of Object.keys(event)) {
+		if (key.includes('.') && key.startsWith('description:')) {
+			const combinedLine = `${key}:${event[key] as string}`;
+			const parts = combinedLine.split(':');
+
+			const trueKey = parts.shift();
+			const trueValue = parts.join(':');
+
+			delete event[key as keyof CanvasCacheEvent];
+			event[trueKey as keyof CanvasCacheEvent] = trueValue;
+		}
+	}
+	return event;
+}
+
+export function recursivelyRemovePeriodKeys(obj: Record<string, any>) {
+	for (const key of Object.keys(obj)) {
+		if (key.includes('.')) {
+			delete obj[key];
+		} else if (typeof obj[key] === 'object') {
+			recursivelyRemovePeriodKeys(obj[key]);
+		}
+	}
 }
