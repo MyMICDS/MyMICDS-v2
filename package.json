@@ -24,6 +24,8 @@
   "scripts": {
     "build": "mjml -r src/email/* -o src/html/messages -c.validationLevel skip",
     "start": "ts-node -C ttypescript --files src/index.ts",
+    "start:watch": "nodemon",
+    "prod": "npm run build && pm2 start ts-node -i max --name=\"mymicds\" -- -C ttypescript --files src/index.ts",
     "tasks": "pm2 start ts-node --name=\"mymicds-tasks\" -- -C ttypescript --files src/tasks.ts",
     "test:mocha": "npm run build && TS_NODE_PROJECT=test/tsconfig.json TS_NODE_FILES=true TS_NODE_COMPILER=ttypescript CI=true mocha",
     "test:compile": "tsc --noEmit",
@@ -95,6 +97,7 @@
     "mongodb": "^3.6.0",
     "multer": "^1.2.0",
     "nodemailer": "^6.7.2",
+    "nodemon": "^3.0.1",
     "object-assign-deep": "^0.4.0",
     "p-all": "^2.1.0",
     "pm2": "^4.5.6",

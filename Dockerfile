@@ -11,4 +11,5 @@ RUN npm ci
 
 RUN npm run build
 
-ENTRYPOINT [ "npm", "start" ]
+# ENTRYPOINT [ "npm", "start" ]
+ENTRYPOINT [ "npm", "run", "start:watch" ]
