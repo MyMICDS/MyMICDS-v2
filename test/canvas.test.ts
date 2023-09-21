@@ -1,7 +1,9 @@
 import { AliasType } from '@mymicds/sdk';
 import { buildRequest, requireLoggedIn, validateParameters } from './helpers/shared';
+import { deepStrictEqual } from 'assert';
 import { expect, use } from 'chai';
 import { generateJWT, saveTestUser, testUser } from './helpers/user';
+import { icalDescriptionFix } from '../src/libs/utils';
 import { initAPI } from '../src/init';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { ObjectID } from 'mongodb';
@@ -222,6 +224,22 @@ describe('Canvas', () => {
 		});
 
 		requireLoggedIn();
+	});
+
+	describe('Canvas Fix Util', function () {
+		const before = {
+			'description:This is a. description: with a colon http': '//example.com'
+		};
+		const after = {
+			description: 'This is a. description: with a colon http://example.com'
+		};
+
+		const input = JSON.parse(JSON.stringify(before));
+		const ret = icalDescriptionFix(input);
+
+		// It both returns the new value and modifies in-place
+		deepStrictEqual(ret, after);
+		deepStrictEqual(input, after);
 	});
 
 	after(async function () {

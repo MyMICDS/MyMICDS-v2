@@ -3,6 +3,7 @@ import { InputError, InternalError } from './errors';
 import { NextFunction, Request, Response } from 'express';
 import { TypeGuardError } from 'typescript-is';
 import * as Sentry from '@sentry/node';
+import config from './config';
 
 declare global {
 	namespace Express {
@@ -77,20 +78,25 @@ function respondError(res: Response, error: Error | string | null, action: Actio
 		action = null;
 	}
 
+	if (!config.production) {
+		console.error(error);
+	}
+
 	// Use proper status codes
 	if ([Action.LOGIN_EXPIRED, Action.UNAUTHORIZED, Action.NOT_LOGGED_IN].includes(action!)) {
 		res.status(401);
 	} else if (error instanceof TypeGuardError || error instanceof InputError) {
 		res.status(400);
 	} else {
+		if (!process.env.CI) {
+			Sentry.captureException(error);
+		}
+
 		if (error instanceof InternalError) {
 			err = error.message;
 			error = error.source;
 		}
 		res.status(500);
-		if (!process.env.CI) {
-			Sentry.captureException(error);
-		}
 	}
 
 	res.json({
