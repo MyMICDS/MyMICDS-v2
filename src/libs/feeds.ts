@@ -38,6 +38,13 @@ export async function updateCanvasCache(db: Db, user: string) {
 		ev.user = userDoc!._id;
 		// Mongo operators don't work for insertMany so set creation time manually
 		ev.createdAt = creationDate;
+
+		// Iterate through all keys and remove any that contain periods
+		for (const key of Object.keys(ev)) {
+			if (key.includes('.')) {
+				delete ev[key];
+			}
+		}
 	}
 
 	try {
@@ -94,6 +101,13 @@ export async function addPortalQueueClasses(db: Db, user: string) {
 
 	for (const ev of newEvents) {
 		ev.user = userDoc!._id;
+
+		// Iterate through all keys and remove any that contain periods
+		for (const key of Object.keys(ev)) {
+			if (key.includes('.')) {
+				delete ev[key];
+			}
+		}
 	}
 
 	try {
@@ -158,6 +172,13 @@ export async function addPortalQueueCalendar(db: Db, user: string) {
 
 	for (const ev of newEvents) {
 		ev.user = userDoc!._id;
+
+		// Iterate through all keys and remove any that contain periods
+		for (const key of Object.keys(ev)) {
+			if (key.includes('.')) {
+				delete ev[key];
+			}
+		}
 	}
 
 	try {

@@ -121,6 +121,7 @@ export async function getUserCal(db: Db, user: string) {
  * @returns Parsed class and teacher data.
  */
 function parseCanvasTitle(title: string) {
+	title = title || '';
 	const classTeacherRegex = /\[[^[]+]$/g;
 	const teacherRegex = /:[A-Z]{5}$/g;
 	const firstLastBrackets = /(^\[)|(]$)/g;
@@ -160,7 +161,12 @@ function parseCanvasTitle(title: string) {
  * Turns a Canvas calendar link into an assignment link.
  * @param calLink Calendar link.
  */
-function calendarToEvent(calLink: string) {
+function calendarToEvent(calLink: string | WeirdCanvasUrl) {
+	// Normalize weird Canvas URL object into string with the value we care about
+	if (typeof calLink === 'object') {
+		calLink = calLink.val;
+	}
+
 	// Example calendar link:
 	// https://micds.instructure.com/calendar?include_contexts=course_XXXXXXX&month=XX&year=XXXX#assignment_XXXXXXX
 	// 'assignment' can also be 'calendar_event'
@@ -422,7 +428,13 @@ export type CanvasCacheEvent = ical.CalendarComponent & {
 	_id: string | ObjectID;
 	user: ObjectID;
 	createdAt: Date;
+	url?: string | WeirdCanvasUrl;
 };
+
+export interface WeirdCanvasUrl {
+	params: Record<string, string>; // Right now, only { "VALUE": "URI" }
+	val: string;
+}
 
 export interface UniqueEvent {
 	_id: string;
