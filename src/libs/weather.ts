@@ -12,8 +12,10 @@ const longitude = -90.3974471;
 
 const openWeatherKey: string = config.openWeather.APIKey;
 
-// endpoint for current weather and couple day's forecast for MICDS, in imperial units, without the by-minute data
-const openWeatherEndpoint = `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&appid=${openWeatherKey}&units=imperial&exclude=minutely`;
+// Free OpenWeather endpoints for MICDS, in imperial units (One Call 2.5 was retired)
+const openWeatherQuery = `lat=${latitude}&lon=${longitude}&appid=${openWeatherKey}&units=imperial`;
+const currentEndpoint = `https://api.openweathermap.org/data/2.5/weather?${openWeatherQuery}`;
+const forecastEndpoint = `https://api.openweathermap.org/data/2.5/forecast?${openWeatherQuery}`;
 
 /**
  * Retrieves the weather. Checks the local file cache first, else updates the weather.
@@ -31,42 +33,74 @@ async function getWeather() {
 }
 
 /**
- * Grabs the Weather from OpenWeather Onecall API, converts it to MyMICDS
- * Weather Object, and saves it in json.
+ * Grabs the current weather and 3-hour forecast from OpenWeather, converts it to
+ * a MyMICDS Weather Object, and saves it in json.
  * @returns A weather object.
  */
 async function updateWeather() {
-	let rawWeather: OpenWeather | null = null;
+	let current: OpenWeatherCurrent;
+	let forecast: OpenWeatherForecast;
 
 	// grab dat DATA
 	try {
-		const response = await axios.get(openWeatherEndpoint);
-		rawWeather = response.data;
+		const [currentRes, forecastRes] = await Promise.all([
+			axios.get<OpenWeatherCurrent>(currentEndpoint),
+			axios.get<OpenWeatherForecast>(forecastEndpoint)
+		]);
+		current = currentRes.data;
+		forecast = forecastRes.data;
 	} catch (e) {
-		throw new InternalError('There was a problem fetching the weather data!', e);
+		let reason = (e as Error).message;
+		if (axios.isAxiosError(e) && e.response) {
+			const data = e.response.data as { message?: string } | undefined;
+			reason = `${e.response.status}: ${data?.message ?? e.response.statusText}`;
+		}
+		throw new InternalError(
+			`There was a problem fetching the weather data! (${reason})`,
+			e as Error
+		);
 	}
 
-	if (rawWeather === null) {
+	if (!current?.main || !forecast?.list?.length) {
 		throw new Error('There was a problem fetching the weather data!');
+	}
+
+	// High/low from the forecast blocks that fall on today's date in MICDS's timezone
+	const localDate = (dt: number) =>
+		new Date((dt + forecast.city.timezone) * 1000).toISOString().slice(0, 10);
+	const today = localDate(current.dt);
+	const todayBlocks = forecast.list.filter(block => localDate(block.dt) === today);
+
+	let temperatureHigh = current.main.temp_max;
+	let temperatureLow = current.main.temp_min;
+	if (todayBlocks.length > 0) {
+		temperatureHigh = Math.max(
+			current.main.temp,
+			...todayBlocks.map(block => block.main.temp_max)
+		);
+		temperatureLow = Math.min(
+			current.main.temp,
+			...todayBlocks.map(block => block.main.temp_min)
+		);
 	}
 
 	// convert dat DATA
 	const weather: Weather = {
-		temperature: rawWeather.current.temp,
-		temperatureHigh: rawWeather.daily[0].temp.max ?? 0,
-		temperatureLow: rawWeather.daily[0].temp.min ?? 0,
-		humidity: rawWeather.current.humidity,
-		precipitationChance: rawWeather.hourly[0].pop,
-		windSpeed: rawWeather.hourly[0].wind_speed,
-		windDir: rawWeather.hourly[0].wind_deg,
-		weatherIcon: rawWeather.current.weather[0].icon
+		temperature: current.main.temp,
+		temperatureHigh,
+		temperatureLow,
+		humidity: current.main.humidity,
+		precipitationChance: forecast.list[0].pop,
+		windSpeed: current.wind.speed,
+		windDir: current.wind.deg,
+		weatherIcon: current.weather[0].icon
 	};
 
 	// save dat DATA
 	try {
 		await fs.outputJSON(JSON_PATH, weather, { spaces: '\t' });
 	} catch (e) {
-		throw new InternalError('There was a problem saving the weather data!', e);
+		throw new InternalError('There was a problem saving the weather data!', e as Error);
 	}
 
 	return weather;
@@ -76,93 +110,45 @@ export { getWeather as get, updateWeather as update };
 
 /*
  	Open Weather interfaces below.
- 	take note there is a "minutely" array, but our Open Weather request excludes it/
+ 	Only the fields we use are typed. `dt` values are Unix timestamps in seconds.
  */
-interface OpenWeather {
-	lat: number;
-	lon: number;
-	timezone: string;
-	timezone_offset: number;
-	current: OpenWeatherCurrentSnapshot;
-	hourly: OpenWeatherHourSnapshot[];
-	daily: OpenWeatherDaySnapshot[];
-}
-
-interface OpenWeatherCurrentSnapshot {
-	dt: moment.Moment;
-	sunrise: moment.Moment;
-	sunset: moment.Moment;
-	temp: number;
-	feels_like: number;
-	pressure: number;
-	humidity: number;
-	dew_point: number;
-	clouds: number;
-	uvi: number;
-	visibility: number;
-	wind_speed: number;
-	wind_gust: number | null;
-	wind_deg: number;
-	rain: number | PrecipitationVolume;
-	snow: number | PrecipitationVolume;
+interface OpenWeatherCurrent {
+	dt: number;
+	main: OpenWeatherMain;
+	wind: OpenWeatherWind;
 	weather: OpenWeatherSummary[];
 }
 
-interface OpenWeatherHourSnapshot {
-	dt: moment.Moment;
-	temp: number;
-	feels_like: number;
-	pressure: number;
-	humidity: number;
-	dew_point: number;
-	clouds: number;
-	visibility: number;
-	wind_speed: number;
-	wind_gust: number | null;
-	wind_deg: number;
-	rain: number | PrecipitationVolume;
-	snow: number | PrecipitationVolume;
+interface OpenWeatherForecast {
+	list: OpenWeatherForecastBlock[];
+	city: {
+		// Shift in seconds from UTC
+		timezone: number;
+	};
+}
+
+interface OpenWeatherForecastBlock {
+	dt: number;
+	main: OpenWeatherMain;
+	// Probability of precipitation, 0 to 1
 	pop: number;
-	weather: OpenWeatherSummary[];
 }
 
-interface OpenWeatherDaySnapshot {
-	dt: moment.Moment;
-	sunrise: moment.Moment;
-	sunset: moment.Moment;
-	temp: TemperatureDaySnapshot;
-	feels_like: TemperatureDaySnapshot;
-	pressure: number;
+interface OpenWeatherMain {
+	temp: number;
+	temp_min: number;
+	temp_max: number;
 	humidity: number;
-	dew_point: number;
-	clouds: number;
-	uvi: number;
-	visibility: number;
-	wind_speed: number;
-	wind_gust: number | null;
-	wind_deg: number;
-	pop: number;
-	rain: number | PrecipitationVolume | null;
-	snow: number | PrecipitationVolume | null;
-	weather: OpenWeatherSummary[];
+}
+
+interface OpenWeatherWind {
+	speed: number;
+	deg: number;
 }
 
 interface OpenWeatherSummary {
-	id: string;
+	id: number;
 	main: string;
 	description: string;
 	icon: string;
-}
-
-interface PrecipitationVolume {
-	h1: number;
-}
-
-interface TemperatureDaySnapshot {
-	morn: number;
-	day: number;
-	eve: number;
-	night: number;
-	min: number | null;
-	max: number | null;
 }
